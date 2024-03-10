@@ -1,14 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <PublishSingleFile>true</PublishSingleFile>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Utility\" />
-    <Folder Include="Resources\" />
-  </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Utility\" />
+        <Folder Include="Resources\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Prism.Unity" Version="8.1.97" />
+    </ItemGroup>
+
+    <!--<ItemGroup>
+        <Content Update="App.config">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        </Content>
+    </ItemGroup>-->
+
 
 </Project>

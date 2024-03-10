@@ -1,18 +1,17 @@
-﻿namespace EuropaDkpParser.ViewModels
+﻿// -----------------------------------------------------------------------
+// MainDisplayViewModel.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
+
+namespace EuropaDkpParser.ViewModels;
+
+using System.Collections.Generic;
+
+internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayViewModel
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
-    internal sealed class MainDisplayViewModel : IMainDisplayViewModel
-    {
+}
 
-    }
+public interface IMainDisplayViewModel : IEuropaViewModel
+{
 
-    public interface IMainDisplayViewModel
-    {
-
-    }
 }

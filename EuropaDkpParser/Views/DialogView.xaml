@@ -1,0 +1,23 @@
+﻿<Window x:Class="EuropaDkpParser.Views.DialogView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dialogsView="clr-namespace:EuropaDkpParser.Views"
+        xmlns:dialogsViewModel="clr-namespace:EuropaDkpParser.ViewModels"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        WindowStyle="ToolWindow"
+        SizeToContent="WidthAndHeight" 
+        Title="{Binding Title}"
+        dialogsView:DialogResultBehavior.DialogResult="{Binding DialogResult}">
+
+    <ContentPresenter Margin="6,10,6,8" Content="{Binding}">
+        <ContentPresenter.Resources>
+            <ResourceDictionary>
+                <DataTemplate DataType="{x:Type dialogsViewModel:LogSelectionViewModel}">
+                    <dialogsView:LogSelectionDialog />
+                </DataTemplate>
+            </ResourceDictionary>
+        </ContentPresenter.Resources>
+    </ContentPresenter>
+</Window>

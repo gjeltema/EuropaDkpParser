@@ -1,6 +1,10 @@
-﻿namespace EuropaDkpParser.ViewModels;
+﻿// -----------------------------------------------------------------------
+// ShellViewModel.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
 
-internal sealed class ShellViewModel : IShellViewModel
+namespace EuropaDkpParser.ViewModels;
+
+internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 {
     internal ShellViewModel()
     {
@@ -10,7 +14,7 @@ internal sealed class ShellViewModel : IShellViewModel
     public IMainDisplayViewModel MainDisplayVM { get; }
 }
 
-public interface IShellViewModel
+public interface IShellViewModel : IEuropaViewModel
 {
     IMainDisplayViewModel MainDisplayVM { get; }
 }

@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="EuropaDkpParser.Views.LogSelectionDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EuropaDkpParser.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <ListBox ItemsSource="{Binding SelectedCharacterLogFiles}" Margin="2,5" Grid.Row="0"/>
+
+            <Grid Grid.Row="1" Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="50"/>
+                </Grid.ColumnDefinitions>
+
+                <ComboBox ItemsSource="{Binding AllCharacterLogFiles}" Grid.Column="0"/>
+
+                <Button Content="Add" Command="{Binding AddLogFileToListCommand}" Grid.Column="1"/>
+
+            </Grid>
+
+            <Grid Grid.Row="2" Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="50"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Text="{Binding EqDirectory}" Grid.Column="0"/>
+                <Button Content="Set Dir" Command="{Binding SelectEqDirectoryCommand}" Grid.Column="1"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
