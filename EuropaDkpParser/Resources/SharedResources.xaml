@@ -1,0 +1,8 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:utilities="clr-namespace:EuropaDkpParser.Utility">
+
+    <utilities:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <utilities:InverseBoolConverter x:Key="InverseBoolConverter" />
+
+</ResourceDictionary>
