@@ -9,9 +9,14 @@ using Prism.Commands;
 
 internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayViewModel
 {
-    internal MainDisplayViewModel(IDkpParserSettings settings)
-    {
+    private readonly IDialogFactory _dialogFactory;
+    private readonly IDkpParserSettings _settings;
 
+    internal MainDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
+    {
+        _settings = settings;
+        _dialogFactory = dialogFactory;
+        OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
     }
 
     public string EndTimeText { get; set; }
@@ -27,6 +32,15 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     public DelegateCommand StartLogParseCommand { get; }
 
     public string StartTimeText { get; set; }
+
+    private void OpenSettingsDialog()
+    {
+        ILogSelectionViewModel settingsDialog = _dialogFactory.CreateSettingsViewDialog(_settings);
+        if (settingsDialog.ShowDialog() != true)
+            return;
+
+
+    }
 }
 
 public interface IMainDisplayViewModel : IEuropaViewModel

@@ -4,6 +4,8 @@
 
 namespace EuropaDkpParser.ViewModels;
 
+using DkpParser;
+
 internal sealed class DialogFactory : IDialogFactory
 {
     private readonly IDialogViewFactory ViewFactory;
@@ -12,8 +14,12 @@ internal sealed class DialogFactory : IDialogFactory
     {
         ViewFactory = viewFactory;
     }
+
+    public ILogSelectionViewModel CreateSettingsViewDialog(IDkpParserSettings settings)
+        => new LogSelectionViewModel(ViewFactory, settings);
 }
 
 public interface IDialogFactory
 {
+    ILogSelectionViewModel CreateSettingsViewDialog(IDkpParserSettings settings);
 }

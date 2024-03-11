@@ -1,16 +1,19 @@
-﻿namespace EuropaDkpParser;
+﻿// -----------------------------------------------------------------------
+// App.xaml.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
 
-using System.Configuration;
+namespace EuropaDkpParser;
+
 using System.Windows;
 using System.Windows.Threading;
+using DkpParser;
 using EuropaDkpParser.ViewModels;
 using EuropaDkpParser.Views;
-using DkpParser;
 
 public partial class App : Application
 {
-    private const string SettingsFilePath = "Settings.txt";
     private const string BossMobsFilePath = "BossMobs.txt";
+    private const string SettingsFilePath = "Settings.txt";
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -20,7 +23,7 @@ public partial class App : Application
         IDkpParserSettings settings = new DkpParserSettings();
         settings.LoadAllSettings(SettingsFilePath, BossMobsFilePath);
 
-        var shellVM = new ShellViewModel(settings);
+        var shellVM = new ShellViewModel(settings, new DialogFactory(new DialogViewFactory()));
         var shellView = new ShellView(shellVM);
         MainWindow = shellView;
         MainWindow.Show();
@@ -35,18 +38,6 @@ public partial class App : Application
     {
         HandleFatalException(e.Exception);
         e.Handled = true;
-    }
-
-    private static string GetAppConfigSetting(string key)
-    {
-        try
-        {
-            return ConfigurationManager.AppSettings[key] ?? string.Empty;
-        }
-        catch (ConfigurationErrorsException)
-        {
-            return string.Empty;
-        }
     }
 
     private static void HandleFatalException(Exception ex)

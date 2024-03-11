@@ -5,10 +5,11 @@
 namespace EuropaDkpParser.ViewModels;
 
 using System.Collections.Generic;
+using DkpParser;
 
 internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelectionViewModel
 {
-    internal LogSelectionViewModel(IDialogViewFactory viewFactory)
+    internal LogSelectionViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings)
         : base(viewFactory)
     {
     }
