@@ -20,8 +20,8 @@ public partial class App : Application
         DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledExceptionHandler;
 
-        IDkpParserSettings settings = new DkpParserSettings();
-        settings.LoadAllSettings(SettingsFilePath, BossMobsFilePath);
+        IDkpParserSettings settings = new DkpParserSettings(SettingsFilePath, BossMobsFilePath);
+        settings.LoadAllSettings();
 
         var shellVM = new ShellViewModel(settings, new DialogFactory(new DialogViewFactory()));
         var shellView = new ShellView(shellVM);

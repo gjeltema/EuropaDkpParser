@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EuropaDkpParser.Views" 
              xmlns:viewmodels="clr-namespace:EuropaDkpParser.ViewModels" 
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              d:DataContext="{d:DesignInstance Type=viewmodels:MainDisplayViewModel}"
              mc:Ignorable="d" >
 
@@ -27,12 +28,14 @@
             </Grid.RowDefinitions>
 
             <Label Content="Start" Grid.Row="0" Grid.Column="0"/>
-            <TextBox Text="{Binding StartTimeText}" Grid.Row="0" Grid.Column="1"/>
-            <Button Content="Select Time" Command="{Binding SelectStartTimeCommand}" Grid.Row="0" Grid.Column="2"/>
+            <xctk:DateTimePicker Format="FullDateTime" Text="{Binding StartTimeText}"/>
+            <!--<TextBox Text="{Binding StartTimeText}" Grid.Row="0" Grid.Column="1"/>
+            <Button Content="Select Time" Command="{Binding SelectStartTimeCommand}" Grid.Row="0" Grid.Column="2"/>-->
 
             <Label Content="End" Grid.Row="1" Grid.Column="0"/>
-            <TextBox Text="{Binding EndTimeText}" Grid.Row="1" Grid.Column="1"/>
-            <Button Content="Select Time" Command="{Binding SelectEndTimeCommand}" Grid.Row="1" Grid.Column="2"/>
+            <xctk:DateTimePicker Format="FullDateTime" Text="{Binding EndTimeText}"/>
+            <!--<TextBox Text="{Binding EndTimeText}" Grid.Row="1" Grid.Column="1"/>
+            <Button Content="Select Time" Command="{Binding SelectEndTimeCommand}" Grid.Row="1" Grid.Column="2"/>-->
         </Grid>
 
         <Grid Grid.Row="1">

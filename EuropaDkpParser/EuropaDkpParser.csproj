@@ -20,6 +20,12 @@
       <ProjectReference Include="..\DkpParser\DkpParser.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="Xceed.Wpf.Toolkit.NET5">
+        <HintPath>..\..\WPFLibs\Xceed.Wpf.Toolkit.NET5.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
     <!--<ItemGroup>
         <Content Update="App.config">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

@@ -39,7 +39,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         if (settingsDialog.ShowDialog() != true)
             return;
 
-
+        _settings.SaveSettings();
     }
 }
 

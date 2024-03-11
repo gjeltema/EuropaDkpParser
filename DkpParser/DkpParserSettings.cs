@@ -8,11 +8,19 @@ using System.IO;
 
 public sealed class DkpParserSettings : IDkpParserSettings
 {
+    public DkpParserSettings(string settingsFilePath, string bossMobsFilePath)
+    {
+        _settingsFilePath = settingsFilePath;
+        _bossMobsFilePath = bossMobsFilePath;
+    }
+
     private const int DefaultWindowLocation = 200;
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string WindowLocation = "WINDOW_LOCATION";
+    private readonly string _settingsFilePath;
+    private readonly string _bossMobsFilePath;
 
     public ICollection<string> BossMobs { get; private set; } = [];
 
@@ -24,41 +32,41 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public ICollection<string> SelectedLogFiles { get; private set; } = [];
 
-    public void LoadAllSettings(string settingsFilePath, string bossMobsFilePath)
+    public void LoadAllSettings()
     {
-        LoadSettings(settingsFilePath);
-        LoadBossMobs(bossMobsFilePath);
+        LoadSettings();
+        LoadBossMobs();
     }
 
-    public void LoadBossMobs(string bossMobsFilePath)
+    public void LoadBossMobs()
     {
-        if (!File.Exists(bossMobsFilePath))
+        if (!File.Exists(_bossMobsFilePath))
             return;
 
-        string[] fileContents = File.ReadAllLines(bossMobsFilePath);
+        string[] fileContents = File.ReadAllLines(_bossMobsFilePath);
         BossMobs = fileContents;
     }
 
-    public void LoadSettings(string settingsFilePath)
+    public void LoadSettings()
     {
-        if (!File.Exists(settingsFilePath))
+        if (!File.Exists(_settingsFilePath))
         {
-            SaveSettings(settingsFilePath);
+            SaveSettings();
             return;
         }
 
-        string[] fileContents = File.ReadAllLines(settingsFilePath);
+        string[] fileContents = File.ReadAllLines(_settingsFilePath);
         SetWindowLocation(fileContents);
         SetEqDirectory(fileContents);
         SetSelectedLogFiles(fileContents);
     }
 
-    public void SaveBossMobs(string bossMobsFilePath)
+    public void SaveBossMobs()
     {
-        File.WriteAllLines(bossMobsFilePath, BossMobs);
+        File.WriteAllLines(_bossMobsFilePath, BossMobs);
     }
 
-    public void SaveSettings(string settingsFilePath)
+    public void SaveSettings()
     {
         var settingsFileContent = new List<string>(8)
         {
@@ -77,7 +85,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         settingsFileContent.Add(SelectedLogFilesSection + SectionEnding);
 
-        File.WriteAllLines(settingsFilePath, settingsFileContent);
+        File.WriteAllLines(_settingsFilePath, settingsFileContent);
     }
 
     private static int GetStartingIndex(IList<string> fileContents, string configurationSectionName)
@@ -157,9 +165,13 @@ public interface IDkpParserSettings
 
     ICollection<string> SelectedLogFiles { get; }
 
-    void LoadAllSettings(string settingsFilePath, string bossMobsFilePath);
+    void LoadAllSettings();
 
-    void LoadBossMobs(string bossMobsFilePath);
+    void LoadBossMobs();
 
-    void LoadSettings(string settingsFilePath);
+    void LoadSettings();
+
+    void SaveBossMobs();
+
+    void SaveSettings();
 }
