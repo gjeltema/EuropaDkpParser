@@ -16,6 +16,10 @@
       <PackageReference Include="Prism.Unity" Version="8.1.97" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\DkpParser\DkpParser.csproj" />
+    </ItemGroup>
+
     <!--<ItemGroup>
         <Content Update="App.config">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

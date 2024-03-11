@@ -5,15 +5,22 @@ using System.Windows;
 using System.Windows.Threading;
 using EuropaDkpParser.ViewModels;
 using EuropaDkpParser.Views;
+using DkpParser;
 
 public partial class App : Application
 {
+    private const string SettingsFilePath = "Settings.txt";
+    private const string BossMobsFilePath = "BossMobs.txt";
+
     protected override void OnStartup(StartupEventArgs e)
     {
         DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledExceptionHandler;
 
-        var shellVM = new ShellViewModel();
+        IDkpParserSettings settings = new DkpParserSettings();
+        settings.LoadAllSettings(SettingsFilePath, BossMobsFilePath);
+
+        var shellVM = new ShellViewModel(settings);
         var shellView = new ShellView(shellVM);
         MainWindow = shellView;
         MainWindow.Show();
