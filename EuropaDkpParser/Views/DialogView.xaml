@@ -2,13 +2,17 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:dialogsView="clr-namespace:EuropaDkpParser.Views"
-        xmlns:dialogsViewModel="clr-namespace:EuropaDkpParser.ViewModels"
+        xmlns:dialogsViewModel="clr-namespace:EuropaDkpParser.ViewModels" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        d:DataContext="{d:DesignInstance Type=dialogsViewModel:DialogViewModelBase}"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         WindowStyle="ToolWindow"
         SizeToContent="WidthAndHeight" 
         Title="{Binding Title}"
+        mc:Ignorable="d" 
         dialogsView:DialogResultBehavior.DialogResult="{Binding DialogResult}">
 
     <ContentPresenter Margin="6,10,6,8" Content="{Binding}">
@@ -16,6 +20,15 @@
             <ResourceDictionary>
                 <DataTemplate DataType="{x:Type dialogsViewModel:LogSelectionViewModel}">
                     <dialogsView:LogSelectionDialog />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:ErrorDisplayDialogViewModel}">
+                    <dialogsView:ErrorDisplayDialog />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:FinalSummaryDialogViewModel}">
+                    <dialogsView:FinalSummaryDialog />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:CompletedDialogViewModel}">
+                    <dialogsView:CompletedDialog />
                 </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>

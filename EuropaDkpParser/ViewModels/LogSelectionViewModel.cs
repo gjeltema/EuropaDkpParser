@@ -9,7 +9,7 @@ using System.Collections.Generic;
 internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelectionViewModel
 {
     internal LogSelectionViewModel(IDialogViewFactory viewFactory)
-    : base(viewFactory)
+        : base(viewFactory)
     {
     }
 
