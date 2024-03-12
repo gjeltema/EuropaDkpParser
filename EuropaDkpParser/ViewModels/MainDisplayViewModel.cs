@@ -93,8 +93,14 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             return;
         }
 
-        ILogParseProcessor parseProcessor = new LogParseProcessor();
-        ILogParseResults results = await parseProcessor.ParseLogs(_settings, startTime, endTime);
+        if(startTime > endTime)
+        {
+            MessageBox.Show("Start Time is after End Time.", "Time error", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
+        ILogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
         ILogResultsAnalyzer analyzer = new LogResultsAnalyzer();
         analyzer.AnalyzeResults(results);
 
