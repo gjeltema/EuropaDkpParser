@@ -35,6 +35,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         if (settingsDialog.ShowDialog() != true)
             return;
 
+        _settings.EqDirectory = settingsDialog.EqDirectory;
+        _settings.SelectedLogFiles = settingsDialog.SelectedCharacterLogFiles;
         _settings.SaveSettings();
     }
 }

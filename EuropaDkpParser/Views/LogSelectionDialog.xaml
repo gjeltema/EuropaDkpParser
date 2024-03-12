@@ -7,37 +7,73 @@
              xmlns:viewmodels="clr-namespace:EuropaDkpParser.ViewModels" 
              d:DataContext="{d:DesignInstance Type=viewmodels:LogSelectionViewModel}"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800" MinWidth="400">
     <Grid>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <ListBox ItemsSource="{Binding SelectedCharacterLogFiles}" Margin="2,5" Grid.Row="0"/>
+            <Grid Grid.Row="0" Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="50"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Label Content="Everquest Log Directory" Grid.Row="0"/>
+
+                <TextBox Text="{Binding EqDirectory}" Grid.Row="1" Grid.Column="0"/>
+                <Button Content="Set Dir" Command="{Binding SelectEqDirectoryCommand}" Grid.Row="1" Grid.Column="1"/>
+            </Grid>
 
             <Grid Grid.Row="1" Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="50"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <ComboBox ItemsSource="{Binding AllCharacterLogFiles}" Grid.Column="0"/>
+                <Label Content="Available Log Files" Grid.Row="0"/>
 
-                <Button Content="Add" Command="{Binding AddLogFileToListCommand}" Grid.Column="1"/>
+                <ComboBox ItemsSource="{Binding AllCharacterLogFiles}" SelectedValue="{Binding SelectedLogFileToAdd}" Grid.Row="1" Grid.Column="0"/>
+
+                <Button Content="Add" Command="{Binding AddLogFileToListCommand}" Grid.Row="1" Grid.Column="1"/>
 
             </Grid>
 
-            <Grid Grid.Row="2" Margin="5">
+            <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="50"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <TextBox Text="{Binding EqDirectory}" Grid.Column="0"/>
-                <Button Content="Set Dir" Command="{Binding SelectEqDirectoryCommand}" Grid.Column="1"/>
+                <Label Content="Selected Log Files To Parse" Grid.Row="0"/>
+
+                <ListBox ItemsSource="{Binding SelectedCharacterLogFiles}" SelectedValue="{Binding SelectedLogFileToParse}" Margin="2,5" Grid.Row="1" Grid.Column="0" Height="85"/>
+                <Button Content="Remove" Command="{Binding RemoveLogFileFromListCommand}" Grid.Row="1" Grid.Column="1" Height="25"/>
+            </Grid>
+
+            <Grid Grid.Row="3" HorizontalAlignment="Right">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Margin="0,0,10,0" Width="50"/>
+                <Button Grid.Column="1" Content="{StaticResource SaveButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Width="50"/>
             </Grid>
         </Grid>
     </Grid>

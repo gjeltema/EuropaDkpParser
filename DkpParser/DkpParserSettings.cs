@@ -30,7 +30,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public int MainWindowY { get; set; } = DefaultWindowLocation;
 
-    public ICollection<string> SelectedLogFiles { get; private set; } = [];
+    public ICollection<string> SelectedLogFiles { get; set; } = [];
 
     public void LoadAllSettings()
     {
@@ -105,29 +105,28 @@ public sealed class DkpParserSettings : IDkpParserSettings
     }
 
     private bool IsValidIndex(int indexOfSection, IList<string> fileContents)
-        => indexOfSection == -1 || indexOfSection == fileContents.Count - 1;
+        => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
 
     private void SetEqDirectory(string[] fileContents)
     {
-        int index = GetStartingIndex(fileContents, EqDirectory);
-        if (IsValidIndex(index, fileContents))
-        {
-            index++;
-            string setting = fileContents[index];
-            EqDirectory = setting;
-        }
+        int index = GetStartingIndex(fileContents, EqDirectorySection);
+        if (!IsValidIndex(index, fileContents))
+            return;
+
+        index++;
+        string setting = fileContents[index];
+        EqDirectory = setting;
     }
 
     private void SetSelectedLogFiles(string[] fileContents)
     {
-        int index = GetStartingIndex(fileContents, EqDirectory);
+        int index = GetStartingIndex(fileContents, SelectedLogFilesSection);
         if (!IsValidIndex(index, fileContents))
             return;
 
-
         SelectedLogFiles.Clear();
 
-        string sectionEnd = EqDirectory + SectionEnding;
+        string sectionEnd = SelectedLogFilesSection + SectionEnding;
         index++;
         string entry = fileContents[index];
         while (entry != sectionEnd)
@@ -157,13 +156,13 @@ public interface IDkpParserSettings
 {
     ICollection<string> BossMobs { get; }
 
-    string EqDirectory { get; }
+    string EqDirectory { get; set; }
 
-    int MainWindowX { get; }
+    int MainWindowX { get; set; }
 
-    int MainWindowY { get; }
+    int MainWindowY { get; set; }
 
-    ICollection<string> SelectedLogFiles { get; }
+    ICollection<string> SelectedLogFiles { get; set; }
 
     void LoadAllSettings();
 

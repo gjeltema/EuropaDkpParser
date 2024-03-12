@@ -4,4 +4,10 @@
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
 
+    <system:String x:Key="YesButtonText">Yes</system:String>
+    <system:String x:Key="NoButtonText">No</system:String>
+    <system:String x:Key="SaveButtonText">Save</system:String>
+    <system:String x:Key="CancelButtonText">Cancel</system:String>
+    <system:String x:Key="CloseButtonText">Close</system:String>
+    
 </ResourceDictionary>
