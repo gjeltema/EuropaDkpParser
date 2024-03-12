@@ -8,19 +8,19 @@ using System.IO;
 
 public sealed class DkpParserSettings : IDkpParserSettings
 {
-    public DkpParserSettings(string settingsFilePath, string bossMobsFilePath)
-    {
-        _settingsFilePath = settingsFilePath;
-        _bossMobsFilePath = bossMobsFilePath;
-    }
-
     private const int DefaultWindowLocation = 200;
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string WindowLocation = "WINDOW_LOCATION";
-    private readonly string _settingsFilePath;
     private readonly string _bossMobsFilePath;
+    private readonly string _settingsFilePath;
+
+    public DkpParserSettings(string settingsFilePath, string bossMobsFilePath)
+    {
+        _settingsFilePath = settingsFilePath;
+        _bossMobsFilePath = bossMobsFilePath;
+    }
 
     public ICollection<string> BossMobs { get; private set; } = [];
 

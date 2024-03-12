@@ -26,11 +26,13 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Label Content="Start" Grid.Row="0" Grid.Column="0"/>
-            <xctk:DateTimePicker  Grid.Row="0" Grid.Column="1" Format="FullDateTime" Text="{Binding StartTimeText}" Width="250" TextAlignment="Left"/>
+            <Label Content="Start Time" Grid.Row="0" Grid.Column="0"/>
+            <xctk:DateTimePicker  Grid.Row="0" Grid.Column="1" Format="Custom" FormatString="yyyy-MM-dd HH:mm::ss" Text="{Binding StartTimeText}" 
+                                  HorizontalAlignment="Left" Width="200" TextAlignment="Left"/>
 
-            <Label Content="End" Grid.Row="1" Grid.Column="0"/>
-            <xctk:DateTimePicker Grid.Row="1" Grid.Column="1"  Format="FullDateTime" Text="{Binding EndTimeText}" Width="250" TextAlignment="Left"/>
+            <Label Content="End Time" Grid.Row="1" Grid.Column="0"/>
+            <xctk:DateTimePicker Grid.Row="1" Grid.Column="1"  Format="Custom" FormatString="yyyy-MM-dd HH:mm::ss" Text="{Binding EndTimeText}" 
+                                 HorizontalAlignment="Left" Width="200" TextAlignment="Left"/>
         </Grid>
 
         <Grid Grid.Row="1">
@@ -41,10 +43,12 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="Settings" Command="{Binding OpenSettingsDialogCommand}" Grid.Column="0" Width="100"/>
-            <Button Content="Start" Command="{Binding StartLogParseCommand}" Grid.Column="1" Width="100"/>
+            <Button Content="Settings" Command="{Binding OpenSettingsDialogCommand}" Grid.Column="0" Width="80"/>
+            <Button Content="Reset Time" Command="{Binding ResetTimeCommand}" Grid.Column="1" Width="80"/>
+            <Button Content="Start" Command="{Binding StartLogParseCommand}" Grid.Column="2" Width="80"/>
         </Grid>
     </Grid>
 </UserControl>
