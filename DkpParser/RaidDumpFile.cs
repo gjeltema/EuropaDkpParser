@@ -4,11 +4,11 @@
 
 namespace DkpParser;
 
-internal sealed class RaidDumpFile
+public sealed class RaidDumpFile
 {
     public const string RaidDumpFileNameStart = "RaidRoster-";
 
-    internal RaidDumpFile(string fileName)
+    public RaidDumpFile(string fileName)
     {
         FileName = fileName;
         CharacterNames = [];
@@ -18,8 +18,8 @@ internal sealed class RaidDumpFile
         FileDateTime = DateTime.Parse($"{dateTimeComponents[1]}T{dateTimeComponents[2]}");
     }
 
-    internal DateTime FileDateTime { get; }
-    internal string FileName { get; private set; }
+    public DateTime FileDateTime { get; }
+    public string FileName { get; private set; }
 
-    internal List<string> CharacterNames { get; private set; }
+    public List<string> CharacterNames { get; private set; }
 }

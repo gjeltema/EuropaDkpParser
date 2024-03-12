@@ -4,11 +4,14 @@
 
 namespace DkpParser;
 
-internal sealed class LogParseResults : ILogParseResults
+public sealed class LogParseResults
 {
-}
+    public LogParseResults(IList<EqLogFile> eqLogFiles, IList<RaidDumpFile> raidDumpFiles)
+    {
+        EqLogFiles = eqLogFiles;
+        RaidDumpFiles = raidDumpFiles;
+    }
 
-public interface ILogParseResults
-{
-
+    public IList<RaidDumpFile> RaidDumpFiles { get; }
+    public IList<EqLogFile> EqLogFiles { get; }
 }

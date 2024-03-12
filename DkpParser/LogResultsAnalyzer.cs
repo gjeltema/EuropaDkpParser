@@ -8,7 +8,7 @@ public sealed class LogResultsAnalyzer : ILogResultsAnalyzer
 {
     public IPotentialLogErrors PotentialErrors { get; }
 
-    public void AnalyzeResults(ILogParseResults results)
+    public void AnalyzeResults(LogParseResults results)
     {
 
     }
@@ -18,5 +18,5 @@ public interface ILogResultsAnalyzer
 {
     IPotentialLogErrors PotentialErrors { get; }
 
-    void AnalyzeResults(ILogParseResults results);
+    void AnalyzeResults(LogParseResults results);
 }

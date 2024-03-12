@@ -17,39 +17,35 @@ public sealed class LogParseProcessor : ILogParseProcessor
         _settings = settings;
     }
 
-    public ILogParseResults ParseLogs(DateTime startTime, DateTime endTime)
+    public LogParseResults ParseLogs(DateTime startTime, DateTime endTime)
     {
         List<RaidDumpFile> raidDumpFiles = GetRaidDumpFiles(startTime, endTime);
+        List<EqLogFile> logFiles = GetEqLogFiles(startTime, endTime);
 
-        return null;
+        LogParseResults results = new(logFiles, raidDumpFiles);
+        return results;
     }
 
-    private List<string> GetAllRaidDumpFileNames(DateTime startTime, DateTime endTime)
+    private List<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime)
     {
-        List<string> fileNames = [];
-        string endDate = endTime.ToString("yyyyMMdd");
-        string date;
-
-        do
+        List<EqLogFile> logFiles = [];
+        LogParser parser = new(_settings);
+        foreach (string logFileName in _settings.SelectedLogFiles)
         {
-            date = startTime.ToString("yyyyMMdd");
-            string fileNameSearchString = RaidDumpFile.RaidDumpFileNameStart + date + "-*.txt";
-            string[] raidDumpFiles = Directory.GetFiles(fileNameSearchString);
-            fileNames.AddRange(raidDumpFiles);
+            EqLogFile parsedFile = parser.ParseLogFile(logFileName, startTime, endTime);
+            logFiles.Add(parsedFile);
+        }
 
-            startTime = startTime.AddDays(1);
-            date = startTime.ToString("yyyyMMdd");
-        } while (date != endDate);
-
-        return fileNames;
+        return logFiles;
     }
 
     private List<RaidDumpFile> GetRaidDumpFiles(DateTime startTime, DateTime endTime)
     {
-        string fileNameSearchString = RaidDumpFile.RaidDumpFileNameStart + "*.txt";
-        List<RaidDumpFile> raidDumpFiles = Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString).Select(x => new RaidDumpFile(x)).ToList();
         List<RaidDumpFile> relevantDumpFiles = [];
 
+        string fileNameSearchString = RaidDumpFile.RaidDumpFileNameStart + "*.txt";
+        IEnumerable<RaidDumpFile> raidDumpFiles = Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString).Select(x => new RaidDumpFile(x));
+        
         foreach (RaidDumpFile dumpFile in raidDumpFiles)
         {
             if (startTime < dumpFile.FileDateTime && dumpFile.FileDateTime < endTime)
@@ -74,5 +70,5 @@ public sealed class LogParseProcessor : ILogParseProcessor
 
 public interface ILogParseProcessor
 {
-    ILogParseResults ParseLogs(DateTime startTime, DateTime endTime);
+    LogParseResults ParseLogs(DateTime startTime, DateTime endTime);
 }

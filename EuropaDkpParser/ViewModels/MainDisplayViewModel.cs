@@ -100,7 +100,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
 
         ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
-        ILogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
+        LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
         ILogResultsAnalyzer analyzer = new LogResultsAnalyzer();
         analyzer.AnalyzeResults(results);
 
