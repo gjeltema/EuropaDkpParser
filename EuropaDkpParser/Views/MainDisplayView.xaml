@@ -7,7 +7,7 @@
              xmlns:viewmodels="clr-namespace:EuropaDkpParser.ViewModels" 
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              d:DataContext="{d:DesignInstance Type=viewmodels:MainDisplayViewModel}"
-             mc:Ignorable="d" >
+             mc:Ignorable="d">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -20,7 +20,6 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -28,14 +27,10 @@
             </Grid.RowDefinitions>
 
             <Label Content="Start" Grid.Row="0" Grid.Column="0"/>
-            <xctk:DateTimePicker Format="FullDateTime" Text="{Binding StartTimeText}"/>
-            <!--<TextBox Text="{Binding StartTimeText}" Grid.Row="0" Grid.Column="1"/>
-            <Button Content="Select Time" Command="{Binding SelectStartTimeCommand}" Grid.Row="0" Grid.Column="2"/>-->
+            <xctk:DateTimePicker  Grid.Row="0" Grid.Column="1" Format="FullDateTime" Text="{Binding StartTimeText}" Width="250" TextAlignment="Left"/>
 
             <Label Content="End" Grid.Row="1" Grid.Column="0"/>
-            <xctk:DateTimePicker Format="FullDateTime" Text="{Binding EndTimeText}"/>
-            <!--<TextBox Text="{Binding EndTimeText}" Grid.Row="1" Grid.Column="1"/>
-            <Button Content="Select Time" Command="{Binding SelectEndTimeCommand}" Grid.Row="1" Grid.Column="2"/>-->
+            <xctk:DateTimePicker Grid.Row="1" Grid.Column="1"  Format="FullDateTime" Text="{Binding EndTimeText}" Width="250" TextAlignment="Left"/>
         </Grid>
 
         <Grid Grid.Row="1">
@@ -48,8 +43,8 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="Settings" Command="{Binding OpenSettingsDialogCommand}" Grid.Column="0"/>
-            <Button Content="Start" Command="{Binding StartLogParseCommand}" Grid.Column="1"/>
+            <Button Content="Settings" Command="{Binding OpenSettingsDialogCommand}" Grid.Column="0" Width="100"/>
+            <Button Content="Start" Command="{Binding StartLogParseCommand}" Grid.Column="1" Width="100"/>
         </Grid>
     </Grid>
 </UserControl>

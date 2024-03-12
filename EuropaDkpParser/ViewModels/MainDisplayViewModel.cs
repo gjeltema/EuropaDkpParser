@@ -25,10 +25,6 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
     public string OutputFile { get; set; }
 
-    public DelegateCommand SelectEndTimeCommand { get; }
-
-    public DelegateCommand SelectStartTimeCommand { get; }
-
     public DelegateCommand StartLogParseCommand { get; }
 
     public string StartTimeText { get; set; }
@@ -50,10 +46,6 @@ public interface IMainDisplayViewModel : IEuropaViewModel
     DelegateCommand OpenSettingsDialogCommand { get; }
 
     string OutputFile { get; set; }
-
-    DelegateCommand SelectEndTimeCommand { get; }
-
-    DelegateCommand SelectStartTimeCommand { get; }
 
     DelegateCommand StartLogParseCommand { get; }
 
