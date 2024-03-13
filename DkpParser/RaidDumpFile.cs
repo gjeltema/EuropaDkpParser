@@ -4,6 +4,9 @@
 
 namespace DkpParser;
 
+using System.Globalization;
+using System.IO;
+
 public sealed class RaidDumpFile
 {
     public const string RaidDumpFileNameStart = "RaidRoster-";
@@ -13,9 +16,10 @@ public sealed class RaidDumpFile
         FileName = fileName;
         CharacterNames = [];
 
-        string dumpFileWithoutExtension = fileName[0..^4];
-        string[] dateTimeComponents = dumpFileWithoutExtension.Split('-');
-        FileDateTime = DateTime.Parse($"{dateTimeComponents[1]}T{dateTimeComponents[2]}");
+        FileInfo dumpFileInfo = new (fileName);
+        fileName = dumpFileInfo.Name;
+        string dumpFileTimeStamp = fileName[11..^4];
+        FileDateTime = DateTime.ParseExact(dumpFileTimeStamp, Constants.RaidDumpFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 
     public DateTime FileDateTime { get; }

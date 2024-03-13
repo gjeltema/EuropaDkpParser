@@ -27,11 +27,11 @@
             </Grid.RowDefinitions>
 
             <Label Content="Start Time" Grid.Row="0" Grid.Column="0"/>
-            <xctk:DateTimePicker  Grid.Row="0" Grid.Column="1" Format="Custom" FormatString="yyyy-MM-dd HH:mm::ss" Text="{Binding StartTimeText}" 
+            <xctk:DateTimePicker  Grid.Row="0" Grid.Column="1" Format="Custom" FormatString="yyyy-MM-dd HH:mm:ss" Text="{Binding StartTimeText}" 
                                   HorizontalAlignment="Left" Width="200" TextAlignment="Left"/>
 
             <Label Content="End Time" Grid.Row="1" Grid.Column="0"/>
-            <xctk:DateTimePicker Grid.Row="1" Grid.Column="1"  Format="Custom" FormatString="yyyy-MM-dd HH:mm::ss" Text="{Binding EndTimeText}" 
+            <xctk:DateTimePicker Grid.Row="1" Grid.Column="1"  Format="Custom" FormatString="yyyy-MM-dd HH:mm:ss" Text="{Binding EndTimeText}" 
                                  HorizontalAlignment="Left" Width="200" TextAlignment="Left"/>
         </Grid>
 

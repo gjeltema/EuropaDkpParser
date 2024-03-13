@@ -87,7 +87,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             return;
         }
 
-        if (!DateTime.TryParse(StartTimeText, out DateTime endTime))
+        if (!DateTime.TryParse(EndTimeText, out DateTime endTime))
         {
             MessageBox.Show("End Time is not in a valid format.", "End Time error", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
