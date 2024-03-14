@@ -8,9 +8,9 @@ using System;
 
 internal sealed class FindStartTimeParser : IParseEntry
 {
+    private readonly IParseEntry _firstParser;
     private readonly ISetParser _setParser;
     private readonly DateTime _startTime;
-    private readonly IParseEntry _firstParser;
 
     internal FindStartTimeParser(ISetParser setParser, DateTime startTime, IParseEntry firstParser)
     {
@@ -19,12 +19,13 @@ internal sealed class FindStartTimeParser : IParseEntry
         _firstParser = firstParser;
     }
 
-    public EqLogEntry ParseEntry(string logLine, DateTime entryTimeStamp)
+    public void ParseEntry(string logLine, DateTime entryTimeStamp)
     {
         if (entryTimeStamp < _startTime)
-            return null;
+            return;
 
         _setParser.SetParser(_firstParser);
-        return _firstParser.ParseEntry(logLine, entryTimeStamp);
+        _firstParser.ParseEntry(logLine, entryTimeStamp);
+        return;
     }
 }

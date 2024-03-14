@@ -1,44 +1,45 @@
-﻿namespace DkpParser;
+﻿// -----------------------------------------------------------------------
+// AttendanceEntryParser.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
+
+namespace DkpParser;
 
 internal sealed class AttendanceEntryParser : IParseEntry
 {
+    private readonly EqLogFile _logFile;
     private readonly ISetParser _setParser;
 
-    internal AttendanceEntryParser(ISetParser setParser)
+    internal AttendanceEntryParser(ISetParser setParser, EqLogFile logFile)
     {
         _setParser = setParser;
+        _logFile = logFile;
     }
 
-    public EqLogEntry ParseEntry(string logLine, DateTime entryTimeStamp)
+    public void ParseEntry(string logLine, DateTime entryTimeStamp)
     {
         if (!logLine.Contains(Constants.PossibleErrorDelimiter))
-            return null;
+            return;
+
+        EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
+        _logFile.LogEntries.Add(logEntry);
+        CheckForTwoColonError(logEntry, logLine);
 
         if (logLine.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase))
         {
-            EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
             logEntry.EntryType = LogEntryType.DkpSpent;
-            CheckForTwoColonError(logEntry, logLine);
-            return logEntry;
         }
         else if (logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase))
         {
-            EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
             logEntry.EntryType = LogEntryType.Kill;
-            CheckForTwoColonError(logEntry, logLine);
             //** Switch to parser that looks for population listing
-            return logEntry;
+            //** Create new instance to remove a bool flag?
         }
         else if (logLine.Contains(Constants.Attendance, StringComparison.OrdinalIgnoreCase))
         {
-            EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
             logEntry.EntryType = LogEntryType.Attendance;
-            CheckForTwoColonError(logEntry, logLine);
             //** Switch to parser that looks for population listing
-            return logEntry;
-        }        
-
-        return null;
+            //** Create new instance to remove a bool flag?
+        }
     }
 
     private void CheckForTwoColonError(EqLogEntry logEntry, string logLine)

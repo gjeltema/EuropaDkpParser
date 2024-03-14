@@ -6,7 +6,7 @@ namespace DkpParser;
 
 public sealed class EqLogEntry
 {
-    public LogEntryType EntryType { get; set; }
+    public LogEntryType EntryType { get; set; } = LogEntryType.Unknown;
 
     public PossibleError ErrorType { get; set; } = PossibleError.None;
 

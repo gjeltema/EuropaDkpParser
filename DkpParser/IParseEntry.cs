@@ -6,5 +6,5 @@ namespace DkpParser;
 
 public interface IParseEntry
 {
-    EqLogEntry ParseEntry(string logLine, DateTime entryTimeStamp);
+    void ParseEntry(string logLine, DateTime entryTimeStamp);
 }

@@ -10,8 +10,8 @@ using System.IO;
 internal sealed class LogParser : ILogParser, ISetParser
 {
     private readonly IDkpParserSettings _settings;
-    private IParseEntry _currentEntryParser;
     private IParseEntry _attendanceEntryParser;
+    private IParseEntry _currentEntryParser;
 
     public LogParser(IDkpParserSettings settings)
     {
@@ -29,16 +29,18 @@ internal sealed class LogParser : ILogParser, ISetParser
         {
             if (!GetTimeStamp(logLine, out DateTime entryTimeStamp))
             {
-                // Log error?
+                // Log error?  Empty lines in log file, so expected.
                 continue;
             }
 
             if (entryTimeStamp > endTime)
                 break;
 
-            EqLogEntry logEntry = _currentEntryParser.ParseEntry(logLine, entryTimeStamp);
-            if(logEntry != null)
-                logFile.LogEntries.Add(logEntry);
+            _currentEntryParser.ParseEntry(logLine, entryTimeStamp);
+
+            //EqLogEntry logEntry = _currentEntryParser.ParseEntry(logLine, entryTimeStamp);
+            //if(logEntry != null)
+            //    logFile.LogEntries.Add(logEntry);
 
             //if (logLine.Contains(Constants.PossibleErrorDelimiter))
             //{
@@ -92,7 +94,7 @@ internal sealed class LogParser : ILogParser, ISetParser
         return logFile;
     }
 
-    public void SetParser(IParseEntry parseEntry) 
+    public void SetParser(IParseEntry parseEntry)
         => _currentEntryParser = parseEntry;
 
     private bool GetTimeStamp(string logLine, out DateTime result)
