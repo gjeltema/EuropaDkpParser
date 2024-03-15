@@ -29,6 +29,7 @@ internal sealed class PopulationListingStartParser : IParseEntry
         if (entryTimeStamp - _initiateStartOfParseTimeStamp > DurationOfSearch)
         {
             //** Switch to normal parser
+            //** parse with normal parser
 
             _finishedParse = true;
             return;
@@ -47,6 +48,10 @@ internal sealed class PopulationListingStartParser : IParseEntry
         {
             _finishedParse = true;
             //** Switch to PopulationParser
+
+            return;
         }
+
+        //** Parse with normal parser
     }
 }
