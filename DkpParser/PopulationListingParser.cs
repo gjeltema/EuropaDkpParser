@@ -6,15 +6,15 @@ namespace DkpParser;
 
 internal sealed class PopulationListingParser : IParseEntry
 {
-    private readonly IParseEntry _attendanceEntryParser;
     private readonly EqLogFile _logFile;
+    private readonly IParseEntry _primaryEntryParser;
     private readonly ISetParser _setParser;
 
-    internal PopulationListingParser(ISetParser setParser, EqLogFile logFile, IParseEntry attendanceEntryParser)
+    internal PopulationListingParser(ISetParser setParser, EqLogFile logFile, IParseEntry primaryEntryParser)
     {
         _setParser = setParser;
         _logFile = logFile;
-        _attendanceEntryParser = attendanceEntryParser;
+        _primaryEntryParser = primaryEntryParser;
     }
 
     public void ParseEntry(string logLine, DateTime entryTimeStamp)
@@ -39,7 +39,7 @@ internal sealed class PopulationListingParser : IParseEntry
             };
             _logFile.LogEntries.Add(logEntry);
 
-            _setParser.SetParser(_attendanceEntryParser);
+            _setParser.SetParser(_primaryEntryParser);
         }
     }
 }

@@ -1,17 +1,17 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceEntryParser.cs Copyright 2024 Craig Gjeltema
+// PrimaryEntryParser.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
 
-internal sealed class AttendanceEntryParser : IParseEntry
+internal sealed class PrimaryEntryParser : IParseEntry
 {
     private readonly EqLogFile _logFile;
     private readonly ISetParser _setParser;
     private IParseEntry _populationListingParser;
     private IStartParseEntry _populationListingStartParser;
 
-    internal AttendanceEntryParser(ISetParser setParser, EqLogFile logFile)
+    internal PrimaryEntryParser(ISetParser setParser, EqLogFile logFile)
     {
         _setParser = setParser;
         _logFile = logFile;
@@ -22,9 +22,18 @@ internal sealed class AttendanceEntryParser : IParseEntry
 
     public void ParseEntry(string logLine, DateTime entryTimeStamp)
     {
-        if (!logLine.Contains(Constants.PossibleErrorDelimiter))
-            return;
+        if (logLine.Contains(Constants.PossibleErrorDelimiter))
+        {
+            AddDelimiterEntry(logLine, entryTimeStamp);
+        }
+        else if (logLine.EndsWith(Constants.LootedDashes) && logLine.Contains(Constants.Looted))
+        {
+            AddLootedEntry(logLine, entryTimeStamp);
+        }
+    }
 
+    private void AddDelimiterEntry(string logLine, DateTime entryTimeStamp)
+    {
         EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
         _logFile.LogEntries.Add(logEntry);
         CheckForTwoColonError(logEntry, logLine);
@@ -38,7 +47,6 @@ internal sealed class AttendanceEntryParser : IParseEntry
             logEntry.EntryType = LogEntryType.Kill;
             _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
             _setParser.SetParser(_populationListingStartParser);
-
         }
         else if (logLine.Contains(Constants.Attendance, StringComparison.OrdinalIgnoreCase))
         {
@@ -46,6 +54,13 @@ internal sealed class AttendanceEntryParser : IParseEntry
             _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
             _setParser.SetParser(_populationListingStartParser);
         }
+    }
+
+    private void AddLootedEntry(string logLine, DateTime entryTimeStamp)
+    {
+        EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
+        logEntry.EntryType = LogEntryType.PlayerLooted;
+        _logFile.LogEntries.Add(logEntry);
     }
 
     private void CheckForTwoColonError(EqLogEntry logEntry, string logLine)

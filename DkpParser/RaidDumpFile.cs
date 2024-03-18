@@ -16,14 +16,15 @@ public sealed class RaidDumpFile
         FileName = fileName;
         CharacterNames = [];
 
-        FileInfo dumpFileInfo = new (fileName);
+        FileInfo dumpFileInfo = new(fileName);
         fileName = dumpFileInfo.Name;
         string dumpFileTimeStamp = fileName[11..^4];
         FileDateTime = DateTime.ParseExact(dumpFileTimeStamp, Constants.RaidDumpFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 
-    public DateTime FileDateTime { get; }
-    public string FileName { get; private set; }
-
     public List<string> CharacterNames { get; private set; }
+
+    public DateTime FileDateTime { get; }
+
+    public string FileName { get; private set; }
 }

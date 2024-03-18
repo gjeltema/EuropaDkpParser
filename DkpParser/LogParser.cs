@@ -10,7 +10,7 @@ using System.IO;
 internal sealed class LogParser : ILogParser, ISetParser
 {
     private readonly IDkpParserSettings _settings;
-    private IParseEntry _attendanceEntryParser;
+    private IParseEntry _primaryEntryParser;
     private IParseEntry _currentEntryParser;
 
     public LogParser(IDkpParserSettings settings)
@@ -22,8 +22,8 @@ internal sealed class LogParser : ILogParser, ISetParser
     {
         EqLogFile logFile = new() { LogFile = filename };
 
-        _attendanceEntryParser = new AttendanceEntryParser(this, logFile);
-        SetParser(new FindStartTimeParser(this, startTime, _attendanceEntryParser));
+        _primaryEntryParser = new PrimaryEntryParser(this, logFile);
+        SetParser(new FindStartTimeParser(this, startTime, _primaryEntryParser));
 
         foreach (string logLine in File.ReadLines(filename))
         {

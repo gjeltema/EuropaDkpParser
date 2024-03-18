@@ -9,7 +9,6 @@ using System.IO;
 
 public sealed class LogParseProcessor : ILogParseProcessor
 {
-    // eqlog_Luciasmule_pq.proj.txt
     private readonly IDkpParserSettings _settings;
 
     public LogParseProcessor(IDkpParserSettings settings)
@@ -45,7 +44,7 @@ public sealed class LogParseProcessor : ILogParseProcessor
 
         string fileNameSearchString = RaidDumpFile.RaidDumpFileNameStart + "*.txt";
         IEnumerable<RaidDumpFile> raidDumpFiles = Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString).Select(x => new RaidDumpFile(x));
-        
+
         foreach (RaidDumpFile dumpFile in raidDumpFiles)
         {
             if (startTime < dumpFile.FileDateTime && dumpFile.FileDateTime < endTime)

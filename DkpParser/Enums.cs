@@ -11,7 +11,8 @@ public enum LogEntryType
     DkpSpent,
     Kill,
     PlayerName,
-    WhoZoneName
+    WhoZoneName,
+    PlayerLooted
 }
 
 public enum PossibleError

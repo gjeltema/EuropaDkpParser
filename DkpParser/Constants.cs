@@ -13,6 +13,8 @@ public static class Constants
     public const string EuropaGuildTag = "<Europa>";
     public const string KillCall = "KILL";
     public const string LogDateTimeFormat = "ddd MMM dd HH:mm:ss yyyy";
+    public const string Looted = "looted";
+    public const string LootedDashes = ".--";
     public const string PlayersOnEverquest = "Players on EverQuest:";
     public const string PossibleErrorDelimiter = "::";
     public const string RaidDumpFileNameTimeFormat = "yyyyMMdd-HHmmss";
