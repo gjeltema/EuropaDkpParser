@@ -22,7 +22,7 @@ internal sealed class LogParser : ILogParser, ISetParser
     {
         EqLogFile logFile = new() { LogFile = filename };
 
-        _attendanceEntryParser = null; //** Need to create and set this
+        _attendanceEntryParser = new AttendanceEntryParser(this, logFile);
         SetParser(new FindStartTimeParser(this, startTime, _attendanceEntryParser));
 
         foreach (string logLine in File.ReadLines(filename))
@@ -37,58 +37,6 @@ internal sealed class LogParser : ILogParser, ISetParser
                 break;
 
             _currentEntryParser.ParseEntry(logLine, entryTimeStamp);
-
-            //EqLogEntry logEntry = _currentEntryParser.ParseEntry(logLine, entryTimeStamp);
-            //if(logEntry != null)
-            //    logFile.LogEntries.Add(logEntry);
-
-            //if (logLine.Contains(Constants.PossibleErrorDelimiter))
-            //{
-            //    if (logLine.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase))
-            //    {
-            //        logEntry.EntryType = LogEntryType.DkpSpent;
-            //        logFile.LogEntries.Add(logEntry);
-            //    }
-            //    else if (logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase))
-            //    {
-            //        logEntry.EntryType = LogEntryType.Kill;
-            //        logFile.LogEntries.Add(logEntry);
-            //        lookForAttendanceEntries = true;
-            //    }
-            //    else if (logLine.Contains(Constants.Attendance, StringComparison.OrdinalIgnoreCase))
-            //    {
-            //        logEntry.EntryType = LogEntryType.Attendance;
-            //        logFile.LogEntries.Add(logEntry);
-            //        lookForAttendanceEntries = true;
-            //    }
-
-            //    if (!logLine.Contains(Constants.AttendanceDelimiter))
-            //    {
-            //        logEntry.ErrorType = PossibleError.TwoColons;
-            //    }
-
-            //    continue;
-            //}
-
-            ////** Also, what if parsing a log call by a person who didnt do the /who guild?
-            //if (lookForAttendanceEntries)
-            //{
-            //    if (logLine.Contains(Constants.WhoZonePrefixPlural) || logLine.Contains(Constants.WhoZonePrefixSingle))
-            //    {
-            //        logEntry.EntryType = LogEntryType.WhoZoneName;
-            //        logFile.LogEntries.Add(logEntry);
-            //        lookForAttendanceEntries = false;
-            //    }
-            //    else if (logLine.Contains(Constants.Dashes) || logLine.Contains(Constants.PlayersOnEverquest))
-            //    {
-            //        continue;
-            //    }
-            //    else // Assume this is the player character entry  //** -> Bad assumption.  Can have other log spam
-            //    {
-            //        logEntry.EntryType = LogEntryType.PlayerName;
-            //        logFile.LogEntries.Add(logEntry);
-            //    }
-            //}
         }
 
         return logFile;
@@ -99,7 +47,7 @@ internal sealed class LogParser : ILogParser, ISetParser
 
     private bool GetTimeStamp(string logLine, out DateTime result)
     {
-        if (string.IsNullOrWhiteSpace(logLine))
+        if (logLine.Length < 26 || string.IsNullOrWhiteSpace(logLine))
         {
             result = DateTime.MinValue;
             return false;

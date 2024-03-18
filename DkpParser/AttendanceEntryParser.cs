@@ -8,11 +8,16 @@ internal sealed class AttendanceEntryParser : IParseEntry
 {
     private readonly EqLogFile _logFile;
     private readonly ISetParser _setParser;
+    private IParseEntry _populationListingParser;
+    private IStartParseEntry _populationListingStartParser;
 
     internal AttendanceEntryParser(ISetParser setParser, EqLogFile logFile)
     {
         _setParser = setParser;
         _logFile = logFile;
+
+        _populationListingParser = new PopulationListingParser(setParser, logFile, this);
+        _populationListingStartParser = new PopulationListingStartParser(setParser, this, _populationListingParser);
     }
 
     public void ParseEntry(string logLine, DateTime entryTimeStamp)
@@ -31,14 +36,15 @@ internal sealed class AttendanceEntryParser : IParseEntry
         else if (logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase))
         {
             logEntry.EntryType = LogEntryType.Kill;
-            //** Switch to parser that looks for population listing
-            //** Create new instance to remove a bool flag?
+            _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
+            _setParser.SetParser(_populationListingStartParser);
+
         }
         else if (logLine.Contains(Constants.Attendance, StringComparison.OrdinalIgnoreCase))
         {
             logEntry.EntryType = LogEntryType.Attendance;
-            //** Switch to parser that looks for population listing
-            //** Create new instance to remove a bool flag?
+            _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
+            _setParser.SetParser(_populationListingStartParser);
         }
     }
 

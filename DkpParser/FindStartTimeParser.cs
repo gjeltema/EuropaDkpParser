@@ -4,8 +4,6 @@
 
 namespace DkpParser;
 
-using System;
-
 internal sealed class FindStartTimeParser : IParseEntry
 {
     private readonly IParseEntry _firstParser;
