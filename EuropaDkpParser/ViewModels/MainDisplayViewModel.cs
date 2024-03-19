@@ -93,7 +93,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             return;
         }
 
-        if(startTime > endTime)
+        if (startTime > endTime)
         {
             MessageBox.Show("Start Time is after End Time.", "Time error", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
@@ -101,9 +101,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
         ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
         LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
-        ILogResultsAnalyzer analyzer = new LogResultsAnalyzer();
-        analyzer.AnalyzeResults(results);
 
+        ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer();
+        RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
     }
 }
 

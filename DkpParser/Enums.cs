@@ -4,6 +4,12 @@
 
 namespace DkpParser;
 
+public enum AttendanceCallType
+{
+    Time,
+    Kill
+}
+
 public enum LogEntryType
 {
     Unknown = 0,
