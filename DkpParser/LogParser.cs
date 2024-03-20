@@ -47,7 +47,7 @@ internal sealed class LogParser : ILogParser, ISetParser
 
     private bool GetTimeStamp(string logLine, out DateTime result)
     {
-        if (logLine.Length < 26 || string.IsNullOrWhiteSpace(logLine))
+        if (logLine.Length < Constants.TypicalTimestamp.Length || string.IsNullOrWhiteSpace(logLine))
         {
             result = DateTime.MinValue;
             return false;

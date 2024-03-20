@@ -59,7 +59,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     if (zoneLogEntry != null)
                     {
                         // [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
-
+                        int indexOfPlayersIn = zoneLogEntry.LogLine.IndexOf(Constants.PlayersIn);
+                        int endIndexOfPlayersIn = indexOfPlayersIn + Constants.PlayersIn.Length;
+                        string zoneName = zoneLogEntry.LogLine[endIndexOfPlayersIn..^1];
+                        call.ZoneName = zoneName;
                     }
                     else
                     {
