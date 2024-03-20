@@ -26,7 +26,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             AddDelimiterEntry(logLine, entryTimeStamp);
         }
-        else if (logLine.EndsWith(Constants.LootedDashes) && logLine.Contains(Constants.Looted))
+        else if (logLine.EndsWith(Constants.EndLootedDashes) && logLine.Contains(Constants.Looted))
         {
             AddLootedEntry(logLine, entryTimeStamp);
         }

@@ -13,4 +13,9 @@ public sealed class EqLogEntry
     public string LogLine { get; set; }
 
     public DateTime Timestamp { get; set; }
+
+    /// <summary>
+    /// Used for debugging, seeing what entries may not have been touched by the analyzer.
+    /// </summary>
+    public bool Visited { get; set; } = false;
 }

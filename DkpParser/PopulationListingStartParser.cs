@@ -29,7 +29,7 @@ internal sealed class PopulationListingStartParser : IStartParseEntry
             _foundFirstLine = false;
         }
 
-        if (entryTimeStamp - _initiateStartOfParseTimeStamp > _durationOfSearch)
+        if(!entryTimeStamp.IsWithinTwoSecondsOf(_initiateStartOfParseTimeStamp))
         {
             _setParser.SetParser(_primaryEntryParser);
             _primaryEntryParser.ParseEntry(logLine, entryTimeStamp);
