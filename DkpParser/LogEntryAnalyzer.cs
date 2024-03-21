@@ -6,10 +6,10 @@ namespace DkpParser;
 
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
-    private RaidEntries _raidEntries = new();
-    private List<PlayerLooted> _playersLooted;
-    private HashSet<string> _playersAttendingRaid = [];
     private List<PlayerAttend> _playersAttending;
+    private HashSet<string> _playersAttendingRaid = [];
+    private List<PlayerLooted> _playersLooted;
+    private RaidEntries _raidEntries = new();
 
     public RaidEntries AnalyzeRaidLogEntries(LogParseResults logParseResults)
     {
@@ -19,33 +19,24 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         AnalyzeAttendanceCalls(logParseResults);
         AnalyzeLootCalls(logParseResults);
 
-        
+
 
         return _raidEntries;
-    }
-
-    private void AnalyzeLootCalls(LogParseResults logParseResults)
-    {
-        foreach (EqLogFile log in logParseResults.EqLogFiles)
-        {
-            
-        }
     }
 
     private void AnalyzeAttendanceCalls(LogParseResults logParseResults)
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-            foreach(EqLogEntry logEntry in log.LogEntries)
+            foreach (EqLogEntry logEntry in log.LogEntries)
             {
-                if(logEntry.EntryType == LogEntryType.Attendance)
+                if (logEntry.EntryType == LogEntryType.Attendance || logEntry.EntryType == LogEntryType.Kill)
                 {
-                    //** Need to get zone
                     AttendanceCall call = new() { Timestamp = logEntry.Timestamp };
                     RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
                     if (raidDump != null)
                     {
-                        foreach(string player in raidDump.CharacterNames)
+                        foreach (string player in raidDump.CharacterNames)
                         {
                             call.PlayerNames.Add(player);
                         }
@@ -69,31 +60,31 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                         //** Heuristic to find nearby zone name
                     }
                 }
-                else if (logEntry.EntryType == LogEntryType.Kill)
-                {
-
-                }
             }
-
-
         }
     }
 
-    private AttendanceCall ExtractAttendanceCall(EqLogEntry entry)
-    {
-
-        return null;
-    }
-
-    private void PopulateLootList(LogParseResults logParseResults)
+    private void AnalyzeLootCalls(LogParseResults logParseResults)
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-            _playersLooted = log.LogEntries
-                .Where(x => x.EntryType == LogEntryType.PlayerLooted)
-                .Select(ExtractPlayerLooted)
-                .ToList();
+
         }
+    }
+
+    private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
+    {
+        int indexOfLastBracket = entry.LogLine.LastIndexOf(']');
+        int firstIndexOfEndMarker = entry.LogLine.IndexOf("(");
+        if (firstIndexOfEndMarker == -1)
+        {
+            firstIndexOfEndMarker = entry.LogLine.IndexOf('<');
+        }
+        string playerName = entry.LogLine[indexOfLastBracket..firstIndexOfEndMarker].Trim();
+
+        entry.Visited = true;
+
+        return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
     }
 
     private PlayerLooted ExtractPlayerLooted(EqLogEntry entry)
@@ -115,6 +106,22 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         return new PlayerLooted { PlayerName = playerName, ItemLooted = itemName, Timestamp = entry.Timestamp };
     }
 
+    private void HandleAttendance(ref int logEntryIndex, IList<EqLogEntry> logEntries, EqLogEntry logEntry)
+    {
+
+    }
+
+    private void PopulateLootList(LogParseResults logParseResults)
+    {
+        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        {
+            _playersLooted = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.PlayerLooted)
+                .Select(ExtractPlayerLooted)
+                .ToList();
+        }
+    }
+
     private void PopulateMemberLists(LogParseResults logParseResults)
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
@@ -130,54 +137,40 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             _playersAttendingRaid.Add(playerAttend.PlayerName);
         }
 
-        foreach(RaidDumpFile raidDump in logParseResults.RaidDumpFiles)
+        foreach (RaidDumpFile raidDump in logParseResults.RaidDumpFiles)
         {
-            foreach(string playerName in raidDump.CharacterNames)
+            foreach (string playerName in raidDump.CharacterNames)
             {
                 _playersAttendingRaid.Add(playerName);
             }
         }
     }
 
-    private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
+    private sealed class AttendanceCall
     {
-        int indexOfLastBracket = entry.LogLine.LastIndexOf(']');
-        int firstIndexOfParens = entry.LogLine.IndexOf("("); //** Need to fix this - can have an entry without parens: [Tue Mar 19 23:24:25 2024] [ANONYMOUS] Luwena  <Europa>
-        string playerName = entry.LogLine[indexOfLastBracket..firstIndexOfParens];
+        public AttendanceCallType AttendanceCallType { get; set; }
 
-        entry.Visited = true;
-
-        return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
-    }
-
-    private void HandleAttendance(ref int logEntryIndex, IList<EqLogEntry> logEntries, EqLogEntry logEntry)
-    {
-
-    }
-
-    private sealed class PlayerLooted
-    {
-        public string PlayerName { get; init; }
-        
-        public string ItemLooted { get; init; }
+        public HashSet<string> PlayerNames { get; } = [];
 
         public DateTime Timestamp { get; init; }
+
+        public string ZoneName { get; set; }
     }
 
     private sealed class PlayerAttend
     {
-        public DateTime Timestamp { get; init; }
-
         public string PlayerName { get; init; }
+
+        public DateTime Timestamp { get; init; }
     }
 
-    private sealed class AttendanceCall
+    private sealed class PlayerLooted
     {
+        public string ItemLooted { get; init; }
+
+        public string PlayerName { get; init; }
+
         public DateTime Timestamp { get; init; }
-
-        public HashSet<string> PlayerNames { get; } = [];
-
-        public string ZoneName { get; set; }
     }
 }
 

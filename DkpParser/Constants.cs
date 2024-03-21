@@ -18,7 +18,7 @@ public static class Constants
     public const string Looted = "looted";
     public const string LootedA = " looted a ";
     /// <summary>
-    /// Entry for noting the number of players and zone.  Assuming for a raid call, it will always be plura.  If there is one player returned, it will say "... player in...".<br/>
+    /// Entry for noting the number of players and zone.  Assuming for a raid call, it will always be plural.  If there is one player returned, it will say "... player in...".<br/>
     /// [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
     /// </summary>
     public const string PlayersIn = " players in ";
