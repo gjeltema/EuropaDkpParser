@@ -32,7 +32,12 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             {
                 if (logEntry.EntryType == LogEntryType.Attendance || logEntry.EntryType == LogEntryType.Kill)
                 {
-                    AttendanceCall call = new() { Timestamp = logEntry.Timestamp };
+                    //** Verify indexes
+                    string logLine = CorrectDelimiter(logEntry.LogLine);
+                    string[] splitEntry = logLine.Split(Constants.AttendanceDelimiter);
+                    string raidName = splitEntry[3];
+
+                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RaidName = raidName };
                     RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
                     if (raidDump != null)
                     {
@@ -59,17 +64,57 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     {
                         //** Heuristic to find nearby zone name
                     }
+
+                    logEntry.Visited = true;
+                    _raidEntries.AttendanceEntries.Add(call);
                 }
             }
         }
+    }
+
+    private string CorrectDelimiter(string logLine)
+    {
+        logLine = logLine.Replace(Constants.PossibleErrorDelimiter, Constants.AttendanceDelimiter);
+        logLine = logLine.Replace(Constants.TooLongDelimiter, Constants.AttendanceDelimiter);
+        return logLine;
     }
 
     private void AnalyzeLootCalls(LogParseResults logParseResults)
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-
+            IEnumerable<DkpEntry> lootAwardCalls = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.DkpSpent)
+                .Select(ExtractDkpSpentInfo);
         }
+    }
+
+    private DkpEntry ExtractDkpSpentInfo(EqLogEntry entry)
+    {
+        //** Verify indexes
+        string logLine = CorrectDelimiter(entry.LogLine);
+
+        string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
+        string itemName = dkpLineParts[1].Trim();
+        string[] playerParts = dkpLineParts[2].Trim().Split(' ');
+
+        string playerName = playerParts[0].Trim();
+        string dkpAmountText = dkpLineParts[1].Trim();
+        if(!int.TryParse(dkpAmountText, out int dkpAmount))
+        {
+            //** how to handle?
+        }
+
+        DkpEntry dkpEntry = new()
+        {
+            PlayerName = playerName,
+            Item = itemName,
+            DkpSpent = dkpAmount,
+            Timestamp = entry.Timestamp,
+        };
+        //**
+
+        return dkpEntry;
     }
 
     private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
@@ -106,11 +151,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         return new PlayerLooted { PlayerName = playerName, ItemLooted = itemName, Timestamp = entry.Timestamp };
     }
 
-    private void HandleAttendance(ref int logEntryIndex, IList<EqLogEntry> logEntries, EqLogEntry logEntry)
-    {
-
-    }
-
     private void PopulateLootList(LogParseResults logParseResults)
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
@@ -144,17 +184,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                 _playersAttendingRaid.Add(playerName);
             }
         }
-    }
-
-    private sealed class AttendanceCall
-    {
-        public AttendanceCallType AttendanceCallType { get; set; }
-
-        public HashSet<string> PlayerNames { get; } = [];
-
-        public DateTime Timestamp { get; init; }
-
-        public string ZoneName { get; set; }
     }
 
     private sealed class PlayerAttend

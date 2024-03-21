@@ -10,6 +10,8 @@ public sealed class AttendanceEntry
 
     public ICollection<string> PlayerNames { get; private set; } = new HashSet<string>();
 
+    public string RaidName { get; set; }
+
     public DateTime Timestamp { get; set; }
 
     public string ZoneName { get; set; }
