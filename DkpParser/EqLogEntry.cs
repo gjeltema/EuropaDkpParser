@@ -4,6 +4,9 @@
 
 namespace DkpParser;
 
+using System.Diagnostics;
+
+[DebuggerDisplay("{DebugDisplay,nq}")]
 public sealed class EqLogEntry
 {
     public LogEntryType EntryType { get; set; } = LogEntryType.Unknown;
@@ -18,4 +21,7 @@ public sealed class EqLogEntry
     /// Used for debugging, seeing what entries may not have been touched by the analyzer.
     /// </summary>
     public bool Visited { get; set; } = false;
+
+    private string DebugDisplay
+        => $"{EntryType} {LogLine.Substring(Constants.TypicalTimestamp.Length + 1, 10)}...";
 }

@@ -4,9 +4,11 @@
 
 namespace DkpParser;
 
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
+[DebuggerDisplay("{DebugDisplay,nq")]
 public sealed class RaidDumpFile
 {
     public const string RaidDumpFileNameStart = "RaidRoster-";
@@ -27,4 +29,7 @@ public sealed class RaidDumpFile
     public DateTime FileDateTime { get; }
 
     public string FileName { get; private set; }
+
+    private string DebugDisplay
+        => $"{FileName} {CharacterNames.Count}";
 }

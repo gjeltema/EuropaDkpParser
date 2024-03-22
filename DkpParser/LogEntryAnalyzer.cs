@@ -4,40 +4,67 @@
 
 namespace DkpParser;
 
+using System.Diagnostics;
+
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
     private List<PlayerAttend> _playersAttending;
     private HashSet<string> _playersAttendingRaid = [];
     private List<PlayerLooted> _playersLooted;
     private RaidEntries _raidEntries = new();
+    private List<ZoneNameInfo> _zones = new();
 
     public RaidEntries AnalyzeRaidLogEntries(LogParseResults logParseResults)
     {
         PopulateMemberLists(logParseResults);
         PopulateLootList(logParseResults);
+        PopulateZoneNames(logParseResults);
 
         AnalyzeAttendanceCalls(logParseResults);
         AnalyzeLootCalls(logParseResults);
 
-
+        AddUnvisitedEntries(logParseResults);
 
         return _raidEntries;
     }
 
+    private void AddUnvisitedEntries(LogParseResults logParseResults)
+    {
+        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        {
+            IEnumerable<EqLogEntry> entries = log.LogEntries.Where(x => !x.Visited);
+            foreach (EqLogEntry entry in entries)
+            {
+                _raidEntries.UnvisitedEntries.Add(entry);
+            }
+        }
+    }
+
     private void AnalyzeAttendanceCalls(LogParseResults logParseResults)
     {
+        // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
+        // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
             foreach (EqLogEntry logEntry in log.LogEntries)
             {
                 if (logEntry.EntryType == LogEntryType.Attendance || logEntry.EntryType == LogEntryType.Kill)
                 {
-                    //** Verify indexes
                     string logLine = CorrectDelimiter(logEntry.LogLine);
                     string[] splitEntry = logLine.Split(Constants.AttendanceDelimiter);
-                    string raidName = splitEntry[3];
 
-                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RaidName = raidName };
+                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp };
+                    if (logEntry.EntryType == LogEntryType.Attendance)
+                    {
+                        call.RaidName = splitEntry[3];
+                        call.AttendanceCallType = AttendanceCallType.Time;
+                    }
+                    else
+                    {
+                        call.RaidName = splitEntry[2];
+                        call.AttendanceCallType = AttendanceCallType.Kill;
+                    }
+
                     RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
                     if (raidDump != null)
                     {
@@ -51,14 +78,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                         call.PlayerNames.Add(player.PlayerName);
                     }
 
-                    EqLogEntry zoneLogEntry = log.LogEntries.FirstOrDefault(x => x.EntryType == LogEntryType.WhoZoneName && x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp));
+                    ZoneNameInfo zoneLogEntry = _zones.FirstOrDefault(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp));
                     if (zoneLogEntry != null)
                     {
-                        // [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
-                        int indexOfPlayersIn = zoneLogEntry.LogLine.IndexOf(Constants.PlayersIn);
-                        int endIndexOfPlayersIn = indexOfPlayersIn + Constants.PlayersIn.Length;
-                        string zoneName = zoneLogEntry.LogLine[endIndexOfPlayersIn..^1];
-                        call.ZoneName = zoneName;
+                        call.ZoneName = zoneLogEntry.ZoneName;
                     }
                     else
                     {
@@ -72,6 +95,21 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
+    private void AnalyzeLootCalls(LogParseResults logParseResults)
+    {
+        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        {
+            IEnumerable<DkpEntry> dkpEntries = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.DkpSpent)
+                .Select(ExtractDkpSpentInfo);
+
+            foreach (DkpEntry dkpEntry in dkpEntries)
+            {
+                _raidEntries.DkpEntries.Add(dkpEntry);
+            }
+        }
+    }
+
     private string CorrectDelimiter(string logLine)
     {
         logLine = logLine.Replace(Constants.PossibleErrorDelimiter, Constants.AttendanceDelimiter);
@@ -79,19 +117,33 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         return logLine;
     }
 
-    private void AnalyzeLootCalls(LogParseResults logParseResults)
+    private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
     {
-        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        // [Tue Mar 19 23:46:05 2024]  <LINKDEAD>[ANONYMOUS] Luwena  <Europa>
+        // [Sun Mar 17 21:27:54 2024] [50 Monk] Pullz (Human) <Europa>
+        // [Sun Mar 17 21:27:54 2024] [ANONYMOUS] Mendrik <Europa>
+        // [Sat Mar 09 20:23:41 2024]  <LINKDEAD>[50 Rogue] Noggen (Dwarf) <Europa>
+        int indexOfLastBracket = entry.LogLine.LastIndexOf(']');
+        int firstIndexOfEndMarker = entry.LogLine.LastIndexOf("(");
+        if (firstIndexOfEndMarker == -1)
         {
-            IEnumerable<DkpEntry> lootAwardCalls = log.LogEntries
-                .Where(x => x.EntryType == LogEntryType.DkpSpent)
-                .Select(ExtractDkpSpentInfo);
+            firstIndexOfEndMarker = entry.LogLine.LastIndexOf('<');
+            if (indexOfLastBracket == -1)
+            {
+                firstIndexOfEndMarker = entry.LogLine.Length - 1;
+            }
         }
+        string playerName = entry.LogLine[indexOfLastBracket..firstIndexOfEndMarker].Trim();
+
+        entry.Visited = true;
+
+        return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
     }
 
     private DkpEntry ExtractDkpSpentInfo(EqLogEntry entry)
     {
-        //** Verify indexes
+        //** Need to do error analysis - check against players looted (player name and item looted name), and players attending
+        // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
         string logLine = CorrectDelimiter(entry.LogLine);
 
         string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
@@ -99,37 +151,26 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         string[] playerParts = dkpLineParts[2].Trim().Split(' ');
 
         string playerName = playerParts[0].Trim();
-        string dkpAmountText = dkpLineParts[1].Trim();
-        if(!int.TryParse(dkpAmountText, out int dkpAmount))
-        {
-            //** how to handle?
-        }
 
         DkpEntry dkpEntry = new()
         {
             PlayerName = playerName,
             Item = itemName,
-            DkpSpent = dkpAmount,
             Timestamp = entry.Timestamp,
         };
-        //**
 
-        return dkpEntry;
-    }
-
-    private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
-    {
-        int indexOfLastBracket = entry.LogLine.LastIndexOf(']');
-        int firstIndexOfEndMarker = entry.LogLine.IndexOf("(");
-        if (firstIndexOfEndMarker == -1)
+        string dkpAmountText = playerParts[1].Trim();
+        if (!int.TryParse(dkpAmountText, out int dkpAmount))
         {
-            firstIndexOfEndMarker = entry.LogLine.IndexOf('<');
+            //** how to handle? See if lack of space -> 1DKPSPENT
+            dkpEntry.PossibleError = PossibleError.DkpAmountNotANumber;
         }
-        string playerName = entry.LogLine[indexOfLastBracket..firstIndexOfEndMarker].Trim();
+
+        dkpEntry.DkpSpent = dkpAmount;
 
         entry.Visited = true;
 
-        return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+        return dkpEntry;
     }
 
     private PlayerLooted ExtractPlayerLooted(EqLogEntry entry)
@@ -149,6 +190,18 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         entry.Visited = true;
 
         return new PlayerLooted { PlayerName = playerName, ItemLooted = itemName, Timestamp = entry.Timestamp };
+    }
+
+    private ZoneNameInfo ExtractZoneName(EqLogEntry entry)
+    {
+        // [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
+        int indexOfPlayersIn = entry.LogLine.IndexOf(Constants.PlayersIn);
+        int endIndexOfPlayersIn = indexOfPlayersIn + Constants.PlayersIn.Length;
+        string zoneName = entry.LogLine[endIndexOfPlayersIn..^1];
+
+        entry.Visited = true;
+
+        return new() { ZoneName = zoneName, Timestamp = entry.Timestamp };
     }
 
     private void PopulateLootList(LogParseResults logParseResults)
@@ -186,6 +239,18 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
+    private void PopulateZoneNames(LogParseResults logParseResults)
+    {
+        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        {
+            _zones = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.WhoZoneName)
+                .Select(ExtractZoneName)
+                .ToList();
+        }
+    }
+
+    [DebuggerDisplay("{PlayerName,nq}")]
     private sealed class PlayerAttend
     {
         public string PlayerName { get; init; }
@@ -193,6 +258,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         public DateTime Timestamp { get; init; }
     }
 
+    [DebuggerDisplay("{PlayerName,nq}, {ItemLooted,nq}")]
     private sealed class PlayerLooted
     {
         public string ItemLooted { get; init; }
@@ -200,6 +266,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         public string PlayerName { get; init; }
 
         public DateTime Timestamp { get; init; }
+    }
+
+    [DebuggerDisplay("{ZoneName,nq}, {Timestamp,nq}")]
+    private sealed class ZoneNameInfo
+    {
+        public DateTime Timestamp { get; init; }
+
+        public string ZoneName { get; init; }
     }
 }
 

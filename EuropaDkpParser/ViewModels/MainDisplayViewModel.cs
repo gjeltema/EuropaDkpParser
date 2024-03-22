@@ -37,7 +37,16 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     public string EndTimeText
     {
         get => _endTimeText;
-        set => SetProperty(ref _endTimeText, value);
+        set
+        {
+            if(SetProperty(ref _endTimeText, value))
+            {
+                if (DateTime.TryParse(value, out DateTime endTime))
+                {
+                    StartTimeText = endTime.AddHours(-6).ToString(DateTimeFormat);
+                }
+            }
+        }
     }
 
     public DelegateCommand OpenSettingsDialogCommand { get; }

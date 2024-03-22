@@ -4,6 +4,9 @@
 
 namespace DkpParser;
 
+using System.Diagnostics;
+
+[DebuggerDisplay("{RaidName,nq} {AttendanceCallType,nq}")]
 public sealed class AttendanceEntry
 {
     public AttendanceCallType AttendanceCallType { get; set; }

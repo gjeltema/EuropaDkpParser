@@ -24,5 +24,6 @@ public enum LogEntryType
 public enum PossibleError
 {
     None = 0,
-    TwoColons
+    TwoColons,
+    DkpAmountNotANumber
 }
