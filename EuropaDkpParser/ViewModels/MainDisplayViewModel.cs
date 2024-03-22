@@ -113,6 +113,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
         ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer();
         RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+
+
     }
 }
 
