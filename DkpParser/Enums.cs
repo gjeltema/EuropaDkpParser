@@ -25,5 +25,7 @@ public enum PossibleError
 {
     None = 0,
     TwoColons,
-    DkpAmountNotANumber
+    DkpAmountNotANumber,
+    DkpSpentPlayerNameTypo,
+    PlayerLootedMessageNotFound
 }

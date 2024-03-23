@@ -159,22 +159,59 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             Timestamp = entry.Timestamp,
         };
 
-        string dkpAmountText = playerParts[1].Trim();
-        if (!int.TryParse(dkpAmountText, out int dkpAmount))
-        {
-            //** how to handle? See if lack of space -> 1DKPSPENT
-            dkpEntry.PossibleError = PossibleError.DkpAmountNotANumber;
-        }
+        CheckDkpPlayerName(dkpEntry);
 
-        dkpEntry.DkpSpent = dkpAmount;
+        string dkpAmountText = playerParts[1].Trim();
+        GetDkpAmount(dkpAmountText, dkpEntry);
 
         entry.Visited = true;
 
         return dkpEntry;
     }
 
+    private void CheckDkpPlayerName(DkpEntry dkpEntry)
+    {
+        if(!_playersAttendingRaid.Contains(dkpEntry.PlayerName))
+        {
+            dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
+            return;
+        }
+
+        foreach(PlayerLooted playerLootedEntry in _playersLooted)
+        {
+            if (playerLootedEntry.ItemLooted == dkpEntry.Item)
+                return;
+        }
+
+        dkpEntry.PossibleError = PossibleError.PlayerLootedMessageNotFound;
+    }
+
+    private void GetDkpAmount(string dkpAmountText, DkpEntry dkpEntry)
+    {
+        if (int.TryParse(dkpAmountText, out int dkpAmount))
+        {
+            dkpEntry.DkpSpent = dkpAmount;
+            return;
+        }
+
+        // See if lack of space -> 1DKPSPENT
+        if (dkpAmountText.Contains(Constants.DkpSpent))
+        {
+            string dkpSpentTextWithoutDkpspent = dkpAmountText.Replace(Constants.DkpSpent, string.Empty);
+            if (int.TryParse(dkpSpentTextWithoutDkpspent, out dkpAmount))
+            {
+                dkpEntry.DkpSpent = dkpAmount;
+                return;
+            }
+        }
+
+        dkpEntry.PossibleError = PossibleError.DkpAmountNotANumber;
+    }
+
     private PlayerLooted ExtractPlayerLooted(EqLogEntry entry)
     {
+        // [Wed Feb 21 18:49:31 2024] --Orsino has looted a Part of Tasarin's Grimoire Pg. 24.--
+        // [Wed Feb 21 16:34:07 2024] --You have looted a Bloodstained Key.--
         int indexOfFirstDashes = entry.LogLine.IndexOf(Constants.DoubleDash);
         int startIndex = indexOfFirstDashes + 2;
         int endIndex = entry.LogLine.Length - 3;

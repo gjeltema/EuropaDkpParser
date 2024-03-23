@@ -55,7 +55,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
     private void GenerateAttendanceCalls(RaidEntries raidEntries, List<string> outputContents)
     {
-        foreach (AttendanceEntry attendanceCall in raidEntries.AttendanceEntries)
+        foreach (AttendanceEntry attendanceCall in raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp))
         {
             IEnumerable<string> attendanceEntry = CreateAttendanceEntry(attendanceCall);
             outputContents.AddRange(attendanceEntry);
@@ -65,7 +65,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
     private void GenerateDkpCalls(RaidEntries raidEntries, List<string> outputContents)
     {
         // [Tue Mar 19 22:45:32 2024] You tell your raid, ':::Djinni War Blade::: ZCalie 1 DKPSPENT'
-        foreach (DkpEntry call in raidEntries.DkpEntries)
+        foreach (DkpEntry call in raidEntries.DkpEntries.OrderBy(x => x.Timestamp))
         {
             string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat);
             string dkpEntry =
