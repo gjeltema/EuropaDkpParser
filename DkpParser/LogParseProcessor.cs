@@ -32,7 +32,8 @@ public sealed class LogParseProcessor : ILogParseProcessor
         foreach (string logFileName in _settings.SelectedLogFiles)
         {
             EqLogFile parsedFile = parser.ParseLogFile(logFileName, startTime, endTime);
-            logFiles.Add(parsedFile);
+            if (parsedFile.LogEntries.Count > 0)
+                logFiles.Add(parsedFile);
         }
 
         return logFiles;

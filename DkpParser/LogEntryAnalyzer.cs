@@ -8,11 +8,11 @@ using System.Diagnostics;
 
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
-    private List<PlayerAttend> _playersAttending;
-    private HashSet<string> _playersAttendingRaid = [];
-    private List<PlayerLooted> _playersLooted;
-    private RaidEntries _raidEntries = new();
-    private List<ZoneNameInfo> _zones = new();
+    private readonly List<PlayerAttend> _playersAttending = [];
+    private readonly HashSet<string> _playersAttendingRaid = [];
+    private readonly List<PlayerLooted> _playersLooted = [];
+    private readonly RaidEntries _raidEntries = new();
+    private readonly List<ZoneNameInfo> _zones = [];
 
     public RaidEntries AnalyzeRaidLogEntries(LogParseResults logParseResults)
     {
@@ -56,12 +56,12 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     AttendanceEntry call = new() { Timestamp = logEntry.Timestamp };
                     if (logEntry.EntryType == LogEntryType.Attendance)
                     {
-                        call.RaidName = splitEntry[3];
+                        call.RaidName = splitEntry[3].Trim();
                         call.AttendanceCallType = AttendanceCallType.Time;
                     }
                     else
                     {
-                        call.RaidName = splitEntry[2];
+                        call.RaidName = splitEntry[2].Trim();
                         call.AttendanceCallType = AttendanceCallType.Kill;
                     }
 
@@ -123,8 +123,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         // [Sun Mar 17 21:27:54 2024] [50 Monk] Pullz (Human) <Europa>
         // [Sun Mar 17 21:27:54 2024] [ANONYMOUS] Mendrik <Europa>
         // [Sat Mar 09 20:23:41 2024]  <LINKDEAD>[50 Rogue] Noggen (Dwarf) <Europa>
-        int indexOfLastBracket = entry.LogLine.LastIndexOf(']');
-        int firstIndexOfEndMarker = entry.LogLine.LastIndexOf("(");
+        int indexOfLastBracket = entry.LogLine.LastIndexOf(']') + 1;
+        int firstIndexOfEndMarker = entry.LogLine.LastIndexOf('(');
         if (firstIndexOfEndMarker == -1)
         {
             firstIndexOfEndMarker = entry.LogLine.LastIndexOf('<');
@@ -148,7 +148,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
         string itemName = dkpLineParts[1].Trim();
-        string[] playerParts = dkpLineParts[2].Trim().Split(' ');
+        string[] playerParts = dkpLineParts[2].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         string playerName = playerParts[0].Trim();
 
@@ -208,10 +208,11 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-            _playersLooted = log.LogEntries
+            IEnumerable<PlayerLooted> playersLooted = log.LogEntries
                 .Where(x => x.EntryType == LogEntryType.PlayerLooted)
-                .Select(ExtractPlayerLooted)
-                .ToList();
+                .Select(ExtractPlayerLooted);
+
+            _playersLooted.AddRange(playersLooted);
         }
     }
 
@@ -219,10 +220,11 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-            _playersAttending = log.LogEntries
+            IEnumerable<PlayerAttend> players = log.LogEntries
                 .Where(x => x.EntryType == LogEntryType.PlayerName)
-                .Select(ExtractAttendingPlayerName)
-                .ToList();
+                .Select(ExtractAttendingPlayerName);
+
+            _playersAttending.AddRange(players);
         }
 
         foreach (PlayerAttend playerAttend in _playersAttending)
@@ -243,10 +245,11 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-            _zones = log.LogEntries
+            IEnumerable<ZoneNameInfo> zones = log.LogEntries
                 .Where(x => x.EntryType == LogEntryType.WhoZoneName)
-                .Select(ExtractZoneName)
-                .ToList();
+                .Select(ExtractZoneName);
+
+            _zones.AddRange(zones);
         }
     }
 

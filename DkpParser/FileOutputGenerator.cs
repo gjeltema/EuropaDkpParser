@@ -1,4 +1,8 @@
-﻿namespace DkpParser;
+﻿// -----------------------------------------------------------------------
+// FileOutputGenerator.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
+
+namespace DkpParser;
 
 using System.IO;
 
@@ -11,22 +15,13 @@ public sealed class FileOutputGenerator : IOutputGenerator
         _outputFileName = outputFileName;
     }
 
-    public void GenerateOutput(RaidEntries raidEntries)
+    public async Task GenerateOutput(RaidEntries raidEntries)
     {
         List<string> outputContents = [];
 
         GenerateAttendanceCalls(raidEntries, outputContents);
         GenerateDkpCalls(raidEntries, outputContents);
-        WriteToFile(outputContents);
-    }
-
-    private void GenerateAttendanceCalls(RaidEntries raidEntries, List<string> outputContents)
-    {
-        foreach(AttendanceEntry attendanceCall in raidEntries.AttendanceEntries)
-        {
-            IEnumerable<string> attendanceEntry = CreateAttendanceEntry(attendanceCall);
-            outputContents.AddRange(attendanceEntry);
-        }
+        await WriteToFile(outputContents);
     }
 
     private IEnumerable<string> CreateAttendanceEntry(AttendanceEntry call)
@@ -50,12 +45,21 @@ public sealed class FileOutputGenerator : IOutputGenerator
         yield return Constants.PlayersOnEverquest;
         yield return Constants.Dashes;
 
-        foreach(string player in call.PlayerNames)
+        foreach (string player in call.PlayerNames)
         {
-            yield return $"[{dateStampText}] [ANONYMOUS] {player} <Europa>";
+            yield return $"[{dateStampText}] [ANONYMOUS] {player}  <Europa>";
         }
 
         yield return $"[{dateStampText}] There are {call.PlayerNames.Count} players in {call.ZoneName}.";
+    }
+
+    private void GenerateAttendanceCalls(RaidEntries raidEntries, List<string> outputContents)
+    {
+        foreach (AttendanceEntry attendanceCall in raidEntries.AttendanceEntries)
+        {
+            IEnumerable<string> attendanceEntry = CreateAttendanceEntry(attendanceCall);
+            outputContents.AddRange(attendanceEntry);
+        }
     }
 
     private void GenerateDkpCalls(RaidEntries raidEntries, List<string> outputContents)
@@ -70,13 +74,13 @@ public sealed class FileOutputGenerator : IOutputGenerator
         }
     }
 
-    private void WriteToFile(IEnumerable<string> outputContents)
+    private async Task WriteToFile(IEnumerable<string> outputContents)
     {
-        File.WriteAllLines(_outputFileName, outputContents);
+        await File.WriteAllLinesAsync(_outputFileName, outputContents);
     }
 }
 
 public interface IOutputGenerator
 {
-    void GenerateOutput(RaidEntries raidEntries);
+    Task GenerateOutput(RaidEntries raidEntries);
 }
