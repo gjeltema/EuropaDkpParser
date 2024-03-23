@@ -39,7 +39,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         get => _endTimeText;
         set
         {
-            if(SetProperty(ref _endTimeText, value))
+            if (SetProperty(ref _endTimeText, value))
             {
                 if (DateTime.TryParse(value, out DateTime endTime))
                 {
@@ -111,7 +111,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
         LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
 
-        ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer();
+        ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
         RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
 
         IOutputGenerator generator = new FileOutputGenerator(OutputFile);

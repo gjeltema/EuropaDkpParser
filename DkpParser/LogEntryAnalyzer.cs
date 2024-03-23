@@ -12,7 +12,13 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     private readonly HashSet<string> _playersAttendingRaid = [];
     private readonly List<PlayerLooted> _playersLooted = [];
     private readonly RaidEntries _raidEntries = new();
+    private readonly IDkpParserSettings _settings;
     private readonly List<ZoneNameInfo> _zones = [];
+
+    public LogEntryAnalyzer(IDkpParserSettings settings)
+    {
+        _settings = settings;
+    }
 
     public RaidEntries AnalyzeRaidLogEntries(LogParseResults logParseResults)
     {
@@ -24,6 +30,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         AnalyzeLootCalls(logParseResults);
 
         AddUnvisitedEntries(logParseResults);
+
+        ErrorPostAnalysis(logParseResults);
 
         return _raidEntries;
     }
@@ -110,11 +118,67 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
+    private void CheckDkpPlayerName(DkpEntry dkpEntry)
+    {
+        if (!_playersAttendingRaid.Contains(dkpEntry.PlayerName))
+        {
+            dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
+            return;
+        }
+
+        foreach (PlayerLooted playerLootedEntry in _playersLooted.Where(x => x.PlayerName == dkpEntry.PlayerName))
+        {
+            if (playerLootedEntry.ItemLooted == dkpEntry.Item)
+                return;
+        }
+
+        dkpEntry.PossibleError = PossibleError.PlayerLootedMessageNotFound;
+    }
+
+    private void CheckDkpSpentTypos(LogParseResults logParseResults)
+    {
+        //** Still debating on this.
+    }
+
+    private void CheckDuplicateAttendanceEntries(LogParseResults logParseResults)
+    {
+        var grouped = from a in _raidEntries.AttendanceEntries
+                      group a by a.RaidName into ae
+                      where ae.Count() > 1
+                      select new { Attendances = ae };
+
+        foreach (var attendanceGroup in grouped)
+        {
+            foreach (AttendanceEntry att in attendanceGroup.Attendances)
+            {
+                att.PossibleError = PossibleError.DuplicateRaidEntry;
+            }
+        }
+    }
+
+    private void CheckRaidBossTypo(LogParseResults logParseResults)
+    {
+        foreach (AttendanceEntry killCall in _raidEntries.AttendanceEntries.Where(x => x.AttendanceCallType == AttendanceCallType.Kill))
+        {
+            if (!_settings.BossMobs.Contains(killCall.RaidName))
+            {
+                killCall.PossibleError = PossibleError.BossMobNameTypo;
+            }
+        }
+    }
+
     private string CorrectDelimiter(string logLine)
     {
         logLine = logLine.Replace(Constants.PossibleErrorDelimiter, Constants.AttendanceDelimiter);
         logLine = logLine.Replace(Constants.TooLongDelimiter, Constants.AttendanceDelimiter);
         return logLine;
+    }
+
+    private void ErrorPostAnalysis(LogParseResults logParseResults)
+    {
+        CheckDuplicateAttendanceEntries(logParseResults);
+        CheckRaidBossTypo(logParseResults);
+        CheckDkpSpentTypos(logParseResults);
     }
 
     private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
@@ -169,45 +233,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         return dkpEntry;
     }
 
-    private void CheckDkpPlayerName(DkpEntry dkpEntry)
-    {
-        if(!_playersAttendingRaid.Contains(dkpEntry.PlayerName))
-        {
-            dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
-            return;
-        }
-
-        foreach(PlayerLooted playerLootedEntry in _playersLooted)
-        {
-            if (playerLootedEntry.ItemLooted == dkpEntry.Item)
-                return;
-        }
-
-        dkpEntry.PossibleError = PossibleError.PlayerLootedMessageNotFound;
-    }
-
-    private void GetDkpAmount(string dkpAmountText, DkpEntry dkpEntry)
-    {
-        if (int.TryParse(dkpAmountText, out int dkpAmount))
-        {
-            dkpEntry.DkpSpent = dkpAmount;
-            return;
-        }
-
-        // See if lack of space -> 1DKPSPENT
-        if (dkpAmountText.Contains(Constants.DkpSpent))
-        {
-            string dkpSpentTextWithoutDkpspent = dkpAmountText.Replace(Constants.DkpSpent, string.Empty);
-            if (int.TryParse(dkpSpentTextWithoutDkpspent, out dkpAmount))
-            {
-                dkpEntry.DkpSpent = dkpAmount;
-                return;
-            }
-        }
-
-        dkpEntry.PossibleError = PossibleError.DkpAmountNotANumber;
-    }
-
     private PlayerLooted ExtractPlayerLooted(EqLogEntry entry)
     {
         // [Wed Feb 21 18:49:31 2024] --Orsino has looted a Part of Tasarin's Grimoire Pg. 24.--
@@ -239,6 +264,28 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         entry.Visited = true;
 
         return new() { ZoneName = zoneName, Timestamp = entry.Timestamp };
+    }
+
+    private void GetDkpAmount(string dkpAmountText, DkpEntry dkpEntry)
+    {
+        if (int.TryParse(dkpAmountText, out int dkpAmount))
+        {
+            dkpEntry.DkpSpent = dkpAmount;
+            return;
+        }
+
+        // See if lack of space -> 1DKPSPENT
+        if (dkpAmountText.Contains(Constants.DkpSpent))
+        {
+            string dkpSpentTextWithoutDkpspent = dkpAmountText.Replace(Constants.DkpSpent, string.Empty);
+            if (int.TryParse(dkpSpentTextWithoutDkpspent, out dkpAmount))
+            {
+                dkpEntry.DkpSpent = dkpAmount;
+                return;
+            }
+        }
+
+        dkpEntry.PossibleError = PossibleError.DkpAmountNotANumber;
     }
 
     private void PopulateLootList(LogParseResults logParseResults)

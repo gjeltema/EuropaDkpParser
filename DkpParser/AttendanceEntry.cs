@@ -18,4 +18,6 @@ public sealed class AttendanceEntry
     public DateTime Timestamp { get; set; }
 
     public string ZoneName { get; set; }
+
+    public PossibleError PossibleError { get; set; }
 }
