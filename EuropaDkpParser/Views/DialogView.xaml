@@ -21,8 +21,8 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:LogSelectionViewModel}">
                     <dialogsView:LogSelectionDialog />
                 </DataTemplate>
-                <DataTemplate DataType="{x:Type dialogsViewModel:ErrorDisplayDialogViewModel}">
-                    <dialogsView:ErrorDisplayDialog />
+                <DataTemplate DataType="{x:Type dialogsViewModel:AttendanceErrorDisplayDialogViewModel}">
+                    <dialogsView:AttendanceErrorDisplayDialog />
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type dialogsViewModel:FinalSummaryDialogViewModel}">
                     <dialogsView:FinalSummaryDialog />

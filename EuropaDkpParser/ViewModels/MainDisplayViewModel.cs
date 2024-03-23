@@ -17,13 +17,14 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private string _endTimeText;
     private string _outputFile;
     private string _startTimeText;
+    private bool _performingParse = false;
 
     internal MainDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
         _settings = settings;
         _dialogFactory = dialogFactory;
         OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
-        StartLogParseCommand = new DelegateCommand(StartLogParse, () => !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
+        StartLogParseCommand = new DelegateCommand(StartLogParse, () => !_performingParse &&!string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputFile);
         ResetTimeCommand = new DelegateCommand(ResetTime);
 
@@ -108,14 +109,32 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             return;
         }
 
-        ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
-        LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
+        try
+        {
+            _performingParse = true;
+            StartLogParseCommand.RaiseCanExecuteChanged();
 
-        ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
-        RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+            ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
+            LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
 
-        IOutputGenerator generator = new FileOutputGenerator(OutputFile);
-        await generator.GenerateOutput(raidEntries);
+            ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
+            RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+
+            //** Possible Errors dialog
+
+
+            //** Summary dialog
+
+            IOutputGenerator generator = new FileOutputGenerator(OutputFile);
+            await generator.GenerateOutput(raidEntries);
+
+            //** Completed dialog
+        }
+        finally
+        {
+            _performingParse = false;
+            StartLogParseCommand.RaiseCanExecuteChanged();
+        }
     }
 }
 

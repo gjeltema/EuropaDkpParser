@@ -1,14 +1,14 @@
 ﻿// -----------------------------------------------------------------------
-// ErrorDisplayDialog.xaml.cs Copyright 2024 Craig Gjeltema
+// AttendanceErrorDisplayDialog.xaml.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Views;
 
 using System.Windows.Controls;
 
-public partial class ErrorDisplayDialog : UserControl
+public partial class AttendanceErrorDisplayDialog : UserControl
 {
-    public ErrorDisplayDialog()
+    public AttendanceErrorDisplayDialog()
     {
         InitializeComponent();
     }

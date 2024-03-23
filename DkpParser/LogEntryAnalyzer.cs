@@ -158,6 +158,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void CheckRaidBossTypo(LogParseResults logParseResults)
     {
+        // Dont bother checking if the file wasnt found
+        if (_settings.BossMobs.Count == 0)
+            return;
+
         foreach (AttendanceEntry killCall in _raidEntries.AttendanceEntries.Where(x => x.AttendanceCallType == AttendanceCallType.Kill))
         {
             if (!_settings.BossMobs.Contains(killCall.RaidName))

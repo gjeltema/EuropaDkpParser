@@ -18,7 +18,7 @@ internal sealed class DialogFactory : IDialogFactory
     public ICompletedDialogViewModel CreateCompletedDialog()
         => new CompletedDialogViewModel(_viewFactory);
 
-    public IErrorDisplayDialogViewModel CreateErrorDisplayDialog()
+    public IAttendanceErrorDisplayDialogViewModel CreateErrorDisplayDialog()
         => new ErrorDisplayDialogViewModel(_viewFactory);
 
     public IFinalSummaryDialogViewModel CreateFinalSummaryDialog()
@@ -32,7 +32,7 @@ public interface IDialogFactory
 {
     ICompletedDialogViewModel CreateCompletedDialog();
 
-    IErrorDisplayDialogViewModel CreateErrorDisplayDialog();
+    IAttendanceErrorDisplayDialogViewModel CreateErrorDisplayDialog();
 
     IFinalSummaryDialogViewModel CreateFinalSummaryDialog();
 
