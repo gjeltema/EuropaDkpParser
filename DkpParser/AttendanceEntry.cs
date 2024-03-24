@@ -22,5 +22,5 @@ public sealed class AttendanceEntry
     public string ZoneName { get; set; }
 
     public override string ToString()
-        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}\t{RaidName}";
+        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}\t{RaidName}\t{ZoneName}";
 }

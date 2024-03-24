@@ -50,6 +50,8 @@
     <system:String x:Key="SetBoss">Set Boss</system:String>
     <system:String x:Key="PossibleDupEntries">Possible duplicate entries:</system:String>
     <system:String x:Key="PossibleBossTypo">Possible boss name typo:</system:String>
+    <system:String x:Key="UpdateZone">Update Zone</system:String>
+    <system:String x:Key="NoZoneNameErrorText">No zone name was found for Attendance call</system:String>
     
     <!-- FinalSummaryDisplay -->
     <system:String x:Key="AttendanceCalls">Attendance Calls</system:String>

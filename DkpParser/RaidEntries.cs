@@ -23,7 +23,13 @@ public sealed class RaidEntries
     {
         yield return "-------------------- Attendance Entries -------------------";
         foreach (AttendanceEntry attEntry in AttendanceEntries)
+        {
             yield return attEntry.ToString();
+            foreach (string player in attEntry.PlayerNames)
+            {
+                yield return player;
+            }
+        }
 
         yield return "";
 

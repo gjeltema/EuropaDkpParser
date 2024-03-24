@@ -19,9 +19,11 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     private string _errorMessageText;
     private bool _isBossMobTypoError;
     private bool _isDuplicateError;
+    private bool _isNoZoneNameError;
     private string _nextButtonText;
     private string _selectedBossName;
     private AttendanceEntry _selectedErrorEntry;
+    private string _zoneNameText;
 
     internal AttendanceErrorDisplayDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
@@ -42,6 +44,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         RemoveDuplicateErrorEntryCommand = new DelegateCommand(RemoveDuplicateErrorEntry, () => _currentEntry?.PossibleError == PossibleError.DuplicateRaidEntry && SelectedErrorEntry != null)
             .ObservesProperty(() => SelectedErrorEntry);
         ChangeBossMobNameCommand = new DelegateCommand(ChangeBossMobName, () => _currentEntry?.PossibleError == PossibleError.BossMobNameTypo);
+        UpdateZoneNameCommand = new DelegateCommand(UpdateZoneName, () => !string.IsNullOrWhiteSpace(ZoneNameText))
+            .ObservesProperty(() => ZoneNameText);
 
         AdvanceToNextError();
     }
@@ -88,6 +92,12 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         private set => SetProperty(ref _isDuplicateError, value);
     }
 
+    public bool IsNoZoneNameError
+    {
+        get => _isNoZoneNameError;
+        private set => SetProperty(ref _isNoZoneNameError, value);
+    }
+
     public DelegateCommand MoveToNextErrorCommand { get; }
 
     public string NextButtonText
@@ -108,6 +118,14 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         get => _selectedErrorEntry;
         set => SetProperty(ref _selectedErrorEntry, value);
+    }
+
+    public DelegateCommand UpdateZoneNameCommand { get; }
+
+    public string ZoneNameText
+    {
+        get => _zoneNameText;
+        set => SetProperty(ref _zoneNameText, value);
     }
 
     private void AdvanceToNextError()
@@ -138,6 +156,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         {
             IsBossMobTypoError = false;
             IsDuplicateError = true;
+            IsNoZoneNameError = false;
 
             ErrorMessageText = Strings.GetString("PossibleDupEntries");
             ErrorAttendances = _raidEntries.AttendanceEntries
@@ -148,6 +167,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         {
             IsBossMobTypoError = true;
             IsDuplicateError = false;
+            IsNoZoneNameError = false;
 
             ErrorMessageText = Strings.GetString("PossibleBossTypo");
             ErrorAttendances = [_currentEntry];
@@ -165,6 +185,15 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
                     break;
                 }
             }
+        }
+        else if (_currentEntry.PossibleError == PossibleError.NoZoneName)
+        {
+            IsBossMobTypoError = false;
+            IsDuplicateError = false;
+            IsNoZoneNameError = true;
+
+            ErrorMessageText = Strings.GetString("NoZoneNameErrorText");
+            ErrorAttendances = [_currentEntry];
         }
     }
 
@@ -190,6 +219,11 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         int numberOfErrors = _raidEntries.AttendanceEntries.Count(x => x.PossibleError != PossibleError.None);
         NextButtonText = numberOfErrors > 1 ? Strings.GetString("Next") : Strings.GetString("Finish");
     }
+
+    private void UpdateZoneName()
+    {
+        _currentEntry.ZoneName = ZoneNameText;
+    }
 }
 
 public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
@@ -212,6 +246,8 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
 
     bool IsDuplicateError { get; }
 
+    bool IsNoZoneNameError { get; }
+
     DelegateCommand MoveToNextErrorCommand { get; }
 
     string NextButtonText { get; }
@@ -221,4 +257,8 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
     string SelectedBossName { get; set; }
 
     AttendanceEntry SelectedErrorEntry { get; set; }
+
+    DelegateCommand UpdateZoneNameCommand { get; }
+
+    string ZoneNameText { get; set; }
 }
