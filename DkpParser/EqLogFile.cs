@@ -15,4 +15,15 @@ public sealed class EqLogFile
 
     private string DebugDisplay
         => $"{LogFile} {LogEntries.Count}";
+
+    public IEnumerable<string> GetAllLogLines()
+    {
+        yield return $"----------------------- {LogFile} Begin --------------------------";
+
+        foreach (EqLogEntry logEntry in LogEntries)
+            yield return logEntry.LogLine;
+
+        yield return "";
+        yield return "";
+    }
 }

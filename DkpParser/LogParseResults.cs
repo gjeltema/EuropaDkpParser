@@ -12,6 +12,7 @@ public sealed class LogParseResults
         RaidDumpFiles = raidDumpFiles;
     }
 
-    public IList<RaidDumpFile> RaidDumpFiles { get; }
     public IList<EqLogFile> EqLogFiles { get; }
+
+    public IList<RaidDumpFile> RaidDumpFiles { get; }
 }

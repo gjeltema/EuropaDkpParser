@@ -20,5 +20,5 @@ public sealed class DkpEntry
     public DateTime Timestamp { get; set; }
 
     public override string ToString()
-        => $"{PlayerName}\t{Item}  {DkpSpent}";
+        => $"{Timestamp:HH:mm:ss} {PlayerName}\t{Item}  {DkpSpent}";
 }

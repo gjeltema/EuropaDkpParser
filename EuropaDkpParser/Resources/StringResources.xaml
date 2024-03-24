@@ -74,6 +74,8 @@
     <system:String x:Key="StartEndTimeError">Time error</system:String>
     <system:String x:Key="StartEndTimeErrorMessage">Start Time is after End Time.</system:String>
     <system:String x:Key="SuccessfulCompleteMessage">Log file has been successfully generated!</system:String>
+    <system:String x:Key="OutputRawParseResults">Output Raw Parse Results</system:String>
+    <system:String x:Key="OutputRawAnalyzerResults">Output Raw Analyzer Results</system:String>
     <system:String x:Key="OutputFile">Output File</system:String>
     
     <!-- CompletedDialog -->

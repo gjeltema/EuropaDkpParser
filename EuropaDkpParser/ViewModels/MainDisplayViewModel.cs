@@ -16,6 +16,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private readonly IDialogFactory _dialogFactory;
     private readonly IDkpParserSettings _settings;
     private string _endTimeText;
+    private bool _isOutputRawParseResultsChecked;
+    private bool _isRawAnalyzerResultsChecked;
     private string _outputFile;
     private bool _performingParse = false;
     private string _startTimeText;
@@ -49,6 +51,18 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
     }
 
+    public bool IsRawAnalyzerResultsChecked
+    {
+        get => _isRawAnalyzerResultsChecked;
+        set => SetProperty(ref _isRawAnalyzerResultsChecked, value);
+    }
+
+    public bool IsRawParseResultsChecked
+    {
+        get => _isOutputRawParseResultsChecked;
+        set => SetProperty(ref _isOutputRawParseResultsChecked, value);
+    }
+
     public DelegateCommand OpenSettingsDialogCommand { get; }
 
     public string OutputFile
@@ -78,11 +92,36 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.SaveSettings();
     }
 
+    private async Task OutputRawAnalyzerResults(RaidEntries raidEntries)
+    {
+        string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
+        if (!string.IsNullOrWhiteSpace(OutputFile))
+            directory = Path.GetDirectoryName(OutputFile);
+
+        string rawAnalyzerOutputFile = $"RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
+        await File.AppendAllLinesAsync(rawAnalyzerOutputFullPath, raidEntries.GetAllEntries());
+    }
+
+    private async Task OutputRawParseResults(LogParseResults results)
+    {
+        string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
+        if (!string.IsNullOrWhiteSpace(OutputFile))
+            directory = Path.GetDirectoryName(OutputFile);
+
+        string rawParseOutputFile = $"RawParseOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string rawParseOutputFullPath = Path.Combine(directory, rawParseOutputFile);
+        foreach (EqLogFile logFile in results.EqLogFiles)
+        {
+            await File.AppendAllLinesAsync(rawParseOutputFullPath, logFile.GetAllLogLines());
+        }
+    }
+
     private void ResetTime()
     {
         DateTime currentTime = DateTime.Now;
         _endTimeText = currentTime.ToString(DateTimeFormat);
-        _startTimeText = currentTime.AddHours(-5).ToString(DateTimeFormat);
+        _startTimeText = currentTime.AddHours(-6).ToString(DateTimeFormat);
     }
 
     private void SetOutputFile()
@@ -126,8 +165,18 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
             LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
 
+            if (IsRawParseResultsChecked)
+            {
+                await OutputRawParseResults(results);
+            }
+
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
             RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+
+            if (IsRawAnalyzerResultsChecked)
+            {
+                await OutputRawAnalyzerResults(raidEntries);
+            }
 
             if (raidEntries.AttendanceEntries.Any(x => x.PossibleError != PossibleError.None))
             {
@@ -165,6 +214,10 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 public interface IMainDisplayViewModel : IEuropaViewModel
 {
     string EndTimeText { get; set; }
+
+    bool IsRawAnalyzerResultsChecked { get; set; }
+
+    bool IsRawParseResultsChecked { get; set; }
 
     DelegateCommand OpenSettingsDialogCommand { get; }
 
