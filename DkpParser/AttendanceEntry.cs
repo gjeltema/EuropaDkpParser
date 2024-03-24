@@ -20,4 +20,7 @@ public sealed class AttendanceEntry
     public string ZoneName { get; set; }
 
     public PossibleError PossibleError { get; set; }
+
+    public override string ToString()
+        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}\t{RaidName}";
 }

@@ -11,20 +11,52 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 {
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
+    private ICollection<AttendanceEntry> _allAttendances;
     private AttendanceEntry _currentEntry;
+    private ICollection<AttendanceEntry> _errorAttendances;
     private string _errorLogEntry;
     private string _errorMessageText;
-    private bool _moreErrorsRemaining;
+    private bool _isBossMobTypoError;
+    private bool _isDuplicateError;
+    private string _nextButtonText;
     private string _selectedBossName;
+    private AttendanceEntry _selectedErrorEntry;
 
     internal AttendanceErrorDisplayDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
     {
         _settings = settings;
         _raidEntries = raidEntries;
+
+        ApprovedBossNames = _settings.BossMobs;
+        string firstBossName = ApprovedBossNames.FirstOrDefault();
+        if (!string.IsNullOrEmpty(firstBossName))
+        {
+            SelectedBossName = firstBossName;
+        }
+
+        MoveToNextErrorCommand = new DelegateCommand(AdvanceToNextError);
+        RemoveDuplicateErrorEntryCommand = new DelegateCommand(RemoveDuplicateErrorEntry, () => _currentEntry?.PossibleError == PossibleError.DuplicateRaidEntry);
+        ChangeBossMobNameCommand = new DelegateCommand(ChangeBossMobName, () => _currentEntry?.PossibleError == PossibleError.BossMobNameTypo);
+
+        AdvanceToNextError();
+    }
+
+    public ICollection<AttendanceEntry> AllAttendances
+    {
+        get => _allAttendances;
+        set => SetProperty(ref _allAttendances, value);
     }
 
     public ICollection<string> ApprovedBossNames { get; }
+
+    public DelegateCommand ChangeBossMobNameCommand { get; }
+
+    public ICollection<AttendanceEntry> ErrorAttendances
+    {
+        get => _errorAttendances;
+        set => SetProperty(ref _errorAttendances, value);
+    }
 
     public string ErrorLogEntry
     {
@@ -40,15 +72,27 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     public DelegateCommand FinishReviewingErrorsCommand { get; }
 
-    public DelegateCommand FixErrorCommand { get; }
-
-    public bool MoreErrorsRemaining
+    public bool IsBossMobTypoError
     {
-        get => _moreErrorsRemaining;
-        set => SetProperty(ref _moreErrorsRemaining, value);
+        get => _isBossMobTypoError;
+        private set => SetProperty(ref _isBossMobTypoError, value);
+    }
+
+    public bool IsDuplicateError
+    {
+        get => _isDuplicateError;
+        private set => SetProperty(ref _isDuplicateError, value);
     }
 
     public DelegateCommand MoveToNextErrorCommand { get; }
+
+    public string NextButtonText
+    {
+        get => _nextButtonText;
+        private set => SetProperty(ref _nextButtonText, value);
+    }
+
+    public DelegateCommand RemoveDuplicateErrorEntryCommand { get; }
 
     public string SelectedBossName
     {
@@ -56,19 +100,100 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         set => SetProperty(ref _selectedBossName, value);
     }
 
-    public void AdvanceToNextError()
+    public AttendanceEntry SelectedErrorEntry
     {
+        get => _selectedErrorEntry;
+        set => SetProperty(ref _selectedErrorEntry, value);
+    }
+
+    private void AdvanceToNextError()
+    {
+        if (ErrorAttendances?.Count > 0)
+        {
+            foreach (AttendanceEntry errorAttendance in ErrorAttendances)
+                errorAttendance.PossibleError = PossibleError.None;
+        }
+
+        if (_currentEntry != null)
+            _currentEntry.PossibleError = PossibleError.None;
+
+        SetNextButtonText();
+
         _currentEntry = _raidEntries.AttendanceEntries.FirstOrDefault(x => x.PossibleError != PossibleError.None);
         if (_currentEntry == null)
         {
-            MoreErrorsRemaining = false;
+            CloseOk();
+            return;
         }
+
+        AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        RemoveDuplicateErrorEntryCommand.RaiseCanExecuteChanged();
+        ChangeBossMobNameCommand.RaiseCanExecuteChanged();
+
+        if (_currentEntry.PossibleError == PossibleError.DuplicateRaidEntry)
+        {
+            IsBossMobTypoError = false;
+            IsDuplicateError = true;
+
+            ErrorMessageText = "Possible duplicate entries:";
+            ErrorAttendances = _raidEntries.AttendanceEntries
+                .Where(x => x.RaidName.Equals(_currentEntry.RaidName, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+        else if (_currentEntry.PossibleError == PossibleError.BossMobNameTypo)
+        {
+            IsBossMobTypoError = true;
+            IsDuplicateError = false;
+
+            ErrorMessageText = "Possible boss name typo:";
+            ErrorAttendances = [_currentEntry];
+
+            for (int i = 5; i > 0; i--)
+            {
+                string startOfBossName = _currentEntry.RaidName.Substring(0, i);
+                string approvedBossName = _settings.BossMobs.FirstOrDefault(x => x.StartsWith(startOfBossName));
+                if (approvedBossName != null)
+                {
+                    SelectedBossName = approvedBossName;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void ChangeBossMobName()
+    {
+        _currentEntry.RaidName = SelectedBossName;
+        ErrorAttendances = [_currentEntry];
+    }
+
+    private void RemoveDuplicateErrorEntry()
+    {
+        _raidEntries.AttendanceEntries.Remove(SelectedErrorEntry);
+        ErrorAttendances = _raidEntries.AttendanceEntries
+            .Where(x => x.RaidName.Equals(_currentEntry.RaidName, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        SetNextButtonText();
+    }
+
+    private void SetNextButtonText()
+    {
+        int numberOfErrors = _raidEntries.AttendanceEntries.Count(x => x.PossibleError != PossibleError.None);
+        NextButtonText = numberOfErrors > 1 ? "Next" : "Finish";
     }
 }
 
 public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
 {
+    ICollection<AttendanceEntry> AllAttendances { get; }
+
     ICollection<string> ApprovedBossNames { get; }
+
+    DelegateCommand ChangeBossMobNameCommand { get; }
+
+    ICollection<AttendanceEntry> ErrorAttendances { get; }
 
     string ErrorLogEntry { get; }
 
@@ -76,13 +201,17 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
 
     DelegateCommand FinishReviewingErrorsCommand { get; }
 
-    DelegateCommand FixErrorCommand { get; }
+    bool IsBossMobTypoError { get; }
 
-    bool MoreErrorsRemaining { get; }
+    bool IsDuplicateError { get; }
 
     DelegateCommand MoveToNextErrorCommand { get; }
 
+    string NextButtonText { get; }
+
+    DelegateCommand RemoveDuplicateErrorEntryCommand { get; }
+
     string SelectedBossName { get; set; }
 
-    void AdvanceToNextError();
+    AttendanceEntry SelectedErrorEntry { get; set; }
 }

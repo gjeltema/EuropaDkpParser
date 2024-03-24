@@ -142,6 +142,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void CheckDuplicateAttendanceEntries(LogParseResults logParseResults)
     {
+        //** Need to change this to do case insensitive check
         var grouped = from a in _raidEntries.AttendanceEntries
                       group a by a.RaidName into ae
                       where ae.Count() > 1

@@ -7,54 +7,69 @@
              xmlns:viewmodels="clr-namespace:EuropaDkpParser.ViewModels" 
              d:DataContext="{d:DesignInstance Type=viewmodels:AttendanceErrorDisplayDialogViewModel}"
              mc:Ignorable="d" 
+            
              d:DesignHeight="450" d:DesignWidth="800">
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            
-            <Label Content="LogEntry" Grid.Column="0"/>
 
-            <TextBox Text="{Binding ErrorLogEntry}" Grid.Column="1"/>
+            <Grid Grid.Column="0" Margin="0,0,5,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Label Content="All Attendance Calls" Grid.Row="0"/>
+
+                <ListBox Grid.Row="1" ItemsSource="{Binding AllAttendances}">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="Focusable" Value="False"/>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </Grid>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="{Binding ErrorMessageText}" />
+
+                <ListBox Grid.Row="1" ItemsSource="{Binding ErrorAttendances}" SelectedItem="{Binding SelectedErrorEntry}"/>
+
+                <!-- These 2 grids overlay each other, controlled by visibility. -->
+                <Grid Grid.Row="2" Visibility="{Binding IsDuplicateError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
+                    <Button Content="Remove" Command="{Binding RemoveDuplicateErrorEntryCommand}" HorizontalAlignment="Right" Width="60"/>
+                </Grid>
+
+                <Grid Grid.Row="2" Visibility="{Binding IsBossMobTypoError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding ApprovedBossNames}" SelectedValue="{Binding SelectedBossName}" Margin="0,0,4,0"/>
+                    <Button Grid.Column="1" Content="Set Boss" Command="{Binding ChangeBossMobNameCommand}" Width="60" />
+                </Grid>
+
+            </Grid>
         </Grid>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <Label Content="{Binding ErrorMessageText}" Grid.Column="0"/>
-            <Button Content="Fix" Grid.Column="1" Command="{Binding FixErrorCommand}" />
-        </Grid>
-
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Label Content="Bosses" Grid.Column="0"/>
-            <ComboBox ItemsSource="{Binding ApprovedBossNames}" SelectedValue="{Binding SelectedBossName}" Grid.Column="1"/>
-        </Grid>
-
-        <Grid Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <Button Grid.Column="1" Content="Next" Command="{Binding MoveToNextErrorCommand}" Visibility="{Binding MoreErrorsRemaining, Converter={StaticResource BoolToVisibilityConverter}}"/>
-            <Button Grid.Column="1" Content="Done" Command="{Binding FinishReviewingErrorsCommand}" Visibility="{Binding MoreErrorsRemaining, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+        <Grid Grid.Row="1" Margin="0,8,0,0">
+            <Button Content="{Binding NextButtonText}" Command="{Binding MoveToNextErrorCommand}" HorizontalAlignment="Right" Width="75"/>
         </Grid>
     </Grid>
 </UserControl>

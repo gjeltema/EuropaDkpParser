@@ -6,13 +6,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         d:DataContext="{d:DesignInstance Type=dialogsViewModel:DialogViewModelBase}"
-        ResizeMode="NoResize"
+       
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         WindowStyle="ToolWindow"
-        SizeToContent="WidthAndHeight" 
+       
         Title="{Binding Title}"
         mc:Ignorable="d" 
+        Width="700" Height="500"
         dialogsView:DialogResultBehavior.DialogResult="{Binding DialogResult}">
 
     <ContentPresenter Margin="6,10,6,8" Content="{Binding}">

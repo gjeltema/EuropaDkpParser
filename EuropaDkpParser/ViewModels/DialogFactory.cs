@@ -15,11 +15,11 @@ internal sealed class DialogFactory : IDialogFactory
         _viewFactory = viewFactory;
     }
 
+    public IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialog(IDkpParserSettings settings, RaidEntries raidEntries)
+        => new AttendanceErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
+
     public ICompletedDialogViewModel CreateCompletedDialog()
         => new CompletedDialogViewModel(_viewFactory);
-
-    public IAttendanceErrorDisplayDialogViewModel CreateErrorDisplayDialog()
-        => new ErrorDisplayDialogViewModel(_viewFactory);
 
     public IFinalSummaryDialogViewModel CreateFinalSummaryDialog()
         => new FinalSummaryDialogViewModel(_viewFactory);
@@ -30,9 +30,9 @@ internal sealed class DialogFactory : IDialogFactory
 
 public interface IDialogFactory
 {
-    ICompletedDialogViewModel CreateCompletedDialog();
+    IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialog(IDkpParserSettings settings, RaidEntries raidEntries);
 
-    IAttendanceErrorDisplayDialogViewModel CreateErrorDisplayDialog();
+    ICompletedDialogViewModel CreateCompletedDialog();
 
     IFinalSummaryDialogViewModel CreateFinalSummaryDialog();
 

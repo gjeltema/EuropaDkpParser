@@ -120,7 +120,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
             RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
 
-            //** Possible Errors dialog
+            IAttendanceErrorDisplayDialogViewModel attendanceErrorDialog = _dialogFactory.CreateAttendanceErrorDisplayDialog(_settings, raidEntries);
+            if (attendanceErrorDialog.ShowDialog() == false)
+                return;
 
 
             //** Summary dialog
