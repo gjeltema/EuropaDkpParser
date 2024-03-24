@@ -20,24 +20,16 @@ public sealed class LogParseProcessor : ILogParseProcessor
     {
         List<RaidDumpFile> raidDumpFiles = GetRaidDumpFiles(startTime, endTime);
         List<RaidListFile> raidListFiles = GetRaidListFiles(startTime, endTime);
-        List<EqLogFile> logFiles = GetEqLogFiles(startTime, endTime);
+        IList<EqLogFile> logFiles = GetEqLogFiles(startTime, endTime);
 
         LogParseResults results = new(logFiles, raidDumpFiles, raidListFiles);
         return results;
     }
 
-    private List<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime)
+    private IList<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime)
     {
-        List<EqLogFile> logFiles = [];
-        LogParser parser = new(_settings);
-        foreach (string logFileName in _settings.SelectedLogFiles)
-        {
-            EqLogFile parsedFile = parser.ParseLogFile(logFileName, startTime, endTime);
-            if (parsedFile.LogEntries.Count > 0)
-                logFiles.Add(parsedFile);
-        }
-
-        return logFiles;
+        IEqLogParser eqLogParser = new EqLogParser(_settings);
+        return eqLogParser.GetEqLogFiles(startTime, endTime);
     }
 
     private List<RaidDumpFile> GetRaidDumpFiles(DateTime startTime, DateTime endTime)

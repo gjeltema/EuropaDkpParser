@@ -29,6 +29,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
         StartLogParseCommand = new DelegateCommand(StartLogParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputFile);
+        GetRawLogFileCommand = new DelegateCommand(GetRawLogFilesParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputFile);
         ResetTimeCommand = new DelegateCommand(ResetTime);
 
         ResetTime();
@@ -50,6 +52,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             }
         }
     }
+
+    public DelegateCommand GetRawLogFileCommand { get; }
 
     public bool IsRawAnalyzerResultsChecked
     {
@@ -79,6 +83,57 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     {
         get => _startTimeText;
         set => SetProperty(ref _startTimeText, value);
+    }
+
+    private async void GetRawLogFilesParse()
+       => await GetRawLogFilesParseAsync();
+
+    private async Task GetRawLogFilesParseAsync()
+    {
+        try
+        {
+            if (!DateTime.TryParse(StartTimeText, out DateTime startTime))
+            {
+                MessageBox.Show(Strings.GetString("StartTimeErrorMessage"), Strings.GetString("StartTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (!DateTime.TryParse(EndTimeText, out DateTime endTime))
+            {
+                MessageBox.Show(Strings.GetString("EndTimeErrorMessage"), Strings.GetString("EndTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (startTime > endTime)
+            {
+                MessageBox.Show(Strings.GetString("StartEndTimeErrorMessage"), Strings.GetString("StartEndTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            _performingParse = true;
+            StartLogParseCommand.RaiseCanExecuteChanged();
+            GetRawLogFileCommand.RaiseCanExecuteChanged();
+
+            IFullEqLogParser fullLogParser = new FullEqLogParser(_settings);
+            ICollection<EqLogFile> logFiles = await Task.Run(() => fullLogParser.GetEqLogFiles(startTime, endTime));
+
+            string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
+            if (!string.IsNullOrWhiteSpace(OutputFile))
+                directory = Path.GetDirectoryName(OutputFile);
+
+            string fullLogOutputFile = $"FullLogOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+            string fullLogOutputFullPath = Path.Combine(directory, fullLogOutputFile);
+            foreach (EqLogFile logFile in logFiles)
+            {
+                File.AppendAllLines(fullLogOutputFullPath, logFile.GetAllLogLines());
+            }
+        }
+        finally
+        {
+            _performingParse = false;
+            StartLogParseCommand.RaiseCanExecuteChanged();
+            GetRawLogFileCommand.RaiseCanExecuteChanged();
+        }
     }
 
     private void OpenSettingsDialog()
@@ -122,6 +177,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         DateTime currentTime = DateTime.Now;
         _endTimeText = currentTime.ToString(DateTimeFormat);
         _startTimeText = currentTime.AddHours(-6).ToString(DateTimeFormat);
+        SetOutputFile();
     }
 
     private void SetOutputFile()
@@ -161,6 +217,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         {
             _performingParse = true;
             StartLogParseCommand.RaiseCanExecuteChanged();
+            GetRawLogFileCommand.RaiseCanExecuteChanged();
 
             ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
             LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
@@ -206,6 +263,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         {
             _performingParse = false;
             StartLogParseCommand.RaiseCanExecuteChanged();
+            GetRawLogFileCommand.RaiseCanExecuteChanged();
             SetOutputFile();
         }
     }
@@ -214,6 +272,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 public interface IMainDisplayViewModel : IEuropaViewModel
 {
     string EndTimeText { get; set; }
+
+    DelegateCommand GetRawLogFileCommand { get; }
 
     bool IsRawAnalyzerResultsChecked { get; set; }
 

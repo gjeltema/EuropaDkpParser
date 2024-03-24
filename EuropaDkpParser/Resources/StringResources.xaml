@@ -77,6 +77,8 @@
     <system:String x:Key="OutputRawParseResults">Output Raw Parse Results</system:String>
     <system:String x:Key="OutputRawAnalyzerResults">Output Raw Analyzer Results</system:String>
     <system:String x:Key="OutputFile">Output File</system:String>
+    <system:String x:Key="RawDump">Raw Log</system:String>
+    <system:String x:Key="RawDumpToolTip">Gets ALL the log entries from the log files for the specified time period.</system:String>
     
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>
