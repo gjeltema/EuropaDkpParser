@@ -25,6 +25,7 @@ public static class Constants
     public const string PlayersOnEverquest = "Players on EverQuest:";
     public const string PossibleErrorDelimiter = "::";
     public const string RaidDumpFileNameTimeFormat = "yyyyMMdd-HHmmss";
+    public const string RaidListFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
     public const string TooLongDelimiter = "::::";
     public const string TypicalTimestamp = "[Tue Mar 19 23:24:25 2024]";
     public const string WhoZonePrefixPlural = "There are ";

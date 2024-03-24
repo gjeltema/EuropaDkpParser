@@ -6,13 +6,16 @@ namespace DkpParser;
 
 public sealed class LogParseResults
 {
-    public LogParseResults(IList<EqLogFile> eqLogFiles, IList<RaidDumpFile> raidDumpFiles)
+    public LogParseResults(IList<EqLogFile> eqLogFiles, IList<RaidDumpFile> raidDumpFiles, IList<RaidListFile> raidListFiles)
     {
         EqLogFiles = eqLogFiles;
         RaidDumpFiles = raidDumpFiles;
+        RaidListFiles = raidListFiles;
     }
 
     public IList<EqLogFile> EqLogFiles { get; }
 
     public IList<RaidDumpFile> RaidDumpFiles { get; }
+
+    public IList<RaidListFile> RaidListFiles { get; }
 }

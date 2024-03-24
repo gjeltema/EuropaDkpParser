@@ -10,8 +10,8 @@ using System.IO;
 internal sealed class LogParser : ILogParser, ISetParser
 {
     private readonly IDkpParserSettings _settings;
-    private IParseEntry _primaryEntryParser;
     private IParseEntry _currentEntryParser;
+    private IParseEntry _primaryEntryParser;
 
     public LogParser(IDkpParserSettings settings)
     {

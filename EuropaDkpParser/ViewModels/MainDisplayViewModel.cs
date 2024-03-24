@@ -92,7 +92,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.SaveSettings();
     }
 
-    private async Task OutputRawAnalyzerResults(RaidEntries raidEntries)
+    private void OutputRawAnalyzerResults(RaidEntries raidEntries)
     {
         string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
         if (!string.IsNullOrWhiteSpace(OutputFile))
@@ -100,10 +100,10 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
         string rawAnalyzerOutputFile = $"RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
-        await File.AppendAllLinesAsync(rawAnalyzerOutputFullPath, raidEntries.GetAllEntries());
+        File.AppendAllLines(rawAnalyzerOutputFullPath, raidEntries.GetAllEntries());
     }
 
-    private async Task OutputRawParseResults(LogParseResults results)
+    private void OutputRawParseResults(LogParseResults results)
     {
         string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
         if (!string.IsNullOrWhiteSpace(OutputFile))
@@ -113,7 +113,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         string rawParseOutputFullPath = Path.Combine(directory, rawParseOutputFile);
         foreach (EqLogFile logFile in results.EqLogFiles)
         {
-            await File.AppendAllLinesAsync(rawParseOutputFullPath, logFile.GetAllLogLines());
+            File.AppendAllLines(rawParseOutputFullPath, logFile.GetAllLogLines());
         }
     }
 
@@ -167,7 +167,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
             if (IsRawParseResultsChecked)
             {
-                await OutputRawParseResults(results);
+                await Task.Run(() => OutputRawParseResults(results));
             }
 
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
@@ -175,7 +175,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
             if (IsRawAnalyzerResultsChecked)
             {
-                await OutputRawAnalyzerResults(raidEntries);
+                await Task.Run(() => OutputRawAnalyzerResults(raidEntries));
             }
 
             if (raidEntries.AttendanceEntries.Any(x => x.PossibleError != PossibleError.None))

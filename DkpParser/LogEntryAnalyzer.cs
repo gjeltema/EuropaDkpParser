@@ -79,6 +79,16 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                             call.PlayerNames.Add(player);
                         }
                     }
+
+                    RaidListFile raidList = logParseResults.RaidListFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
+                    if (raidList != null)
+                    {
+                        foreach (string player in raidList.CharacterNames)
+                        {
+                            call.PlayerNames.Add(player);
+                        }
+                    }
+
                     foreach (PlayerAttend player in _playersAttending.Where(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp)))
                     {
                         call.PlayerNames.Add(player.PlayerName);
@@ -140,9 +150,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void CheckDuplicateAttendanceEntries(LogParseResults logParseResults)
     {
-        //** Need to change this to do case insensitive check
         var grouped = from a in _raidEntries.AttendanceEntries
-                      group a by a.RaidName into ae
+                      group a by a.RaidName.ToUpper() into ae
                       where ae.Count() > 1
                       select new { Attendances = ae };
 
@@ -186,6 +195,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
     {
+        // [Sun Mar 17 21:27:54 2024]  AFK [50 Bard] Grindcore (Half Elf) <Europa>
+        // [Tue Mar 19 20:30:56 2024]  AFK [ANONYMOUS] Ecliptor  <Europa>
         // [Tue Mar 19 23:46:05 2024]  <LINKDEAD>[ANONYMOUS] Luwena  <Europa>
         // [Sun Mar 17 21:27:54 2024] [50 Monk] Pullz (Human) <Europa>
         // [Sun Mar 17 21:27:54 2024] [ANONYMOUS] Mendrik <Europa>
@@ -197,6 +208,9 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             firstIndexOfEndMarker = entry.LogLine.LastIndexOf('<');
             if (indexOfLastBracket == -1)
             {
+                // If cant find one of the above symbols for some reason, just go to the end of the string.
+                // Should not reach here.
+                Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayerName)} that should not be reached.  Logline: {entry.LogLine}");
                 firstIndexOfEndMarker = entry.LogLine.Length - 1;
             }
         }
@@ -209,7 +223,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private DkpEntry ExtractDkpSpentInfo(EqLogEntry entry)
     {
-        //** Need to do error analysis - check against players looted (player name and item looted name), and players attending
         // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
         string logLine = CorrectDelimiter(entry.LogLine);
 
@@ -324,6 +337,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         foreach (RaidDumpFile raidDump in logParseResults.RaidDumpFiles)
         {
             foreach (string playerName in raidDump.CharacterNames)
+            {
+                _raidEntries.AllPlayersInRaid.Add(playerName);
+            }
+        }
+
+        foreach (RaidListFile raidList in logParseResults.RaidListFiles)
+        {
+            foreach (string playerName in raidList.CharacterNames)
             {
                 _raidEntries.AllPlayersInRaid.Add(playerName);
             }
