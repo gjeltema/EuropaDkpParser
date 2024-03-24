@@ -5,6 +5,7 @@
 namespace EuropaDkpParser.ViewModels;
 
 using DkpParser;
+using EuropaDkpParser.Resources;
 using Prism.Commands;
 
 internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBase, IAttendanceErrorDisplayDialogViewModel
@@ -25,6 +26,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     internal AttendanceErrorDisplayDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
     {
+        Title = Strings.GetString("AttendanceErrorDisplayDialogTitleText");
+
         _settings = settings;
         _raidEntries = raidEntries;
 
@@ -36,7 +39,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         }
 
         MoveToNextErrorCommand = new DelegateCommand(AdvanceToNextError);
-        RemoveDuplicateErrorEntryCommand = new DelegateCommand(RemoveDuplicateErrorEntry, () => _currentEntry?.PossibleError == PossibleError.DuplicateRaidEntry);
+        RemoveDuplicateErrorEntryCommand = new DelegateCommand(RemoveDuplicateErrorEntry, () => _currentEntry?.PossibleError == PossibleError.DuplicateRaidEntry && SelectedErrorEntry != null)
+            .ObservesProperty(() => SelectedErrorEntry);
         ChangeBossMobNameCommand = new DelegateCommand(ChangeBossMobName, () => _currentEntry?.PossibleError == PossibleError.BossMobNameTypo);
 
         AdvanceToNextError();
@@ -135,7 +139,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             IsBossMobTypoError = false;
             IsDuplicateError = true;
 
-            ErrorMessageText = "Possible duplicate entries:";
+            ErrorMessageText = Strings.GetString("PossibleDupEntries");
             ErrorAttendances = _raidEntries.AttendanceEntries
                 .Where(x => x.RaidName.Equals(_currentEntry.RaidName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
@@ -145,7 +149,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             IsBossMobTypoError = true;
             IsDuplicateError = false;
 
-            ErrorMessageText = "Possible boss name typo:";
+            ErrorMessageText = Strings.GetString("PossibleBossTypo");
             ErrorAttendances = [_currentEntry];
 
             for (int i = 8; i > 0; i--)
@@ -184,7 +188,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     private void SetNextButtonText()
     {
         int numberOfErrors = _raidEntries.AttendanceEntries.Count(x => x.PossibleError != PossibleError.None);
-        NextButtonText = numberOfErrors > 1 ? "Next" : "Finish";
+        NextButtonText = numberOfErrors > 1 ? Strings.GetString("Next") : Strings.GetString("Finish");
     }
 }
 

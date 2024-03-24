@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" Margin="0,0,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -27,7 +27,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Label Content="All Attendance Calls" Grid.Row="0"/>
+                <Label Content="{StaticResource AllAttendanceCalls}" Grid.Row="0"/>
 
                 <ListBox Grid.Row="1" ItemsSource="{Binding AllAttendances}">
                     <ListBox.ItemContainerStyle>
@@ -51,7 +51,7 @@
 
                 <!-- These 2 grids overlay each other, controlled by visibility. -->
                 <Grid Grid.Row="2" Visibility="{Binding IsDuplicateError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
-                    <Button Content="Remove" Command="{Binding RemoveDuplicateErrorEntryCommand}" HorizontalAlignment="Right" Width="60"/>
+                    <Button Content="{StaticResource Remove}" Command="{Binding RemoveDuplicateErrorEntryCommand}" HorizontalAlignment="Right" Width="75" Height="30"/>
                 </Grid>
 
                 <Grid Grid.Row="2" Visibility="{Binding IsBossMobTypoError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
@@ -61,7 +61,7 @@
                     </Grid.ColumnDefinitions>
 
                     <ComboBox Grid.Column="0" ItemsSource="{Binding ApprovedBossNames}" SelectedValue="{Binding SelectedBossName}" Margin="0,0,4,0"/>
-                    <Button Grid.Column="1" Content="Set Boss" Command="{Binding ChangeBossMobNameCommand}" Width="60" />
+                    <Button Grid.Column="1" Content="{StaticResource SetBoss}" Command="{Binding ChangeBossMobNameCommand}" Width="75" />
                 </Grid>
 
             </Grid>

@@ -11,20 +11,22 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Label Content="{Binding CompletionMessage}" Grid.Row="0"/>
+        <Label Content="{Binding CompletionMessage}" Grid.Row="0" />
 
-        <TextBlock Text="{Binding LogFilePath}" Grid.Row="1"/>
+        <TextBlock Text="{Binding LogFilePath}" Grid.Row="1" Margin="5,10"/>
 
-        <Grid>
+        <Grid Grid.Row="2" HorizontalAlignment="Right">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="Open Dir" Command="{Binding OpenLogFileDirectoryCommand}" Grid.Column="0"/>
+            <Button Grid.Column="0" Content="{StaticResource OpenDir}" Command="{Binding OpenLogFileDirectoryCommand}" HorizontalAlignment="Right" Width="100" Height="30" Margin="0,0,10,0"/>
+            <Button Grid.Column="1" Content="{StaticResource OkButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" Width="100" Height="30" HorizontalAlignment="Right" />
         </Grid>
     </Grid>
 </UserControl>

@@ -7,6 +7,7 @@ namespace EuropaDkpParser.ViewModels;
 using System.IO;
 using System.Windows;
 using DkpParser;
+using EuropaDkpParser.Resources;
 using Prism.Commands;
 
 internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayViewModel
@@ -16,23 +17,21 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private readonly IDkpParserSettings _settings;
     private string _endTimeText;
     private string _outputFile;
-    private string _startTimeText;
     private bool _performingParse = false;
+    private string _startTimeText;
 
     internal MainDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
         _settings = settings;
         _dialogFactory = dialogFactory;
         OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
-        StartLogParseCommand = new DelegateCommand(StartLogParse, () => !_performingParse &&!string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
+        StartLogParseCommand = new DelegateCommand(StartLogParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputFile);
         ResetTimeCommand = new DelegateCommand(ResetTime);
 
         ResetTime();
 
-        string defaultOutputDirectory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
-        string outputFile = $"RaidLog-{DateTime.Now:yyyyMMdd-HHmm}.txt";
-        OutputFile = Path.Combine(defaultOutputDirectory, outputFile);
+        SetOutputFile();
     }
 
     public string EndTimeText
@@ -86,6 +85,16 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _startTimeText = currentTime.AddHours(-5).ToString(DateTimeFormat);
     }
 
+    private void SetOutputFile()
+    {
+        string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
+        if (!string.IsNullOrWhiteSpace(OutputFile))
+            directory = Path.GetDirectoryName(OutputFile);
+
+        string outputFile = $"RaidLog-{DateTime.Now:yyyyMMdd-HHmm}.txt";
+        OutputFile = Path.Combine(directory, outputFile);
+    }
+
     private async void StartLogParse()
         => await StartLogParseAsync();
 
@@ -93,19 +102,19 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     {
         if (!DateTime.TryParse(StartTimeText, out DateTime startTime))
         {
-            MessageBox.Show("Start Time is not in a valid format.", "Start Time error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Strings.GetString("StartTimeErrorMessage"), Strings.GetString("StartTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
         if (!DateTime.TryParse(EndTimeText, out DateTime endTime))
         {
-            MessageBox.Show("End Time is not in a valid format.", "End Time error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Strings.GetString("EndTimeErrorMessage"), Strings.GetString("EndTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
         if (startTime > endTime)
         {
-            MessageBox.Show("Start Time is after End Time.", "Time error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Strings.GetString("StartEndTimeErrorMessage"), Strings.GetString("StartEndTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
@@ -120,25 +129,35 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
             RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
 
-            IAttendanceErrorDisplayDialogViewModel attendanceErrorDialog = _dialogFactory.CreateAttendanceErrorDisplayDialog(_settings, raidEntries);
-            if (attendanceErrorDialog.ShowDialog() == false)
-                return;
+            if (raidEntries.AttendanceEntries.Any(x => x.PossibleError != PossibleError.None))
+            {
+                IAttendanceErrorDisplayDialogViewModel attendanceErrorDialog = _dialogFactory.CreateAttendanceErrorDisplayDialog(_settings, raidEntries);
+                if (attendanceErrorDialog.ShowDialog() == false)
+                    return;
+            }
 
-            IDkpErrorDisplayDialogViewModel dkpErrorDialog = _dialogFactory.CreateDkpErrorDisplayDialogViewModel(_settings, raidEntries);
-            if (dkpErrorDialog.ShowDialog() == false)
-                return;
+            if (raidEntries.DkpEntries.Any(x => x.PossibleError != PossibleError.None))
+            {
+                IDkpErrorDisplayDialogViewModel dkpErrorDialog = _dialogFactory.CreateDkpErrorDisplayDialogViewModel(_settings, raidEntries);
+                if (dkpErrorDialog.ShowDialog() == false)
+                    return;
+            }
 
-            //** Summary dialog
+            IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialog(raidEntries);
+            if (finalSummaryDialog.ShowDialog() == false)
+                return;
 
             IOutputGenerator generator = new FileOutputGenerator(OutputFile);
             await generator.GenerateOutput(raidEntries);
 
-            //** Completed dialog
+            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialog(OutputFile, Strings.GetString("SuccessfulCompleteMessage"));
+            completedDialog.ShowDialog();
         }
         finally
         {
             _performingParse = false;
             StartLogParseCommand.RaiseCanExecuteChanged();
+            SetOutputFile();
         }
     }
 }

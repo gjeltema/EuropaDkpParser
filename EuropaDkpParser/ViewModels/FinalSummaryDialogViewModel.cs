@@ -4,23 +4,32 @@
 
 namespace EuropaDkpParser.ViewModels;
 
-using Prism.Commands;
+using DkpParser;
+using EuropaDkpParser.Resources;
 
 internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalSummaryDialogViewModel
 {
-    internal FinalSummaryDialogViewModel(IDialogViewFactory viewFactory)
+    private readonly RaidEntries _raidEntries;
+
+    internal FinalSummaryDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries)
         : base(viewFactory)
     {
+        Title = Strings.GetString("LogParseSummaryDialogTitleText");
+
+        _raidEntries = raidEntries;
+
+        AttendanceCalls = raidEntries.AttendanceEntries;
+        DkpSpentCalls = raidEntries.DkpEntries;
     }
 
-    public ICollection<string> AttendanceCalls { get; }
-    public ICollection<string> DkpSpentCalls { get; }
-    public DelegateCommand CreateLogFileCommand { get; }
+    public ICollection<AttendanceEntry> AttendanceCalls { get; }
+
+    public ICollection<DkpEntry> DkpSpentCalls { get; }
 }
 
 public interface IFinalSummaryDialogViewModel : IDialogViewModel
 {
-    ICollection<string> AttendanceCalls { get; }
-    ICollection<string> DkpSpentCalls { get; }
-    DelegateCommand CreateLogFileCommand { get; }
+    ICollection<AttendanceEntry> AttendanceCalls { get; }
+
+    ICollection<DkpEntry> DkpSpentCalls { get; }
 }

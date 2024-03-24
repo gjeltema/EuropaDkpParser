@@ -4,25 +4,42 @@
 
 namespace EuropaDkpParser.ViewModels;
 
+using System.Diagnostics;
+using System.IO;
+using EuropaDkpParser.Resources;
 using Prism.Commands;
 
 internal sealed class CompletedDialogViewModel : DialogViewModelBase, ICompletedDialogViewModel
 {
-    internal CompletedDialogViewModel(IDialogViewFactory viewFactory)
+    internal CompletedDialogViewModel(IDialogViewFactory viewFactory, string logFilePath, string completionMessage)
         : base(viewFactory)
     {
+        Title = Strings.GetString("CompletedDialogTitleText");
+
+        LogFilePath = logFilePath;
+        CompletionMessage = completionMessage;
+
+        OpenLogFileDirectoryCommand = new DelegateCommand(OpenLogFileDirectory);
     }
 
-    public string LogFilePath { get; }
     public string CompletionMessage { get; }
+
+    public string LogFilePath { get; }
+
     public DelegateCommand OpenLogFileDirectoryCommand { get; }
+
+    private void OpenLogFileDirectory()
+    {
+        string directory = Path.GetDirectoryName(LogFilePath);
+        Process.Start("explorer.exe", directory);
+    }
 }
 
 public interface ICompletedDialogViewModel : IDialogViewModel
 {
-    string LogFilePath { get; }
-
     string CompletionMessage { get; }
+
+    string LogFilePath { get; }
 
     DelegateCommand OpenLogFileDirectoryCommand { get; }
 }

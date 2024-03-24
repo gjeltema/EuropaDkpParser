@@ -16,7 +16,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -26,17 +26,22 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Label Content="Start Time" Grid.Row="0" Grid.Column="0"/>
+            <Label Content="{StaticResource StartTime}" Grid.Row="0" Grid.Column="0"/>
             <xctk:DateTimePicker  Grid.Row="0" Grid.Column="1" Format="Custom" FormatString="yyyy-MM-dd HH:mm:ss" Text="{Binding StartTimeText}" 
-                                  HorizontalAlignment="Left" Width="200" TextAlignment="Left"/>
+                                  HorizontalAlignment="Left" Width="200" TextAlignment="Left" Margin="10,2,2,2"/>
 
-            <Label Content="End Time" Grid.Row="1" Grid.Column="0"/>
+            <Label Content="{StaticResource EndTime}" Grid.Row="1" Grid.Column="0"/>
             <xctk:DateTimePicker Grid.Row="1" Grid.Column="1"  Format="Custom" FormatString="yyyy-MM-dd HH:mm:ss" Text="{Binding EndTimeText}" 
-                                 HorizontalAlignment="Left" Width="200" TextAlignment="Left"/>
+                                 HorizontalAlignment="Left" Width="200" TextAlignment="Left" Margin="10,2,2,2"/>
         </Grid>
 
-        <Grid Grid.Row="1">
-            <TextBox Text="{Binding OutputFile}" />
+        <Grid Grid.Row="1" Margin="5,4,10,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="{StaticResource OutputFile}" />
+            <TextBox Grid.Column="1" Text="{Binding OutputFile}" Margin="3" />
         </Grid>
 
         <Grid Grid.Row="2">
@@ -46,9 +51,9 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="Settings" Command="{Binding OpenSettingsDialogCommand}" Grid.Column="0" Width="80"/>
-            <Button Content="Reset Time" Command="{Binding ResetTimeCommand}" Grid.Column="1" Width="80"/>
-            <Button Content="Start" Command="{Binding StartLogParseCommand}" Grid.Column="2" Width="80"/>
+            <Button Content="{StaticResource Settings}" Command="{Binding OpenSettingsDialogCommand}" Grid.Column="0" Width="80" Height="25"/>
+            <Button Content="{StaticResource ResetTime}" Command="{Binding ResetTimeCommand}" Grid.Column="1" Width="80" Height="25"/>
+            <Button Content="{StaticResource Start}" Command="{Binding StartLogParseCommand}" Grid.Column="2" Width="80" Height="25"/>
         </Grid>
     </Grid>
 </UserControl>

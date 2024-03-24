@@ -18,4 +18,7 @@ public sealed class DkpEntry
     public PossibleError PossibleError { get; set; } = PossibleError.None;
 
     public DateTime Timestamp { get; set; }
+
+    public override string ToString()
+        => $"{PlayerName}\t{Item}  {DkpSpent}";
 }

@@ -118,16 +118,16 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void CheckDkpPlayerName(DkpEntry dkpEntry)
     {
+        foreach (PlayerLooted playerLootedEntry in _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName.Equals(dkpEntry.PlayerName, StringComparison.OrdinalIgnoreCase)))
+        {
+            if (playerLootedEntry.ItemLooted == dkpEntry.Item)
+                return;
+        }
+
         if (!_raidEntries.AllPlayersInRaid.Contains(dkpEntry.PlayerName))
         {
             dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
             return;
-        }
-
-        foreach (PlayerLooted playerLootedEntry in _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName == dkpEntry.PlayerName))
-        {
-            if (playerLootedEntry.ItemLooted == dkpEntry.Item)
-                return;
         }
 
         dkpEntry.PossibleError = PossibleError.PlayerLootedMessageNotFound;
@@ -250,7 +250,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         int indexOfLooted = lootString.IndexOf(Constants.LootedA);
         int startIndexOfItem = indexOfLooted + Constants.LootedA.Length;
-        string itemName = lootString[startIndexOfItem..(lootString.Length - 1)];
+        string itemName = lootString[startIndexOfItem..];
 
         entry.Visited = true;
 
@@ -271,6 +271,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void GetDkpAmount(string dkpAmountText, DkpEntry dkpEntry)
     {
+        dkpAmountText = dkpAmountText.TrimEnd('\'');
         if (int.TryParse(dkpAmountText, out int dkpAmount))
         {
             dkpEntry.DkpSpent = dkpAmount;
@@ -278,9 +279,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
 
         // See if lack of space -> 1DKPSPENT
-        if (dkpAmountText.Contains(Constants.DkpSpent))
+        int dkpSpentIndex = dkpAmountText.IndexOf(Constants.DkpSpent);
+        if (dkpSpentIndex > -1)
         {
-            string dkpSpentTextWithoutDkpspent = dkpAmountText.Replace(Constants.DkpSpent, string.Empty);
+            string dkpSpentTextWithoutDkpspent = dkpAmountText[0..dkpSpentIndex];
             if (int.TryParse(dkpSpentTextWithoutDkpspent, out dkpAmount))
             {
                 dkpEntry.DkpSpent = dkpAmount;

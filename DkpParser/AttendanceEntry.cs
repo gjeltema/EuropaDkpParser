@@ -13,13 +13,13 @@ public sealed class AttendanceEntry
 
     public ICollection<string> PlayerNames { get; private set; } = new HashSet<string>();
 
+    public PossibleError PossibleError { get; set; }
+
     public string RaidName { get; set; }
 
     public DateTime Timestamp { get; set; }
 
     public string ZoneName { get; set; }
-
-    public PossibleError PossibleError { get; set; }
 
     public override string ToString()
         => $"{Timestamp:HH:mm:ss} {AttendanceCallType}\t{RaidName}";

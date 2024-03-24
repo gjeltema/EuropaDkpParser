@@ -44,7 +44,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
             return;
 
         string[] fileContents = File.ReadAllLines(_bossMobsFilePath);
-        foreach(string bossName in fileContents)
+        foreach (string bossName in fileContents)
             BossMobs.Add(bossName.Trim());
     }
 

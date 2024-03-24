@@ -7,17 +7,21 @@ namespace EuropaDkpParser.ViewModels;
 using System.IO;
 using System.Windows.Forms;
 using DkpParser;
+using EuropaDkpParser.Resources;
 using Prism.Commands;
 
 internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelectionViewModel
 {
     private readonly IDkpParserSettings _settings;
+    private string _eqDirectory;
     private string _selectedLogFileToAdd;
     private string _selectedLogFileToParse;
 
     internal LogSelectionViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings)
         : base(viewFactory)
     {
+        Title = Strings.GetString("SettingsDialogTitleText");
+
         _settings = settings;
 
         SelectEqDirectoryCommand = new DelegateCommand(SelectEqDirectory);
@@ -36,12 +40,11 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public ICollection<string> AllCharacterLogFiles { get; private set; }
 
-    private string _eqDirectory;
     public string EqDirectory
     {
         get => _eqDirectory;
-        set 
-        {  
+        set
+        {
             SetProperty(ref _eqDirectory, value);
             SetAllCharacterLogFiles();
         }
@@ -94,7 +97,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     {
         using var folderDialog = new FolderBrowserDialog()
         {
-            Description = "Select EQ Log File Folder",
+            Description = Strings.GetString("SelectEqLogFileFolder"),
             UseDescriptionForTitle = true,
         };
 
@@ -119,7 +122,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
         IEnumerable<string> logFiles = Directory.EnumerateFiles(EqDirectory, "eqlog_*.txt");
         AllCharacterLogFiles = new List<string>(logFiles);
-        if(AllCharacterLogFiles.Count > 0)
+        if (AllCharacterLogFiles.Count > 0)
             SelectedLogFileToAdd = AllCharacterLogFiles.First();
 
         RaisePropertyChanged(nameof(AllCharacterLogFiles));

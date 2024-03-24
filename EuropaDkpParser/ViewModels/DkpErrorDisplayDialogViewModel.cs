@@ -6,6 +6,7 @@ namespace EuropaDkpParser.ViewModels;
 
 using System.Windows;
 using DkpParser;
+using EuropaDkpParser.Resources;
 using Prism.Commands;
 
 internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkpErrorDisplayDialogViewModel
@@ -26,10 +27,13 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private string _playerName;
     private PlayerLooted _selectedPlayerLooted;
     private string _selectedPlayerName;
+    private string _timestamp;
 
     internal DkpErrorDisplayDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
     {
+        Title = Strings.GetString("DkpErrorDisplayDialogTitleText");
+
         _settings = settings;
         _raidEntries = raidEntries;
 
@@ -85,6 +89,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             }
 
             IsFilterByNameChecked = false;
+            var items = _raidEntries.PlayerLootedEntries.Where(x => x.ItemLooted == _currentEntry.Item).ToList();
             PlayerLootedEntries = _raidEntries.PlayerLootedEntries.Where(x => x.ItemLooted == _currentEntry.Item).OrderBy(x => x.Timestamp).ToList();
         }
     }
@@ -164,6 +169,12 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         set => SetProperty(ref _selectedPlayerName, value);
     }
 
+    public string Timestamp
+    {
+        get => _timestamp;
+        set => SetProperty(ref _timestamp, value);
+    }
+
     private void AdvanceToNextError()
     {
         if (_currentEntry != null)
@@ -179,21 +190,22 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         }
 
         PlayerName = _currentEntry.PlayerName;
+        ItemName = _currentEntry.Item;
+        DkpSpent = _currentEntry.DkpSpent.ToString();
+        ItemNameAndDkp = $"{_currentEntry.Item}, DKP: {_currentEntry.DkpSpent}";
+        Timestamp = _currentEntry.Timestamp.ToString("HH:mm:ss");
 
         if (_currentEntry.PossibleError == PossibleError.PlayerLootedMessageNotFound)
         {
             IsNoPlayerLootedError = true;
             IsPlayerNameTypoError = false;
-            ItemName = _currentEntry.Item;
-            DkpSpent = _currentEntry.DkpSpent.ToString();
-            ErrorMessageText = "Player looted item log entry not found:";
+            ErrorMessageText = Strings.GetString("PlayerLootedItemEntryNotFound");
         }
         else if (_currentEntry.PossibleError == PossibleError.DkpSpentPlayerNameTypo)
         {
             IsNoPlayerLootedError = false;
             IsPlayerNameTypoError = true;
-            ItemNameAndDkp = $"{_currentEntry.Item}, DKP: {_currentEntry.DkpSpent}";
-            ErrorMessageText = "Possible player name typo:";
+            ErrorMessageText = Strings.GetString("PlayerNameTypo");
 
             for (int i = 8; i > 0; i--)
             {
@@ -215,7 +227,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     {
         if (!int.TryParse(DkpSpent, out int parsedDkp))
         {
-            MessageBox.Show($"DKP is not a number: {DkpSpent}.", "DKP Spent Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(string.Format(Strings.GetString("DkpSpentErrorFormatText"), DkpSpent.ToString()), Strings.GetString("DkpSpentError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
         _currentEntry.PlayerName = PlayerName;
@@ -227,7 +239,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     {
         if (SelectedPlayerLooted == null)
         {
-            MessageBox.Show($"Must select a player loot message.", "Player Loot Not Selected", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Strings.GetString("PlayerLootNotSelectedMessage"), Strings.GetString("PlayerLootNotSelected"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
         _currentEntry.PlayerName = _selectedPlayerLooted.PlayerName;
@@ -239,7 +251,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         string updatedPlayerName = PlayerName.Trim();
         if (string.IsNullOrEmpty(updatedPlayerName))
         {
-            MessageBox.Show($"Player name is empty.", "Player Name Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Strings.GetString("PlayerNameErrorMessage"), Strings.GetString("PlayerNameError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
@@ -249,17 +261,20 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private void FixPlayerTypoUsingSelection()
     {
         _currentEntry.PlayerName = SelectedPlayerName;
+        PlayerName = _currentEntry.PlayerName;
     }
 
     private void SetNextButtonText()
     {
         int numberOfErrors = _raidEntries.DkpEntries.Count(x => x.PossibleError != PossibleError.None);
-        NextButtonText = numberOfErrors > 1 ? "Next" : "Finish";
+        NextButtonText = numberOfErrors > 1 ? Strings.GetString("Next") : Strings.GetString("Finish");
     }
 }
 
 public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
 {
+    public string Timestamp { get; }
+
     ICollection<string> AllPlayers { get; }
 
     string DkpSpent { get; set; }

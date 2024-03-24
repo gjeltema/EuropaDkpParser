@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Content="{Binding ErrorMessageText}" />
+        <Label Grid.Row="0" Content="{Binding ErrorMessageText}" Margin="0,0,0,15"/>
 
         <Grid Grid.Row="1" Visibility="{Binding IsNoPlayerLootedError, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid.ColumnDefinitions>
@@ -23,27 +23,25 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0">
+            <Grid Grid.Column="0" Margin="2,0,5,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Label Grid.Row="0" Content="All Player Looted Entries"/>
+                <Label Grid.Row="0" Content="{StaticResource AllPlayerLootedEntries}"/>
 
                 <ListBox Grid.Row="1" ItemsSource="{Binding PlayerLootedEntries}" SelectedItem="{Binding SelectedPlayerLooted}" FontFamily="Courier New"/>
 
-
-
-                <StackPanel Grid.Row="2" Orientation="Horizontal">
-                    <CheckBox Content="Filter By Item" IsChecked="{Binding IsFilterByItemChecked}"/>
-                    <CheckBox Content="Filter By Name" IsChecked="{Binding IsFilterByNameChecked}"/>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+                    <CheckBox Content="{StaticResource FilterByItem}" IsChecked="{Binding IsFilterByItemChecked}" Margin="0,0,40,0"/>
+                    <CheckBox Content="{StaticResource FilterByName}" IsChecked="{Binding IsFilterByNameChecked}"/>
                 </StackPanel>
 
             </Grid>
 
-            <Grid Grid.Column="1">
+            <Grid Grid.Column="1" Margin="5,0,2,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -62,26 +60,30 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" Content="Player Name:"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PlayerName}" />
+                    <Label Grid.Row="0" Grid.Column="0" Content="{StaticResource PlayerName}" Margin="0,0,0,5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PlayerName}" Margin="0,3,2,7"/>
 
-                    <Label Grid.Row="1" Grid.Column="0" Content="Item Name:"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemName}" />
+                    <Label Grid.Row="1" Grid.Column="0" Content="{StaticResource ItemName}" Margin="0,0,0,5"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemName}" Margin="0,3,2,7"/>
 
-                    <Label Grid.Row="2" Grid.Column="0" Content="DKP Spent:"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DkpSpent}" />
+                    <Label Grid.Row="2" Grid.Column="0" Content="{StaticResource DkpSpent}" Margin="0,0,0,5"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DkpSpent}" Margin="0,3,2,7" />
+
+                    <Label Grid.Row="3" Grid.Column="0" Content="{StaticResource Timestamp}" Margin="0,0,0,5"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Timestamp}" Margin="0,3,2,7"/>
                 </Grid>
 
-                <Button Grid.Row="3" Content="Fix Using Selected" Command="{Binding FixNoLootedMessageUsingSelectionCommand}">
+                <Button Grid.Row="3" Content="{StaticResource FixUsingSelected}" Command="{Binding FixNoLootedMessageUsingSelectionCommand}" Width="130" Height="30" Margin="0,20,0,10" HorizontalAlignment="Left">
                     <Button.ToolTip>
-                        <TextBlock Text="Update/Fix the DKPSPENT entry using the selected loot message."/>
+                        <TextBlock Text="{StaticResource FixDkpSpentSelectedToolTip}"/>
                     </Button.ToolTip>
                 </Button>
-                <Button Grid.Row="4" Content="Manual Fix" Command="{Binding FixNoLootedMessageManualCommand}">
+                <Button Grid.Row="4" Content="{StaticResource ManualFix}" Command="{Binding FixNoLootedMessageManualCommand}" Width="130" Height="30" HorizontalAlignment="Left" >
                     <Button.ToolTip>
-                        <TextBlock Text="Update/Fix the DKPSPENT entry using the manually edited text boxes."/>
+                        <TextBlock Text="{StaticResource ManualDkpFixTooltip}"/>
                     </Button.ToolTip>
                 </Button>
             </Grid>
@@ -96,44 +98,36 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <TextBlock Grid.Row="0" Text="{Binding ItemNameAndDkp}" Margin="4"/>
 
-                <TextBlock Grid.Column="0" Text="Item Name and DKP:"/>
-                <TextBlock Grid.Column="1" Text="{Binding ItemNameAndDkp}" />
-            </Grid>
-
-            <Label Grid.Row="1" Content="Player Name:"/>
+            <Label Grid.Row="1" Content="{StaticResource PlayerName}"/>
             
-            <Grid Grid.Row="2">
+            <Grid Grid.Row="2" Margin="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Column="0" Text="{Binding PlayerName}" />
+                <TextBox Grid.Column="0" Text="{Binding PlayerName}" Margin="0,4,5,6"/>
 
-                <Button Grid.Column="1" Content="Manual Fix" Command="{Binding FixPlayerTypoManualCommand}">
+                <Button Grid.Column="1" Content="{StaticResource ManualFix}" Command="{Binding FixPlayerTypoManualCommand}" Margin="2" Width="110" Height="30">
                     <Button.ToolTip>
-                        <TextBlock Text="Update/Fix the DKPSPENT entry using the manually edited Player name box."/>
+                        <TextBlock Text="{StaticResource FixDkpSpentPlayerNameTooltip}"/>
                     </Button.ToolTip>
                 </Button>
 
             </Grid>
 
-            <Grid Grid.Row="3">
+            <Grid Grid.Row="3" Margin="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <ComboBox Grid.Column="0" ItemsSource="{Binding AllPlayers}" SelectedValue="{Binding SelectedPlayerName}"/>
-                <Button Grid.Column="1" Content="Fix Using Selected" Command="{Binding FixPlayerTypoUsingSelectionCommand}">
+                <ComboBox Grid.Column="0" ItemsSource="{Binding AllPlayers}" SelectedValue="{Binding SelectedPlayerName}" Margin="0,4,5,4"/>
+                <Button Grid.Column="1" Content="{StaticResource FixUsingSelected}" Command="{Binding FixPlayerTypoUsingSelectionCommand}" Margin="2" Width="110" Height="30">
                     <Button.ToolTip>
-                        <TextBlock Text="Update/Fix the DKPSPENT entry using the selected Player Name."/>
+                        <TextBlock Text="{StaticResource ManualDkpSpentPlayerNameTooltip}"/>
                     </Button.ToolTip>
                 </Button>
 

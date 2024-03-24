@@ -3,11 +3,80 @@
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
+    <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
+    <system:String x:Key="AttendanceErrorDisplayDialogTitleText">Potential Attendance Error Review</system:String>
+    <system:String x:Key="DkpErrorDisplayDialogTitleText">Potential DKP Error Review</system:String>
+    <system:String x:Key="LogParseSummaryDialogTitleText">Log Parse Summary</system:String>
+    <system:String x:Key="CompletedDialogTitleText">Log Generation Complete</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>
     <system:String x:Key="SaveButtonText">Save</system:String>
     <system:String x:Key="CancelButtonText">Cancel</system:String>
     <system:String x:Key="CloseButtonText">Close</system:String>
+    <system:String x:Key="OkButtonText">OK</system:String>
+
+    <system:String x:Key="PlayerName">Player Name:</system:String>
+    <system:String x:Key="ItemName">Item Name:</system:String>
+    <system:String x:Key="DkpSpent">DKP Spent:</system:String>
+    <system:String x:Key="Timestamp">Timestamp:</system:String>
+    <system:String x:Key="AddText">Add</system:String>
+    <system:String x:Key="Remove">Remove</system:String>
+    <system:String x:Key="Start">Start</system:String>
+    <system:String x:Key="Next">Next</system:String>
+    <system:String x:Key="Finish">Finish</system:String>
+
+    <!-- DkpErrorDisplay -->
+    <system:String x:Key="AllPlayerLootedEntries">All Player Looted Entries</system:String>
+    <system:String x:Key="FilterByItem">Filter By Item</system:String>
+    <system:String x:Key="FilterByName">Filter By Name</system:String>
+    <system:String x:Key="FixUsingSelected">Fix Using Selected</system:String>
+    <system:String x:Key="ManualFix">Manual Fix</system:String>
+    <system:String x:Key="FixDkpSpentSelectedToolTip">Update/Fix the DKPSPENT entry using the selected loot message.</system:String>
+    <system:String x:Key="ManualDkpFixTooltip">Update/Fix the DKPSPENT entry using the manually edited text boxes.</system:String>
+    <system:String x:Key="FixDkpSpentPlayerNameTooltip">Update/Fix the DKPSPENT entry using the manually edited Player name box.</system:String>
+    <system:String x:Key="ManualDkpSpentPlayerNameTooltip">Update/Fix the DKPSPENT entry using the selected Player Name.</system:String>
+    <system:String x:Key="PlayerLootedItemEntryNotFound">Player looted item log entry not found:</system:String>
+    <system:String x:Key="PlayerNameTypo">Possible player name typo:</system:String>
+    <system:String x:Key="DkpSpentError">DKP Spent Error</system:String>
+    <system:String x:Key="DkpSpentErrorFormatText">DKP is not a number: {0}.</system:String>
+    <system:String x:Key="PlayerLootNotSelected">Player Loot Not Selected</system:String>
+    <system:String x:Key="PlayerLootNotSelectedMessage">Must select a player loot message.</system:String>
+    <system:String x:Key="PlayerNameError">Player Name Error</system:String>
+    <system:String x:Key="PlayerNameErrorMessage">Player name is empty.</system:String>
     
+    <!-- AttendanceErrorDisplay -->
+    <system:String x:Key="AllAttendanceCalls">All Attendance Calls</system:String>
+    <system:String x:Key="SetBoss">Set Boss</system:String>
+    <system:String x:Key="PossibleDupEntries">Possible duplicate entries:</system:String>
+    <system:String x:Key="PossibleBossTypo">Possible boss name typo:</system:String>
+    
+    <!-- FinalSummaryDisplay -->
+    <system:String x:Key="AttendanceCalls">Attendance Calls</system:String>
+    <system:String x:Key="DkpSpentCalls">DKPSPENT Calls</system:String>
+    
+    <!-- LogSelectionDialog -->
+    <system:String x:Key="EqLogDir">Everquest Log Directory</system:String>
+    <system:String x:Key="SetDir">Set Dir</system:String>
+    <system:String x:Key="AvailableLogFiles">Available Log Files</system:String>
+    <system:String x:Key="SelectedLogFilesToParse">Selected Log Files To Parse</system:String>
+    <system:String x:Key="SelectEqLogFileFolder">Select EQ Log File Folder</system:String>
+    
+    <!-- MainDisplayView -->
+    <system:String x:Key="StartTime">Start Time</system:String>
+    <system:String x:Key="EndTime">End Time</system:String>
+    <system:String x:Key="ResetTime">Reset Time</system:String>
+    <system:String x:Key="Settings">Settings</system:String>
+    <system:String x:Key="StartTimeError">Start Time error</system:String>
+    <system:String x:Key="StartTimeErrorMessage">Start Time is not in a valid format.</system:String>
+    <system:String x:Key="EndTimeError">End Time error</system:String>
+    <system:String x:Key="EndTimeErrorMessage">End Time is not in a valid format.</system:String>
+    <system:String x:Key="StartEndTimeError">Time error</system:String>
+    <system:String x:Key="StartEndTimeErrorMessage">Start Time is after End Time.</system:String>
+    <system:String x:Key="SuccessfulCompleteMessage">Log file has been successfully generated!</system:String>
+    <system:String x:Key="OutputFile">Output File</system:String>
+    
+    <!-- CompletedDialog -->
+    <system:String x:Key="OpenDir">Open Dir</system:String>
+
 </ResourceDictionary>

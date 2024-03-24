@@ -10,19 +10,42 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Label Content="Attendance Calls" Grid.Row="0"/>
-        <ListBox ItemsSource="{Binding AttendanceCalls}" Grid.Row="1"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <Label Content="Attendance Calls" Grid.Row="2"/>
-        <ListBox ItemsSource="{Binding DkpSpentCalls}" Grid.Row="3"/>
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <Button Content="Create Log File" Command="{Binding CreateLogFileCommand}" Grid.Row="4"/>
+            <Label Content="{StaticResource AttendanceCalls}" Grid.Row="0"/>
+            <ListBox ItemsSource="{Binding AttendanceCalls}" Grid.Row="1"/>
+        </Grid>
+
+        <Grid Grid.Row="0" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Label Content="{StaticResource DkpSpentCalls}" Grid.Row="0"/>
+            <ListBox ItemsSource="{Binding DkpSpentCalls}" Grid.Row="1"/>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Width="70" Margin="0,0,10,0"/>
+            <Button Grid.Column="1" Content="{StaticResource OkButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right"  Width="70"/>
+        </Grid>
     </Grid>
 </UserControl>
