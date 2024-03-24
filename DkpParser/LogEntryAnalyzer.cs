@@ -71,6 +71,17 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                         call.AttendanceCallType = AttendanceCallType.Kill;
                     }
 
+                    if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
+                    {
+                        AttendanceEntry toBeRemoved = GetAssociatedLogEntry(_raidEntries, call);
+                        if (toBeRemoved != null)
+                        {
+                            _raidEntries.AttendanceEntries.Remove(toBeRemoved);
+                        }
+                        logEntry.Visited = true;
+                        continue;
+                    }
+
                     RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
                     if (raidDump != null)
                     {
@@ -102,6 +113,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     else
                     {
                         //** Heuristic to find nearby zone name
+                        call.PossibleError = PossibleError.NoZoneName;
                     }
 
                     logEntry.Visited = true;
@@ -117,7 +129,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         {
             IEnumerable<DkpEntry> dkpEntries = log.LogEntries
                 .Where(x => x.EntryType == LogEntryType.DkpSpent)
-                .Select(ExtractDkpSpentInfo);
+                .Select(ExtractDkpSpentInfo)
+                .Where(x => x != null);
 
             foreach (DkpEntry dkpEntry in dkpEntries)
             {
@@ -239,6 +252,17 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             Timestamp = entry.Timestamp,
         };
 
+        if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
+        {
+            DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
+            if (toBeRemoved != null)
+            {
+                _raidEntries.DkpEntries.Remove(toBeRemoved);
+            }
+            entry.Visited = true;
+            return null;
+        }
+
         CheckDkpPlayerName(dkpEntry);
 
         string dkpAmountText = playerParts[1].Trim();
@@ -280,6 +304,30 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         entry.Visited = true;
 
         return new() { ZoneName = zoneName, Timestamp = entry.Timestamp };
+    }
+
+    private DkpEntry GetAssociatedDkpEntry(RaidEntries raidEntries, DkpEntry dkpEntry)
+    {
+        DkpEntry lastOneFound = null;
+        foreach (DkpEntry entry in raidEntries.DkpEntries.Where(x => x.PlayerName == dkpEntry.PlayerName && x.Item == dkpEntry.Item))
+        {
+            if (entry.Timestamp < dkpEntry.Timestamp)
+                lastOneFound = entry;
+        }
+
+        return lastOneFound;
+    }
+
+    private AttendanceEntry GetAssociatedLogEntry(RaidEntries raidEntries, AttendanceEntry call)
+    {
+        AttendanceEntry lastOneFound = null;
+        foreach (AttendanceEntry entry in raidEntries.AttendanceEntries.Where(x => x.RaidName == call.RaidName && x.AttendanceCallType == call.AttendanceCallType))
+        {
+            if (entry.Timestamp < call.Timestamp)
+                lastOneFound = entry;
+        }
+
+        return lastOneFound;
     }
 
     private void GetDkpAmount(string dkpAmountText, DkpEntry dkpEntry)
