@@ -31,6 +31,9 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:CompletedDialogViewModel}">
                     <dialogsView:CompletedDialog />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:DkpErrorDisplayDialogViewModel}">
+                    <dialogsView:DkpErrorDisplayDialog />
+                </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>
     </ContentPresenter>

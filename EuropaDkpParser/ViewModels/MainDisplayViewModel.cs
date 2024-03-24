@@ -124,6 +124,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             if (attendanceErrorDialog.ShowDialog() == false)
                 return;
 
+            IDkpErrorDisplayDialogViewModel dkpErrorDialog = _dialogFactory.CreateDkpErrorDisplayDialogViewModel(_settings, raidEntries);
+            if (dkpErrorDialog.ShowDialog() == false)
+                return;
 
             //** Summary dialog
 

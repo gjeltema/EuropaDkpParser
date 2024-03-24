@@ -148,9 +148,12 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             ErrorMessageText = "Possible boss name typo:";
             ErrorAttendances = [_currentEntry];
 
-            for (int i = 5; i > 0; i--)
+            for (int i = 8; i > 0; i--)
             {
-                string startOfBossName = _currentEntry.RaidName.Substring(0, i);
+                if (_currentEntry.RaidName.Length < i)
+                    continue;
+
+                string startOfBossName = _currentEntry.RaidName[..i];
                 string approvedBossName = _settings.BossMobs.FirstOrDefault(x => x.StartsWith(startOfBossName));
                 if (approvedBossName != null)
                 {

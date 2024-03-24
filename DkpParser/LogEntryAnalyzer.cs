@@ -9,8 +9,6 @@ using System.Diagnostics;
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
     private readonly List<PlayerAttend> _playersAttending = [];
-    private readonly HashSet<string> _playersAttendingRaid = [];
-    private readonly List<PlayerLooted> _playersLooted = [];
     private readonly RaidEntries _raidEntries = new();
     private readonly IDkpParserSettings _settings;
     private readonly List<ZoneNameInfo> _zones = [];
@@ -120,13 +118,13 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void CheckDkpPlayerName(DkpEntry dkpEntry)
     {
-        if (!_playersAttendingRaid.Contains(dkpEntry.PlayerName))
+        if (!_raidEntries.AllPlayersInRaid.Contains(dkpEntry.PlayerName))
         {
             dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
             return;
         }
 
-        foreach (PlayerLooted playerLootedEntry in _playersLooted.Where(x => x.PlayerName == dkpEntry.PlayerName))
+        foreach (PlayerLooted playerLootedEntry in _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName == dkpEntry.PlayerName))
         {
             if (playerLootedEntry.ItemLooted == dkpEntry.Item)
                 return;
@@ -301,7 +299,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                 .Where(x => x.EntryType == LogEntryType.PlayerLooted)
                 .Select(ExtractPlayerLooted);
 
-            _playersLooted.AddRange(playersLooted);
+            _raidEntries.PlayerLootedEntries = playersLooted.ToList();
         }
     }
 
@@ -318,14 +316,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         foreach (PlayerAttend playerAttend in _playersAttending)
         {
-            _playersAttendingRaid.Add(playerAttend.PlayerName);
+            _raidEntries.AllPlayersInRaid.Add(playerAttend.PlayerName);
         }
 
         foreach (RaidDumpFile raidDump in logParseResults.RaidDumpFiles)
         {
             foreach (string playerName in raidDump.CharacterNames)
             {
-                _playersAttendingRaid.Add(playerName);
+                _raidEntries.AllPlayersInRaid.Add(playerName);
             }
         }
     }
@@ -345,16 +343,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     [DebuggerDisplay("{PlayerName,nq}")]
     private sealed class PlayerAttend
     {
-        public string PlayerName { get; init; }
-
-        public DateTime Timestamp { get; init; }
-    }
-
-    [DebuggerDisplay("{PlayerName,nq}, {ItemLooted,nq}")]
-    private sealed class PlayerLooted
-    {
-        public string ItemLooted { get; init; }
-
         public string PlayerName { get; init; }
 
         public DateTime Timestamp { get; init; }

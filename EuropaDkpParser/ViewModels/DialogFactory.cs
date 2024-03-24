@@ -21,6 +21,9 @@ internal sealed class DialogFactory : IDialogFactory
     public ICompletedDialogViewModel CreateCompletedDialog()
         => new CompletedDialogViewModel(_viewFactory);
 
+    public IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
+        => new DkpErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
+
     public IFinalSummaryDialogViewModel CreateFinalSummaryDialog()
         => new FinalSummaryDialogViewModel(_viewFactory);
 
@@ -33,6 +36,8 @@ public interface IDialogFactory
     IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialog(IDkpParserSettings settings, RaidEntries raidEntries);
 
     ICompletedDialogViewModel CreateCompletedDialog();
+
+    IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
     IFinalSummaryDialogViewModel CreateFinalSummaryDialog();
 
