@@ -145,6 +145,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.EqDirectory = settingsDialog.EqDirectory;
         _settings.SelectedLogFiles = settingsDialog.SelectedCharacterLogFiles;
         _settings.SaveSettings();
+
+        SetOutputFile();
     }
 
     private void OutputRawAnalyzerResults(RaidEntries raidEntries)
