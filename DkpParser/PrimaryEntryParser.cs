@@ -48,7 +48,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
             _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
             _setParser.SetParser(_populationListingStartParser);
         }
-        else if (logLine.Contains(Constants.Attendance, StringComparison.OrdinalIgnoreCase))
+        else if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
         {
             logEntry.EntryType = LogEntryType.Attendance;
             _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);

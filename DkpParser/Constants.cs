@@ -24,6 +24,7 @@ public static class Constants
     public const string PlayersIn = " players in ";
     public const string PlayersOnEverquest = "Players on EverQuest:";
     public const string PossibleErrorDelimiter = "::";
+    public const string RaidAttendanceTaken = "Raid Attendance Taken";
     public const string RaidDumpFileNameTimeFormat = "yyyyMMdd-HHmmss";
     public const string RaidListFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
     public const string Remove = "REMOVE";

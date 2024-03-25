@@ -38,7 +38,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
         */
         string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat);
         string header = call.AttendanceCallType == AttendanceCallType.Time
-            ? $"[{dateStampText}] You tell your raid, '{Constants.AttendanceDelimiter}Raid Attendance Taken{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
+            ? $"[{dateStampText}] You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
             : $"[{dateStampText}] You tell your raid, '{Constants.AttendanceDelimiter}Raid Attendance Taken{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
 
         yield return header;
