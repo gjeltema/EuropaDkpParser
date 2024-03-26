@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
-[DebuggerDisplay("{DebugDisplay,nq")]
+[DebuggerDisplay("{DebugDisplay}")]
 public sealed class RaidDumpFile
 {
     public const string RaidDumpFileNameStart = "RaidRoster-";

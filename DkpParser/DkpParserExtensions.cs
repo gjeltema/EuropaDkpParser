@@ -21,5 +21,5 @@ public static class DkpParserExtensions
     }
 
     public static bool IsWithinTwoSecondsOf(this DateTime endTimestamp, DateTime timeStampInPast)
-        => endTimestamp - timeStampInPast <= Constants.DurationOfSearch;
+        => endTimestamp >= timeStampInPast && endTimestamp - timeStampInPast <= Constants.DurationOfSearch;
 }

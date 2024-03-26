@@ -411,12 +411,15 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
-    [DebuggerDisplay("{PlayerName,nq}")]
+    [DebuggerDisplay("{DebugText,nq}")]
     private sealed class PlayerAttend
     {
         public string PlayerName { get; init; }
 
         public DateTime Timestamp { get; init; }
+
+        private string DebugText
+            => $"{PlayerName} {Timestamp:HHmmss}";
     }
 
     [DebuggerDisplay("{ZoneName,nq}, {Timestamp,nq}")]

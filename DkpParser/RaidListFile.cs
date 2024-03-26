@@ -20,7 +20,7 @@ public sealed class RaidListFile
 
         FileInfo raidListFileInfo = new(fileName);
         fileName = raidListFileInfo.Name;
-        string raidListFileTimeStamp = fileName[11..^4];
+        string raidListFileTimeStamp = fileName[RaidListFileNameStart.Length..^4];
         FileDateTime = DateTime.ParseExact(raidListFileTimeStamp, Constants.RaidListFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 
