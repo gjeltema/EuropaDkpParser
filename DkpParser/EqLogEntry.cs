@@ -23,5 +23,5 @@ public sealed class EqLogEntry
     public bool Visited { get; set; } = false;
 
     private string DebugDisplay
-        => $"{EntryType} {LogLine.Substring(Constants.TypicalTimestamp.Length + 1, 10)}...";
+        => $"{EntryType} {LogLine.Substring(Constants.LogDateTimeLength, 10)}...";
 }

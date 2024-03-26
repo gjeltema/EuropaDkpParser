@@ -38,8 +38,8 @@ public sealed class FileOutputGenerator : IOutputGenerator
         */
         string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat);
         string header = call.AttendanceCallType == AttendanceCallType.Time
-            ? $"[{dateStampText}] You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
-            : $"[{dateStampText}] You tell your raid, '{Constants.AttendanceDelimiter}Raid Attendance Taken{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
+            ? $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
+            : $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}Raid Attendance Taken{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
 
         yield return header;
         yield return Constants.PlayersOnEverquest;
@@ -47,10 +47,10 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
         foreach (string player in call.PlayerNames)
         {
-            yield return $"[{dateStampText}] [ANONYMOUS] {player}  <Europa>";
+            yield return $"{dateStampText} [ANONYMOUS] {player}  <Europa>";
         }
 
-        yield return $"[{dateStampText}] There are {call.PlayerNames.Count} players in {call.ZoneName}.";
+        yield return $"{dateStampText} There are {call.PlayerNames.Count} players in {call.ZoneName}.";
     }
 
     private void GenerateAttendanceCalls(RaidEntries raidEntries, List<string> outputContents)
@@ -69,7 +69,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
         {
             string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat);
             string dkpEntry =
-                $"[{dateStampText}] You tell your raid, '{Constants.AttendanceDelimiter}{call.Item}{Constants.AttendanceDelimiter} {call.PlayerName} {call.DkpSpent} {Constants.DkpSpent}'";
+                $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{call.Item}{Constants.AttendanceDelimiter} {call.PlayerName} {call.DkpSpent} {Constants.DkpSpent}'";
             outputContents.Add(dkpEntry);
         }
     }

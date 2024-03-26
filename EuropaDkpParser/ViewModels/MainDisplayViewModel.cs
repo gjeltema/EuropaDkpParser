@@ -266,7 +266,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             _performingParse = true;
             RefreshCommands();
 
-            ILogParseProcessor parseProcessor = new LogParseProcessor(_settings);
+            IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
             LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
 
             if (IsRawParseResultsChecked)

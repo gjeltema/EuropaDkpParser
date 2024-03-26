@@ -7,11 +7,11 @@ namespace DkpParser;
 internal sealed class PrimaryEntryParser : IParseEntry
 {
     private readonly EqLogFile _logFile;
-    private readonly ISetParser _setParser;
+    private readonly ISetEntryParser _setParser;
     private IParseEntry _populationListingParser;
     private IStartParseEntry _populationListingStartParser;
 
-    internal PrimaryEntryParser(ISetParser setParser, EqLogFile logFile)
+    internal PrimaryEntryParser(ISetEntryParser setParser, EqLogFile logFile)
     {
         _setParser = setParser;
         _logFile = logFile;
@@ -46,13 +46,13 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             logEntry.EntryType = LogEntryType.Kill;
             _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
-            _setParser.SetParser(_populationListingStartParser);
+            _setParser.SetEntryParser(_populationListingStartParser);
         }
         else if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
         {
             logEntry.EntryType = LogEntryType.Attendance;
             _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
-            _setParser.SetParser(_populationListingStartParser);
+            _setParser.SetEntryParser(_populationListingStartParser);
         }
     }
 

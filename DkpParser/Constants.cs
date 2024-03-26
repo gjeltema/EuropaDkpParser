@@ -14,7 +14,7 @@ public static class Constants
     public const string EndLootedDashes = ".--";
     public const string EuropaGuildTag = "<Europa>";
     public const string KillCall = "KILL";
-    public const string LogDateTimeFormat = "ddd MMM dd HH:mm:ss yyyy";
+    public const string LogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string Looted = "looted";
     public const string LootedA = " looted a ";
     /// <summary>
@@ -30,10 +30,11 @@ public static class Constants
     public const string Remove = "REMOVE";
     public const string TellsYou = "tells you";
     public const string TooLongDelimiter = "::::";
-    public const string TypicalTimestamp = "[Tue Mar 19 23:24:25 2024]";
+    //public const string TypicalTimestamp = "[Tue Mar 19 23:24:25 2024]";
     public const string Undo = "UNDO";
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";
     public const string YouTold = "You told";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(2);
+    public static readonly int LogDateTimeLength = LogDateTimeFormat.Length;
 }

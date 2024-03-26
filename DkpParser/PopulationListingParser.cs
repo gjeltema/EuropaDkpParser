@@ -8,9 +8,9 @@ internal sealed class PopulationListingParser : IParseEntry
 {
     private readonly EqLogFile _logFile;
     private readonly IParseEntry _primaryEntryParser;
-    private readonly ISetParser _setParser;
+    private readonly ISetEntryParser _setParser;
 
-    internal PopulationListingParser(ISetParser setParser, EqLogFile logFile, IParseEntry primaryEntryParser)
+    internal PopulationListingParser(ISetEntryParser setParser, EqLogFile logFile, IParseEntry primaryEntryParser)
     {
         _setParser = setParser;
         _logFile = logFile;
@@ -39,7 +39,7 @@ internal sealed class PopulationListingParser : IParseEntry
             };
             _logFile.LogEntries.Add(logEntry);
 
-            _setParser.SetParser(_primaryEntryParser);
+            _setParser.SetEntryParser(_primaryEntryParser);
         }
     }
 }

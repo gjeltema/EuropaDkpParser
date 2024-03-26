@@ -7,10 +7,10 @@ namespace DkpParser;
 internal sealed class FindStartTimeParser : IParseEntry
 {
     private readonly IParseEntry _firstParser;
-    private readonly ISetParser _setParser;
+    private readonly ISetEntryParser _setParser;
     private readonly DateTime _startTime;
 
-    internal FindStartTimeParser(ISetParser setParser, DateTime startTime, IParseEntry firstParser)
+    internal FindStartTimeParser(ISetEntryParser setParser, DateTime startTime, IParseEntry firstParser)
     {
         _setParser = setParser;
         _startTime = startTime;
@@ -22,7 +22,7 @@ internal sealed class FindStartTimeParser : IParseEntry
         if (entryTimeStamp < _startTime)
             return;
 
-        _setParser.SetParser(_firstParser);
+        _setParser.SetEntryParser(_firstParser);
         _firstParser.ParseEntry(logLine, entryTimeStamp);
         return;
     }

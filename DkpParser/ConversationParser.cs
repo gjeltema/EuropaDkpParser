@@ -5,10 +5,9 @@
 namespace DkpParser;
 
 using System;
-using System.Globalization;
 using System.IO;
 
-public sealed class ConversationParser : IConversationParser, ISetParser
+public sealed class ConversationParser : IConversationParser, ISetEntryParser
 {
     private readonly string _personConversingWith;
     private readonly IDkpParserSettings _settings;
@@ -40,11 +39,11 @@ public sealed class ConversationParser : IConversationParser, ISetParser
         ConversationEntryParser conversationEntryParser = new(logFile, _personConversingWith);
         FindStartTimeParser findStartParser = new(this, startTime, conversationEntryParser);
 
-        SetParser(findStartParser);
+        SetEntryParser(findStartParser);
 
         foreach (string logLine in File.ReadLines(filename))
         {
-            if (!GetTimeStamp(logLine, out DateTime entryTimeStamp))
+            if (!logLine.ExtractEqLogTimeStamp(out DateTime entryTimeStamp))
             {
                 continue;
             }
@@ -58,20 +57,8 @@ public sealed class ConversationParser : IConversationParser, ISetParser
         return logFile;
     }
 
-    public void SetParser(IParseEntry parseEntry)
+    public void SetEntryParser(IParseEntry parseEntry)
         => _currentEntryParser = parseEntry;
-
-    private bool GetTimeStamp(string logLine, out DateTime result)
-    {
-        if (logLine.Length < Constants.TypicalTimestamp.Length || string.IsNullOrWhiteSpace(logLine))
-        {
-            result = DateTime.MinValue;
-            return false;
-        }
-
-        string timeEntry = logLine[1..25];
-        return DateTime.TryParseExact(timeEntry, Constants.LogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
-    }
 
     private sealed class ConversationEntryParser : IParseEntry
     {
@@ -105,7 +92,7 @@ public sealed class ConversationParser : IConversationParser, ISetParser
     }
 }
 
-public interface IConversationParser : ILogParser
+public interface IConversationParser : IEqLogParser
 {
     ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime);
 }

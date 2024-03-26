@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// LogParseProcessor.cs Copyright 2024 Craig Gjeltema
+// DkpLogParseProcessor.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -7,11 +7,11 @@ namespace DkpParser;
 using System.Collections.Generic;
 using System.IO;
 
-public sealed class LogParseProcessor : ILogParseProcessor
+public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
 {
     private readonly IDkpParserSettings _settings;
 
-    public LogParseProcessor(IDkpParserSettings settings)
+    public DkpLogParseProcessor(IDkpParserSettings settings)
     {
         _settings = settings;
     }
@@ -28,8 +28,16 @@ public sealed class LogParseProcessor : ILogParseProcessor
 
     private IList<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime)
     {
-        IEqLogParser eqLogParser = new EqLogParser(_settings);
-        return eqLogParser.GetEqLogFiles(startTime, endTime);
+        List<EqLogFile> logFiles = [];
+        EqLogDkpParser parser = new(_settings);
+        foreach (string logFileName in _settings.SelectedLogFiles)
+        {
+            EqLogFile parsedFile = parser.ParseLogFile(logFileName, startTime, endTime);
+            if (parsedFile.LogEntries.Count > 0)
+                logFiles.Add(parsedFile);
+        }
+
+        return logFiles;
     }
 
     private List<RaidDumpFile> GetRaidDumpFiles(DateTime startTime, DateTime endTime)
@@ -96,7 +104,7 @@ public sealed class LogParseProcessor : ILogParseProcessor
     }
 }
 
-public interface ILogParseProcessor
+public interface IDkpLogParseProcessor
 {
     LogParseResults ParseLogs(DateTime startTime, DateTime endTime);
 }

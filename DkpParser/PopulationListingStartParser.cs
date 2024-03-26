@@ -9,12 +9,12 @@ internal sealed class PopulationListingStartParser : IStartParseEntry
     private readonly TimeSpan _durationOfSearch = TimeSpan.FromSeconds(2);
     private readonly IParseEntry _populationListingParser;
     private readonly IParseEntry _primaryEntryParser;
-    private readonly ISetParser _setParser;
+    private readonly ISetEntryParser _setParser;
     private bool _finishedParse = true;
     private bool _foundFirstLine = false;
     private DateTime _initiateStartOfParseTimeStamp;
 
-    internal PopulationListingStartParser(ISetParser setParser, IParseEntry primaryEntryParser, IParseEntry populationListingParser)
+    internal PopulationListingStartParser(ISetEntryParser setParser, IParseEntry primaryEntryParser, IParseEntry populationListingParser)
     {
         _setParser = setParser;
         _primaryEntryParser = primaryEntryParser;
@@ -31,7 +31,7 @@ internal sealed class PopulationListingStartParser : IStartParseEntry
 
         if(!entryTimeStamp.IsWithinTwoSecondsOf(_initiateStartOfParseTimeStamp))
         {
-            _setParser.SetParser(_primaryEntryParser);
+            _setParser.SetEntryParser(_primaryEntryParser);
             _primaryEntryParser.ParseEntry(logLine, entryTimeStamp);
 
             _finishedParse = true;
@@ -50,7 +50,7 @@ internal sealed class PopulationListingStartParser : IStartParseEntry
         if (logLine.EndsWith(Constants.Dashes))
         {
             _finishedParse = true;
-            _setParser.SetParser(_populationListingParser);
+            _setParser.SetEntryParser(_populationListingParser);
             return;
         }
 
