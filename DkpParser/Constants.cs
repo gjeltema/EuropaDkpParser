@@ -28,10 +28,12 @@ public static class Constants
     public const string RaidDumpFileNameTimeFormat = "yyyyMMdd-HHmmss";
     public const string RaidListFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
     public const string Remove = "REMOVE";
+    public const string TellsYou = "tells you";
     public const string TooLongDelimiter = "::::";
     public const string TypicalTimestamp = "[Tue Mar 19 23:24:25 2024]";
     public const string Undo = "UNDO";
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";
+    public const string YouTold = "You told";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(2);
 }

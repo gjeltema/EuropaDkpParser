@@ -18,7 +18,8 @@ public enum LogEntryType
     Kill,
     PlayerName,
     WhoZoneName,
-    PlayerLooted
+    PlayerLooted,
+    Conversation
 }
 
 public enum PossibleError

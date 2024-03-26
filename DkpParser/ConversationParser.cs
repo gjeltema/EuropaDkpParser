@@ -1,4 +1,8 @@
-﻿namespace DkpParser;
+﻿// -----------------------------------------------------------------------
+// ConversationParser.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
+
+namespace DkpParser;
 
 using System;
 using System.Globalization;
@@ -6,12 +10,14 @@ using System.IO;
 
 public sealed class ConversationParser : IConversationParser, ISetParser
 {
+    private readonly string _personConversingWith;
     private readonly IDkpParserSettings _settings;
     private IParseEntry _currentEntryParser;
 
-    public ConversationParser(IDkpParserSettings settings)
+    public ConversationParser(IDkpParserSettings settings, string personConversingWith)
     {
         _settings = settings;
+        _personConversingWith = personConversingWith;
     }
 
     public ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime)
@@ -31,26 +37,29 @@ public sealed class ConversationParser : IConversationParser, ISetParser
     {
         EqLogFile logFile = new() { LogFile = filename };
 
-        //LogEverythingParser logEverything = new(logFile);
-        //FindStartTimeParser findStartParser = new(this, startTime, logEverything);
+        ConversationEntryParser conversationEntryParser = new(logFile, _personConversingWith);
+        FindStartTimeParser findStartParser = new(this, startTime, conversationEntryParser);
 
-        //SetParser(findStartParser);
+        SetParser(findStartParser);
 
-        //foreach (string logLine in File.ReadLines(filename))
-        //{
-        //    if (!GetTimeStamp(logLine, out DateTime entryTimeStamp))
-        //    {
-        //        continue;
-        //    }
+        foreach (string logLine in File.ReadLines(filename))
+        {
+            if (!GetTimeStamp(logLine, out DateTime entryTimeStamp))
+            {
+                continue;
+            }
 
-        //    if (entryTimeStamp > endTime)
-        //        break;
+            if (entryTimeStamp > endTime)
+                break;
 
-        //    _currentEntryParser.ParseEntry(logLine, entryTimeStamp);
-        //}
+            _currentEntryParser.ParseEntry(logLine, entryTimeStamp);
+        }
 
         return logFile;
     }
+
+    public void SetParser(IParseEntry parseEntry)
+        => _currentEntryParser = parseEntry;
 
     private bool GetTimeStamp(string logLine, out DateTime result)
     {
@@ -64,11 +73,39 @@ public sealed class ConversationParser : IConversationParser, ISetParser
         return DateTime.TryParseExact(timeEntry, Constants.LogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
     }
 
-    public void SetParser(IParseEntry parseEntry)
-        => _currentEntryParser = parseEntry;
+    private sealed class ConversationEntryParser : IParseEntry
+    {
+        private readonly EqLogFile _logFile;
+        private readonly string _personConversingWith;
+
+        public ConversationEntryParser(EqLogFile logFile, string personConversingWith)
+        {
+            _logFile = logFile;
+            _personConversingWith = personConversingWith;
+        }
+
+        public void ParseEntry(string logLine, DateTime entryTimeStamp)
+        {
+            if (!logLine.Contains(_personConversingWith, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (logLine.Contains($"{Constants.YouTold} {_personConversingWith}, '", StringComparison.OrdinalIgnoreCase)
+                || logLine.Contains($"{_personConversingWith} {Constants.TellsYou}, '", StringComparison.OrdinalIgnoreCase))
+            {
+                EqLogEntry logEntry = new()
+                {
+                    EntryType = LogEntryType.Unknown,
+                    LogLine = logLine,
+                    Timestamp = entryTimeStamp
+                };
+
+                _logFile.LogEntries.Add(logEntry);
+            }
+        }
+    }
 }
 
 public interface IConversationParser : ILogParser
 {
-
+    ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime);
 }

@@ -15,6 +15,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Margin="5">
@@ -37,40 +39,81 @@
         </Grid>
 
         <Grid Grid.Row="1" Margin="5,4,10,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Content="{StaticResource OutputFile}" />
-            <TextBox Grid.Column="1" Text="{Binding OutputFile}" Margin="3" />
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource OutputFile}" />
+                <TextBox Grid.Column="1" Text="{Binding OutputFile}" Margin="3" />
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="{StaticResource Settings}" Command="{Binding OpenSettingsDialogCommand}" Width="85" Height="25" />
+                <Button Grid.Column="1" Content="{StaticResource ResetTime}" Command="{Binding ResetTimeCommand}"  Width="85" Height="25"/>
+            </Grid>
         </Grid>
 
-        <Grid Grid.Row="2" Margin="7,0,5,10">
+        <Grid Grid.Row="2" Margin="5,4,10,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Rectangle Grid.Row="0" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,0,0,4"/>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource ParseConversation}" Margin="0,0,4,0"/>
+                <TextBox Grid.Column="1" Text="{Binding ConversationPlayer}" Margin="3" />
+                <Button Grid.Column="2" Content="{StaticResource StartConversationParse}" Command="{Binding GetConversationCommand}" Width="85" Height="25"/>
+            </Grid>
+
+            <Rectangle Grid.Row="2" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,4,0,0"/>
+        </Grid>
+
+        <Grid Grid.Row="3" Margin="7,0,5,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            
+
             <CheckBox Grid.Column="0" Content="{StaticResource OutputRawParseResults}" IsChecked="{Binding IsRawParseResultsChecked}" Margin="0,0,15,0"/>
             <CheckBox Grid.Column="1" Content="{StaticResource OutputRawAnalyzerResults}" IsChecked="{Binding IsRawAnalyzerResultsChecked}" />
         </Grid>
 
-        <Grid Grid.Row="3">
+        <!-- Grid.Row 4 is filler -->
+
+        <Grid Grid.Row="5" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="{StaticResource Settings}" Command="{Binding OpenSettingsDialogCommand}" Grid.Column="0" Width="80" Height="25"/>
-            <Button Content="{StaticResource RawDump}" Command="{Binding GetRawLogFileCommand}" Grid.Column="1" Width="80" Height="25">
+            <Button Content="{StaticResource RawDump}" Command="{Binding GetRawLogFileCommand}" Grid.Column="0" Width="85" Height="25">
                 <Button.ToolTip>
                     <TextBlock Text="{StaticResource RawDumpToolTip}"/>
                 </Button.ToolTip>
             </Button>
-            <Button Content="{StaticResource ResetTime}" Command="{Binding ResetTimeCommand}" Grid.Column="2" Width="80" Height="25"/>
-            <Button Content="{StaticResource Start}" Command="{Binding StartLogParseCommand}" Grid.Column="3" Width="80" Height="25"/>
+
+            <Button Content="{StaticResource StartLogGeneration}" Command="{Binding StartLogParseCommand}" Grid.Column="1" Width="85" Height="25"/>
         </Grid>
     </Grid>
 </UserControl>

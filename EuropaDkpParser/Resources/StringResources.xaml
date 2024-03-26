@@ -81,6 +81,11 @@
     <system:String x:Key="OutputFile">Output File</system:String>
     <system:String x:Key="RawDump">Raw Log</system:String>
     <system:String x:Key="RawDumpToolTip">Gets ALL the log entries from the log files for the specified time period.</system:String>
+    <system:String x:Key="ParseConversation">Parse conversation with:</system:String>
+    <system:String x:Key="StartConversationParse">Get Convo</system:String>
+    <system:String x:Key="NoConversationFoundTitle">No conversation found.</system:String>
+    <system:String x:Key="NoConversationFound">No conversation entries with the player were found.</system:String>
+    <system:String x:Key="StartLogGeneration">Generate Log</system:String>
     
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>
