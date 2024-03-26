@@ -39,18 +39,18 @@ public sealed class FileOutputGenerator : IOutputGenerator
         string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat);
         string header = call.AttendanceCallType == AttendanceCallType.Time
             ? $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
-            : $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}Raid Attendance Taken{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
+            : $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
 
         yield return header;
         yield return Constants.PlayersOnEverquest;
         yield return Constants.Dashes;
 
-        foreach (string player in call.PlayerNames)
+        foreach (PlayerCharacter player in call.Players)
         {
-            yield return $"{dateStampText} [ANONYMOUS] {player}  <Europa>";
+            yield return $"{dateStampText} {player.ToLogString()}";
         }
 
-        yield return $"{dateStampText} There are {call.PlayerNames.Count} players in {call.ZoneName}.";
+        yield return $"{dateStampText} There are {call.Players.Count} players in {call.ZoneName}.";
     }
 
     private void GenerateAttendanceCalls(RaidEntries raidEntries, List<string> outputContents)
@@ -64,12 +64,12 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
     private void GenerateDkpCalls(RaidEntries raidEntries, List<string> outputContents)
     {
-        // [Tue Mar 19 22:45:32 2024] You tell your raid, ':::Djinni War Blade::: ZCalie 1 DKPSPENT'
+        // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
+        // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
         foreach (DkpEntry call in raidEntries.DkpEntries.OrderBy(x => x.Timestamp))
         {
             string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat);
-            string dkpEntry =
-                $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{call.Item}{Constants.AttendanceDelimiter} {call.PlayerName} {call.DkpSpent} {Constants.DkpSpent}'";
+            string dkpEntry = $"{dateStampText} {call.ToLogString()}";
             outputContents.Add(dkpEntry);
         }
     }

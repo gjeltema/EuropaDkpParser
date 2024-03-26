@@ -82,8 +82,19 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
     {
         foreach (string line in File.ReadLines(dumpFile.FileName))
         {
-            string characterName = line.Split('\t')[1];
-            dumpFile.CharacterNames.Add(characterName);
+            string[] characterEntry = line.Split('\t');
+            string characterName = characterEntry[1];
+            int level = int.Parse(characterEntry[2]);
+            string className = characterEntry[3];
+
+            PlayerCharacter character = new()
+            {
+                PlayerName = characterName,
+                Level = level,
+                ClassName = className,
+            };
+
+            dumpFile.Characters.Add(character);
         }
     }
 
@@ -98,8 +109,19 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
                 continue;
             }
 
-            string characterName = line.Split('\t')[0];
-            raidListFile.CharacterNames.Add(characterName);
+            string[] characterEntry = line.Split('\t');
+            string characterName = characterEntry[0];
+            int level = int.Parse(characterEntry[1]);
+            string className = characterEntry[2];
+
+            PlayerCharacter character = new()
+            {
+                PlayerName = characterName,
+                Level = level,
+                ClassName = className,
+            };
+
+            raidListFile.CharacterNames.Add(character);
         }
     }
 }

@@ -16,7 +16,7 @@ public sealed class RaidDumpFile
     public RaidDumpFile(string fileName)
     {
         FileName = fileName;
-        CharacterNames = [];
+        Characters = [];
 
         FileInfo dumpFileInfo = new(fileName);
         fileName = dumpFileInfo.Name;
@@ -26,12 +26,12 @@ public sealed class RaidDumpFile
         FileDateTime = DateTime.ParseExact(dumpFileTimeStamp, Constants.RaidDumpFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 
-    public List<string> CharacterNames { get; private set; }
+    public ICollection<PlayerCharacter> Characters { get; private set; }
 
     public DateTime FileDateTime { get; }
 
     public string FileName { get; private set; }
 
     private string DebugDisplay
-        => $"{FileName} {CharacterNames.Count}";
+        => $"{FileName} {Characters.Count}";
 }

@@ -11,7 +11,7 @@ public sealed class AttendanceEntry
 {
     public AttendanceCallType AttendanceCallType { get; set; }
 
-    public ICollection<string> PlayerNames { get; private set; } = new HashSet<string>();
+    public ICollection<PlayerCharacter> Players { get; private set; } = new HashSet<PlayerCharacter>();
 
     public PossibleError PossibleError { get; set; }
 
@@ -20,6 +20,19 @@ public sealed class AttendanceEntry
     public DateTime Timestamp { get; set; }
 
     public string ZoneName { get; set; }
+
+    public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)
+    {
+        PlayerCharacter currentChar = Players.FirstOrDefault(x => x.PlayerName == playerCharacter.PlayerName);
+        if (currentChar != null)
+        {
+            currentChar.Merge(playerCharacter);
+        }
+        else
+        {
+            Players.Add(playerCharacter);
+        }
+    }
 
     public override string ToString()
         => $"{Timestamp:HH:mm:ss} {AttendanceCallType}\t{RaidName}\t{ZoneName}";

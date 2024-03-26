@@ -26,7 +26,7 @@ public sealed class RaidListFile
         FileDateTime = DateTime.ParseExact(raidListFileTimeStamp, Constants.RaidListFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 
-    public List<string> CharacterNames { get; private set; }
+    public List<PlayerCharacter> CharacterNames { get; private set; }
 
     public DateTime FileDateTime { get; }
 

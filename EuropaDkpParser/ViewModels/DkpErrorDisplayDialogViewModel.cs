@@ -37,7 +37,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         _settings = settings;
         _raidEntries = raidEntries;
 
-        AllPlayers = _raidEntries.AllPlayersInRaid.Order().ToList();
+        AllPlayers = _raidEntries.AllPlayersInRaid.Select(x => x.PlayerName).Order().ToList();
         PlayerLootedEntries = _raidEntries.PlayerLootedEntries.OrderBy(x => x.Timestamp).ToList();
 
         MoveToNextErrorCommand = new DelegateCommand(AdvanceToNextError);

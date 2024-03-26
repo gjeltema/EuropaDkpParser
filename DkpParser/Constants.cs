@@ -6,6 +6,7 @@ namespace DkpParser;
 
 public static class Constants
 {
+    public const string Anonymous = "ANONYMOUS";
     public const string Attendance = "Attendance";
     public const string AttendanceDelimiter = ":::";
     public const string Dashes = "---------------------------";

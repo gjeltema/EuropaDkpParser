@@ -85,24 +85,30 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
                     if (raidDump != null)
                     {
-                        foreach (string player in raidDump.CharacterNames)
+                        foreach (PlayerCharacter player in raidDump.Characters)
                         {
-                            call.PlayerNames.Add(player);
+                            call.AddOrMergeInPlayerCharacter(player);
                         }
                     }
 
                     RaidListFile raidList = logParseResults.RaidListFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
                     if (raidList != null)
                     {
-                        foreach (string player in raidList.CharacterNames)
+                        foreach (PlayerCharacter player in raidList.CharacterNames)
                         {
-                            call.PlayerNames.Add(player);
+                            call.AddOrMergeInPlayerCharacter(player);
                         }
                     }
 
                     foreach (PlayerAttend player in _playersAttending.Where(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp)))
                     {
-                        call.PlayerNames.Add(player.PlayerName);
+                        call.AddOrMergeInPlayerCharacter(new PlayerCharacter { PlayerName = player.PlayerName });
+                    }
+
+                    foreach (PlayerCharacter player in call.Players)
+                    {
+                        PlayerCharacter character = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == player.PlayerName);
+                        player.Merge(character);
                     }
 
                     ZoneNameInfo zoneLogEntry = _zones.FirstOrDefault(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp));
@@ -147,7 +153,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                 return;
         }
 
-        if (!_raidEntries.AllPlayersInRaid.Contains(dkpEntry.PlayerName))
+        if (!_raidEntries.AllPlayersInRaid.Any(x => x.PlayerName.Equals(dkpEntry.PlayerName, StringComparison.OrdinalIgnoreCase)))
         {
             dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
             return;
@@ -214,28 +220,57 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         // [Sun Mar 17 21:27:54 2024] [50 Monk] Pullz (Human) <Europa>
         // [Sun Mar 17 21:27:54 2024] [ANONYMOUS] Mendrik <Europa>
         // [Sat Mar 09 20:23:41 2024]  <LINKDEAD>[50 Rogue] Noggen (Dwarf) <Europa>
-        int indexOfLastBracket = entry.LogLine.LastIndexOf(']') + 1;
-        int firstIndexOfEndMarker = entry.LogLine.LastIndexOf('(');
+
+        string logLine = entry.LogLine;
+        int indexOfLastBracket = logLine.LastIndexOf(']');
+        if (indexOfLastBracket == -1)
+        {
+            // Should not reach here.
+            Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayerName)} that should not be reached. No ']'.  Logline: {logLine}");
+            return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
+        }
+
+        int firstIndexOfEndMarker = logLine.LastIndexOf('(');
         if (firstIndexOfEndMarker == -1)
         {
-            firstIndexOfEndMarker = entry.LogLine.LastIndexOf('<');
-            if (indexOfLastBracket == -1)
+            firstIndexOfEndMarker = logLine.LastIndexOf('<');
+            if (firstIndexOfEndMarker == -1)
             {
-                // If cant find one of the above symbols for some reason, just go to the end of the string.
                 // Should not reach here.
-                Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayerName)} that should not be reached.  Logline: {entry.LogLine}");
-                firstIndexOfEndMarker = entry.LogLine.Length - 1;
+                Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayerName)} that should not be reached. No '(' or '<'.  Logline: {logLine}");
+                return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
             }
         }
-        string playerName = entry.LogLine[indexOfLastBracket..firstIndexOfEndMarker].Trim();
 
+        string playerName = logLine[(indexOfLastBracket + 1)..firstIndexOfEndMarker].Trim();
         entry.Visited = true;
+
+        PlayerCharacter character = new() { PlayerName = playerName };
+
+        if (logLine.Contains(Constants.Anonymous))
+        {
+            _raidEntries.AddOrMergeInPlayerCharacter(character);
+            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+        }
+
+        int indexOfLeadingClassBracket = logLine.LastIndexOf('[');
+        string classLevelString = logLine[(indexOfLeadingClassBracket + 1)..indexOfLastBracket];
+        string[] classAndLevel = classLevelString.Split(' ');
+
+        int indexOfLastParens = logLine.LastIndexOf(")");
+        string race = logLine[(firstIndexOfEndMarker + 1)..indexOfLastParens];
+
+        character.ClassName = classAndLevel.Length > 2 ? string.Join(" ", classAndLevel[1], classAndLevel[2]) : classAndLevel[1];
+        character.Level = int.Parse(classAndLevel[0]);
+        character.Race = race;
+        _raidEntries.AddOrMergeInPlayerCharacter(character);
 
         return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
     }
 
     private DkpEntry ExtractDkpSpentInfo(EqLogEntry entry)
     {
+        // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
         // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
         string logLine = CorrectDelimiter(entry.LogLine);
 
@@ -267,6 +302,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         string dkpAmountText = playerParts[1].Trim();
         GetDkpAmount(dkpAmountText, dkpEntry);
+        GetAuctioneerName(dkpLineParts[0], dkpEntry);
 
         entry.Visited = true;
 
@@ -330,6 +366,15 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         return lastOneFound;
     }
 
+    private void GetAuctioneerName(string initialLogLine, DkpEntry dkpEntry)
+    {
+        int indexOfBracket = initialLogLine.IndexOf(']');
+        int indexOfTell = initialLogLine.IndexOf(" tell");
+
+        string auctioneerName = initialLogLine[(indexOfBracket + 1)..indexOfTell].Trim();
+        dkpEntry.Auctioneer = auctioneerName;
+    }
+
     private void GetDkpAmount(string dkpAmountText, DkpEntry dkpEntry)
     {
         dkpAmountText = dkpAmountText.TrimEnd('\'');
@@ -377,24 +422,19 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             _playersAttending.AddRange(players);
         }
 
-        foreach (PlayerAttend playerAttend in _playersAttending)
-        {
-            _raidEntries.AllPlayersInRaid.Add(playerAttend.PlayerName);
-        }
-
         foreach (RaidDumpFile raidDump in logParseResults.RaidDumpFiles)
         {
-            foreach (string playerName in raidDump.CharacterNames)
+            foreach (PlayerCharacter playerChar in raidDump.Characters)
             {
-                _raidEntries.AllPlayersInRaid.Add(playerName);
+                _raidEntries.AddOrMergeInPlayerCharacter(playerChar);
             }
         }
 
         foreach (RaidListFile raidList in logParseResults.RaidListFiles)
         {
-            foreach (string playerName in raidList.CharacterNames)
+            foreach (PlayerCharacter playerChar in raidList.CharacterNames)
             {
-                _raidEntries.AllPlayersInRaid.Add(playerName);
+                _raidEntries.AddOrMergeInPlayerCharacter(playerChar);
             }
         }
     }

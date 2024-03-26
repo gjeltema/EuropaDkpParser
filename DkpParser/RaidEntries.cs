@@ -6,10 +6,10 @@ namespace DkpParser;
 
 using System.Diagnostics;
 
-[DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}")]
+[DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllPlayersInRaid.Count}")]
 public sealed class RaidEntries
 {
-    public ICollection<string> AllPlayersInRaid { get; set; } = new HashSet<string>();
+    public ICollection<PlayerCharacter> AllPlayersInRaid { get; set; } = new HashSet<PlayerCharacter>();
 
     public ICollection<AttendanceEntry> AttendanceEntries { get; init; } = new List<AttendanceEntry>();
 
@@ -19,15 +19,28 @@ public sealed class RaidEntries
 
     public ICollection<EqLogEntry> UnvisitedEntries { get; set; } = new List<EqLogEntry>();
 
+    public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)
+    {
+        PlayerCharacter currentChar = AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerCharacter.PlayerName);
+        if (currentChar != null)
+        {
+            currentChar.Merge(playerCharacter);
+        }
+        else
+        {
+            AllPlayersInRaid.Add(playerCharacter);
+        }
+    }
+
     public IEnumerable<string> GetAllEntries()
     {
         yield return "-------------------- Attendance Entries -------------------";
         foreach (AttendanceEntry attEntry in AttendanceEntries)
         {
             yield return attEntry.ToString();
-            foreach (string player in attEntry.PlayerNames)
+            foreach (PlayerCharacter player in attEntry.Players)
             {
-                yield return player;
+                yield return player.ToLogString();
             }
         }
 
@@ -46,8 +59,8 @@ public sealed class RaidEntries
         yield return "";
 
         yield return "-------------------- All Players Found In Raid -------------------";
-        foreach (string playersInRaid in AllPlayersInRaid)
-            yield return playersInRaid;
+        foreach (PlayerCharacter playerInRaid in AllPlayersInRaid.OrderBy(x => x.PlayerName))
+            yield return playerInRaid.ToDisplayString();
 
         yield return "";
 
