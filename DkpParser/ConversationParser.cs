@@ -4,14 +4,10 @@
 
 namespace DkpParser;
 
-using System;
-using System.IO;
-
-public sealed class ConversationParser : IConversationParser, ISetEntryParser
+public sealed class ConversationParser : EqLogParserBase, IConversationParser
 {
     private readonly string _personConversingWith;
     private readonly IDkpParserSettings _settings;
-    private IParseEntry _currentEntryParser;
 
     public ConversationParser(IDkpParserSettings settings, string personConversingWith)
     {
@@ -32,33 +28,13 @@ public sealed class ConversationParser : IConversationParser, ISetEntryParser
         return logFiles;
     }
 
-    public EqLogFile ParseLogFile(string filename, DateTime startTime, DateTime endTime)
+    protected override void InitializeEntryParsers(EqLogFile logFile, DateTime startTime, DateTime endTime)
     {
-        EqLogFile logFile = new() { LogFile = filename };
-
         ConversationEntryParser conversationEntryParser = new(logFile, _personConversingWith);
-        FindStartTimeParser findStartParser = new(this, startTime, conversationEntryParser);
+        FindStartTimeEntryParser findStartParser = new(this, startTime, conversationEntryParser);
 
         SetEntryParser(findStartParser);
-
-        foreach (string logLine in File.ReadLines(filename))
-        {
-            if (!logLine.ExtractEqLogTimeStamp(out DateTime entryTimeStamp))
-            {
-                continue;
-            }
-
-            if (entryTimeStamp > endTime)
-                break;
-
-            _currentEntryParser.ParseEntry(logLine, entryTimeStamp);
-        }
-
-        return logFile;
     }
-
-    public void SetEntryParser(IParseEntry parseEntry)
-        => _currentEntryParser = parseEntry;
 
     private sealed class ConversationEntryParser : IParseEntry
     {

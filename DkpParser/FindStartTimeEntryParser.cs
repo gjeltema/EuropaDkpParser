@@ -4,13 +4,13 @@
 
 namespace DkpParser;
 
-internal sealed class FindStartTimeParser : IParseEntry
+internal sealed class FindStartTimeEntryParser : IParseEntry
 {
     private readonly IParseEntry _firstParser;
     private readonly ISetEntryParser _setParser;
     private readonly DateTime _startTime;
 
-    internal FindStartTimeParser(ISetEntryParser setParser, DateTime startTime, IParseEntry firstParser)
+    internal FindStartTimeEntryParser(ISetEntryParser setParser, DateTime startTime, IParseEntry firstParser)
     {
         _setParser = setParser;
         _startTime = startTime;

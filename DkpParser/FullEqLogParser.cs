@@ -28,17 +28,17 @@ public sealed class FullEqLogParser : EqLogParserBase, IFullEqLogParser
 
     protected override void InitializeEntryParsers(EqLogFile logFile, DateTime startTime, DateTime endTime)
     {
-        LogEverythingParser logEverything = new(logFile);
-        FindStartTimeParser findStartParser = new(this, startTime, logEverything);
+        LogEverythingEntryParser logEverything = new(logFile);
+        FindStartTimeEntryParser findStartParser = new(this, startTime, logEverything);
 
         SetEntryParser(findStartParser);
     }
 
-    private sealed class LogEverythingParser : IParseEntry
+    private sealed class LogEverythingEntryParser : IParseEntry
     {
         private readonly EqLogFile _logFile;
 
-        public LogEverythingParser(EqLogFile logFile)
+        public LogEverythingEntryParser(EqLogFile logFile)
         {
             _logFile = logFile;
         }

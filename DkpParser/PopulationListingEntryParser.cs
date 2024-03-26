@@ -4,13 +4,13 @@
 
 namespace DkpParser;
 
-internal sealed class PopulationListingParser : IParseEntry
+internal sealed class PopulationListingEntryParser : IParseEntry
 {
     private readonly EqLogFile _logFile;
     private readonly IParseEntry _primaryEntryParser;
     private readonly ISetEntryParser _setParser;
 
-    internal PopulationListingParser(ISetEntryParser setParser, EqLogFile logFile, IParseEntry primaryEntryParser)
+    internal PopulationListingEntryParser(ISetEntryParser setParser, EqLogFile logFile, IParseEntry primaryEntryParser)
     {
         _setParser = setParser;
         _logFile = logFile;

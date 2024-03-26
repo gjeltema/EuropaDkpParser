@@ -4,9 +4,8 @@
 
 namespace DkpParser;
 
-internal sealed class PopulationListingStartParser : IStartParseEntry
+internal sealed class PopulationListingStartEntryParser : IStartParseEntry
 {
-    private readonly TimeSpan _durationOfSearch = TimeSpan.FromSeconds(2);
     private readonly IParseEntry _populationListingParser;
     private readonly IParseEntry _primaryEntryParser;
     private readonly ISetEntryParser _setParser;
@@ -14,7 +13,7 @@ internal sealed class PopulationListingStartParser : IStartParseEntry
     private bool _foundFirstLine = false;
     private DateTime _initiateStartOfParseTimeStamp;
 
-    internal PopulationListingStartParser(ISetEntryParser setParser, IParseEntry primaryEntryParser, IParseEntry populationListingParser)
+    internal PopulationListingStartEntryParser(ISetEntryParser setParser, IParseEntry primaryEntryParser, IParseEntry populationListingParser)
     {
         _setParser = setParser;
         _primaryEntryParser = primaryEntryParser;

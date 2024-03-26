@@ -411,7 +411,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
-    [DebuggerDisplay("{DebugText,nq}")]
+    [DebuggerDisplay("{DebugText}")]
     private sealed class PlayerAttend
     {
         public string PlayerName { get; init; }

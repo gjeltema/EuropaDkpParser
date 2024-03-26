@@ -16,8 +16,8 @@ internal sealed class PrimaryEntryParser : IParseEntry
         _setParser = setParser;
         _logFile = logFile;
 
-        _populationListingParser = new PopulationListingParser(setParser, logFile, this);
-        _populationListingStartParser = new PopulationListingStartParser(setParser, this, _populationListingParser);
+        _populationListingParser = new PopulationListingEntryParser(setParser, logFile, this);
+        _populationListingStartParser = new PopulationListingStartEntryParser(setParser, this, _populationListingParser);
     }
 
     public void ParseEntry(string logLine, DateTime entryTimeStamp)
