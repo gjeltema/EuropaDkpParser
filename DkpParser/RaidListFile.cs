@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
-[DebuggerDisplay("{DebugDisplay,nq")]
+[DebuggerDisplay("{DebugDisplay")]
 public sealed class RaidListFile
 {
     public const string RaidListFileNameStart = "RaidTick-";
@@ -20,6 +20,8 @@ public sealed class RaidListFile
 
         FileInfo raidListFileInfo = new(fileName);
         fileName = raidListFileInfo.Name;
+
+        // RaidTick-2024-03-22_09-47-32.txt
         string raidListFileTimeStamp = fileName[RaidListFileNameStart.Length..^4];
         FileDateTime = DateTime.ParseExact(raidListFileTimeStamp, Constants.RaidListFileNameTimeFormat, CultureInfo.InvariantCulture);
     }

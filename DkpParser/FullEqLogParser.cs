@@ -14,17 +14,7 @@ public sealed class FullEqLogParser : EqLogParserBase, IFullEqLogParser
     }
 
     public ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime)
-    {
-        List<EqLogFile> logFiles = [];
-        foreach (string logFileName in _settings.SelectedLogFiles)
-        {
-            EqLogFile parsedFile = ParseLogFile(logFileName, startTime, endTime);
-            if (parsedFile.LogEntries.Count > 0)
-                logFiles.Add(parsedFile);
-        }
-
-        return logFiles;
-    }
+        => GetEqLogFiles(startTime, endTime, _settings.SelectedLogFiles);
 
     protected override void InitializeEntryParsers(EqLogFile logFile, DateTime startTime, DateTime endTime)
     {

@@ -20,7 +20,9 @@ public sealed class RaidDumpFile
 
         FileInfo dumpFileInfo = new(fileName);
         fileName = dumpFileInfo.Name;
-        string dumpFileTimeStamp = fileName[11..^4];
+
+        // RaidRoster-20240312-161830.txt
+        string dumpFileTimeStamp = fileName[RaidDumpFileNameStart.Length..^4];
         FileDateTime = DateTime.ParseExact(dumpFileTimeStamp, Constants.RaidDumpFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 

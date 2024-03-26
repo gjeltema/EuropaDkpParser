@@ -35,5 +35,18 @@ public abstract class EqLogParserBase : IEqLogParser
     public void SetEntryParser(IParseEntry parseEntry)
         => _currentEntryParser = parseEntry;
 
+    protected ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime, ICollection<string> selectedLogFileNames)
+    {
+        List<EqLogFile> logFiles = [];
+        foreach (string logFileName in selectedLogFileNames)
+        {
+            EqLogFile parsedFile = ParseLogFile(logFileName, startTime, endTime);
+            if (parsedFile.LogEntries.Count > 0)
+                logFiles.Add(parsedFile);
+        }
+
+        return logFiles;
+    }
+
     protected abstract void InitializeEntryParsers(EqLogFile logFile, DateTime startTime, DateTime endTime);
 }
