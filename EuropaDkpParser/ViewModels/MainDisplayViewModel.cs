@@ -17,9 +17,10 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private readonly IDkpParserSettings _settings;
     private string _conversationPlayer;
     private string _endTimeText;
+    private string _generatedFile;
     private bool _isOutputRawParseResultsChecked;
     private bool _isRawAnalyzerResultsChecked;
-    private string _outputFile;
+    private string _outputDirectory;
     private bool _performingParse = false;
     private string _startTimeText;
 
@@ -28,16 +29,17 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings = settings;
         _dialogFactory = dialogFactory;
         OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
-        StartLogParseCommand = new DelegateCommand(StartLogParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
-            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputFile);
-        GetRawLogFileCommand = new DelegateCommand(GetRawLogFilesParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
-            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputFile);
+        StartLogParseCommand = new DelegateCommand(StartLogParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(GeneratedFile))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => GeneratedFile);
+        GetRawLogFileCommand = new DelegateCommand(GetRawLogFilesParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(GeneratedFile))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => GeneratedFile);
         ResetTimeCommand = new DelegateCommand(ResetTime);
-        GetConversationCommand = new DelegateCommand(ParseConversation, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputFile))
-            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputFile);
+        GetConversationCommand = new DelegateCommand(ParseConversation, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(GeneratedFile))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => GeneratedFile);
 
         ResetTime();
 
+        SetOutputDirectory();
         SetOutputFile();
     }
 
@@ -62,6 +64,12 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
     }
 
+    public string GeneratedFile
+    {
+        get => _generatedFile;
+        set => SetProperty(ref _generatedFile, value);
+    }
+
     public DelegateCommand GetConversationCommand { get; }
 
     public DelegateCommand GetRawLogFileCommand { get; }
@@ -80,10 +88,10 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
     public DelegateCommand OpenSettingsDialogCommand { get; }
 
-    public string OutputFile
+    public string OutputDirectory
     {
-        get => _outputFile;
-        set => SetProperty(ref _outputFile, value);
+        get => _outputDirectory;
+        private set => SetProperty(ref _outputDirectory, value);
     }
 
     public DelegateCommand ResetTimeCommand { get; }
@@ -113,8 +121,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             ICollection<EqLogFile> logFiles = await Task.Run(() => fullLogParser.GetEqLogFiles(startTime, endTime));
 
             string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
-            if (!string.IsNullOrWhiteSpace(OutputFile))
-                directory = Path.GetDirectoryName(OutputFile);
+            if (!string.IsNullOrWhiteSpace(GeneratedFile))
+                directory = Path.GetDirectoryName(GeneratedFile);
 
             string fullLogOutputFile = $"FullLogOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
             string fullLogOutputFullPath = Path.Combine(directory, fullLogOutputFile);
@@ -141,16 +149,18 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
         _settings.EqDirectory = settingsDialog.EqDirectory;
         _settings.SelectedLogFiles = settingsDialog.SelectedCharacterLogFiles;
+        _settings.OutputDirectory = settingsDialog.OutputDirectory;
         _settings.SaveSettings();
 
+        SetOutputDirectory();
         SetOutputFile();
     }
 
     private void OutputRawAnalyzerResults(RaidEntries raidEntries)
     {
         string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
-        if (!string.IsNullOrWhiteSpace(OutputFile))
-            directory = Path.GetDirectoryName(OutputFile);
+        if (!string.IsNullOrWhiteSpace(GeneratedFile))
+            directory = Path.GetDirectoryName(GeneratedFile);
 
         string rawAnalyzerOutputFile = $"RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
@@ -160,8 +170,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private void OutputRawParseResults(LogParseResults results)
     {
         string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
-        if (!string.IsNullOrWhiteSpace(OutputFile))
-            directory = Path.GetDirectoryName(OutputFile);
+        if (!string.IsNullOrWhiteSpace(GeneratedFile))
+            directory = Path.GetDirectoryName(GeneratedFile);
 
         string rawParseOutputFile = $"RawParseOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawParseOutputFullPath = Path.Combine(directory, rawParseOutputFile);
@@ -187,10 +197,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             IConversationParser conversationParser = new ConversationParser(_settings, ConversationPlayer);
             ICollection<EqLogFile> logFiles = await Task.Run(() => conversationParser.GetEqLogFiles(startTime, endTime));
 
-            string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
-            if (!string.IsNullOrWhiteSpace(OutputFile))
-                directory = Path.GetDirectoryName(OutputFile);
-
+            string directory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? Directory.GetCurrentDirectory() : _settings.OutputDirectory;
             string conversationOutputFile = $"ConversationOutput-{ConversationPlayer}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
             string conversationOutputFullPath = Path.Combine(directory, conversationOutputFile);
             bool anyConversationFound = false;
@@ -234,14 +241,16 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         SetOutputFile();
     }
 
+    private void SetOutputDirectory()
+    {
+        OutputDirectory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? Directory.GetCurrentDirectory() : _settings.OutputDirectory;
+    }
+
     private void SetOutputFile()
     {
-        string directory = string.IsNullOrWhiteSpace(_settings.EqDirectory) ? Directory.GetCurrentDirectory() : _settings.EqDirectory;
-        if (!string.IsNullOrWhiteSpace(OutputFile))
-            directory = Path.GetDirectoryName(OutputFile);
-
+        string directory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? Directory.GetCurrentDirectory() : _settings.OutputDirectory;
         string outputFile = $"RaidLog-{DateTime.Now:yyyyMMdd-HHmm}.txt";
-        OutputFile = Path.Combine(directory, outputFile);
+        GeneratedFile = Path.Combine(directory, outputFile);
     }
 
     private async void StartLogParse()
@@ -291,10 +300,10 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             if (finalSummaryDialog.ShowDialog() == false)
                 return;
 
-            IOutputGenerator generator = new FileOutputGenerator(OutputFile);
+            IOutputGenerator generator = new FileOutputGenerator(GeneratedFile);
             await generator.GenerateOutput(raidEntries);
 
-            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialog(OutputFile, Strings.GetString("SuccessfulCompleteMessage"));
+            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialog(GeneratedFile, Strings.GetString("SuccessfulCompleteMessage"));
             completedDialog.ShowDialog();
         }
         finally
@@ -336,6 +345,8 @@ public interface IMainDisplayViewModel : IEuropaViewModel
 
     string EndTimeText { get; set; }
 
+    string GeneratedFile { get; set; }
+
     DelegateCommand GetConversationCommand { get; }
 
     DelegateCommand GetRawLogFileCommand { get; }
@@ -346,7 +357,7 @@ public interface IMainDisplayViewModel : IEuropaViewModel
 
     DelegateCommand OpenSettingsDialogCommand { get; }
 
-    string OutputFile { get; set; }
+    string OutputDirectory { get; }
 
     DelegateCommand ResetTimeCommand { get; }
 

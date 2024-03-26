@@ -10,6 +10,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 {
     private const int DefaultWindowLocation = 200;
     private const string EqDirectorySection = "EQ_DIRECTORY";
+    private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string WindowLocation = "WINDOW_LOCATION";
@@ -29,6 +30,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public int MainWindowX { get; set; } = DefaultWindowLocation;
 
     public int MainWindowY { get; set; } = DefaultWindowLocation;
+
+    public string OutputDirectory { get; set; }
 
     public ICollection<string> SelectedLogFiles { get; set; } = [];
 
@@ -59,6 +62,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         string[] fileContents = File.ReadAllLines(_settingsFilePath);
         SetWindowLocation(fileContents);
         SetEqDirectory(fileContents);
+        SetOutputDirectory(fileContents);
         SetSelectedLogFiles(fileContents);
     }
 
@@ -77,7 +81,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
             WindowLocation + SectionEnding,
             EqDirectorySection,
             EqDirectory,
-            EqDirectorySection + SectionEnding
+            EqDirectorySection + SectionEnding,
+            OutputDirectorySection,
+            OutputDirectory,
+            OutputDirectorySection + SectionEnding
         };
 
         settingsFileContent.Add(SelectedLogFilesSection);
@@ -117,6 +124,22 @@ public sealed class DkpParserSettings : IDkpParserSettings
         index++;
         string setting = fileContents[index];
         EqDirectory = setting;
+    }
+
+    private void SetOutputDirectory(string[] fileContents)
+    {
+        int index = GetStartingIndex(fileContents, OutputDirectorySection);
+        if (!IsValidIndex(index, fileContents))
+        {
+            if (!string.IsNullOrWhiteSpace(EqDirectory))
+            {
+                OutputDirectory = EqDirectory;
+            }
+        }
+
+        index++;
+        string setting = fileContents[index];
+        OutputDirectory = setting;
     }
 
     private void SetSelectedLogFiles(string[] fileContents)
@@ -162,6 +185,8 @@ public interface IDkpParserSettings
     int MainWindowX { get; set; }
 
     int MainWindowY { get; set; }
+
+    string OutputDirectory { get; set; }
 
     ICollection<string> SelectedLogFiles { get; set; }
 

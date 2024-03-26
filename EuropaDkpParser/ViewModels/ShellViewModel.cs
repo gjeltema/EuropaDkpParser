@@ -8,6 +8,9 @@ using DkpParser;
 
 internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 {
+    private int _windowLocationX;
+    private int _windowLocationY;
+
     internal ShellViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
         MainDisplayVM = new MainDisplayViewModel(settings, dialogFactory);
@@ -17,16 +20,24 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 
     public IMainDisplayViewModel MainDisplayVM { get; }
 
-    public int WindowLocationX { get; }
+    public int WindowLocationX
+    {
+        get => _windowLocationX;
+        set => SetProperty(ref _windowLocationX, value);
+    }
 
-    public int WindowLocationY { get; }
+    public int WindowLocationY
+    {
+        get => _windowLocationY;
+        set => SetProperty(ref _windowLocationY, value);
+    }
 }
 
 public interface IShellViewModel : IEuropaViewModel
 {
     IMainDisplayViewModel MainDisplayVM { get; }
 
-    int WindowLocationX { get; }
+    int WindowLocationX { get; set; }
 
-    int WindowLocationY { get; }
+    int WindowLocationY { get; set; }
 }

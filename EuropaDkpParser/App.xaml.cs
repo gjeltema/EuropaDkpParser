@@ -14,18 +14,30 @@ public partial class App : Application
 {
     private const string BossMobsFilePath = "BossMobs.txt";
     private const string SettingsFilePath = "Settings.txt";
+    private IDkpParserSettings _settings;
+    private ShellView _shellView;
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (_settings.MainWindowX == _shellView.Left && _settings.MainWindowY == _shellView.Top)
+            return;
+
+        _settings.MainWindowX = (int)_shellView.Left;
+        _settings.MainWindowY = (int)_shellView.Top;
+        _settings.SaveSettings();
+    }
 
     protected override void OnStartup(StartupEventArgs e)
     {
         DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledExceptionHandler;
 
-        IDkpParserSettings settings = new DkpParserSettings(SettingsFilePath, BossMobsFilePath);
-        settings.LoadAllSettings();
+        _settings = new DkpParserSettings(SettingsFilePath, BossMobsFilePath);
+        _settings.LoadAllSettings();
 
-        var shellVM = new ShellViewModel(settings, new DialogFactory(new DialogViewFactory()));
-        var shellView = new ShellView(shellVM);
-        MainWindow = shellView;
+        var shellViewModel = new ShellViewModel(_settings, new DialogFactory(new DialogViewFactory()));
+        _shellView = new ShellView(shellViewModel);
+        MainWindow = _shellView;
         MainWindow.Show();
 
         base.OnStartup(e);

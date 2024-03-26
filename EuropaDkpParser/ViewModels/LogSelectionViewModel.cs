@@ -14,6 +14,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 {
     private readonly IDkpParserSettings _settings;
     private string _eqDirectory;
+    private string _outputDirectory;
     private string _selectedLogFileToAdd;
     private string _selectedLogFileToParse;
 
@@ -25,12 +26,14 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings = settings;
 
         SelectEqDirectoryCommand = new DelegateCommand(SelectEqDirectory);
+        SelectOutputDirectoryCommand = new DelegateCommand(SelectOutputDirectory);
         AddLogFileToListCommand = new DelegateCommand(AddLogFile, () => !string.IsNullOrWhiteSpace(SelectedLogFileToAdd))
             .ObservesProperty(() => SelectedLogFileToAdd);
         RemoveLogFileFromListCommand = new DelegateCommand(RemoveLogFileFromList, () => !string.IsNullOrWhiteSpace(SelectedLogFileToParse))
             .ObservesProperty(() => SelectedLogFileToParse);
 
         EqDirectory = _settings.EqDirectory;
+        OutputDirectory = _settings.OutputDirectory;
         SelectedCharacterLogFiles = new List<string>(_settings.SelectedLogFiles);
 
         SetAllCharacterLogFiles();
@@ -47,7 +50,15 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         {
             SetProperty(ref _eqDirectory, value);
             SetAllCharacterLogFiles();
+            if (string.IsNullOrWhiteSpace(OutputDirectory))
+                OutputDirectory = EqDirectory;
         }
+    }
+
+    public string OutputDirectory
+    {
+        get => _outputDirectory;
+        set => SetProperty(ref _outputDirectory, value);
     }
 
     public DelegateCommand RemoveLogFileFromListCommand { get; }
@@ -68,6 +79,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public DelegateCommand SelectEqDirectoryCommand { get; }
 
+    public DelegateCommand SelectOutputDirectoryCommand { get; }
+
     private void AddLogFile()
     {
         if (string.IsNullOrWhiteSpace(SelectedLogFileToAdd))
@@ -77,7 +90,6 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
             return;
 
 
-        //SelectedCharacterLogFiles.Add(SelectedLogFileToAdd);
         SelectedCharacterLogFiles = new List<string>(SelectedCharacterLogFiles);
         SelectedCharacterLogFiles.Add(SelectedLogFileToAdd);
         RaisePropertyChanged(nameof(SelectedCharacterLogFiles));
@@ -112,6 +124,25 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         }
     }
 
+    private void SelectOutputDirectory()
+    {
+        using var folderDialog = new FolderBrowserDialog()
+        {
+            Description = Strings.GetString("SelectOutputLogFileFolder"),
+            UseDescriptionForTitle = true,
+        };
+
+        if (!string.IsNullOrWhiteSpace(OutputDirectory))
+        {
+            folderDialog.SelectedPath = OutputDirectory;
+        }
+
+        if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            OutputDirectory = folderDialog.SelectedPath;
+        }
+    }
+
     private void SetAllCharacterLogFiles()
     {
         if (string.IsNullOrWhiteSpace(EqDirectory))
@@ -137,6 +168,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
 
     string EqDirectory { get; set; }
 
+    string OutputDirectory { get; set; }
+
     DelegateCommand RemoveLogFileFromListCommand { get; }
 
     ICollection<string> SelectedCharacterLogFiles { get; }
@@ -146,4 +179,6 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string SelectedLogFileToParse { get; set; }
 
     DelegateCommand SelectEqDirectoryCommand { get; }
+
+    DelegateCommand SelectOutputDirectoryCommand { get; }
 }

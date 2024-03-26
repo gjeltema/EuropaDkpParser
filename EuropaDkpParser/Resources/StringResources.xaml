@@ -60,9 +60,11 @@
     <!-- LogSelectionDialog -->
     <system:String x:Key="EqLogDir">Everquest Log Directory</system:String>
     <system:String x:Key="SetDir">Set Dir</system:String>
+    <system:String x:Key="OutputDir">Output Directory</system:String>
     <system:String x:Key="AvailableLogFiles">Available Log Files</system:String>
     <system:String x:Key="SelectedLogFilesToParse">Selected Log Files To Parse</system:String>
     <system:String x:Key="SelectEqLogFileFolder">Select EQ Log File Folder</system:String>
+    <system:String x:Key="SelectOutputLogFileFolder">Select Output Folder</system:String>
     
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>
@@ -78,6 +80,8 @@
     <system:String x:Key="SuccessfulCompleteMessage">Log file has been successfully generated!</system:String>
     <system:String x:Key="OutputRawParseResults">Output Raw Parse Results</system:String>
     <system:String x:Key="OutputRawAnalyzerResults">Output Raw Analyzer Results</system:String>
+    <system:String x:Key="OutputDirectory">Output Directory</system:String>
+    <system:String x:Key="GenerateLogFile">Generate Log File</system:String>
     <system:String x:Key="OutputFile">Output File</system:String>
     <system:String x:Key="RawDump">Raw Log</system:String>
     <system:String x:Key="RawDumpToolTip">Gets ALL the log entries from the log files for the specified time period.</system:String>
