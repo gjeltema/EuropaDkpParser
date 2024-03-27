@@ -32,7 +32,19 @@
 
                 <Label Grid.Row="0" Content="{StaticResource AllPlayerLootedEntries}"/>
 
-                <ListBox Grid.Row="1" ItemsSource="{Binding PlayerLootedEntries}" SelectedItem="{Binding SelectedPlayerLooted}" FontFamily="Courier New"/>
+                <ListView Grid.Row="1" ItemsSource="{Binding PlayerLootedEntries}" SelectedItem="{Binding SelectedPlayerLooted}" FontFamily="Courier New">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <UniformGrid Columns="1">
+                                        <TextBlock Text="{Binding RawLogLine}"/>
+                                    </UniformGrid>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
                     <CheckBox Content="{StaticResource FilterByItem}" IsChecked="{Binding IsFilterByItemChecked}" Margin="0,0,40,0"/>
@@ -96,13 +108,24 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="{Binding ItemNameAndDkp}" Margin="4"/>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <Label Grid.Row="1" Content="{StaticResource PlayerName}"/>
+                <Label Grid.Column="0" Content="{StaticResource RawLogEntry}"/>
+                <TextBlock Grid.Column="1" Text="{Binding RawLogLine}" Margin="4"/>
+            </Grid>
+
+            <TextBlock Grid.Row="1" Text="{Binding ItemNameAndDkp}" Margin="4"/>
+
+            <Label Grid.Row="2" Content="{StaticResource PlayerName}"/>
             
-            <Grid Grid.Row="2" Margin="2">
+            <Grid Grid.Row="3" Margin="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -118,7 +141,7 @@
 
             </Grid>
 
-            <Grid Grid.Row="3" Margin="2">
+            <Grid Grid.Row="4" Margin="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>

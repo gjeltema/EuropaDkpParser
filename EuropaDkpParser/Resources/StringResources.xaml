@@ -53,6 +53,7 @@
     <system:String x:Key="PlayerLootNotSelectedMessage">Must select a player loot message.</system:String>
     <system:String x:Key="PlayerNameError">Player Name Error</system:String>
     <system:String x:Key="PlayerNameErrorMessage">Player name is empty.</system:String>
+    <system:String x:Key="RawLogEntry">Raw Log Entry:</system:String>
     
     <!-- AttendanceErrorDisplay -->
     <system:String x:Key="AllAttendanceCalls">All Attendance Calls</system:String>

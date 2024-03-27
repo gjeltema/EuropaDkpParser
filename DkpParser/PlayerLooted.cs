@@ -13,8 +13,10 @@ public sealed class PlayerLooted
 
     public string PlayerName { get; init; }
 
+    public string RawLogLine { get; init; }
+
     public DateTime Timestamp { get; init; }
 
     public override string ToString()
-        => $"{Timestamp:HH:mm:ss} {PlayerName,-25} {ItemLooted}";
+        => $"{Timestamp:HH:mm:ss} {PlayerName,-18} {ItemLooted}";
 }

@@ -26,7 +26,19 @@
             </Grid.RowDefinitions>
 
             <Label Content="{StaticResource AttendanceCalls}" Grid.Row="0"/>
-            <ListBox ItemsSource="{Binding AttendanceCalls}" Grid.Row="1"/>
+            <ListView ItemsSource="{Binding AttendanceCalls}" Grid.Row="1">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="ToolTip">
+                            <Setter.Value>
+                                <UniformGrid Columns="1">
+                                    <TextBlock Text="{Binding RawHeaderLogLine}"/>
+                                </UniformGrid>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
         </Grid>
 
         <Grid Grid.Row="0" Grid.Column="1">
@@ -36,7 +48,19 @@
             </Grid.RowDefinitions>
 
             <Label Content="{StaticResource DkpSpentCalls}" Grid.Row="0"/>
-            <ListBox ItemsSource="{Binding DkpSpentCalls}" Grid.Row="1"/>
+            <ListView ItemsSource="{Binding DkpSpentCalls}" Grid.Row="1">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="ToolTip">
+                            <Setter.Value>
+                                <UniformGrid Columns="1">
+                                    <TextBlock Text="{Binding RawLogLine}"/>
+                                </UniformGrid>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
         </Grid>
 
         <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Margin="0,15,0,0">

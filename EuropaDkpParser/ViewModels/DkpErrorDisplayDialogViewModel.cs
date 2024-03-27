@@ -25,6 +25,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private string _nextButtonText;
     private ICollection<PlayerLooted> _playerLootedEntries;
     private string _playerName;
+    private string _rawLogLine;
     private PlayerLooted _selectedPlayerLooted;
     private string _selectedPlayerName;
     private string _timestamp;
@@ -157,6 +158,12 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         set => SetProperty(ref _playerName, value);
     }
 
+    public string RawLogLine
+    {
+        get => _rawLogLine;
+        private set => SetProperty(ref _rawLogLine, value);
+    }
+
     public PlayerLooted SelectedPlayerLooted
     {
         get => _selectedPlayerLooted;
@@ -194,6 +201,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         DkpSpent = _currentEntry.DkpSpent.ToString();
         ItemNameAndDkp = $"{_currentEntry.Item}, DKP: {_currentEntry.DkpSpent}";
         Timestamp = _currentEntry.Timestamp.ToString("HH:mm:ss");
+        RawLogLine = _currentEntry.RawLogLine;
 
         if (_currentEntry.PossibleError == PossibleError.PlayerLootedMessageNotFound)
         {
@@ -308,6 +316,8 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
     ICollection<PlayerLooted> PlayerLootedEntries { get; }
 
     string PlayerName { get; set; }
+
+    string RawLogLine { get; }
 
     PlayerLooted SelectedPlayerLooted { get; set; }
 

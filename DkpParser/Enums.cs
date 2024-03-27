@@ -28,6 +28,7 @@ public enum PossibleError
     TwoColons,
     DkpAmountNotANumber,
     DkpSpentPlayerNameTypo,
+    DkpDuplicateEntry,
     PlayerLootedMessageNotFound,
     DuplicateRaidEntry,
     BossMobNameTypo,

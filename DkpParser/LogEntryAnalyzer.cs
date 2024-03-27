@@ -123,6 +123,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     }
 
                     logEntry.Visited = true;
+                    call.RawHeaderLogLine = logEntry.LogLine;
                     _raidEntries.AttendanceEntries.Add(call);
                 }
             }
@@ -183,6 +184,22 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
+    private void CheckDuplicateDkpEntries(LogParseResults logParseResults)
+    {
+        var grouped = from a in _raidEntries.DkpEntries
+                      group a by new { PlayerName = a.PlayerName.ToUpper(), a.Item, a.DkpSpent } into ae
+                      where ae.Count() > 1
+                      select new { DkpEntries = ae };
+
+        foreach (var dkpEntryGroup in grouped)
+        {
+            foreach (DkpEntry dkpEntry in dkpEntryGroup.DkpEntries)
+            {
+                dkpEntry.PossibleError = PossibleError.DkpDuplicateEntry;
+            }
+        }
+    }
+
     private void CheckRaidBossTypo(LogParseResults logParseResults)
     {
         // Dont bother checking if the file wasnt found
@@ -210,6 +227,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         CheckDuplicateAttendanceEntries(logParseResults);
         CheckRaidBossTypo(logParseResults);
         CheckDkpSpentTypos(logParseResults);
+        CheckDuplicateDkpEntries(logParseResults);
     }
 
     private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
@@ -257,7 +275,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         string classLevelString = logLine[(indexOfLeadingClassBracket + 1)..indexOfLastBracket];
         string[] classAndLevel = classLevelString.Split(' ');
 
-        int indexOfLastParens = logLine.LastIndexOf(")");
+        int indexOfLastParens = logLine.LastIndexOf(')');
         string race = logLine[(firstIndexOfEndMarker + 1)..indexOfLastParens];
 
         character.ClassName = classAndLevel.Length > 2 ? string.Join(" ", classAndLevel[1], classAndLevel[2]) : classAndLevel[1];
@@ -285,6 +303,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             PlayerName = playerName,
             Item = itemName,
             Timestamp = entry.Timestamp,
+            RawLogLine = entry.LogLine,
         };
 
         if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
@@ -327,7 +346,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         entry.Visited = true;
 
-        return new PlayerLooted { PlayerName = playerName, ItemLooted = itemName, Timestamp = entry.Timestamp };
+        return new PlayerLooted { PlayerName = playerName, ItemLooted = itemName, Timestamp = entry.Timestamp, RawLogLine = entry.LogLine };
     }
 
     private ZoneNameInfo ExtractZoneName(EqLogEntry entry)

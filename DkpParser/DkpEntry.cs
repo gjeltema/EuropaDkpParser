@@ -21,6 +21,8 @@ public sealed class DkpEntry
 
     public PossibleError PossibleError { get; set; } = PossibleError.None;
 
+    public string RawLogLine { get; set; }
+
     public DateTime Timestamp { get; set; }
 
     public string ToLogString()

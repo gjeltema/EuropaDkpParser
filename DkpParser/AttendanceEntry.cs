@@ -17,6 +17,8 @@ public sealed class AttendanceEntry
 
     public string RaidName { get; set; }
 
+    public string RawHeaderLogLine { get; set; }
+
     public DateTime Timestamp { get; set; }
 
     public string ZoneName { get; set; }

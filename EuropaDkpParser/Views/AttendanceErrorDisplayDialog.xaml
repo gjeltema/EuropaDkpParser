@@ -29,13 +29,20 @@
 
                 <Label Content="{StaticResource AllAttendanceCalls}" Grid.Row="0"/>
 
-                <ListBox Grid.Row="1" ItemsSource="{Binding AllAttendances}">
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="{x:Type ListBoxItem}">
+                <ListView Name="AllAttendancesListView" Grid.Row="1" ItemsSource="{Binding AllAttendances}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
                             <Setter Property="Focusable" Value="False"/>
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <UniformGrid Columns="1">
+                                        <TextBlock Text="{Binding RawHeaderLogLine}"/>
+                                    </UniformGrid>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
-                    </ListBox.ItemContainerStyle>
-                </ListBox>
+                    </ListView.ItemContainerStyle>
+                </ListView>
             </Grid>
 
             <Grid Grid.Column="1">
@@ -47,7 +54,19 @@
 
                 <Label Grid.Row="0" Content="{Binding ErrorMessageText}" />
 
-                <ListBox Grid.Row="1" ItemsSource="{Binding ErrorAttendances}" SelectedItem="{Binding SelectedErrorEntry}"/>
+                <ListView Grid.Row="1" ItemsSource="{Binding ErrorAttendances}" SelectedItem="{Binding SelectedErrorEntry}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <UniformGrid Columns="1">
+                                        <TextBlock Text="{Binding RawHeaderLogLine}"/>
+                                    </UniformGrid>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
 
                 <!-- These 3 grids overlay each other, controlled by visibility. -->
                 <Grid Grid.Row="2" Visibility="{Binding IsDuplicateError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
