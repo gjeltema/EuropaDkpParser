@@ -151,7 +151,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
             return;
         }
 
-        IEnumerable<string> logFiles = Directory.EnumerateFiles(EqDirectory, "eqlog_*.txt");
+        IEnumerable<string> logFiles = Directory.EnumerateFiles(EqDirectory, Constants.EqLogSearchPattern);
         AllCharacterLogFiles = new List<string>(logFiles);
         if (AllCharacterLogFiles.Count > 0)
             SelectedLogFileToAdd = AllCharacterLogFiles.First();

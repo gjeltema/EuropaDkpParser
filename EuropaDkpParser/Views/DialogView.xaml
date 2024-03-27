@@ -11,7 +11,7 @@
         WindowStyle="ToolWindow"
         Title="{Binding Title}"
         mc:Ignorable="d" 
-        Width="700" Height="500"
+        Width="700" Height="570"
         dialogsView:DialogResultBehavior.DialogResult="{Binding DialogResult}">
 
     <ContentPresenter Margin="6,10,6,8" Content="{Binding}">
@@ -31,6 +31,9 @@
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type dialogsViewModel:DkpErrorDisplayDialogViewModel}">
                     <dialogsView:DkpErrorDisplayDialog />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:FileArchiveDialogViewModel}">
+                    <dialogsView:FileArchiveDialog />
                 </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>

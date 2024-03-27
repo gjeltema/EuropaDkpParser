@@ -58,10 +58,12 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0" Content="{StaticResource Settings}" Command="{Binding OpenSettingsDialogCommand}" Width="85" Height="25" />
-                <Button Grid.Column="1" Content="{StaticResource ResetTime}" Command="{Binding ResetTimeCommand}"  Width="85" Height="25"/>
+                <Button Grid.Column="0" Content="{StaticResource FileArchive}" Command="{Binding OpenFileArchiveDialogCommand}" Width="85" Height="25" />
+                <Button Grid.Column="1" Content="{StaticResource Settings}" Command="{Binding OpenSettingsDialogCommand}" Width="85" Height="25" />
+                <Button Grid.Column="2" Content="{StaticResource ResetTime}" Command="{Binding ResetTimeCommand}"  Width="85" Height="25"/>
             </Grid>
         </Grid>
 

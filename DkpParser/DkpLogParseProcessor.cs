@@ -44,7 +44,7 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
     {
         List<RaidDumpFile> relevantDumpFiles = [];
 
-        string fileNameSearchString = RaidDumpFile.RaidDumpFileNameStart + "*.txt";
+        string fileNameSearchString = Constants.RaidDumpFileNameStart + "*.txt";
         IEnumerable<RaidDumpFile> raidDumpFiles = Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString).Select(x => new RaidDumpFile(x));
 
         foreach (RaidDumpFile dumpFile in raidDumpFiles)
@@ -63,7 +63,7 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
     {
         List<RaidListFile> relevantRaidListFiles = [];
 
-        string fileNameSearchString = RaidListFile.RaidListFileNameStart + "*.txt";
+        string fileNameSearchString = Constants.RaidListFileNameStart + "*.txt";
         IEnumerable<RaidListFile> raidListFiles = Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString).Select(x => new RaidListFile(x));
 
         foreach (RaidListFile raidListFile in raidListFiles)

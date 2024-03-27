@@ -11,8 +11,6 @@ using System.IO;
 [DebuggerDisplay("{DebugDisplay}")]
 public sealed class RaidDumpFile
 {
-    public const string RaidDumpFileNameStart = "RaidRoster-";
-
     public RaidDumpFile(string fileName)
     {
         FileName = fileName;
@@ -22,7 +20,7 @@ public sealed class RaidDumpFile
         fileName = dumpFileInfo.Name;
 
         // RaidRoster-20240312-161830.txt
-        string dumpFileTimeStamp = fileName[RaidDumpFileNameStart.Length..^4];
+        string dumpFileTimeStamp = fileName[Constants.RaidDumpFileNameStart.Length..^4];
         FileDateTime = DateTime.ParseExact(dumpFileTimeStamp, Constants.RaidDumpFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 

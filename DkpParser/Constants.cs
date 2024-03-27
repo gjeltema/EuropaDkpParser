@@ -7,16 +7,20 @@ namespace DkpParser;
 public static class Constants
 {
     public const string Anonymous = "ANONYMOUS";
+    public const string ArchiveFileNameTimeFormat = "yyyyMMdd-HHmmss";
     public const string Attendance = "Attendance";
     public const string AttendanceDelimiter = ":::";
+    public const string ConversationFileNamePrefix = "ConversationOutput-";
     public const string Dashes = "---------------------------";
     public const string DkpSpent = "DKPSPENT";
     public const string DoubleDash = "--";
     public const string EndLootedDashes = ".--";
+    public const string EqLogSearchPattern = "eqlog_*.txt";
     public const string EuropaGuildTag = "<Europa>";
+    public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
+    public const string GeneratedLogFileNamePrefix = "RaidLog-";
     public const string KillCall = "KILL";
     public const string LogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
-    public const string Looted = "looted";
     public const string LootedA = " looted a ";
     /// <summary>
     /// Entry for noting the number of players and zone.  Assuming for a raid call, it will always be plural.  If there is one player returned, it will say "... player in...".<br/>
@@ -26,12 +30,13 @@ public static class Constants
     public const string PlayersOnEverquest = "Players on EverQuest:";
     public const string PossibleErrorDelimiter = "::";
     public const string RaidAttendanceTaken = "Raid Attendance Taken";
+    public const string RaidDumpFileNameStart = "RaidRoster-";
     public const string RaidDumpFileNameTimeFormat = "yyyyMMdd-HHmmss";
+    public const string RaidListFileNameStart = "RaidTick-";
     public const string RaidListFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
     public const string Remove = "REMOVE";
     public const string TellsYou = "tells you";
     public const string TooLongDelimiter = "::::";
-    //public const string TypicalTimestamp = "[Tue Mar 19 23:24:25 2024]";
     public const string Undo = "UNDO";
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";

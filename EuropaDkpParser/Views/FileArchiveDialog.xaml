@@ -1,0 +1,198 @@
+﻿<UserControl x:Class="EuropaDkpParser.Views.FileArchiveDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EuropaDkpParser.Views"
+             mc:Ignorable="d" 
+             xmlns:viewmodels="clr-namespace:EuropaDkpParser.ViewModels" 
+             d:DataContext="{d:DesignInstance Type=viewmodels:FileArchiveDialogViewModel}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- EQ Logs -->
+        <Grid Grid.Row="0" Margin="5,0,5,5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Content="{StaticResource EqLogFilesHeaderText}"/>
+
+            <Grid Grid.Row="1" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource ArchiveDir}"/>
+                <TextBox Grid.Column="1" Text="{Binding EqLogArchiveDirectory}" Margin="5,0,10,0"/>
+                <Button Grid.Column="2" Content="{StaticResource SetDir}" Command="{Binding SetEqLogArchiveDirectoryCommand}" Height="25" Width="60"/>
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <RadioButton Grid.Row="0" IsChecked="{Binding IsAllLogsArchived}" GroupName="EqLogArchiveGrouping" Content="{StaticResource AllFiles}"/>
+
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <RadioButton Grid.Row="0" IsChecked="{Binding IsSelectedLogsArchived}" GroupName="EqLogArchiveGrouping" Content="{StaticResource SelectedFiles}"/>
+
+                    <Grid Grid.Row="1" Margin="0,5,0,10" IsEnabled="{Binding IsSelectedLogsArchived}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding PossibleEqLogFiles}" SelectedValue="{Binding SelectedEqLogFileToAdd}" Margin="0,0,10,0"/>
+                        <Button Grid.Column="1" Content="{StaticResource AddText}" Command="{Binding AddSelectedEqLogFileToArchiveCommand}" Height="25" Width="60"/>
+                    </Grid>
+
+                    <Grid Grid.Row="2" IsEnabled="{Binding IsSelectedLogsArchived}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ListBox Grid.Column="0" ItemsSource="{Binding SelectedEqLogFiles}" SelectedValue="{Binding SelectedEqLogFileToRemove}" 
+                            Margin="0,0,10,0" Height="85" VerticalAlignment="Top" />
+                        <Button Grid.Column="1" Content="{StaticResource Remove}" Command="{Binding RemoveSelectedEqLogFileCommand}" Height="25" Width="60" VerticalAlignment="Top"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="3" Margin="0,0,0,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource ArchiveBasedOn}"/>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <CheckBox Grid.Column="0" Content="{StaticResource Size}" IsChecked="{Binding ArchiveBasedOnSize}" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" Text="{Binding EqLogArchiveFileSize}" Margin="5,0,0,0" Height="22" Width="40"/>
+                    <Label Grid.Column="2" Content="{StaticResource MBs}"/>
+                    <Label Grid.Column="3" Content="{StaticResource ArchivesEqLogFilesMessage}" Margin="10,0,0,0"/>
+                </Grid>
+
+                <Grid Grid.Row="2" Margin="0,5,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <CheckBox Grid.Column="0" Content="{StaticResource Age}" IsChecked="{Binding ArchiveBasedOnAge}" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" Text="{Binding EqLogArchiveFileAge}" Margin="5,0,0,0" Height="22" Width="40" />
+                    <Label Grid.Column="2" Content="{StaticResource Days}"/>
+                    <Label Grid.Column="3" Content="{StaticResource ArchivesRaidDumpsMessage}" Margin="10,0,0,0"/>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <Button Grid.Column="1" Content="{StaticResource OpenDir}" Command="{Binding OpenEqLogArchiveDirectoryCommand}" HorizontalAlignment="Right" Margin="0,0,10,0" Height="25" Width="60"/>
+                <Button Grid.Column="2" Content="{StaticResource Archive}" Command="{Binding ArchiveEqLogFilesCommand}" IsDefault="True" HorizontalAlignment="Right" Height="25" Width="60"/>
+            </Grid>
+
+        </Grid>
+
+        <Rectangle Grid.Row="1" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,8,0,8"/>
+
+        <!-- Generated Files -->
+        <Grid Grid.Row="2" Margin="5,0,5,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Content="{StaticResource GeneratedFilesHeaderText}"/>
+
+            <Grid Grid.Row="1" Margin="0,0,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource ArchiveDir}"/>
+                <TextBox Grid.Column="1" Text="{Binding GeneratedLogsArchiveDirectory}" Margin="5,0,10,0" Height="22" />
+                <Button Grid.Column="2" Content="{StaticResource SetDir}" Command="{Binding SetGeneratedLogArchiveDirectoryCommand}" Height="25" Width="60"/>
+            </Grid>
+
+            <Grid Grid.Row="2" Margin="0,0,0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource ArchiveOlderThan}"/>
+                <TextBox Grid.Column="1" Text="{Binding GeneratedLogsArchiveFileAge}" Margin="5,0,10,0" Height="22" Width="40"/>
+                <Label Grid.Column="2" Content="{StaticResource Days}"/>
+            </Grid>
+
+            <Grid Grid.Row="3">
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Button Grid.Column="1" Content="{StaticResource OpenDir}" Command="{Binding OpenGeneratedLogArchiveDirectoryCommand}" HorizontalAlignment="Right" Margin="0,0,10,0" Height="25" Width="60"/>
+                    <Button Grid.Column="2" Content="{StaticResource Archive}" Command="{Binding ArchiveGeneratedLogFilesCommand}" IsDefault="True" HorizontalAlignment="Right" Height="25" Width="60"/>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <Rectangle Grid.Row="3" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,8,0,8"/>
+
+        <Grid Grid.Row="4" Margin="0,0,5,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Margin="0,0,10,0" Height="25" Width="60"/>
+            <Button Grid.Column="2" Content="{StaticResource SaveButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Height="25" Width="60"/>
+        </Grid>
+    </Grid>
+</UserControl>

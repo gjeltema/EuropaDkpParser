@@ -15,31 +15,36 @@ internal sealed class DialogFactory : IDialogFactory
         _viewFactory = viewFactory;
     }
 
-    public IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialog(IDkpParserSettings settings, RaidEntries raidEntries)
+    public IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
         => new AttendanceErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
 
-    public ICompletedDialogViewModel CreateCompletedDialog(string logFilePath, string completionMessage)
+    public ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, string completionMessage)
         => new CompletedDialogViewModel(_viewFactory, logFilePath, completionMessage);
 
     public IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
         => new DkpErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
 
-    public IFinalSummaryDialogViewModel CreateFinalSummaryDialog(RaidEntries raidEntries)
+    public IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings)
+        => new FileArchiveDialogViewModel(_viewFactory, settings);
+
+    public IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(RaidEntries raidEntries)
         => new FinalSummaryDialogViewModel(_viewFactory, raidEntries);
 
-    public ILogSelectionViewModel CreateSettingsViewDialog(IDkpParserSettings settings)
+    public ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings)
         => new LogSelectionViewModel(_viewFactory, settings);
 }
 
 public interface IDialogFactory
 {
-    IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialog(IDkpParserSettings settings, RaidEntries raidEntries);
+    IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
-    ICompletedDialogViewModel CreateCompletedDialog(string logFilePath, string completionMessage);
+    ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, string completionMessage);
 
     IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
-    IFinalSummaryDialogViewModel CreateFinalSummaryDialog(RaidEntries raidEntries);
+    IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings);
 
-    ILogSelectionViewModel CreateSettingsViewDialog(IDkpParserSettings settings);
+    IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(RaidEntries raidEntries);
+
+    ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings);
 }

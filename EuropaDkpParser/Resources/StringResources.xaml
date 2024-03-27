@@ -2,12 +2,15 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
+    <system:String x:Key="Version">v1.2</system:String>
+
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
     <system:String x:Key="AttendanceErrorDisplayDialogTitleText">Potential Attendance Error Review</system:String>
     <system:String x:Key="DkpErrorDisplayDialogTitleText">Potential DKP Error Review</system:String>
     <system:String x:Key="LogParseSummaryDialogTitleText">Log Parse Summary</system:String>
     <system:String x:Key="CompletedDialogTitleText">Log Generation Complete</system:String>
+    <system:String x:Key="FileArchiveDialogTitleText">File Archive</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>
@@ -25,6 +28,12 @@
     <system:String x:Key="Start">Start</system:String>
     <system:String x:Key="Next">Next</system:String>
     <system:String x:Key="Finish">Finish</system:String>
+    <system:String x:Key="All">All</system:String>
+    <system:String x:Key="Selected">Selected</system:String>
+    <system:String x:Key="Size">Size</system:String>
+    <system:String x:Key="Age">Age</system:String>
+    <system:String x:Key="Archive">Archive</system:String>
+    <system:String x:Key="MBs">MBs</system:String>
 
     <!-- DkpErrorDisplay -->
     <system:String x:Key="AllPlayerLootedEntries">All Player Looted Entries</system:String>
@@ -69,6 +78,7 @@
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>
     <system:String x:Key="EndTime">End Time</system:String>
+    <system:String x:Key="FileArchive">Archive Files</system:String>
     <system:String x:Key="ResetTime">Reset Time</system:String>
     <system:String x:Key="Settings">Settings</system:String>
     <system:String x:Key="StartTimeError">Start Time error</system:String>
@@ -93,5 +103,29 @@
     
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>
+    
+    <!-- FileArchiveDialog -->
+    <system:String x:Key="GeneratedLogAgeError">Days is not valid</system:String>
+    <system:String x:Key="GeneratedLogAgeErrorMessage">The generated log file maximum age in days is not a valid number.</system:String>
+    <system:String x:Key="EqLogAgeError">Days is not valid</system:String>
+    <system:String x:Key="EqLogAgeErrorMessage">The EQ log file maximum age in days is not a valid number.</system:String>
+    <system:String x:Key="EqLogSizeError">Size is not valid</system:String>
+    <system:String x:Key="EqLogSizeErrorMessage">The EQ log file maximum size in MBs is not a valid number.</system:String>
+    <system:String x:Key="FileMoveError">Error Moving File</system:String>
+    <system:String x:Key="FileMoveErrorMessage">There was an error moving the file {0} to {1}: {2}</system:String>
+    <system:String x:Key="GeneratedDirectoryError">Generated File Archive Directory Error</system:String>
+    <system:String x:Key="GeneratedDirectoryErrorMessage">The generated file archive directory is not a valid value.</system:String>
+    <system:String x:Key="EqLogDirectoryError">EQ File Archive Directory Error</system:String>
+    <system:String x:Key="EqLogDirectoryErrorMessage">The EQ log file archive directory is not a valid value.</system:String>
+    <system:String x:Key="EqLogFilesHeaderText">EQ Log Files</system:String>
+    <system:String x:Key="GeneratedFilesHeaderText">Generated Files</system:String>
+    <system:String x:Key="ArchiveBasedOn">Archive Based On:</system:String>
+    <system:String x:Key="ArchiveOlderThan">Older than:</system:String>
+    <system:String x:Key="Days">Day(s)</system:String>
+    <system:String x:Key="ArchiveDir">Archive Dir</system:String>
+    <system:String x:Key="AllFiles">Archive All Files</system:String>
+    <system:String x:Key="SelectedFiles">Archive Selected Files</system:String>
+    <system:String x:Key="ArchivesEqLogFilesMessage">(Archives EQ Log files larger than specified size)</system:String>
+    <system:String x:Key="ArchivesRaidDumpsMessage">(Archives RaidDump and RaidList files older than specified age)</system:String>
 
 </ResourceDictionary>

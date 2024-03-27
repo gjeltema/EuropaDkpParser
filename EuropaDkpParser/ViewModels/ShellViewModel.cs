@@ -5,6 +5,7 @@
 namespace EuropaDkpParser.ViewModels;
 
 using DkpParser;
+using EuropaDkpParser.Resources;
 
 internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 {
@@ -13,12 +14,15 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 
     internal ShellViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
+        TitleText = Strings.GetString("MainWindowTitleText") + " " + Strings.GetString("Version");
         MainDisplayVM = new MainDisplayViewModel(settings, dialogFactory);
         WindowLocationX = settings.MainWindowX;
         WindowLocationY = settings.MainWindowY;
     }
 
     public IMainDisplayViewModel MainDisplayVM { get; }
+
+    public string TitleText { get; }
 
     public int WindowLocationX
     {
@@ -35,6 +39,8 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 
 public interface IShellViewModel : IEuropaViewModel
 {
+    public string TitleText { get; }
+
     IMainDisplayViewModel MainDisplayVM { get; }
 
     int WindowLocationX { get; set; }

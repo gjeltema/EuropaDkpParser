@@ -4,16 +4,24 @@
 
 namespace DkpParser;
 
+using System;
 using System.IO;
 
 public sealed class DkpParserSettings : IDkpParserSettings
 {
+    private const string ArchiveAllOrSelectedEqLogFileSection = "ARCHIVE_ALL_EQ_LOG_FILES";
+    private const string ArchiveEqLogFileAgeSection = "ARCHIVE_EQ_LOG_FILE_AGE";
+    private const string ArchiveEqLogFileDirectorySection = "ARCHIVE_EQ_LOG_FILE_DIRECTORY";
+    private const string ArchiveEqLogFilesSizeSection = "ARCHIVE_EQ_LOG_FILE_SIZE";
+    private const string ArchiveGeneratedLogFileAgeSection = "ARCHIVE_GEN_LOGS_AGE";
+    private const string ArchiveGeneratedLogFileDirectorySection = "ARCHIVE_GEN_LOG_DIRECTORY";
+    private const string ArchiveSelectedFilesToArchiveSection = "ARCHIVE_SELECTED_EQ_LOG_FILES";
     private const int DefaultWindowLocation = 200;
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
-    private const string WindowLocation = "WINDOW_LOCATION";
+    private const string WindowLocationSection = "WINDOW_LOCATION";
     private readonly string _bossMobsFilePath;
     private readonly string _settingsFilePath;
 
@@ -23,9 +31,23 @@ public sealed class DkpParserSettings : IDkpParserSettings
         _bossMobsFilePath = bossMobsFilePath;
     }
 
+    public bool ArchiveAllEqLogFiles { get; set; }
+
     public ICollection<string> BossMobs { get; private set; } = [];
 
     public string EqDirectory { get; set; } = string.Empty;
+
+    public int EqLogFileAgeToArchiveInDays { get; set; }
+
+    public string EqLogFileArchiveDirectory { get; set; }
+
+    public int EqLogFileSizeToArchiveInMBs { get; set; }
+
+    public ICollection<string> EqLogFilesToArchive { get; set; }
+
+    public int GeneratedLogFilesAgeToArchiveInDays { get; set; }
+
+    public string GeneratedLogFilesArchiveDirectory { get; set; }
 
     public int MainWindowX { get; set; } = DefaultWindowLocation;
 
@@ -64,6 +86,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetEqDirectory(fileContents);
         SetOutputDirectory(fileContents);
         SetSelectedLogFiles(fileContents);
+        SetSimpleArchiveSettings(fileContents);
     }
 
     public void SaveBossMobs()
@@ -75,16 +98,34 @@ public sealed class DkpParserSettings : IDkpParserSettings
     {
         var settingsFileContent = new List<string>(8)
         {
-            WindowLocation,
+            WindowLocationSection,
             MainWindowX.ToString(),
             MainWindowY.ToString(),
-            WindowLocation + SectionEnding,
+            WindowLocationSection + SectionEnding,
             EqDirectorySection,
             EqDirectory,
             EqDirectorySection + SectionEnding,
             OutputDirectorySection,
             OutputDirectory,
-            OutputDirectorySection + SectionEnding
+            OutputDirectorySection + SectionEnding,
+            ArchiveAllOrSelectedEqLogFileSection,
+            ArchiveAllEqLogFiles.ToString(),
+            ArchiveAllOrSelectedEqLogFileSection + SectionEnding,
+            ArchiveEqLogFileDirectorySection,
+            EqLogFileArchiveDirectory,
+            ArchiveEqLogFileDirectorySection + SectionEnding,
+            ArchiveEqLogFileAgeSection,
+            EqLogFileAgeToArchiveInDays.ToString(),
+            ArchiveEqLogFileAgeSection + SectionEnding,
+            ArchiveEqLogFilesSizeSection,
+            EqLogFileSizeToArchiveInMBs.ToString(),
+            ArchiveEqLogFilesSizeSection + SectionEnding,
+            ArchiveGeneratedLogFileDirectorySection,
+            GeneratedLogFilesArchiveDirectory,
+            ArchiveGeneratedLogFileDirectorySection + SectionEnding,
+            ArchiveGeneratedLogFileAgeSection,
+            GeneratedLogFilesAgeToArchiveInDays.ToString(),
+            ArchiveGeneratedLogFileAgeSection + SectionEnding,
         };
 
         settingsFileContent.Add(SelectedLogFilesSection);
@@ -93,15 +134,75 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         settingsFileContent.Add(SelectedLogFilesSection + SectionEnding);
 
+        settingsFileContent.Add(ArchiveSelectedFilesToArchiveSection);
+        if (EqLogFilesToArchive.Count > 0)
+            settingsFileContent.AddRange(EqLogFilesToArchive);
+
+        settingsFileContent.Add(ArchiveSelectedFilesToArchiveSection + SectionEnding);
+
         File.WriteAllLines(_settingsFilePath, settingsFileContent);
     }
 
     private static int GetStartingIndex(IList<string> fileContents, string configurationSectionName)
         => fileContents.IndexOf(configurationSectionName);
 
+    private ICollection<string> GetAllEntriesInSection(string[] fileContents, string key)
+    {
+        List<string> entries = new();
+        int index = GetStartingIndex(fileContents, key);
+        if (!IsValidIndex(index, fileContents))
+            return entries;
+
+        string sectionEnd = key + SectionEnding;
+        index++;
+        string entry = fileContents[index];
+        while (entry != sectionEnd)
+        {
+            entries.Add(entry);
+            index++;
+            entry = fileContents[index];
+        }
+
+        return entries;
+    }
+
+    private int GetIntValue(string[] fileContents, string key, int defaultValue = 0)
+    {
+        int index = GetStartingIndex(fileContents, key);
+        if (!IsValidIndex(index, fileContents))
+            return 0;
+
+        index++;
+        string setting = fileContents[index];
+        if (setting == key + SectionEnding)
+            return defaultValue;
+
+        if (int.TryParse(setting, out int intValue))
+        {
+            return intValue;
+        }
+
+        return defaultValue;
+    }
+
+    private string GetStringValue(string[] fileContents, string key, string defaultValue = "")
+    {
+        int index = GetStartingIndex(fileContents, key);
+        if (!IsValidIndex(index, fileContents))
+            return defaultValue;
+
+        index++;
+        string setting = fileContents[index];
+
+        if (setting == key + SectionEnding)
+            return defaultValue;
+
+        return setting;
+    }
+
     private int GetWindowLoc(string setting)
     {
-        if (setting == WindowLocation + SectionEnding)
+        if (setting == WindowLocationSection + SectionEnding)
             return DefaultWindowLocation;
 
         if (int.TryParse(setting, out int windowLoc))
@@ -117,13 +218,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     private void SetEqDirectory(string[] fileContents)
     {
-        int index = GetStartingIndex(fileContents, EqDirectorySection);
-        if (!IsValidIndex(index, fileContents))
-            return;
-
-        index++;
-        string setting = fileContents[index];
-        EqDirectory = setting;
+        EqDirectory = GetStringValue(fileContents, EqDirectorySection);
     }
 
     private void SetOutputDirectory(string[] fileContents)
@@ -144,26 +239,26 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     private void SetSelectedLogFiles(string[] fileContents)
     {
-        int index = GetStartingIndex(fileContents, SelectedLogFilesSection);
-        if (!IsValidIndex(index, fileContents))
-            return;
+        SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
+    }
 
-        SelectedLogFiles.Clear();
+    private void SetSimpleArchiveSettings(string[] fileContents)
+    {
+        EqLogFileArchiveDirectory = GetStringValue(fileContents, ArchiveEqLogFileDirectorySection);
+        GeneratedLogFilesArchiveDirectory = GetStringValue(fileContents, ArchiveGeneratedLogFileDirectorySection);
+        EqLogFileAgeToArchiveInDays = GetIntValue(fileContents, ArchiveEqLogFileAgeSection);
+        EqLogFileSizeToArchiveInMBs = GetIntValue(fileContents, ArchiveEqLogFilesSizeSection);
+        GeneratedLogFilesAgeToArchiveInDays = GetIntValue(fileContents, ArchiveGeneratedLogFileAgeSection);
 
-        string sectionEnd = SelectedLogFilesSection + SectionEnding;
-        index++;
-        string entry = fileContents[index];
-        while (entry != sectionEnd)
-        {
-            SelectedLogFiles.Add(entry);
-            index++;
-            entry = fileContents[index];
-        }
+        string archiveAllStringValue = GetStringValue(fileContents, ArchiveAllOrSelectedEqLogFileSection);
+        ArchiveAllEqLogFiles = archiveAllStringValue.Equals("false", StringComparison.OrdinalIgnoreCase);
+
+        EqLogFilesToArchive = GetAllEntriesInSection(fileContents, ArchiveSelectedFilesToArchiveSection);
     }
 
     private void SetWindowLocation(IList<string> fileContents)
     {
-        int index = GetStartingIndex(fileContents, WindowLocation);
+        int index = GetStartingIndex(fileContents, WindowLocationSection);
         if (!IsValidIndex(index, fileContents))
             return;
 
@@ -178,9 +273,23 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
 public interface IDkpParserSettings
 {
+    bool ArchiveAllEqLogFiles { get; set; }
+
     ICollection<string> BossMobs { get; }
 
     string EqDirectory { get; set; }
+
+    int EqLogFileAgeToArchiveInDays { get; set; }
+
+    string EqLogFileArchiveDirectory { get; set; }
+
+    int EqLogFileSizeToArchiveInMBs { get; set; }
+
+    ICollection<string> EqLogFilesToArchive { get; set; }
+
+    int GeneratedLogFilesAgeToArchiveInDays { get; set; }
+
+    string GeneratedLogFilesArchiveDirectory { get; set; }
 
     int MainWindowX { get; set; }
 

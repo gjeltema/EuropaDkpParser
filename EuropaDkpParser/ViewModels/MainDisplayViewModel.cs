@@ -36,6 +36,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         ResetTimeCommand = new DelegateCommand(ResetTime);
         GetConversationCommand = new DelegateCommand(ParseConversation, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(GeneratedFile))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => GeneratedFile);
+        OpenFileArchiveDialogCommand = new DelegateCommand(OpenFileArchiveDialog);
 
         ResetTime();
 
@@ -86,6 +87,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         set => SetProperty(ref _isOutputRawParseResultsChecked, value);
     }
 
+    public DelegateCommand OpenFileArchiveDialogCommand { get; }
+
     public DelegateCommand OpenSettingsDialogCommand { get; }
 
     public string OutputDirectory
@@ -102,6 +105,15 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     {
         get => _startTimeText;
         set => SetProperty(ref _startTimeText, value);
+    }
+
+    private int GetIntValue(string inputValue)
+    {
+        if (int.TryParse(inputValue, out int parsedValue))
+        {
+            return parsedValue;
+        }
+        return 0;
     }
 
     private async void GetRawLogFilesParse()
@@ -124,14 +136,14 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             if (!string.IsNullOrWhiteSpace(GeneratedFile))
                 directory = Path.GetDirectoryName(GeneratedFile);
 
-            string fullLogOutputFile = $"FullLogOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+            string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
             string fullLogOutputFullPath = Path.Combine(directory, fullLogOutputFile);
             foreach (EqLogFile logFile in logFiles)
             {
                 File.AppendAllLines(fullLogOutputFullPath, logFile.GetAllLogLines());
             }
 
-            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialog(fullLogOutputFullPath, Strings.GetString("SuccessfulCompleteMessage"));
+            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(fullLogOutputFullPath, Strings.GetString("SuccessfulCompleteMessage"));
             completedDialog.ShowDialog();
         }
         finally
@@ -141,9 +153,26 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
     }
 
+    private void OpenFileArchiveDialog()
+    {
+        IFileArchiveDialogViewModel fileArchiveDialog = _dialogFactory.CreateFileArchiveDialogViewModel(_settings);
+        if (fileArchiveDialog.ShowDialog() != true)
+            return;
+
+        _settings.ArchiveAllEqLogFiles = fileArchiveDialog.IsAllLogsArchived;
+        _settings.EqLogFileArchiveDirectory = fileArchiveDialog.EqLogArchiveDirectory;
+        _settings.EqLogFileAgeToArchiveInDays = GetIntValue(fileArchiveDialog.EqLogArchiveFileAge);
+        _settings.EqLogFileSizeToArchiveInMBs = GetIntValue(fileArchiveDialog.EqLogArchiveFileSize);
+        _settings.EqLogFilesToArchive = fileArchiveDialog.SelectedEqLogFiles;
+        _settings.GeneratedLogFilesAgeToArchiveInDays = GetIntValue(fileArchiveDialog.GeneratedLogsArchiveFileAge);
+        _settings.GeneratedLogFilesArchiveDirectory = fileArchiveDialog.GeneratedLogsArchiveDirectory;
+
+        _settings.SaveSettings();
+    }
+
     private void OpenSettingsDialog()
     {
-        ILogSelectionViewModel settingsDialog = _dialogFactory.CreateSettingsViewDialog(_settings);
+        ILogSelectionViewModel settingsDialog = _dialogFactory.CreateSettingsViewDialogViewModel(_settings);
         if (settingsDialog.ShowDialog() != true)
             return;
 
@@ -198,7 +227,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             ICollection<EqLogFile> logFiles = await Task.Run(() => conversationParser.GetEqLogFiles(startTime, endTime));
 
             string directory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? Directory.GetCurrentDirectory() : _settings.OutputDirectory;
-            string conversationOutputFile = $"ConversationOutput-{ConversationPlayer}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+            string conversationOutputFile = $"{Constants.ConversationFileNamePrefix}{ConversationPlayer}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
             string conversationOutputFullPath = Path.Combine(directory, conversationOutputFile);
             bool anyConversationFound = false;
             foreach (EqLogFile logFile in logFiles)
@@ -216,7 +245,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
                 return;
             }
 
-            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialog(conversationOutputFullPath, Strings.GetString("SuccessfulCompleteMessage"));
+            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(conversationOutputFullPath, Strings.GetString("SuccessfulCompleteMessage"));
             completedDialog.ShowDialog();
         }
         finally
@@ -249,7 +278,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private void SetOutputFile()
     {
         string directory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? Directory.GetCurrentDirectory() : _settings.OutputDirectory;
-        string outputFile = $"RaidLog-{DateTime.Now:yyyyMMdd-HHmm}.txt";
+        string outputFile = $"{Constants.GeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmm}.txt";
         GeneratedFile = Path.Combine(directory, outputFile);
     }
 
@@ -284,7 +313,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
             if (raidEntries.AttendanceEntries.Any(x => x.PossibleError != PossibleError.None))
             {
-                IAttendanceErrorDisplayDialogViewModel attendanceErrorDialog = _dialogFactory.CreateAttendanceErrorDisplayDialog(_settings, raidEntries);
+                IAttendanceErrorDisplayDialogViewModel attendanceErrorDialog = _dialogFactory.CreateAttendanceErrorDisplayDialogViewModel(_settings, raidEntries);
                 if (attendanceErrorDialog.ShowDialog() == false)
                     return;
             }
@@ -296,14 +325,14 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
                     return;
             }
 
-            IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialog(raidEntries);
+            IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(raidEntries);
             if (finalSummaryDialog.ShowDialog() == false)
                 return;
 
             IOutputGenerator generator = new FileOutputGenerator(GeneratedFile);
             await generator.GenerateOutput(raidEntries);
 
-            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialog(GeneratedFile, Strings.GetString("SuccessfulCompleteMessage"));
+            ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile, Strings.GetString("SuccessfulCompleteMessage"));
             completedDialog.ShowDialog();
         }
         finally
@@ -354,6 +383,8 @@ public interface IMainDisplayViewModel : IEuropaViewModel
     bool IsRawAnalyzerResultsChecked { get; set; }
 
     bool IsRawParseResultsChecked { get; set; }
+
+    DelegateCommand OpenFileArchiveDialogCommand { get; }
 
     DelegateCommand OpenSettingsDialogCommand { get; }
 
