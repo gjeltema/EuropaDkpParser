@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
-[DebuggerDisplay("{DebugDisplay")]
+[DebuggerDisplay("{DebugDisplay}")]
 public sealed class RaidListFile
 {
     public const string RaidListFileNameStart = "RaidTick-";
