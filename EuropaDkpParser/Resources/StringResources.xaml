@@ -47,6 +47,7 @@
     <system:String x:Key="ManualDkpSpentPlayerNameTooltip">Update/Fix the DKPSPENT entry using the selected Player Name.</system:String>
     <system:String x:Key="PlayerLootedItemEntryNotFound">Player was awarded loot, but no log entry for them looting the item was found:</system:String>
     <system:String x:Key="PlayerNameTypo">Possible player name typo:</system:String>
+    <system:String x:Key="DuplicateDkpSpentCall">Possible duplicate DKPSPENT calls:</system:String>
     <system:String x:Key="DkpSpentError">DKP Spent Error</system:String>
     <system:String x:Key="DkpSpentErrorFormatText">DKP is not a number: {0}.</system:String>
     <system:String x:Key="PlayerLootNotSelected">Player Loot Not Selected</system:String>

@@ -15,7 +15,9 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private readonly IDkpParserSettings _settings;
     private DkpEntry _currentEntry;
     private string _dkpSpent;
+    private ICollection<DkpEntry> _duplicateDkpspentEntries;
     private string _errorMessageText;
+    private bool _isDuplicateDkpSpentCallError;
     private bool _isFilterByItemChecked;
     private bool _isFilterByNameChecked;
     private bool _isNoPlayerLootedError;
@@ -26,6 +28,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private ICollection<PlayerLooted> _playerLootedEntries;
     private string _playerName;
     private string _rawLogLine;
+    private DkpEntry _selectedDuplicateDkpEntry;
     private PlayerLooted _selectedPlayerLooted;
     private string _selectedPlayerName;
     private string _timestamp;
@@ -40,6 +43,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
 
         AllPlayers = _raidEntries.AllPlayersInRaid.Select(x => x.PlayerName).Order().ToList();
         PlayerLootedEntries = _raidEntries.PlayerLootedEntries.OrderBy(x => x.Timestamp).ToList();
+        DuplicateDkpspentEntries = [];
 
         MoveToNextErrorCommand = new DelegateCommand(AdvanceToNextError);
         FixNoLootedMessageUsingSelectionCommand = new DelegateCommand(FixNoLootedMessageUsingSelection, () => SelectedPlayerLooted != null)
@@ -49,6 +53,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         FixPlayerTypoUsingSelectionCommand = new DelegateCommand(FixPlayerTypoUsingSelection, () => SelectedPlayerName != null)
             .ObservesProperty(() => SelectedPlayerName);
         FixPlayerTypoManualCommand = new DelegateCommand(FixPlayerTypoManual, () => !string.IsNullOrWhiteSpace(PlayerName)).ObservesProperty(() => PlayerName);
+        RemoveDuplicateSelectionCommand = new DelegateCommand(RemoveDuplicateDkpspentCall, () => IsDuplicateDkpSpentCallError && SelectedDuplicateDkpEntry != null)
+            .ObservesProperty(() => IsDuplicateDkpSpentCallError).ObservesProperty(() => SelectedDuplicateDkpEntry);
 
         AdvanceToNextError();
     }
@@ -59,6 +65,12 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     {
         get => _dkpSpent;
         set => SetProperty(ref _dkpSpent, value);
+    }
+
+    public ICollection<DkpEntry> DuplicateDkpspentEntries
+    {
+        get => _duplicateDkpspentEntries;
+        private set => SetProperty(ref _duplicateDkpspentEntries, value);
     }
 
     public string ErrorMessageText
@@ -74,6 +86,12 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     public DelegateCommand FixPlayerTypoManualCommand { get; }
 
     public DelegateCommand FixPlayerTypoUsingSelectionCommand { get; }
+
+    public bool IsDuplicateDkpSpentCallError
+    {
+        get => _isDuplicateDkpSpentCallError;
+        private set => SetProperty(ref _isDuplicateDkpSpentCallError, value);
+    }
 
     public bool IsFilterByItemChecked
     {
@@ -164,6 +182,14 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         private set => SetProperty(ref _rawLogLine, value);
     }
 
+    public DelegateCommand RemoveDuplicateSelectionCommand { get; }
+
+    public DkpEntry SelectedDuplicateDkpEntry
+    {
+        get => _selectedDuplicateDkpEntry;
+        set => SetProperty(ref _selectedDuplicateDkpEntry, value);
+    }
+
     public PlayerLooted SelectedPlayerLooted
     {
         get => _selectedPlayerLooted;
@@ -184,6 +210,14 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
 
     private void AdvanceToNextError()
     {
+        if (DuplicateDkpspentEntries.Count > 0)
+        {
+            foreach (DkpEntry entry in DuplicateDkpspentEntries)
+            {
+                entry.PossibleError = PossibleError.None;
+            }
+        }
+
         if (_currentEntry != null)
             _currentEntry.PossibleError = PossibleError.None;
 
@@ -207,12 +241,14 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         {
             IsNoPlayerLootedError = true;
             IsPlayerNameTypoError = false;
+            IsDuplicateDkpSpentCallError = false;
             ErrorMessageText = Strings.GetString("PlayerLootedItemEntryNotFound");
         }
         else if (_currentEntry.PossibleError == PossibleError.DkpSpentPlayerNameTypo)
         {
             IsNoPlayerLootedError = false;
             IsPlayerNameTypoError = true;
+            IsDuplicateDkpSpentCallError = false;
             ErrorMessageText = Strings.GetString("PlayerNameTypo");
 
             for (int i = 8; i > 0; i--)
@@ -228,6 +264,16 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
                     break;
                 }
             }
+        }
+        else if (_currentEntry.PossibleError == PossibleError.DkpDuplicateEntry)
+        {
+            IsNoPlayerLootedError = false;
+            IsPlayerNameTypoError = false;
+            IsDuplicateDkpSpentCallError = true;
+
+            ErrorMessageText = Strings.GetString("DuplicateDkpSpentCall");
+
+            SetDuplicateDkpSpentEntries();
         }
     }
 
@@ -272,6 +318,23 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         PlayerName = _currentEntry.PlayerName;
     }
 
+    private void RemoveDuplicateDkpspentCall()
+    {
+        if (SelectedDuplicateDkpEntry == null)
+            return;
+
+        _raidEntries.DkpEntries.Remove(SelectedDuplicateDkpEntry);
+        SetDuplicateDkpSpentEntries();
+        SetNextButtonText();
+    }
+
+    private void SetDuplicateDkpSpentEntries()
+    {
+        DuplicateDkpspentEntries = _raidEntries.DkpEntries
+            .Where(x => x.PlayerName.Equals(_currentEntry.PlayerName, StringComparison.OrdinalIgnoreCase) && x.Item == _currentEntry.Item && x.DkpSpent == _currentEntry.DkpSpent)
+            .ToList();
+    }
+
     private void SetNextButtonText()
     {
         int numberOfErrors = _raidEntries.DkpEntries.Count(x => x.PossibleError != PossibleError.None);
@@ -287,6 +350,8 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
 
     string DkpSpent { get; set; }
 
+    ICollection<DkpEntry> DuplicateDkpspentEntries { get; }
+
     string ErrorMessageText { get; }
 
     DelegateCommand FixNoLootedMessageManualCommand { get; }
@@ -296,6 +361,8 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
     DelegateCommand FixPlayerTypoManualCommand { get; }
 
     DelegateCommand FixPlayerTypoUsingSelectionCommand { get; }
+
+    bool IsDuplicateDkpSpentCallError { get; }
 
     bool IsFilterByItemChecked { get; set; }
 
@@ -318,6 +385,10 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
     string PlayerName { get; set; }
 
     string RawLogLine { get; }
+
+    DelegateCommand RemoveDuplicateSelectionCommand { get; }
+
+    DkpEntry SelectedDuplicateDkpEntry { get; set; }
 
     PlayerLooted SelectedPlayerLooted { get; set; }
 

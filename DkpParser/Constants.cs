@@ -18,7 +18,7 @@ public static class Constants
     public const string EqLogSearchPattern = "eqlog_*.txt";
     public const string EuropaGuildTag = "<Europa>";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
-    public const string GeneratedLogFileNamePrefix = "RaidLog-";
+    public const string GeneratedLogFileNamePrefix = "EuropaGeneratedDkpLog-";
     public const string KillCall = "KILL";
     public const string LogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string LootedA = " looted a ";

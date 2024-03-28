@@ -17,6 +17,7 @@
 
         <Label Grid.Row="0" Content="{Binding ErrorMessageText}" Margin="0,0,0,15"/>
 
+        <!-- No Player Looted Error -->
         <Grid Grid.Row="1" Visibility="{Binding IsNoPlayerLootedError, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -58,8 +59,6 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
                 <Grid Grid.Row="0">
@@ -88,12 +87,12 @@
                     <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Timestamp}" Margin="0,3,2,7"/>
                 </Grid>
 
-                <Button Grid.Row="3" Content="{StaticResource FixUsingSelected}" Command="{Binding FixNoLootedMessageUsingSelectionCommand}" Width="130" Height="30" Margin="0,20,0,10" HorizontalAlignment="Left">
+                <Button Grid.Row="1" Content="{StaticResource FixUsingSelected}" Command="{Binding FixNoLootedMessageUsingSelectionCommand}" Width="130" Height="30" Margin="0,20,0,10" HorizontalAlignment="Left">
                     <Button.ToolTip>
                         <TextBlock Text="{StaticResource FixDkpSpentSelectedToolTip}"/>
                     </Button.ToolTip>
                 </Button>
-                <Button Grid.Row="4" Content="{StaticResource ManualFix}" Command="{Binding FixNoLootedMessageManualCommand}" Width="130" Height="30" HorizontalAlignment="Left" >
+                <Button Grid.Row="2" Content="{StaticResource ManualFix}" Command="{Binding FixNoLootedMessageManualCommand}" Width="130" Height="30" HorizontalAlignment="Left" >
                     <Button.ToolTip>
                         <TextBlock Text="{StaticResource ManualDkpFixTooltip}"/>
                     </Button.ToolTip>
@@ -102,6 +101,70 @@
 
         </Grid>
 
+        <!-- Duplicate DKPSPENT Error -->
+        <Grid Grid.Row="1" Visibility="{Binding IsDuplicateDkpSpentCallError, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0" Margin="2,0,5,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="{StaticResource AllPlayerLootedEntries}"/>
+
+                <ListView Grid.Row="1" ItemsSource="{Binding PlayerLootedEntries}" SelectedItem="{Binding SelectedPlayerLooted}" FontFamily="Courier New">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <UniformGrid Columns="1">
+                                        <TextBlock Text="{Binding RawLogLine}"/>
+                                    </UniformGrid>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+                    <CheckBox Content="{StaticResource FilterByItem}" IsChecked="{Binding IsFilterByItemChecked}" Margin="0,0,40,0"/>
+                    <CheckBox Content="{StaticResource FilterByName}" IsChecked="{Binding IsFilterByNameChecked}"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Column="1" Margin="5,0,2,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ListView Grid.Row="0" ItemsSource="{Binding DuplicateDkpspentEntries}" SelectedItem="{Binding SelectedDuplicateDkpEntry}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <UniformGrid Columns="1">
+                                        <TextBlock Text="{Binding RawLogLine}"/>
+                                    </UniformGrid>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+
+                <Button Grid.Row="1" Margin="0,2,0,0" Content="{StaticResource Remove}" Command="{Binding RemoveDuplicateSelectionCommand}" 
+                        HorizontalAlignment="Right" Width="75" Height="30"/>
+            </Grid>
+
+        </Grid>
+
+        <!-- Player Name Typo Error -->
         <Grid Grid.Row="1" Visibility="{Binding IsPlayerNameTypoError, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
