@@ -4,24 +4,16 @@
 
 namespace DkpParser;
 
-using System.IO;
-
 public sealed class FileOutputGenerator : IOutputGenerator
 {
-    private readonly string _outputFileName;
-
-    public FileOutputGenerator(string outputFileName)
-    {
-        _outputFileName = outputFileName;
-    }
-
-    public async Task GenerateOutput(RaidEntries raidEntries)
+    public ICollection<string> GenerateOutput(RaidEntries raidEntries)
     {
         List<string> outputContents = [];
 
         GenerateAttendanceCalls(raidEntries, outputContents);
         GenerateDkpCalls(raidEntries, outputContents);
-        await WriteToFile(outputContents);
+
+        return outputContents;
     }
 
     private IEnumerable<string> CreateAttendanceEntry(AttendanceEntry call)
@@ -73,14 +65,9 @@ public sealed class FileOutputGenerator : IOutputGenerator
             outputContents.Add(dkpEntry);
         }
     }
-
-    private async Task WriteToFile(IEnumerable<string> outputContents)
-    {
-        await File.WriteAllLinesAsync(_outputFileName, outputContents);
-    }
 }
 
 public interface IOutputGenerator
 {
-    Task GenerateOutput(RaidEntries raidEntries);
+    ICollection<string> GenerateOutput(RaidEntries raidEntries);
 }

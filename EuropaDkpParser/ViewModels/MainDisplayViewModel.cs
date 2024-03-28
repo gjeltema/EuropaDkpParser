@@ -114,6 +114,20 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         set => SetProperty(ref _startTimeText, value);
     }
 
+    private async Task<bool> CreateFile(ICollection<string> fileContents)
+    {
+        try
+        {
+            await Task.Run(() => File.WriteAllLines(GeneratedFile, fileContents));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.ToString(), Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+    }
+
     private int GetIntValue(string inputValue)
     {
         if (int.TryParse(inputValue, out int parsedValue))
@@ -338,8 +352,11 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             if (finalSummaryDialog.ShowDialog() == false)
                 return;
 
-            IOutputGenerator generator = new FileOutputGenerator(GeneratedFile);
-            await generator.GenerateOutput(raidEntries);
+            IOutputGenerator generator = new FileOutputGenerator();
+            ICollection<string> fileContents = generator.GenerateOutput(raidEntries);
+            bool success = await CreateFile(fileContents);
+            if (!success)
+                return;
 
             ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile, Strings.GetString("SuccessfulCompleteMessage"));
             completedDialog.ShowDialog();
