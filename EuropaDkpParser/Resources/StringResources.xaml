@@ -34,6 +34,7 @@
     <system:String x:Key="Age">Age</system:String>
     <system:String x:Key="Archive">Archive</system:String>
     <system:String x:Key="MBs">MBs</system:String>
+    <system:String x:Key="SetDir">Set Dir</system:String>
 
     <!-- DkpErrorDisplay -->
     <system:String x:Key="AllPlayerLootedEntries">All Player Looted Entries</system:String>
@@ -70,12 +71,12 @@
     
     <!-- LogSelectionDialog -->
     <system:String x:Key="EqLogDir">Everquest Log Directory</system:String>
-    <system:String x:Key="SetDir">Set Dir</system:String>
     <system:String x:Key="OutputDir">Output Directory</system:String>
     <system:String x:Key="AvailableLogFiles">Available Log Files</system:String>
     <system:String x:Key="SelectedLogFilesToParse">Selected Log Files To Parse</system:String>
     <system:String x:Key="SelectEqLogFileFolder">Select EQ Log File Folder</system:String>
     <system:String x:Key="SelectOutputLogFileFolder">Select Output Folder</system:String>
+    <system:String x:Key="EnableDebugOptions">Enable Debug Options</system:String>
     
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>

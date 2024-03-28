@@ -14,6 +14,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 {
     private readonly IDkpParserSettings _settings;
     private string _eqDirectory;
+    private bool _isDebugOptionsEnabled;
     private string _outputDirectory;
     private string _selectedLogFileToAdd;
     private string _selectedLogFileToParse;
@@ -35,6 +36,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         EqDirectory = _settings.EqDirectory;
         OutputDirectory = _settings.OutputDirectory;
         SelectedCharacterLogFiles = new List<string>(_settings.SelectedLogFiles);
+        IsDebugOptionsEnabled = _settings.EnableDebugOptions;
 
         SetAllCharacterLogFiles();
     }
@@ -53,6 +55,12 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
             if (string.IsNullOrWhiteSpace(OutputDirectory))
                 OutputDirectory = EqDirectory;
         }
+    }
+
+    public bool IsDebugOptionsEnabled
+    {
+        get => _isDebugOptionsEnabled;
+        set => SetProperty(ref _isDebugOptionsEnabled, value);
     }
 
     public string OutputDirectory
@@ -167,6 +175,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     ICollection<string> AllCharacterLogFiles { get; }
 
     string EqDirectory { get; set; }
+
+    bool IsDebugOptionsEnabled { get; set; }
 
     string OutputDirectory { get; set; }
 

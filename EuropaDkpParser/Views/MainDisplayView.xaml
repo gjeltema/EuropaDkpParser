@@ -106,7 +106,7 @@
 
                 <Label Grid.Column="0" Content="{StaticResource GenerateLogFile}" />
             </Grid>
-            
+
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -116,17 +116,16 @@
                 <Label Grid.Column="0" Content="{StaticResource OutputFile}" />
                 <TextBox Grid.Column="1" Text="{Binding GeneratedFile}" Margin="3" />
             </Grid>
-            
-            <Grid Grid.Row="2">
+
+            <Grid Grid.Row="2" Visibility="{Binding DebugOptionsEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                
+
                 <CheckBox Grid.Column="0" Content="{StaticResource OutputRawParseResults}" IsChecked="{Binding IsRawParseResultsChecked}" Margin="0,0,15,0"/>
                 <CheckBox Grid.Column="1" Content="{StaticResource OutputRawAnalyzerResults}" IsChecked="{Binding IsRawAnalyzerResultsChecked}" />
             </Grid>
-
         </Grid>
 
         <!-- Grid.Row 4 is filler -->

@@ -17,6 +17,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string ArchiveGeneratedLogFileDirectorySection = "ARCHIVE_GEN_LOG_DIRECTORY";
     private const string ArchiveSelectedFilesToArchiveSection = "ARCHIVE_SELECTED_EQ_LOG_FILES";
     private const int DefaultWindowLocation = 200;
+    private const string EnableDebugOptionsSection = "ENABLE_DEBUG";
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string SectionEnding = "_END";
@@ -34,6 +35,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public bool ArchiveAllEqLogFiles { get; set; }
 
     public ICollection<string> BossMobs { get; private set; } = [];
+
+    public bool EnableDebugOptions { get; set; }
 
     public string EqDirectory { get; set; } = string.Empty;
 
@@ -87,6 +90,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetOutputDirectory(fileContents);
         SetSelectedLogFiles(fileContents);
         SetSimpleArchiveSettings(fileContents);
+        SetDebugOptions(fileContents);
     }
 
     public void SaveBossMobs()
@@ -108,6 +112,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
             OutputDirectorySection,
             OutputDirectory,
             OutputDirectorySection + SectionEnding,
+            EnableDebugOptionsSection,
+            EnableDebugOptions.ToString(),
+            EnableDebugOptionsSection + SectionEnding,
             ArchiveAllOrSelectedEqLogFileSection,
             ArchiveAllEqLogFiles.ToString(),
             ArchiveAllOrSelectedEqLogFileSection + SectionEnding,
@@ -216,6 +223,12 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private bool IsValidIndex(int indexOfSection, IList<string> fileContents)
         => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
 
+    private void SetDebugOptions(string[] fileContents)
+    {
+        string debugOptionsStringValue = GetStringValue(fileContents, EnableDebugOptionsSection);
+        EnableDebugOptions = debugOptionsStringValue.Equals("true", StringComparison.OrdinalIgnoreCase);
+    }
+
     private void SetEqDirectory(string[] fileContents)
     {
         EqDirectory = GetStringValue(fileContents, EqDirectorySection);
@@ -250,8 +263,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         EqLogFileSizeToArchiveInMBs = GetIntValue(fileContents, ArchiveEqLogFilesSizeSection);
         GeneratedLogFilesAgeToArchiveInDays = GetIntValue(fileContents, ArchiveGeneratedLogFileAgeSection);
 
-        string archiveAllStringValue = GetStringValue(fileContents, ArchiveAllOrSelectedEqLogFileSection);
-        ArchiveAllEqLogFiles = archiveAllStringValue.Equals("false", StringComparison.OrdinalIgnoreCase);
+        string archiveAllStringValue = GetStringValue(fileContents, ArchiveAllOrSelectedEqLogFileSection, "false");
+        ArchiveAllEqLogFiles = !archiveAllStringValue.Equals("false", StringComparison.OrdinalIgnoreCase);
 
         EqLogFilesToArchive = GetAllEntriesInSection(fileContents, ArchiveSelectedFilesToArchiveSection);
     }
@@ -276,6 +289,8 @@ public interface IDkpParserSettings
     bool ArchiveAllEqLogFiles { get; set; }
 
     ICollection<string> BossMobs { get; }
+
+    bool EnableDebugOptions { get; set; }
 
     string EqDirectory { get; set; }
 

@@ -16,6 +16,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private readonly IDialogFactory _dialogFactory;
     private readonly IDkpParserSettings _settings;
     private string _conversationPlayer;
+    private bool _debugOptionsEnabled;
     private string _endTimeText;
     private string _generatedFile;
     private bool _isOutputRawParseResultsChecked;
@@ -48,6 +49,12 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     {
         get => _conversationPlayer;
         set => SetProperty(ref _conversationPlayer, value);
+    }
+
+    public bool DebugOptionsEnabled
+    {
+        get => _debugOptionsEnabled;
+        set => SetProperty(ref _debugOptionsEnabled, value);
     }
 
     public string EndTimeText
@@ -179,8 +186,10 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.EqDirectory = settingsDialog.EqDirectory;
         _settings.SelectedLogFiles = settingsDialog.SelectedCharacterLogFiles;
         _settings.OutputDirectory = settingsDialog.OutputDirectory;
+        _settings.EnableDebugOptions = settingsDialog.IsDebugOptionsEnabled;
         _settings.SaveSettings();
 
+        DebugOptionsEnabled = _settings.EnableDebugOptions;
         SetOutputDirectory();
         SetOutputFile();
     }
@@ -371,6 +380,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 public interface IMainDisplayViewModel : IEuropaViewModel
 {
     string ConversationPlayer { get; set; }
+
+    bool DebugOptionsEnabled { get; }
 
     string EndTimeText { get; set; }
 
