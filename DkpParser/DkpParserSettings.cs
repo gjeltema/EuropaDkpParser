@@ -46,7 +46,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public int EqLogFileSizeToArchiveInMBs { get; set; }
 
-    public ICollection<string> EqLogFilesToArchive { get; set; }
+    public ICollection<string> EqLogFilesToArchive { get; set; } = [];
 
     public int GeneratedLogFilesAgeToArchiveInDays { get; set; }
 
