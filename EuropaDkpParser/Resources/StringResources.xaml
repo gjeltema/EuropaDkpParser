@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v1.2</system:String>
+    <system:String x:Key="Version">v1.3</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -102,10 +102,15 @@
     <system:String x:Key="StartConversationParse">Get Convo</system:String>
     <system:String x:Key="NoConversationFoundTitle">No conversation found.</system:String>
     <system:String x:Key="NoConversationFound">No conversation entries with the player were found.</system:String>
+    <system:String x:Key="NoSearchTermFoundTitle">No Search Term Found.</system:String>
+    <system:String x:Key="NoSearchTermFound">No entries with the search term were found.</system:String>
     <system:String x:Key="StartLogGeneration">Generate Log</system:String>
     <system:String x:Key="LogGenerationError">Error Generating File</system:String>
-    <system:String x:Key="LogGenerationErrorMessage">There was an error generating the file: </system:String>
-    
+    <system:String x:Key="LogGenerationErrorMessage">There was an error generating the file:</system:String>
+    <system:String x:Key="SearchTermLabel">Search for term:</system:String>
+    <system:String x:Key="SearchTermButtonText">Find Term</system:String>
+    <system:String x:Key="CaseSensitive">Case senstive</system:String>
+
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>
     
