@@ -96,6 +96,6 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
 
         return IsAnonymous
             ? $"[{Constants.Anonymous}] {PlayerName}  <Europa>"
-            : $"[{Level} {ClassName}] {PlayerName} ({race})";
+            : $"[{Level} {ClassName}] {PlayerName} ({race}) <Europa>";
     }
 }
