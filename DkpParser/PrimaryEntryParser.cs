@@ -20,6 +20,14 @@ internal sealed class PrimaryEntryParser : IParseEntry
         _populationListingStartParser = new PopulationListingStartEntryParser(setParser, this, _populationListingParser);
     }
 
+    // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
+    // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
+    // [Sun Feb 25 22:52:46 2024] You have joined the group.
+    // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
+    // [Thu Feb 22 23:13:52 2024] You have joined the raid.
+
+    // [Wed Feb 21 23:10:33 2024] Remote has joined your guild.
+    // [Wed Feb 21 23:10:33 2024] Remote is now a regular member of your guild.
     public void ParseEntry(string logLine, DateTime entryTimeStamp)
     {
         if (logLine.Contains(Constants.PossibleErrorDelimiter))

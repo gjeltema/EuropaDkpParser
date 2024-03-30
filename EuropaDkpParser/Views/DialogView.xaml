@@ -35,6 +35,9 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:FileArchiveDialogViewModel}">
                     <dialogsView:FileArchiveDialog />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:AttendanceEntryModiferDialogViewModel}">
+                    <dialogsView:AttendanceEntryModiferDialog />
+                </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>
     </ContentPresenter>
