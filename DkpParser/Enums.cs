@@ -19,7 +19,9 @@ public enum LogEntryType
     PlayerName,
     WhoZoneName,
     PlayerLooted,
-    Conversation
+    Conversation,
+    JoinedRaid,
+    LeftRaid
 }
 
 public enum PossibleError

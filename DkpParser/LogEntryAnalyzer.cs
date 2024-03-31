@@ -4,6 +4,8 @@
 
 namespace DkpParser;
 
+using System;
+
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
     private readonly RaidEntries _raidEntries = new();
@@ -18,6 +20,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         PopulateMemberLists(logParseResults);
         PopulateLootList(logParseResults);
+        PopulateRaidJoin(logParseResults);
 
         AnalyzeAttendanceCalls(logParseResults);
         AnalyzeLootCalls(logParseResults);
@@ -27,6 +30,42 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         ErrorPostAnalysis(logParseResults);
 
         return _raidEntries;
+    }
+
+    private void PopulateRaidJoin(LogParseResults logParseResults)
+    {
+        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        {
+            IEnumerable<PlayerJoinRaidEntry> playersJoined = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.JoinedRaid || x.EntryType == LogEntryType.LeftRaid)
+                .Select(ExtractePlayerJoin)
+                .Where(x => x != null);
+
+            _raidEntries.PlayerJoinCalls = playersJoined.ToList();
+        }
+    }
+
+    private PlayerJoinRaidEntry ExtractePlayerJoin(EqLogEntry entry)
+    {
+        // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
+        // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
+        // [Sun Feb 25 22:52:46 2024] You have joined the group.
+        // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
+        // [Thu Feb 22 23:13:52 2024] You have joined the raid.
+        int indexOfLastBracket = entry.LogLine.IndexOf(']');
+        string entryMessage = entry.LogLine[(indexOfLastBracket + 1)..];
+        if (entryMessage.Contains("You have "))
+            return null;
+
+        int indexOfSpace = entryMessage.IndexOf(' ');
+        string playerName = entryMessage[0..indexOfSpace];
+
+        return new PlayerJoinRaidEntry
+        {
+            PlayerName = playerName,
+            Timestamp = entry.Timestamp,
+            EntryType = entry.EntryType
+        };
     }
 
     private void AddUnvisitedEntries(LogParseResults logParseResults)

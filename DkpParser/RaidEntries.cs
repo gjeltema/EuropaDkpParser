@@ -15,6 +15,8 @@ public sealed class RaidEntries
 
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
 
+    public ICollection<PlayerJoinRaidEntry> PlayerJoinCalls { get; set; } = new List<PlayerJoinRaidEntry>();
+
     public ICollection<PlayerLooted> PlayerLootedEntries { get; set; }
 
     public ICollection<EqLogEntry> UnvisitedEntries { get; set; } = new List<EqLogEntry>();
@@ -61,6 +63,12 @@ public sealed class RaidEntries
         yield return "-------------------- All Players Found In Raid -------------------";
         foreach (PlayerCharacter playerInRaid in AllPlayersInRaid.OrderBy(x => x.PlayerName))
             yield return playerInRaid.ToDisplayString();
+
+        yield return "";
+
+        yield return "-------------------- Players Joined or Left Raid -------------------";
+        foreach (PlayerJoinRaidEntry playerJoinedRaid in PlayerJoinCalls.OrderBy(x => x.Timestamp))
+            yield return playerJoinedRaid.ToDisplayString();
 
         yield return "";
 

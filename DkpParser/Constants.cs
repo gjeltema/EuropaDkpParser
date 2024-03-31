@@ -19,7 +19,9 @@ public static class Constants
     public const string EuropaGuildTag = "<Europa>";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
     public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-";
+    public const string JoinedRaid = " joined the raid.";
     public const string KillCall = "KILL";
+    public const string LeftRaid = " has left the raid.";
     public const string LogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string LootedA = " looted a ";
     /// <summary>
@@ -29,6 +31,7 @@ public static class Constants
     public const string PlayersIn = " players in ";
     public const string PlayersOnEverquest = "Players on EverQuest:";
     public const string PossibleErrorDelimiter = "::";
+    public const string Raid = "raid.";
     public const string RaidAttendanceTaken = "Raid Attendance Taken";
     public const string RaidDumpFileNameStart = "RaidRoster-";
     public const string RaidDumpFileNameTimeFormat = "yyyyMMdd-HHmmss";

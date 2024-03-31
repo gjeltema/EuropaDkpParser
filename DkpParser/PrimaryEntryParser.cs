@@ -38,6 +38,10 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             AddLootedEntry(logLine, entryTimeStamp);
         }
+        else if (logLine.Contains(Constants.Raid))
+        {
+            AddRaidJoinLeaveEntry(logLine, entryTimeStamp);
+        }
     }
 
     private void AddDelimiterEntry(string logLine, DateTime entryTimeStamp)
@@ -69,6 +73,22 @@ internal sealed class PrimaryEntryParser : IParseEntry
         EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
         logEntry.EntryType = LogEntryType.PlayerLooted;
         _logFile.LogEntries.Add(logEntry);
+    }
+
+    private void AddRaidJoinLeaveEntry(string logLine, DateTime entryTimeStamp)
+    {
+        if (logLine.Contains(Constants.JoinedRaid))
+        {
+            EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
+            _logFile.LogEntries.Add(logEntry);
+            logEntry.EntryType = LogEntryType.JoinedRaid;
+        }
+        else if (logLine.Contains(Constants.LeftRaid))
+        {
+            EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
+            _logFile.LogEntries.Add(logEntry);
+            logEntry.EntryType = LogEntryType.LeftRaid;
+        }
     }
 
     private void CheckForTwoColonError(EqLogEntry logEntry, string logLine)
