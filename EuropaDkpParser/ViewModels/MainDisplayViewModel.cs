@@ -378,7 +378,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
                 return;
         }
 
-        IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(raidEntries);
+        IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, raidEntries);
         if (finalSummaryDialog.ShowDialog() == false)
             return;
 

@@ -31,21 +31,6 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
         if (a.PlayerName != b.PlayerName)
             return false;
 
-        if (a.IsAnonymous && b.IsAnonymous)
-            return true;
-
-        if (b.IsAnonymous || b.IsAnonymous)
-            return false;
-
-        if (a.ClassName != b.ClassName)
-            return false;
-
-        if (a.Race != b.Race)
-            return false;
-
-        if (a.Level != b.Level)
-            return false;
-
         return true;
     }
 
@@ -56,16 +41,7 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
         => Equals(this, obj as PlayerCharacter);
 
     public override int GetHashCode()
-    {
-        if (IsAnonymous)
-        {
-            return PlayerName.GetHashCode();
-        }
-        else
-        {
-            return PlayerName.GetHashCode() ^ ClassName.GetHashCode() ^ Level;
-        }
-    }
+        => PlayerName.GetHashCode();
 
     public void Merge(PlayerCharacter other)
     {

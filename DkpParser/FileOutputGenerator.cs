@@ -37,7 +37,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
         yield return Constants.PlayersOnEverquest;
         yield return Constants.Dashes;
 
-        foreach (PlayerCharacter player in call.Players)
+        foreach (PlayerCharacter player in call.Players.OrderBy(x => x.PlayerName))
         {
             yield return $"{dateStampText} {player.ToLogString()}";
         }

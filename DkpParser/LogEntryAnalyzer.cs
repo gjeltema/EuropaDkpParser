@@ -53,7 +53,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
         // [Thu Feb 22 23:13:52 2024] You have joined the raid.
         int indexOfLastBracket = entry.LogLine.IndexOf(']');
-        string entryMessage = entry.LogLine[(indexOfLastBracket + 1)..];
+        string entryMessage = entry.LogLine[(indexOfLastBracket + 2)..].Trim();
         if (entryMessage.Contains("You have "))
             return null;
 

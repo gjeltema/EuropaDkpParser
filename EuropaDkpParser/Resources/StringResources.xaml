@@ -11,6 +11,7 @@
     <system:String x:Key="LogParseSummaryDialogTitleText">Log Parse Summary</system:String>
     <system:String x:Key="CompletedDialogTitleText">Log Generation Complete</system:String>
     <system:String x:Key="FileArchiveDialogTitleText">File Archive</system:String>
+    <system:String x:Key="AttendanceEntryModifierDialogTitleText">Create or Move Attendance Entry</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>
@@ -35,6 +36,8 @@
     <system:String x:Key="Archive">Archive</system:String>
     <system:String x:Key="MBs">MBs</system:String>
     <system:String x:Key="SetDir">Set Dir</system:String>
+    <system:String x:Key="Move">Move</system:String>
+    <system:String x:Key="AllAttendanceCalls">All Attendance Calls</system:String>
 
     <!-- DkpErrorDisplay -->
     <system:String x:Key="AllPlayerLootedEntries">All Player Looted Entries</system:String>
@@ -58,7 +61,6 @@
     <system:String x:Key="RawLogEntry">Raw Log Entry:</system:String>
     
     <!-- AttendanceErrorDisplay -->
-    <system:String x:Key="AllAttendanceCalls">All Attendance Calls</system:String>
     <system:String x:Key="SetBoss">Set Boss</system:String>
     <system:String x:Key="PossibleDupEntries">Possible duplicate entries:</system:String>
     <system:String x:Key="PossibleBossTypo">Possible boss name typo:</system:String>
@@ -68,6 +70,7 @@
     <!-- FinalSummaryDisplay -->
     <system:String x:Key="AttendanceCalls">Attendance Calls</system:String>
     <system:String x:Key="DkpSpentCalls">DKPSPENT Calls</system:String>
+    <system:String x:Key="AddModify">Add/Modify</system:String>
     
     <!-- LogSelectionDialog -->
     <system:String x:Key="EqLogDir">Everquest Log Directory</system:String>
@@ -137,5 +140,15 @@
     <system:String x:Key="SelectedFiles">Archive Selected Files</system:String>
     <system:String x:Key="ArchivesEqLogFilesMessage">(Archives EQ Log files larger than specified size)</system:String>
     <system:String x:Key="ArchivesRaidDumpsMessage">(Archives RaidDump and RaidList files older than specified age)</system:String>
+    
+    <!-- AttendanceEntryModifierDialog -->
+    <system:String x:Key="NoSelectedAttendanceEntryErrorMessage">Must select an Attendance Entry to serve as a baseline (for Add) or to be moved (for Move).</system:String>
+    <system:String x:Key="NoSelectedAttendanceEntryError">Attendance Entry Not Selected</system:String>
+    <system:String x:Key="NoRaidNameEnteredErrorMessage">Need to enter a new raid name.</system:String>
+    <system:String x:Key="NoRaidNameEnteredError">No Raid Name</system:String>
+    <system:String x:Key="NoModifyEntryTimestampErrorMessage">Need to enter a valid timestamp.</system:String>
+    <system:String x:Key="NoModifyEntryTimestampError">No Timestamp</system:String>
+    <system:String x:Key="NewRaidName">New Raid Name</system:String>
+    <system:String x:Key="NewAttendanceTime">New Timestamp</system:String>
 
 </ResourceDictionary>

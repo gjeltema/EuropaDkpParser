@@ -11,7 +11,7 @@ public sealed class AttendanceEntry
 {
     public AttendanceCallType AttendanceCallType { get; set; }
 
-    public ICollection<PlayerCharacter> Players { get; private set; } = new HashSet<PlayerCharacter>();
+    public ICollection<PlayerCharacter> Players { get; set; } = new HashSet<PlayerCharacter>();
 
     public PossibleError PossibleError { get; set; }
 

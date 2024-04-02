@@ -165,13 +165,13 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Content="{StaticResource RawDump}" Command="{Binding GetRawLogFileCommand}" Grid.Column="0" Width="85" Height="25">
+            <Button Grid.Column="0" Content="{StaticResource RawDump}" Command="{Binding GetRawLogFileCommand}" Width="85" Height="25">
                 <Button.ToolTip>
                     <TextBlock Text="{StaticResource RawDumpToolTip}"/>
                 </Button.ToolTip>
             </Button>
 
-            <Button Content="{StaticResource StartLogGeneration}" Command="{Binding StartLogParseCommand}" Grid.Column="1" Width="85" Height="25"/>
+            <Button Grid.Column="1" Content="{StaticResource StartLogGeneration}" Command="{Binding StartLogParseCommand}" Width="85" Height="25"/>
         </Grid>
     </Grid>
 </UserControl>

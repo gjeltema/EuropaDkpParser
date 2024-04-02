@@ -1,31 +1,129 @@
-﻿namespace DkpParser;
+﻿// -----------------------------------------------------------------------
+// AttendanceEntryModifier.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
+
+namespace DkpParser;
+
+using System.Diagnostics;
 
 public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
 {
-    private readonly LogParseResults _results;
     private readonly RaidEntries _raidEntries;
 
-    public AttendanceEntryModifier(LogParseResults results, RaidEntries raidEntries) 
+    public AttendanceEntryModifier(RaidEntries raidEntries)
     {
-        _results = results;
         _raidEntries = raidEntries;
     }
 
-    public AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime timestamp)
+    public AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newAttendanceTimestamp, string newRaidName)
     {
+        AttendanceEntry newEntry = new()
+        {
+            AttendanceCallType = AttendanceCallType.Time,
+            RaidName = newRaidName,
+            Players = new HashSet<PlayerCharacter>(baseline.Players),
+            RawHeaderLogLine = "<Created Attendance Entry>",
+            Timestamp = newAttendanceTimestamp,
+            ZoneName = baseline.ZoneName
+        };
 
-        return null;
+        if (baseline.Timestamp <= newAttendanceTimestamp)
+        {
+            ModifyPlayersMovingForwards(baseline.Timestamp, newEntry, newAttendanceTimestamp);
+        }
+        else
+        {
+            ModifyPlayersMovingBackwards(baseline.Timestamp, newEntry, newAttendanceTimestamp);
+        }
+
+        return newEntry;
     }
 
-    public void MoveAttendanceEntry(AttendanceEntry baseline, AttendanceEntry toBeMoved, DateTime newTimestamp)
+    public void MoveAttendanceEntry(AttendanceEntry toBeMoved, DateTime newTimestamp)
     {
+        DateTime baselineTimestamp = toBeMoved.Timestamp;
+        toBeMoved.Timestamp = newTimestamp;
+        if (baselineTimestamp <= newTimestamp)
+        {
+            ModifyPlayersMovingForwards(baselineTimestamp, toBeMoved, newTimestamp);
+        }
+        else
+        {
+            ModifyPlayersMovingBackwards(baselineTimestamp, toBeMoved, newTimestamp);
+        }
+    }
 
+    private void AddPlayer(AttendanceEntry entry, PlayerJoinRaidEntry playerJoin)
+    {
+        if (entry.Players.FirstOrDefault(x => x.PlayerName == playerJoin.PlayerName) == null)
+        {
+            PlayerCharacter playerToAdd = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerJoin.PlayerName);
+            if(playerToAdd != null)
+            {
+                entry.Players.Add(playerToAdd);
+            }
+        }
+    }
+
+    private void ModifyPlayersMovingBackwards(DateTime baselineTimestamp, AttendanceEntry toBeModified, DateTime newAttendanceTimestamp)
+    {
+        IList<PlayerJoinRaidEntry> playerJoinedList =
+                _raidEntries.PlayerJoinCalls.Where(x => newAttendanceTimestamp <= x.Timestamp && x.Timestamp < baselineTimestamp).Reverse().ToList();
+
+        foreach (PlayerJoinRaidEntry playerJoin in playerJoinedList)
+        {
+            if (playerJoin.EntryType == LogEntryType.JoinedRaid)
+            {
+                RemovePlayer(toBeModified, playerJoin);
+            }
+            else if (playerJoin.EntryType == LogEntryType.LeftRaid)
+            {
+                AddPlayer(toBeModified, playerJoin);
+            }
+            else
+            {
+                // Is an error, should not reach here
+                Debug.Fail($"Reached area in {nameof(CreateAttendanceEntry)} that should not be reached - LogEntryType is not a valid value.  Call 1.");
+            }
+        }
+    }
+
+    private void ModifyPlayersMovingForwards(DateTime baselineTimestamp, AttendanceEntry toBeModified, DateTime newAttendanceTimestamp)
+    {
+        IEnumerable<PlayerJoinRaidEntry> playerJoinedEnumerable =
+                _raidEntries.PlayerJoinCalls.Where(x => baselineTimestamp <= x.Timestamp && x.Timestamp < newAttendanceTimestamp);
+
+        foreach (PlayerJoinRaidEntry playerJoin in playerJoinedEnumerable)
+        {
+            if (playerJoin.EntryType == LogEntryType.JoinedRaid)
+            {
+                AddPlayer(toBeModified, playerJoin);
+            }
+            else if (playerJoin.EntryType == LogEntryType.LeftRaid)
+            {
+                RemovePlayer(toBeModified, playerJoin);
+            }
+            else
+            {
+                // Is an error, should not reach here
+                Debug.Fail($"Reached area in {nameof(CreateAttendanceEntry)} that should not be reached - LogEntryType is not a valid value.  Call 1.");
+            }
+        }
+    }
+
+    private void RemovePlayer(AttendanceEntry entry, PlayerJoinRaidEntry playerJoin)
+    {
+        PlayerCharacter playerToRemove = entry.Players.FirstOrDefault(x => x.PlayerName == playerJoin.PlayerName);
+        if (playerToRemove != null)
+        {
+            entry.Players.Remove(playerToRemove);
+        }
     }
 }
 
 public interface IAttendanceEntryModifier
 {
-    void MoveAttendanceEntry(AttendanceEntry baseline, AttendanceEntry toBeMoved, DateTime newTimestamp);
+    AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newEntryTimestamp, string newRaidName);
 
-    AttendanceEntry CreateAttendanceEntry( AttendanceEntry baseline, DateTime timestamp);
+    void MoveAttendanceEntry(AttendanceEntry toBeMoved, DateTime newTimestamp);
 }

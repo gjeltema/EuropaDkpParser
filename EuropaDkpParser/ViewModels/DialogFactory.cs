@@ -18,6 +18,9 @@ internal sealed class DialogFactory : IDialogFactory
     public IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
         => new AttendanceErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
 
+    public IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries)
+        => new AttendanceEntryModiferDialogViewModel(_viewFactory, raidEntries);
+
     public ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, string completionMessage)
         => new CompletedDialogViewModel(_viewFactory, logFilePath, completionMessage);
 
@@ -27,8 +30,8 @@ internal sealed class DialogFactory : IDialogFactory
     public IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings)
         => new FileArchiveDialogViewModel(_viewFactory, settings);
 
-    public IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(RaidEntries raidEntries)
-        => new FinalSummaryDialogViewModel(_viewFactory, raidEntries);
+    public IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries)
+        => new FinalSummaryDialogViewModel(_viewFactory, dialogFactory, raidEntries);
 
     public ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings)
         => new LogSelectionViewModel(_viewFactory, settings);
@@ -38,13 +41,15 @@ public interface IDialogFactory
 {
     IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
+    IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries);
+
     ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, string completionMessage);
 
     IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
     IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings);
 
-    IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(RaidEntries raidEntries);
+    IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries);
 
     ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings);
 }

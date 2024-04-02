@@ -39,6 +39,7 @@ public static class Constants
     public const string RaidListFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
     public const string Remove = "REMOVE";
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
+    public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TellsYou = "tells you";
     public const string TooLongDelimiter = "::::";
     public const string Undo = "UNDO";
