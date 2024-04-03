@@ -1,9 +1,12 @@
 ﻿// -----------------------------------------------------------------------
-// FindStartTimeParser.cs Copyright 2024 Craig Gjeltema
+// FindStartTimeEntryParser.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
+/// <summary>
+/// Skips past all entries until it finds a timestamp that is the same or later than the specified start time.
+/// </summary>
 internal sealed class FindStartTimeEntryParser : IParseEntry
 {
     private readonly IParseEntry _firstParser;

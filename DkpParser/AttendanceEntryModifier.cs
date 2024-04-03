@@ -6,6 +6,10 @@ namespace DkpParser;
 
 using System.Diagnostics;
 
+/// <summary>
+/// Moves an attendance entry or adds a new one, using "has joined the raid" and "left the raid" entries to maintain a correct
+/// attendee list.
+/// </summary>
 public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
 {
     private readonly RaidEntries _raidEntries;
@@ -58,7 +62,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
         if (entry.Players.FirstOrDefault(x => x.PlayerName == playerJoin.PlayerName) == null)
         {
             PlayerCharacter playerToAdd = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerJoin.PlayerName);
-            if(playerToAdd != null)
+            if (playerToAdd != null)
             {
                 entry.Players.Add(playerToAdd);
             }
@@ -83,7 +87,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
             else
             {
                 // Is an error, should not reach here
-                Debug.Fail($"Reached area in {nameof(CreateAttendanceEntry)} that should not be reached - LogEntryType is not a valid value.  Call 1.");
+                Debug.Fail($"Reached area in {nameof(ModifyPlayersMovingBackwards)} that should not be reached - LogEntryType is not a valid value: {playerJoin.EntryType}.");
             }
         }
     }
@@ -106,7 +110,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
             else
             {
                 // Is an error, should not reach here
-                Debug.Fail($"Reached area in {nameof(CreateAttendanceEntry)} that should not be reached - LogEntryType is not a valid value.  Call 1.");
+                Debug.Fail($"Reached area in {nameof(ModifyPlayersMovingForwards)} that should not be reached - LogEntryType is not a valid value: {playerJoin.EntryType}.");
             }
         }
     }
@@ -121,6 +125,10 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
     }
 }
 
+/// <summary>
+/// Moves an attendance entry or adds a new one, using "has joined the raid" and "left the raid" entries to maintain a correct
+/// attendee list.
+/// </summary>
 public interface IAttendanceEntryModifier
 {
     AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newEntryTimestamp, string newRaidName);

@@ -18,82 +18,71 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         PopulatePlayerAttends(logParseResults);
         PopulateZoneNames(logParseResults);
 
+        AnalyzeLogFilesAttendanceCalls(logParseResults);
+    }
+
+    private void AddPlayersFromPlayersAttending(EqLogEntry logEntry, AttendanceEntry call)
+    {
+        foreach (PlayerAttend player in _playersAttending.Where(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp)))
+        {
+            call.AddOrMergeInPlayerCharacter(new PlayerCharacter { PlayerName = player.PlayerName });
+        }
+    }
+
+    private void AddRaidDumpMembers(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
+    {
+        RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
+        if (raidDump != null)
+        {
+            foreach (PlayerCharacter player in raidDump.Characters)
+            {
+                call.AddOrMergeInPlayerCharacter(player);
+            }
+        }
+    }
+
+    private void AddRaidListMembers(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
+    {
+        RaidListFile raidList = logParseResults.RaidListFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
+        if (raidList != null)
+        {
+            foreach (PlayerCharacter player in raidList.CharacterNames)
+            {
+                call.AddOrMergeInPlayerCharacter(player);
+            }
+        }
+    }
+
+    private void AnalyzeLogFilesAttendanceCalls(LogParseResults logParseResults)
+    {
         // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
         // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
+
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
             foreach (EqLogEntry logEntry in log.LogEntries)
             {
                 if (logEntry.EntryType == LogEntryType.Attendance || logEntry.EntryType == LogEntryType.Kill)
                 {
-                    string logLine = CorrectDelimiter(logEntry.LogLine);
-                    string[] splitEntry = logLine.Split(Constants.AttendanceDelimiter);
+                    string correctedLogLine = CorrectDelimiter(logEntry.LogLine);
+                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.LogLine };
 
-                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp };
-                    if (logEntry.EntryType == LogEntryType.Attendance)
-                    {
-                        call.RaidName = splitEntry[3].Trim();
-                        call.AttendanceCallType = AttendanceCallType.Time;
-                    }
-                    else
-                    {
-                        call.RaidName = splitEntry[2].Trim();
-                        call.AttendanceCallType = AttendanceCallType.Kill;
-                    }
+                    SetAttendanceType(logEntry, call, correctedLogLine);
 
-                    if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
-                    {
-                        AttendanceEntry toBeRemoved = GetAssociatedLogEntry(call);
-                        if (toBeRemoved != null)
-                        {
-                            _raidEntries.AttendanceEntries.Remove(toBeRemoved);
-                        }
-                        logEntry.Visited = true;
+                    if (IsRemoveCall(logEntry, call, correctedLogLine))
                         continue;
-                    }
 
-                    RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
-                    if (raidDump != null)
-                    {
-                        foreach (PlayerCharacter player in raidDump.Characters)
-                        {
-                            call.AddOrMergeInPlayerCharacter(player);
-                        }
-                    }
+                    AddRaidDumpMembers(logParseResults, logEntry, call);
 
-                    RaidListFile raidList = logParseResults.RaidListFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
-                    if (raidList != null)
-                    {
-                        foreach (PlayerCharacter player in raidList.CharacterNames)
-                        {
-                            call.AddOrMergeInPlayerCharacter(player);
-                        }
-                    }
+                    AddRaidListMembers(logParseResults, logEntry, call);
 
-                    foreach (PlayerAttend player in _playersAttending.Where(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp)))
-                    {
-                        call.AddOrMergeInPlayerCharacter(new PlayerCharacter { PlayerName = player.PlayerName });
-                    }
+                    AddPlayersFromPlayersAttending(logEntry, call);
 
-                    foreach (PlayerCharacter player in call.Players)
-                    {
-                        PlayerCharacter character = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == player.PlayerName);
-                        player.Merge(character);
-                    }
+                    UpdatePlayerInfo(call);
 
-                    ZoneNameInfo zoneLogEntry = _zones.FirstOrDefault(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp));
-                    if (zoneLogEntry != null)
-                    {
-                        call.ZoneName = zoneLogEntry.ZoneName;
-                    }
-                    else
-                    {
-                        //** Heuristic to find nearby zone name
-                        call.PossibleError = PossibleError.NoZoneName;
-                    }
+                    SetZoneName(logEntry, call);
 
                     logEntry.Visited = true;
-                    call.RawHeaderLogLine = logEntry.LogLine;
                     _raidEntries.AttendanceEntries.Add(call);
                 }
             }
@@ -107,7 +96,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return logLine;
     }
 
-    private PlayerAttend ExtractAttendingPlayerName(EqLogEntry entry)
+    private PlayerAttend ExtractAttendingPlayer(EqLogEntry entry)
     {
         // [Sun Mar 17 21:27:54 2024]  AFK [50 Bard] Grindcore (Half Elf) <Europa>
         // [Tue Mar 19 20:30:56 2024]  AFK [ANONYMOUS] Ecliptor  <Europa>
@@ -116,44 +105,44 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Sun Mar 17 21:27:54 2024] [ANONYMOUS] Mendrik <Europa>
         // [Sat Mar 09 20:23:41 2024]  <LINKDEAD>[50 Rogue] Noggen (Dwarf) <Europa>
 
-        string logLine = entry.LogLine;
-        int indexOfLastBracket = logLine.LastIndexOf(']');
+        string logLineNoTimestamp = entry.LogLine[(Constants.LogDateTimeLength + 1)..];
+        int indexOfLastBracket = logLineNoTimestamp.LastIndexOf(']');
         if (indexOfLastBracket == -1)
         {
             // Should not reach here.
-            Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayerName)} that should not be reached. No ']'.  Logline: {logLine}");
+            Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayer)} that should not be reached. No ']'.  Logline: {entry.LogLine}");
             return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
         }
 
-        int firstIndexOfEndMarker = logLine.LastIndexOf('(');
+        int firstIndexOfEndMarker = logLineNoTimestamp.LastIndexOf('(');
         if (firstIndexOfEndMarker == -1)
         {
-            firstIndexOfEndMarker = logLine.LastIndexOf('<');
+            firstIndexOfEndMarker = logLineNoTimestamp.LastIndexOf('<');
             if (firstIndexOfEndMarker == -1)
             {
                 // Should not reach here.
-                Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayerName)} that should not be reached. No '(' or '<'.  Logline: {logLine}");
+                Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayer)} that should not be reached. No '(' or '<'.  Logline: {entry.LogLine}");
                 return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
             }
         }
 
-        string playerName = logLine[(indexOfLastBracket + 1)..firstIndexOfEndMarker].Trim();
+        string playerName = logLineNoTimestamp[(indexOfLastBracket + 1)..firstIndexOfEndMarker].Trim();
         entry.Visited = true;
 
         PlayerCharacter character = new() { PlayerName = playerName };
 
-        if (logLine.Contains(Constants.Anonymous))
+        if (logLineNoTimestamp.Contains(Constants.Anonymous))
         {
             _raidEntries.AddOrMergeInPlayerCharacter(character);
             return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
         }
 
-        int indexOfLeadingClassBracket = logLine.LastIndexOf('[');
-        string classLevelString = logLine[(indexOfLeadingClassBracket + 1)..indexOfLastBracket];
+        int indexOfLeadingClassBracket = logLineNoTimestamp.LastIndexOf('[');
+        string classLevelString = logLineNoTimestamp[(indexOfLeadingClassBracket + 1)..indexOfLastBracket];
         string[] classAndLevel = classLevelString.Split(' ');
 
-        int indexOfLastParens = logLine.LastIndexOf(')');
-        string race = logLine[(firstIndexOfEndMarker + 1)..indexOfLastParens];
+        int indexOfLastParens = logLineNoTimestamp.LastIndexOf(')');
+        string race = logLineNoTimestamp[(firstIndexOfEndMarker + 1)..indexOfLastParens];
 
         character.ClassName = classAndLevel.Length > 2 ? string.Join(" ", classAndLevel[1], classAndLevel[2]) : classAndLevel[1];
         character.Level = int.Parse(classAndLevel[0]);
@@ -168,7 +157,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
         int indexOfPlayersIn = entry.LogLine.IndexOf(Constants.PlayersIn);
         int endIndexOfPlayersIn = indexOfPlayersIn + Constants.PlayersIn.Length;
-        string zoneName = entry.LogLine[endIndexOfPlayersIn..^1];
+        string zoneName = entry.LogLine[endIndexOfPlayersIn..^1].Trim();
 
         entry.Visited = true;
 
@@ -178,7 +167,10 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     private AttendanceEntry GetAssociatedLogEntry(AttendanceEntry call)
     {
         AttendanceEntry lastOneFound = null;
-        foreach (AttendanceEntry entry in _raidEntries.AttendanceEntries.Where(x => x.RaidName == call.RaidName && x.AttendanceCallType == call.AttendanceCallType))
+        IEnumerable<AttendanceEntry> matchingAttendanceEntries =
+            _raidEntries.AttendanceEntries.Where(x => x.RaidName == call.RaidName && x.AttendanceCallType == call.AttendanceCallType);
+
+        foreach (AttendanceEntry entry in matchingAttendanceEntries)
         {
             if (entry.Timestamp < call.Timestamp)
                 lastOneFound = entry;
@@ -187,13 +179,29 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return lastOneFound;
     }
 
+    private bool IsRemoveCall(EqLogEntry logEntry, AttendanceEntry call, string logLine)
+    {
+        if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
+        {
+            AttendanceEntry toBeRemoved = GetAssociatedLogEntry(call);
+            if (toBeRemoved != null)
+            {
+                _raidEntries.AttendanceEntries.Remove(toBeRemoved);
+            }
+            logEntry.Visited = true;
+            return true;
+        }
+
+        return false;
+    }
+
     private void PopulatePlayerAttends(LogParseResults logParseResults)
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
             IEnumerable<PlayerAttend> players = log.LogEntries
                 .Where(x => x.EntryType == LogEntryType.PlayerName)
-                .Select(ExtractAttendingPlayerName);
+                .Select(ExtractAttendingPlayer);
 
             _playersAttending.AddRange(players);
         }
@@ -211,6 +219,47 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
     }
 
+    private void SetAttendanceType(EqLogEntry logEntry, AttendanceEntry call, string logLine)
+    {
+        string[] splitEntry = logLine.Split(Constants.AttendanceDelimiter);
+        if (logEntry.EntryType == LogEntryType.Attendance)
+        {
+            call.RaidName = splitEntry[3].Trim();
+            call.AttendanceCallType = AttendanceCallType.Time;
+        }
+        else
+        {
+            call.RaidName = splitEntry[2].Trim();
+            call.AttendanceCallType = AttendanceCallType.Kill;
+        }
+    }
+
+    private void SetZoneName(EqLogEntry logEntry, AttendanceEntry call)
+    {
+        ZoneNameInfo zoneLogEntry = _zones.FirstOrDefault(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp));
+        if (zoneLogEntry != null)
+        {
+            call.ZoneName = zoneLogEntry.ZoneName;
+        }
+        else
+        {
+            //** Heuristic to find nearby zone name
+            call.PossibleError = PossibleError.NoZoneName;
+        }
+    }
+
+    private void UpdatePlayerInfo(AttendanceEntry call)
+    {
+        foreach (PlayerCharacter player in call.Players)
+        {
+            PlayerCharacter character = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == player.PlayerName);
+            if (character != null)
+                player.Merge(character);
+            else // Shouldnt reach here
+                Debug.Fail($"No PlayerCharacter found in {nameof(UpdatePlayerInfo)}. Playername: {player.PlayerName}");
+        }
+    }
+
     [DebuggerDisplay("{DebugText}")]
     private sealed class PlayerAttend
     {
@@ -222,12 +271,15 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             => $"{PlayerName} {Timestamp:HHmmss}";
     }
 
-    [DebuggerDisplay("{ZoneName,nq}, {Timestamp,nq}")]
+    [DebuggerDisplay("{DebugText}")]
     private sealed class ZoneNameInfo
     {
         public DateTime Timestamp { get; init; }
 
         public string ZoneName { get; init; }
+
+        private string DebugText
+            => $"{ZoneName} {Timestamp:HHmmss}";
     }
 }
 

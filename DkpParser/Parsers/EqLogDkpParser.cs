@@ -2,8 +2,11 @@
 // EqLogDkpParser.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
+/// <summary>
+/// Parses the EQ Log files.
+/// </summary>
 internal sealed class EqLogDkpParser : EqLogParserBase, IEqLogParser
 {
     private readonly IDkpParserSettings _settings;

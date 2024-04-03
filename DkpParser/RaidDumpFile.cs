@@ -31,5 +31,5 @@ public sealed class RaidDumpFile
     public string FileName { get; private set; }
 
     private string DebugDisplay
-        => $"{FileName} {Characters.Count}";
+        => $"{FileDateTime:HH:mm:ss} {Characters.Count}";
 }

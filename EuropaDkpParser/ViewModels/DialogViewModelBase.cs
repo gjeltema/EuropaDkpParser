@@ -8,8 +8,8 @@ using Prism.Commands;
 
 internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewModel
 {
-    private bool? dialogResult;
-    private string title;
+    private bool? _dialogResult;
+    private string _title;
 
     protected DialogViewModelBase(IDialogViewFactory viewFactory)
     {
@@ -21,14 +21,14 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
 
     public bool? DialogResult
     {
-        get => dialogResult;
-        set => SetProperty(ref dialogResult, value);
+        get => _dialogResult;
+        set => SetProperty(ref _dialogResult, value);
     }
 
     public string Title
     {
-        get => title;
-        set => SetProperty(ref title, value);
+        get => _title;
+        set => SetProperty(ref _title, value);
     }
 
     protected IDialogViewFactory ViewFactory { get; private set; }

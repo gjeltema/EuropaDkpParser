@@ -130,6 +130,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     private void AdvanceToNextError()
     {
+        // Clean up previous error entries
         if (ErrorAttendances?.Count > 0)
         {
             foreach (AttendanceEntry errorAttendance in ErrorAttendances)
@@ -141,6 +142,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
         SetNextButtonText();
 
+        // Initialize next error
         _currentEntry = _raidEntries.AttendanceEntries.FirstOrDefault(x => x.PossibleError != PossibleError.None);
         if (_currentEntry == null)
         {

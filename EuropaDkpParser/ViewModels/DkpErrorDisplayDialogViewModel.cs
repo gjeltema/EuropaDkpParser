@@ -210,6 +210,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
 
     private void AdvanceToNextError()
     {
+        // Clean up previous error entries
         if (DuplicateDkpspentEntries.Count > 0)
         {
             foreach (DkpEntry entry in DuplicateDkpspentEntries)
@@ -223,6 +224,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
 
         SetNextButtonText();
 
+        // Initialize next error
         _currentEntry = _raidEntries.DkpEntries.FirstOrDefault(x => x.PossibleError != PossibleError.None);
         if (_currentEntry == null)
         {

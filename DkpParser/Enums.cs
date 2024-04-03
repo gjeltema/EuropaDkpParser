@@ -4,13 +4,13 @@
 
 namespace DkpParser;
 
-public enum AttendanceCallType
+public enum AttendanceCallType : byte
 {
     Time,
     Kill
 }
 
-public enum LogEntryType
+public enum LogEntryType : byte
 {
     Unknown = 0,
     Attendance,
@@ -24,7 +24,7 @@ public enum LogEntryType
     LeftRaid
 }
 
-public enum PossibleError
+public enum PossibleError : byte
 {
     None = 0,
     TwoColons,

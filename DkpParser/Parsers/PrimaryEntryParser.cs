@@ -2,14 +2,17 @@
 // PrimaryEntryParser.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
+/// <summary>
+/// Main entry parser for EQ Log files, looking for all log entries of interest.
+/// </summary>
 internal sealed class PrimaryEntryParser : IParseEntry
 {
     private readonly EqLogFile _logFile;
     private readonly ISetEntryParser _setParser;
     private IParseEntry _populationListingParser;
-    private IStartParseEntry _populationListingStartParser;
+    private IPopulationListingStartEntryParser _populationListingStartParser;
 
     internal PrimaryEntryParser(ISetEntryParser setParser, EqLogFile logFile)
     {
@@ -20,16 +23,15 @@ internal sealed class PrimaryEntryParser : IParseEntry
         _populationListingStartParser = new PopulationListingStartEntryParser(setParser, this, _populationListingParser);
     }
 
-    // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
-    // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
-    // [Sun Feb 25 22:52:46 2024] You have joined the group.
-    // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
-    // [Thu Feb 22 23:13:52 2024] You have joined the raid.
-
-    // [Wed Feb 21 23:10:33 2024] Remote has joined your guild.
-    // [Wed Feb 21 23:10:33 2024] Remote is now a regular member of your guild.
     public void ParseEntry(string logLine, DateTime entryTimeStamp)
     {
+        // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
+        // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
+        // [Sun Feb 25 22:52:46 2024] You have joined the group.
+        // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
+        // [Thu Feb 22 23:13:52 2024] You have joined the raid.
+
+        // Check for just '::' first as it's a fast check.  Do more in depth parsing of the line if this is present.
         if (logLine.Contains(Constants.PossibleErrorDelimiter))
         {
             AddDelimiterEntry(logLine, entryTimeStamp);
@@ -38,6 +40,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             AddLootedEntry(logLine, entryTimeStamp);
         }
+        // Check for just 'raid.' first as it's a fast check.  More in depth after blah blah.
         else if (logLine.Contains(Constants.Raid))
         {
             AddRaidJoinLeaveEntry(logLine, entryTimeStamp);

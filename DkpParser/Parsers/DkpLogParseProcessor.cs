@@ -2,11 +2,13 @@
 // DkpLogParseProcessor.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
-using System.Collections.Generic;
 using System.IO;
 
+/// <summary>
+/// Parses the EQ generated log files, RaidDumps and RaidList files for relevante DKP attendance and spending entries.
+/// </summary>
 public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
 {
     private readonly IDkpParserSettings _settings;
@@ -80,6 +82,12 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
 
     private void ParseRaidDump(RaidDumpFile dumpFile)
     {
+        /*
+/raiddump
+1	Kassandra	50	Bard	Raid Leader	
+2	Lucismule	1	Warrior	Group Leader	
+        */
+
         foreach (string line in File.ReadLines(dumpFile.FileName))
         {
             string[] characterEntry = line.Split('\t');
@@ -100,6 +108,13 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
 
     private void ParseRaidList(RaidListFile raidListFile)
     {
+        /*
+/out raidlist
+Player	Level	Class	Timestamp	Points
+Cinu	50	Ranger	2024-03-22_09-47-32	3
+Tester	37	Magician	2024-03-22_09-47-32	
+        */
+
         bool firstLineSkipped = false;
         foreach (string line in File.ReadLines(raidListFile.FileName))
         {
@@ -126,6 +141,9 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
     }
 }
 
+/// <summary>
+/// Parses the EQ generated log files, RaidDumps and RaidList files for relevante DKP attendance and spending entries.
+/// </summary>
 public interface IDkpLogParseProcessor
 {
     LogParseResults ParseLogs(DateTime startTime, DateTime endTime);

@@ -4,8 +4,6 @@
 
 namespace DkpParser;
 
-using System;
-
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
     private readonly RaidEntries _raidEntries = new();
@@ -30,42 +28,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         ErrorPostAnalysis(logParseResults);
 
         return _raidEntries;
-    }
-
-    private void PopulateRaidJoin(LogParseResults logParseResults)
-    {
-        foreach (EqLogFile log in logParseResults.EqLogFiles)
-        {
-            IEnumerable<PlayerJoinRaidEntry> playersJoined = log.LogEntries
-                .Where(x => x.EntryType == LogEntryType.JoinedRaid || x.EntryType == LogEntryType.LeftRaid)
-                .Select(ExtractePlayerJoin)
-                .Where(x => x != null);
-
-            _raidEntries.PlayerJoinCalls = playersJoined.ToList();
-        }
-    }
-
-    private PlayerJoinRaidEntry ExtractePlayerJoin(EqLogEntry entry)
-    {
-        // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
-        // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
-        // [Sun Feb 25 22:52:46 2024] You have joined the group.
-        // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
-        // [Thu Feb 22 23:13:52 2024] You have joined the raid.
-        int indexOfLastBracket = entry.LogLine.IndexOf(']');
-        string entryMessage = entry.LogLine[(indexOfLastBracket + 2)..].Trim();
-        if (entryMessage.Contains("You have "))
-            return null;
-
-        int indexOfSpace = entryMessage.IndexOf(' ');
-        string playerName = entryMessage[0..indexOfSpace];
-
-        return new PlayerJoinRaidEntry
-        {
-            PlayerName = playerName,
-            Timestamp = entry.Timestamp,
-            EntryType = entry.EntryType
-        };
     }
 
     private void AddUnvisitedEntries(LogParseResults logParseResults)
@@ -115,10 +77,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void CheckDuplicateDkpEntries(LogParseResults logParseResults)
     {
-        var grouped = from a in _raidEntries.DkpEntries
-                      group a by new { PlayerName = a.PlayerName.ToUpper(), a.Item, a.DkpSpent } into ae
-                      where ae.Count() > 1
-                      select new { DkpEntries = ae };
+        var grouped = from d in _raidEntries.DkpEntries
+                      group d by new { PlayerName = d.PlayerName.ToUpper(), d.Item, d.DkpSpent } into de
+                      where de.Count() > 1
+                      select new { DkpEntries = de };
 
         foreach (var dkpEntryGroup in grouped)
         {
@@ -152,13 +114,36 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         CheckDuplicateDkpEntries(logParseResults);
     }
 
+    private PlayerJoinRaidEntry ExtractePlayerJoin(EqLogEntry entry)
+    {
+        // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
+        // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
+        // [Sun Feb 25 22:52:46 2024] You have joined the group.
+        // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
+        // [Thu Feb 22 23:13:52 2024] You have joined the raid.
+        int indexOfLastBracket = entry.LogLine.IndexOf(']');
+        string entryMessage = entry.LogLine[(indexOfLastBracket + 2)..].Trim();
+        if (entryMessage.Contains("You have "))
+            return null;
+
+        int indexOfSpace = entryMessage.IndexOf(' ');
+        string playerName = entryMessage[0..indexOfSpace];
+
+        return new PlayerJoinRaidEntry
+        {
+            PlayerName = playerName,
+            Timestamp = entry.Timestamp,
+            EntryType = entry.EntryType
+        };
+    }
+
     private PlayerLooted ExtractPlayerLooted(EqLogEntry entry)
     {
         // [Wed Feb 21 18:49:31 2024] --Orsino has looted a Part of Tasarin's Grimoire Pg. 24.--
         // [Wed Feb 21 16:34:07 2024] --You have looted a Bloodstained Key.--
         int indexOfFirstDashes = entry.LogLine.IndexOf(Constants.DoubleDash);
-        int startIndex = indexOfFirstDashes + 2;
-        int endIndex = entry.LogLine.Length - 3;
+        int startIndex = indexOfFirstDashes + Constants.DoubleDash.Length;
+        int endIndex = entry.LogLine.Length - Constants.EndLootedDashes.Length;
         string lootString = entry.LogLine[startIndex..endIndex];
 
         int indexOfSpace = lootString.IndexOf(' ');
@@ -170,7 +155,13 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         entry.Visited = true;
 
-        return new PlayerLooted { PlayerName = playerName, ItemLooted = itemName, Timestamp = entry.Timestamp, RawLogLine = entry.LogLine };
+        return new PlayerLooted
+        {
+            PlayerName = playerName,
+            ItemLooted = itemName,
+            Timestamp = entry.Timestamp,
+            RawLogLine = entry.LogLine
+        };
     }
 
     private void PopulateLootList(LogParseResults logParseResults)
@@ -201,6 +192,19 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             {
                 _raidEntries.AddOrMergeInPlayerCharacter(playerChar);
             }
+        }
+    }
+
+    private void PopulateRaidJoin(LogParseResults logParseResults)
+    {
+        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        {
+            IEnumerable<PlayerJoinRaidEntry> playersJoined = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.JoinedRaid || x.EntryType == LogEntryType.LeftRaid)
+                .Select(ExtractePlayerJoin)
+                .Where(x => x != null);
+
+            _raidEntries.PlayerJoinCalls = playersJoined.ToList();
         }
     }
 }

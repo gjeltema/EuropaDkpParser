@@ -2,8 +2,11 @@
 // FullEqLogParser.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
+/// <summary>
+/// Extracts out every log entry between the specified timestamps.
+/// </summary>
 public sealed class FullEqLogParser : EqLogParserBase, IFullEqLogParser
 {
     private readonly IDkpParserSettings _settings;
@@ -47,6 +50,9 @@ public sealed class FullEqLogParser : EqLogParserBase, IFullEqLogParser
     }
 }
 
+/// <summary>
+/// Extracts out every log entry between the specified timestamps.
+/// </summary>
 public interface IFullEqLogParser : IEqLogParser
 {
     ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime);

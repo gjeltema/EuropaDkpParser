@@ -2,8 +2,11 @@
 // ConversationParser.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
+/// <summary>
+/// Parses out all the /tells between the user and a specified other person.
+/// </summary>
 public sealed class ConversationParser : EqLogParserBase, IConversationParser
 {
     private readonly string _personConversingWith;
@@ -42,6 +45,8 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
             if (!logLine.Contains(_personConversingWith, StringComparison.OrdinalIgnoreCase))
                 return;
 
+            // [Fri Mar 01 21:49:34 2024] Klawse tells you, 'need key'
+            // [Fri Mar 01 21:55:29 2024] You told Klawse, 'I cant do anything with the raid window.'
             if (logLine.Contains($"{Constants.YouTold} {_personConversingWith}, '", StringComparison.OrdinalIgnoreCase)
                 || logLine.Contains($"{_personConversingWith} {Constants.TellsYou}, '", StringComparison.OrdinalIgnoreCase))
             {
@@ -58,6 +63,9 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
     }
 }
 
+/// <summary>
+/// Parses out all the /tells between the user and a specified other person.
+/// </summary>
 public interface IConversationParser : IEqLogParser
 {
     ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime);

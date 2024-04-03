@@ -2,9 +2,9 @@
 // EuropaViewModelBase.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-using Prism.Mvvm;
-
 namespace EuropaDkpParser.ViewModels;
+
+using Prism.Mvvm;
 
 internal class EuropaViewModelBase : BindableBase, IEuropaViewModel
 {

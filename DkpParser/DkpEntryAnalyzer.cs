@@ -56,10 +56,10 @@ internal sealed class DkpEntryAnalyzer : IDkpEntryAnalyzer
         string logLine = CorrectDelimiter(entry.LogLine);
 
         string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
-        string itemName = dkpLineParts[1].Trim();
-        string[] playerParts = dkpLineParts[2].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        string itemName = dkpLineParts[1]?.Trim();
+        string[] playerParts = dkpLineParts[2]?.Trim()?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        string playerName = playerParts[0].Trim();
+        string playerName = playerParts[0]?.Trim();
 
         DkpEntry dkpEntry = new()
         {
@@ -94,10 +94,16 @@ internal sealed class DkpEntryAnalyzer : IDkpEntryAnalyzer
     private DkpEntry GetAssociatedDkpEntry(RaidEntries raidEntries, DkpEntry dkpEntry)
     {
         DkpEntry lastOneFound = null;
-        foreach (DkpEntry entry in raidEntries.DkpEntries.Where(x => x.PlayerName == dkpEntry.PlayerName && x.Item == dkpEntry.Item))
+        IOrderedEnumerable<DkpEntry> associatedEntries = raidEntries.DkpEntries
+            .Where(x => x.PlayerName == dkpEntry.PlayerName && x.Item == dkpEntry.Item)
+            .OrderBy(x => x.Timestamp);
+
+        foreach (DkpEntry entry in associatedEntries)
         {
             if (entry.Timestamp < dkpEntry.Timestamp)
                 lastOneFound = entry;
+            else
+                break;
         }
 
         return lastOneFound;

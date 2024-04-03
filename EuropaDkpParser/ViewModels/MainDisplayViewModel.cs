@@ -7,6 +7,7 @@ namespace EuropaDkpParser.ViewModels;
 using System.IO;
 using System.Windows;
 using DkpParser;
+using DkpParser.Parsers;
 using EuropaDkpParser.Resources;
 using Prism.Commands;
 

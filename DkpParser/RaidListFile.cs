@@ -31,6 +31,6 @@ public sealed class RaidListFile
     public string FileName { get; private set; }
 
     private string DebugDisplay
-        => $"{FileName} {CharacterNames.Count}";
+        => $"{FileDateTime:HH:mm:ss} {CharacterNames.Count}";
 }
 

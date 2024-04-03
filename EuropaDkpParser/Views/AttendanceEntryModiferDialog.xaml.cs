@@ -1,4 +1,8 @@
-﻿namespace EuropaDkpParser.Views;
+﻿// -----------------------------------------------------------------------
+// AttendanceEntryModiferDialog.xaml.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
+
+namespace EuropaDkpParser.Views;
 
 using System.Windows.Controls;
 

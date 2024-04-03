@@ -2,8 +2,9 @@
 // EqLogParserBase.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
+using System.Globalization;
 using System.IO;
 
 public abstract class EqLogParserBase : IEqLogParser
@@ -12,13 +13,18 @@ public abstract class EqLogParserBase : IEqLogParser
 
     public EqLogFile ParseLogFile(string filename, DateTime startTime, DateTime endTime)
     {
+        // This essentially does a half-assed state machine, switching around among other 'EntryParsers',
+        // having the parser calls be polymorphic to avoid 'if-hell'.  Could/should just create an actual
+        // state machine controller and inject that into the parsers, but this works well enough and
+        // is pretty easy to follow.
+
         EqLogFile logFile = new() { LogFile = filename };
 
         InitializeEntryParsers(logFile, startTime, endTime);
 
         foreach (string logLine in File.ReadLines(filename))
         {
-            if (!logLine.ExtractEqLogTimeStamp(out DateTime entryTimeStamp))
+            if (!TryExtractEqLogTimeStamp(logLine, out DateTime entryTimeStamp))
             {
                 continue;
             }
@@ -34,6 +40,20 @@ public abstract class EqLogParserBase : IEqLogParser
 
     public void SetEntryParser(IParseEntry parseEntry)
         => _currentEntryParser = parseEntry;
+
+    protected static bool TryExtractEqLogTimeStamp(string logLine, out DateTime result)
+    {
+        // [Wed Feb 21 16:34:07 2024] ...
+
+        if (logLine.Length < Constants.LogDateTimeLength || string.IsNullOrWhiteSpace(logLine))
+        {
+            result = DateTime.MinValue;
+            return false;
+        }
+
+        string timeEntry = logLine[0..Constants.LogDateTimeLength];
+        return DateTime.TryParseExact(timeEntry, Constants.LogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+    }
 
     protected ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime, ICollection<string> selectedLogFileNames)
     {

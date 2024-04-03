@@ -1,10 +1,13 @@
 ﻿// -----------------------------------------------------------------------
-// PopulationListingStartParser.cs Copyright 2024 Craig Gjeltema
+// PopulationListingStartEntryParser.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
-internal sealed class PopulationListingStartEntryParser : IStartParseEntry
+/// <summary>
+/// Parses for the beginning of a listing of players from a "/who" command.
+/// </summary>
+internal sealed class PopulationListingStartEntryParser : IPopulationListingStartEntryParser
 {
     private readonly IParseEntry _populationListingParser;
     private readonly IParseEntry _primaryEntryParser;
@@ -28,7 +31,7 @@ internal sealed class PopulationListingStartEntryParser : IStartParseEntry
             _foundFirstLine = false;
         }
 
-        if(!entryTimeStamp.IsWithinTwoSecondsOf(_initiateStartOfParseTimeStamp))
+        if (!entryTimeStamp.IsWithinTwoSecondsOf(_initiateStartOfParseTimeStamp))
         {
             _setParser.SetEntryParser(_primaryEntryParser);
             _primaryEntryParser.ParseEntry(logLine, entryTimeStamp);
@@ -60,7 +63,7 @@ internal sealed class PopulationListingStartEntryParser : IStartParseEntry
         => _initiateStartOfParseTimeStamp = startTimeStamp;
 }
 
-public interface IStartParseEntry : IParseEntry
+public interface IPopulationListingStartEntryParser : IParseEntry
 {
     void SetStartTimeStamp(DateTime startTimeStamp);
 }

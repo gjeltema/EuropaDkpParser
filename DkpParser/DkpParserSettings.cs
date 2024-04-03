@@ -4,7 +4,6 @@
 
 namespace DkpParser;
 
-using System;
 using System.IO;
 
 public sealed class DkpParserSettings : IDkpParserSettings

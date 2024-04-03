@@ -1,9 +1,12 @@
 ﻿// -----------------------------------------------------------------------
-// PopulationListingParser.cs Copyright 2024 Craig Gjeltema
+// PopulationListingEntryParser.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Parsers;
 
+/// <summary>
+/// Parses a "/who" log entry, looking for all the players and the ending "in zone" lines.
+/// </summary>
 internal sealed class PopulationListingEntryParser : IParseEntry
 {
     private readonly EqLogFile _logFile;

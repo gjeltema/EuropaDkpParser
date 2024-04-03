@@ -21,6 +21,7 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         : base(viewFactory)
     {
         Title = Strings.GetString("AttendanceEntryModifierDialogTitleText");
+
         _raidEntries = raidEntries;
 
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();

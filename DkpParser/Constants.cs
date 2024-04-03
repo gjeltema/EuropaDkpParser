@@ -7,6 +7,9 @@ namespace DkpParser;
 public static class Constants
 {
     public const string Anonymous = "ANONYMOUS";
+    /// <summary>
+    /// Used in the file-archiving functionality.
+    /// </summary>
     public const string ArchiveFileNameTimeFormat = "yyyyMMdd-HHmmss";
     public const string Attendance = "Attendance";
     public const string AttendanceDelimiter = ":::";

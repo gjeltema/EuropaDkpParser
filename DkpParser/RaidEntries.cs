@@ -11,7 +11,7 @@ public sealed class RaidEntries
 {
     public ICollection<PlayerCharacter> AllPlayersInRaid { get; set; } = new HashSet<PlayerCharacter>();
 
-    public ICollection<AttendanceEntry> AttendanceEntries { get; init; } = new List<AttendanceEntry>();
+    public ICollection<AttendanceEntry> AttendanceEntries { get; set; } = new List<AttendanceEntry>();
 
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
 
