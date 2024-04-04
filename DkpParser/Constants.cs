@@ -4,6 +4,8 @@
 
 namespace DkpParser;
 
+using System.Globalization;
+
 public static class Constants
 {
     public const string Anonymous = "ANONYMOUS";
@@ -51,4 +53,5 @@ public static class Constants
     public const string YouTold = "You told";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(2);
     public static readonly int LogDateTimeLength = LogDateTimeFormat.Length;
+    public static readonly CultureInfo UsCulture = new("en-US");
 }

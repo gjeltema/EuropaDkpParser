@@ -55,6 +55,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         FixPlayerTypoManualCommand = new DelegateCommand(FixPlayerTypoManual, () => !string.IsNullOrWhiteSpace(PlayerName)).ObservesProperty(() => PlayerName);
         RemoveDuplicateSelectionCommand = new DelegateCommand(RemoveDuplicateDkpspentCall, () => IsDuplicateDkpSpentCallError && SelectedDuplicateDkpEntry != null)
             .ObservesProperty(() => IsDuplicateDkpSpentCallError).ObservesProperty(() => SelectedDuplicateDkpEntry);
+        RemoveDkpEntryCommand = new DelegateCommand(RemoveDkpEntry);
 
         AdvanceToNextError();
     }
@@ -181,6 +182,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         get => _rawLogLine;
         private set => SetProperty(ref _rawLogLine, value);
     }
+
+    public DelegateCommand RemoveDkpEntryCommand { get; }
 
     public DelegateCommand RemoveDuplicateSelectionCommand { get; }
 
@@ -320,6 +323,11 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         PlayerName = _currentEntry.PlayerName;
     }
 
+    private void RemoveDkpEntry()
+    {
+        _raidEntries.DkpEntries.Remove(_currentEntry);
+    }
+
     private void RemoveDuplicateDkpspentCall()
     {
         if (SelectedDuplicateDkpEntry == null)
@@ -387,6 +395,8 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
     string PlayerName { get; set; }
 
     string RawLogLine { get; }
+
+    DelegateCommand RemoveDkpEntryCommand { get; }
 
     DelegateCommand RemoveDuplicateSelectionCommand { get; }
 

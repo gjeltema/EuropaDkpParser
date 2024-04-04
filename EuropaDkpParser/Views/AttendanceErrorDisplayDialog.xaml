@@ -69,8 +69,8 @@
                 </ListView>
 
                 <!-- These 3 grids overlay each other, controlled by visibility. -->
-                <Grid Grid.Row="2" Visibility="{Binding IsDuplicateError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
-                    <Button Content="{StaticResource Remove}" Command="{Binding RemoveDuplicateErrorEntryCommand}" HorizontalAlignment="Right" Width="75" Height="30"/>
+                <Grid Grid.Row="2" Visibility="{Binding IsDuplicateError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,4,0,0">
+                    <Button Content="{StaticResource Remove}" Command="{Binding RemoveDuplicateErrorEntryCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
                 </Grid>
 
                 <Grid Grid.Row="2" Visibility="{Binding IsBossMobTypoError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
@@ -97,7 +97,7 @@
         </Grid>
 
         <Grid Grid.Row="1" Margin="0,8,0,0">
-            <Button Content="{Binding NextButtonText}" Command="{Binding MoveToNextErrorCommand}" HorizontalAlignment="Right" Width="75"/>
+            <Button Content="{Binding NextButtonText}" Command="{Binding MoveToNextErrorCommand}" HorizontalAlignment="Right" Height="30" Width="85"/>
         </Grid>
     </Grid>
 </UserControl>

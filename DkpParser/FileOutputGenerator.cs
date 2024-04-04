@@ -28,7 +28,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
     [Tue Mar 19 21:35:23 2024] [ANONYMOUS] Luciania  <Europa>
     [Tue Mar 19 21:35:23 2024] There are 51 players in Plane of Sky.
         */
-        string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat);
+        string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat, Constants.UsCulture);
         string header = call.AttendanceCallType == AttendanceCallType.Time
             ? $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
             : $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
@@ -60,7 +60,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
         // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
         foreach (DkpEntry call in raidEntries.DkpEntries.OrderBy(x => x.Timestamp))
         {
-            string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat);
+            string dateStampText = call.Timestamp.ToString(Constants.LogDateTimeFormat, Constants.UsCulture);
             string dkpEntry = $"{dateStampText} {call.ToLogString()}";
             outputContents.Add(dkpEntry);
         }
