@@ -256,6 +256,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.SelectedLogFiles = settingsDialog.SelectedCharacterLogFiles;
         _settings.OutputDirectory = settingsDialog.OutputDirectory;
         _settings.EnableDebugOptions = settingsDialog.IsDebugOptionsEnabled;
+        _settings.ApiUrl = settingsDialog.ApiUrl;
+        _settings.ApiReadToken = settingsDialog.ApiReadToken;
+        _settings.ApiWriteToken = settingsDialog.ApiWriteToken;
         _settings.SaveSettings();
 
         DebugOptionsEnabled = _settings.EnableDebugOptions;

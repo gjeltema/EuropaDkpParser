@@ -80,7 +80,10 @@
     <system:String x:Key="SelectEqLogFileFolder">Select EQ Log File Folder</system:String>
     <system:String x:Key="SelectOutputLogFileFolder">Select Output Folder</system:String>
     <system:String x:Key="EnableDebugOptions">Enable Debug Options</system:String>
-    
+    <system:String x:Key="ApiUrlLabel">API URL:</system:String>
+    <system:String x:Key="ApiReadTokenLabel">API Read Token:</system:String>
+    <system:String x:Key="ApiWriteTokenLabel">API Write Token:</system:String>
+
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>
     <system:String x:Key="EndTime">End Time</system:String>

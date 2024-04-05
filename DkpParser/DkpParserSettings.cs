@@ -8,6 +8,9 @@ using System.IO;
 
 public sealed class DkpParserSettings : IDkpParserSettings
 {
+    private const string ApiReadTokenSection = "API_READ_TOKEN";
+    private const string ApiUrlSection = "API_URL";
+    private const string ApiWriteTokenSection = "API_WRITE_TOKEN";
     private const string ArchiveAllOrSelectedEqLogFileSection = "ARCHIVE_ALL_EQ_LOG_FILES";
     private const string ArchiveEqLogFileAgeSection = "ARCHIVE_EQ_LOG_FILE_AGE";
     private const string ArchiveEqLogFileDirectorySection = "ARCHIVE_EQ_LOG_FILE_DIRECTORY";
@@ -30,6 +33,12 @@ public sealed class DkpParserSettings : IDkpParserSettings
         _settingsFilePath = settingsFilePath;
         _bossMobsFilePath = bossMobsFilePath;
     }
+
+    public string ApiReadToken { get; set; }
+
+    public string ApiUrl { get; set; }
+
+    public string ApiWriteToken { get; set; }
 
     public bool ArchiveAllEqLogFiles { get; set; }
 
@@ -90,6 +99,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetSelectedLogFiles(fileContents);
         SetSimpleArchiveSettings(fileContents);
         SetDebugOptions(fileContents);
+        SetApiValues(fileContents);
     }
 
     public void SaveBossMobs()
@@ -132,6 +142,15 @@ public sealed class DkpParserSettings : IDkpParserSettings
             ArchiveGeneratedLogFileAgeSection,
             GeneratedLogFilesAgeToArchiveInDays.ToString(),
             ArchiveGeneratedLogFileAgeSection + SectionEnding,
+            ApiReadTokenSection,
+            ApiReadToken,
+            ApiReadTokenSection + SectionEnding,
+            ApiWriteTokenSection,
+            ApiWriteToken,
+            ApiWriteTokenSection + SectionEnding,
+            ApiUrlSection,
+            ApiUrl,
+            ApiUrlSection + SectionEnding
         };
 
         settingsFileContent.Add(SelectedLogFilesSection);
@@ -222,6 +241,13 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private bool IsValidIndex(int indexOfSection, IList<string> fileContents)
         => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
 
+    private void SetApiValues(string[] fileContents)
+    {
+        ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection);
+        ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
+        ApiUrl = GetStringValue(fileContents, ApiUrlSection);
+    }
+
     private void SetDebugOptions(string[] fileContents)
     {
         string debugOptionsStringValue = GetStringValue(fileContents, EnableDebugOptionsSection);
@@ -285,6 +311,12 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
 public interface IDkpParserSettings
 {
+    string ApiReadToken { get; set; }
+
+    string ApiUrl { get; set; }
+
+    string ApiWriteToken { get; set; }
+
     bool ArchiveAllEqLogFiles { get; set; }
 
     ICollection<string> BossMobs { get; }

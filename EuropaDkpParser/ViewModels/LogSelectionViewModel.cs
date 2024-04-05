@@ -13,6 +13,9 @@ using Prism.Commands;
 internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelectionViewModel
 {
     private readonly IDkpParserSettings _settings;
+    private string _apiReadToken;
+    private string _apiUrl;
+    private string _apiWriteToken;
     private string _eqDirectory;
     private bool _isDebugOptionsEnabled;
     private string _outputDirectory;
@@ -44,6 +47,24 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     public DelegateCommand AddLogFileToListCommand { get; }
 
     public ICollection<string> AllCharacterLogFiles { get; private set; }
+
+    public string ApiReadToken
+    {
+        get => _apiReadToken;
+        set => SetProperty(ref _apiReadToken, value);
+    }
+
+    public string ApiUrl
+    {
+        get => _apiUrl;
+        set => SetProperty(ref _apiUrl, value);
+    }
+
+    public string ApiWriteToken
+    {
+        get => _apiWriteToken;
+        set => SetProperty(ref _apiWriteToken, value);
+    }
 
     public string EqDirectory
     {
@@ -173,6 +194,12 @@ public interface ILogSelectionViewModel : IDialogViewModel
     DelegateCommand AddLogFileToListCommand { get; }
 
     ICollection<string> AllCharacterLogFiles { get; }
+
+    string ApiReadToken { get; set; }
+
+    string ApiUrl { get; set; }
+
+    string ApiWriteToken { get; set; }
 
     string EqDirectory { get; set; }
 

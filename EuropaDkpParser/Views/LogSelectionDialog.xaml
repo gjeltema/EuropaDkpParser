@@ -17,6 +17,7 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="5">
@@ -86,11 +87,50 @@
                 <Button Grid.Row="1" Grid.Column="1"  Content="{StaticResource Remove}" Command="{Binding RemoveLogFileFromListCommand}" Height="25" Width="60" VerticalAlignment="Top"/>
             </Grid>
 
-            <Grid Grid.Row="4" Margin="5,15,5,5">
+            <Grid Grid.Row="4" Margin="5,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" Content="{StaticResource ApiUrlLabel}"/>
+                    <TextBox Grid.Column="1" Text="{Binding ApiUrl}" Margin="0,0,10,0"/>
+                </Grid>
+
+                <Grid Grid.Row="1" Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" Content="{StaticResource ApiReadTokenLabel}"/>
+                    <TextBox Grid.Column="1" Text="{Binding ApiReadToken}" Margin="0,0,10,0"/>
+                </Grid>
+
+                <Grid Grid.Row="2" Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" Content="{StaticResource ApiWriteTokenLabel}"/>
+                    <TextBox Grid.Column="1" Text="{Binding ApiWriteToken}" Margin="0,0,10,0"/>
+                </Grid>
+
+            </Grid>
+
+            <Grid Grid.Row="5" Margin="5,15,5,5">
                 <CheckBox IsChecked="{Binding IsDebugOptionsEnabled}" Content="{StaticResource EnableDebugOptions}"/>
             </Grid>
 
-            <Grid Grid.Row="5" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Grid Grid.Row="6" HorizontalAlignment="Right" Margin="0,10,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
