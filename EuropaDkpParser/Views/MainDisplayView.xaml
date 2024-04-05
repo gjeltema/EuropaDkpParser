@@ -87,7 +87,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Column="0" Content="{StaticResource ParseConversation}" Margin="0,0,4,0"/>
-                <TextBox Grid.Column="1" Text="{Binding ConversationPlayer}" Margin="3" />
+                <TextBox Grid.Column="1" Text="{Binding ConversationPlayer, UpdateSourceTrigger=PropertyChanged}" Margin="3" />
                 <Button Grid.Column="2" Content="{StaticResource StartConversationParse}" Command="{Binding GetConversationCommand}" Width="85" Height="25"/>
             </Grid>
 
@@ -110,7 +110,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Column="0" Content="{StaticResource SearchTermLabel}" Margin="0,0,4,0"/>
-                <TextBox Grid.Column="1" Text="{Binding SearchTermText}" Margin="3" />
+                <TextBox Grid.Column="1" Text="{Binding SearchTermText, UpdateSourceTrigger=PropertyChanged}" Margin="3" />
                 <Button Grid.Column="2" Content="{StaticResource SearchTermButtonText}" Command="{Binding GetSearchTermCommand}" Width="85" Height="25"/>
             </Grid>
 
