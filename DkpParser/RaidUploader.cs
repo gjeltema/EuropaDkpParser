@@ -15,33 +15,33 @@ public sealed class RaidUploader : IRaidUpload
         _dkpServer = new DkpServer(settings);
     }
 
-    public RaidUploadResults UploadRaid(RaidEntries raidEntries)
+    public async Task< RaidUploadResults> UploadRaid(RaidEntries raidEntries)
     {
         RaidUploadResults results = new();
 
-        UploadAttendances(raidEntries.AttendanceEntries, results);
-        UploadDkpSpendings(raidEntries.DkpEntries, results);
+        await UploadAttendances(raidEntries.AttendanceEntries, results);
+        await UploadDkpSpendings(raidEntries.DkpEntries, results);
 
         return results;
     }
 
-    private void UploadAttendances(ICollection<AttendanceEntry> attendanceEntries, RaidUploadResults results)
+    private async Task UploadAttendances(ICollection<AttendanceEntry> attendanceEntries, RaidUploadResults results)
     {
         foreach (AttendanceEntry attendance in attendanceEntries)
         {
             if (attendance.Players.Count > 1)
             {
-                DkpServerMessageResult result = _dkpServer.UploadAttendance(attendance);
+                DkpServerMessageResult result = await _dkpServer.UploadAttendance(attendance);
                 results.AddAttendanceResult(result);
             }
         }
     }
 
-    private void UploadDkpSpendings(ICollection<DkpEntry> dkpEntries, RaidUploadResults results)
+    private async Task UploadDkpSpendings(ICollection<DkpEntry> dkpEntries, RaidUploadResults results)
     {
         foreach (DkpEntry dkpEntry in dkpEntries)
         {
-            DkpServerMessageResult result = _dkpServer.UploadDkpSpent(dkpEntry);
+            DkpServerMessageResult result = await _dkpServer.UploadDkpSpent(dkpEntry);
             results.AddDkpSpentResult(result);
         }
     }
@@ -66,5 +66,5 @@ public sealed class RaidUploadResults
 
 public interface IRaidUpload
 {
-    RaidUploadResults UploadRaid(RaidEntries raidEntries);
+    Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries);
 }
