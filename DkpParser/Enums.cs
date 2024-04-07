@@ -28,7 +28,7 @@ public enum PossibleError : byte
 {
     None = 0,
     TwoColons,
-    DkpAmountNotANumber,
+    ZeroDkp,
     DkpSpentPlayerNameTypo,
     DkpDuplicateEntry,
     PlayerLootedMessageNotFound,

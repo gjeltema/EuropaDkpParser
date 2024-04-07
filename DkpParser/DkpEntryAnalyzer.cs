@@ -4,8 +4,13 @@
 
 namespace DkpParser;
 
-internal sealed class DkpEntryAnalyzer : IDkpEntryAnalyzer
+using System.Text.RegularExpressions;
+
+internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 {
+    [GeneratedRegex("\\d+", RegexOptions.Compiled)]
+    private static partial Regex FindDigitsRegex();
+    private readonly Regex _findDigits = FindDigitsRegex();
     private RaidEntries _raidEntries;
 
     public void AnalyzeLootCalls(LogParseResults logParseResults, RaidEntries raidEntries)
@@ -83,7 +88,7 @@ internal sealed class DkpEntryAnalyzer : IDkpEntryAnalyzer
         CheckDkpPlayerName(dkpEntry);
 
         string dkpAmountText = playerParts[1].Trim();
-        GetDkpAmount(dkpAmountText, dkpEntry);
+        GetDkpAmount(dkpLineParts[2], dkpEntry);
         GetAuctioneerName(dkpLineParts[0], dkpEntry);
 
         entry.Visited = true;
@@ -118,28 +123,23 @@ internal sealed class DkpEntryAnalyzer : IDkpEntryAnalyzer
         dkpEntry.Auctioneer = auctioneerName;
     }
 
-    private void GetDkpAmount(string dkpAmountText, DkpEntry dkpEntry)
+    private string GetDigits(string endText)
     {
-        dkpAmountText = dkpAmountText.TrimEnd('\'');
-        if (int.TryParse(dkpAmountText, out int dkpAmount))
-        {
-            dkpEntry.DkpSpent = dkpAmount;
-            return;
-        }
+        Match m = _findDigits.Match(endText);
+        return m.Value;
+    }
 
-        // See if lack of space -> 1DKPSPENT
-        int dkpSpentIndex = dkpAmountText.IndexOf(Constants.DkpSpent);
-        if (dkpSpentIndex > -1)
-        {
-            string dkpSpentTextWithoutDkpspent = dkpAmountText[0..dkpSpentIndex];
-            if (int.TryParse(dkpSpentTextWithoutDkpspent, out dkpAmount))
-            {
-                dkpEntry.DkpSpent = dkpAmount;
-                return;
-            }
-        }
+    private void GetDkpAmount(string endText, DkpEntry dkpEntry)
+    {
+        // Get digits, since it must be assumed that the auctioneer will add extraneous characters such as '-' and 'alt'.
+        string dkpNumber = GetDigits(endText);
 
-        dkpEntry.PossibleError = PossibleError.DkpAmountNotANumber;
+        int.TryParse(dkpNumber, out int dkpAmount);
+        if (dkpAmount == 0)
+        {
+            dkpEntry.PossibleError = PossibleError.ZeroDkp;
+        }
+        dkpEntry.DkpSpent = dkpAmount;
     }
 }
 
