@@ -6,30 +6,20 @@ namespace DkpParser;
 
 using System.Net;
 using System.Net.Http;
+using System.Xml.Linq;
 
 public sealed class DkpServer : IDkpServer
 {
-    private const string AddRaidFunction = "function=add_raid";
-    private const string AddSpendFunction = "function=add_item";
-    private const string CharacterIdFunctionPrefix = "function=search&in=charname&for="; // Add character's name to the end
-    private const string EventsFunction = "function=events";
-    private readonly HttpClient _httpClient;
+    private const string AddRaidFunction = "add_raid";
+    private const string AddSpendFunction = "add_item";
+    private const string EventsFunction = "events";
+    private static readonly HttpClient _httpClient = new();
     private readonly Dictionary<string, int> _playerIdCache = new();
-    private readonly DkpParserSettings _settings;
+    private readonly IDkpParserSettings _settings;
 
-    public DkpServer(DkpParserSettings settings)
+    public DkpServer(IDkpParserSettings settings)
     {
         _settings = settings;
-        _httpClient = new()
-        {
-            BaseAddress = new Uri(_settings.ApiUrl),
-        };
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
     }
 
     public async Task InitializeCharacterIds(IEnumerable<PlayerCharacter> players, IEnumerable<DkpEntry> dkpCalls, RaidUploadResults results)
@@ -93,7 +83,6 @@ public sealed class DkpServer : IDkpServer
         }
 
         using HttpContent postContent = GetPostContent(postBody);
-        //postContent.Headers.Add();
         using HttpResponseMessage response = await _httpClient.PostAsync(AddSpendFunction, postContent);
 
         if (response.StatusCode == HttpStatusCode.OK)
@@ -121,14 +110,6 @@ public sealed class DkpServer : IDkpServer
         return null;
     }
 
-    private void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _httpClient.Dispose();
-        }
-    }
-
     private async Task<int> GetCharacterId(string characterName)
     {
         if (_playerIdCache.TryGetValue(characterName, out int characterId))
@@ -136,13 +117,27 @@ public sealed class DkpServer : IDkpServer
             return characterId;
         }
 
-        string header = CharacterIdFunctionPrefix + characterName;
-        using HttpResponseMessage response = await _httpClient.GetAsync(header);
+        //using HttpRequestMessage request = new() { Method = HttpMethod.Get };
+
+        //request.Headers.Add(TokenHeader, _settings.ApiReadToken);
+        //request.Headers.Add(Function, SearchFunction);
+        //request.Headers.Add(InHeader, CharnameHeaderValue);
+        //request.Headers.Add(ForHeader, characterName);
+
+        //using HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+        //string uri = _settings.ApiUrl + "&atoken=" + _settings.ApiReadToken + "&function=search&in=charname&for=" + characterName;
+        string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=search&in=charname&for={characterName}";
+        using HttpResponseMessage response = await _httpClient.GetAsync(uri);
 
         response.EnsureSuccessStatusCode();
 
-        //** Parse out response
-        characterId = 0;
+        string responseText = await response.Content.ReadAsStringAsync();
+
+        XDocument doc = XDocument.Parse(responseText);
+        XElement userIdElement = doc.Descendants("id").FirstOrDefault();
+        string userIdText = userIdElement.Value;
+        characterId = int.Parse(userIdText);
 
         _playerIdCache.Add(characterName, characterId);
 
@@ -175,7 +170,7 @@ public sealed class DkpServerMessageResult
 
 }
 
-public interface IDkpServer : IDisposable
+public interface IDkpServer
 {
     Task InitializeCharacterIds(IEnumerable<PlayerCharacter> players, IEnumerable<DkpEntry> dkpCalls, RaidUploadResults results);
 

@@ -41,6 +41,10 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         SelectedCharacterLogFiles = new List<string>(_settings.SelectedLogFiles);
         IsDebugOptionsEnabled = _settings.EnableDebugOptions;
 
+        ApiUrl = _settings.ApiUrl;
+        ApiReadToken = _settings.ApiReadToken;
+        ApiWriteToken = _settings.ApiWriteToken;
+
         SetAllCharacterLogFiles();
     }
 

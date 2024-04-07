@@ -15,12 +15,6 @@ public sealed class RaidUploader : IRaidUpload
         _dkpServer = new DkpServer(settings);
     }
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
     public async Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries)
     {
         RaidUploadResults results = new();
@@ -43,14 +37,6 @@ public sealed class RaidUploader : IRaidUpload
         await UploadDkpSpendings(raidEntries.DkpEntries, results);
 
         return results;
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _dkpServer?.Dispose();
-        }
     }
 
     private async Task UploadAttendances(ICollection<AttendanceEntry> attendanceEntries, RaidUploadResults results)
@@ -102,7 +88,7 @@ public sealed class CharacterIdFailure
     public string PlayerName { get; set; }
 }
 
-public interface IRaidUpload : IDisposable
+public interface IRaidUpload
 {
     Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries);
 }
