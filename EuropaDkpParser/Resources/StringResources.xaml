@@ -59,6 +59,7 @@
     <system:String x:Key="PlayerNameError">Player Name Error</system:String>
     <system:String x:Key="PlayerNameErrorMessage">Player name is empty.</system:String>
     <system:String x:Key="RawLogEntry">Raw Log Entry:</system:String>
+    <system:String x:Key="ZeroDkpSpentCall">The DKP amount is zero.</system:String>
     
     <!-- AttendanceErrorDisplay -->
     <system:String x:Key="SetBoss">Set Boss</system:String>
