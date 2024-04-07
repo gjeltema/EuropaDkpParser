@@ -46,6 +46,7 @@ internal sealed class DkpEntryAnalyzer : IDkpEntryAnalyzer
     {
         logLine = logLine.Replace(Constants.PossibleErrorDelimiter, Constants.AttendanceDelimiter);
         logLine = logLine.Replace(Constants.TooLongDelimiter, Constants.AttendanceDelimiter);
+        logLine = logLine.Replace(';', ':');
         return logLine;
     }
 

@@ -93,6 +93,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         logLine = logLine.Replace(Constants.PossibleErrorDelimiter, Constants.AttendanceDelimiter);
         logLine = logLine.Replace(Constants.TooLongDelimiter, Constants.AttendanceDelimiter);
+        logLine = logLine.Replace(';', ':');
         return logLine;
     }
 
