@@ -15,11 +15,39 @@ public sealed class RaidUploader : IRaidUpload
         _dkpServer = new DkpServer(settings);
     }
 
-    public async Task< RaidUploadResults> UploadRaid(RaidEntries raidEntries)
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if(disposing)
+        {
+            _dkpServer?.Dispose();
+        }
+    }
+
+    public async Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries)
     {
         RaidUploadResults results = new();
 
-        await UploadAttendances(raidEntries.AttendanceEntries, results);
+        await _dkpServer.InitializeCharacterIds(raidEntries.AllPlayersInRaid, raidEntries.DkpEntries, results);
+
+        if(results.FailedCharacterIdRetrievals.Count > 0)
+            return results;
+
+        try
+        {
+            await UploadAttendances(raidEntries.AttendanceEntries, results);
+        }
+        catch (Exception ex)
+        {
+            //** Add exception to results, need raid info
+            return results;
+        }
+
         await UploadDkpSpendings(raidEntries.DkpEntries, results);
 
         return results;
@@ -49,6 +77,9 @@ public sealed class RaidUploader : IRaidUpload
 
 public sealed class RaidUploadResults
 {
+    public ICollection<CharacterIdFailure> FailedCharacterIdRetrievals { get; } = [];
+
+    //** Not sure yet
     public ICollection<DkpServerMessageResult> AttendanceUploadResults { get; } = [];
 
     public ICollection<DkpServerMessageResult> DkpSpentUploadResults { get; } = [];
@@ -64,7 +95,14 @@ public sealed class RaidUploadResults
     }
 }
 
-public interface IRaidUpload
+public sealed class CharacterIdFailure
+{
+    public string PlayerName { get; set; }
+
+    public Exception Error { get; set; }
+}
+
+public interface IRaidUpload : IDisposable
 {
     Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries);
 }

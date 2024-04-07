@@ -26,6 +26,33 @@ public sealed class DkpServer : IDkpServer
         };
     }
 
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _httpClient.Dispose();
+        }
+    }
+
+    public async Task InitializeCharacterIds(IEnumerable<PlayerCharacter> players, IEnumerable<DkpEntry> dkpCalls, RaidUploadResults results)
+    {
+        foreach(PlayerCharacter player in players)
+        {
+            await GetCharacterId(player.PlayerName, results);
+        }
+
+        foreach(DkpEntry dkpEntry in dkpCalls)
+        {
+            await GetCharacterId(dkpEntry.PlayerName, results);
+        }
+    }
+
     public async Task<DkpServerMessageResult> UploadAttendance(AttendanceEntry attendanceEntry)
     {
         DkpServerMessageResult result = new();
@@ -42,7 +69,7 @@ public sealed class DkpServer : IDkpServer
             return result;
         }
 
-        using StringContent postContent = GetPostContent(postBody);
+        using HttpContent postContent = GetPostContent(postBody);
         using HttpResponseMessage response = await _httpClient.PostAsync(AddRaidFunction, postContent);
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -73,7 +100,7 @@ public sealed class DkpServer : IDkpServer
             return result;
         }
 
-        using StringContent postContent = GetPostContent(postBody);
+        using HttpContent postContent = GetPostContent(postBody);
         //postContent.Headers.Add();
         using HttpResponseMessage response = await _httpClient.PostAsync(AddSpendFunction, postContent);
 
@@ -112,6 +139,8 @@ public sealed class DkpServer : IDkpServer
         string header = CharacterIdFunctionPrefix + characterName;
         using HttpResponseMessage response = await _httpClient.GetAsync(header);
 
+        response.EnsureSuccessStatusCode();
+
         //** Parse out response
         characterId = 0;
 
@@ -120,8 +149,25 @@ public sealed class DkpServer : IDkpServer
         return characterId;
     }
 
-    private StringContent GetPostContent(string postBody)
-        => new(postBody);
+    private async Task GetCharacterId(string playerName, RaidUploadResults results)
+    {
+        try
+        {
+            await GetCharacterId(playerName);
+        }
+        catch (Exception ex)
+        {
+            CharacterIdFailure fail = new()
+            {
+                PlayerName = playerName,
+                Error = ex
+            };
+            results.FailedCharacterIdRetrievals.Add(fail);
+        }
+    }
+
+    private HttpContent GetPostContent(string postBody)
+        => new StringContent(postBody);
 }
 
 public sealed class DkpServerMessageResult
@@ -129,8 +175,9 @@ public sealed class DkpServerMessageResult
 
 }
 
-public interface IDkpServer
+public interface IDkpServer : IDisposable
 {
+    Task InitializeCharacterIds(IEnumerable<PlayerCharacter> players, IEnumerable<DkpEntry> dkpCalls, RaidUploadResults results);
     Task<DkpServerMessageResult> UploadAttendance(AttendanceEntry attendanceEntry);
 
     Task<DkpServerMessageResult> UploadDkpSpent(DkpEntry dkpEntry);
