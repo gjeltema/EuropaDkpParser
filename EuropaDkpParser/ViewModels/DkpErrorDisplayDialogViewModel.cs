@@ -22,6 +22,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private bool _isFilterByNameChecked;
     private bool _isNoPlayerLootedError;
     private bool _isPlayerNameTypoError;
+    private bool _isZeroDkpError;
     private string _itemName;
     private string _itemNameAndDkp;
     private string _nextButtonText;
@@ -53,6 +54,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         FixPlayerTypoUsingSelectionCommand = new DelegateCommand(FixPlayerTypoUsingSelection, () => SelectedPlayerName != null)
             .ObservesProperty(() => SelectedPlayerName);
         FixPlayerTypoManualCommand = new DelegateCommand(FixPlayerTypoManual, () => !string.IsNullOrWhiteSpace(PlayerName)).ObservesProperty(() => PlayerName);
+        FixZeroDkpErrorCommand = new DelegateCommand(FixZeroDkpError, () => !string.IsNullOrWhiteSpace(DkpSpent) && DkpSpent != "0")
+            .ObservesProperty(() => DkpSpent);
         RemoveDuplicateSelectionCommand = new DelegateCommand(RemoveDuplicateDkpspentCall, () => IsDuplicateDkpSpentCallError && SelectedDuplicateDkpEntry != null)
             .ObservesProperty(() => IsDuplicateDkpSpentCallError).ObservesProperty(() => SelectedDuplicateDkpEntry);
         RemoveDkpEntryCommand = new DelegateCommand(RemoveDkpEntry);
@@ -87,6 +90,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     public DelegateCommand FixPlayerTypoManualCommand { get; }
 
     public DelegateCommand FixPlayerTypoUsingSelectionCommand { get; }
+
+    public DelegateCommand FixZeroDkpErrorCommand { get; }
 
     public bool IsDuplicateDkpSpentCallError
     {
@@ -143,6 +148,12 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     {
         get => _isPlayerNameTypoError;
         private set => SetProperty(ref _isPlayerNameTypoError, value);
+    }
+
+    public bool IsZeroDkpError
+    {
+        get => _isZeroDkpError;
+        private set => SetProperty(ref _isZeroDkpError, value);
     }
 
     public string ItemName
@@ -247,6 +258,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             IsNoPlayerLootedError = true;
             IsPlayerNameTypoError = false;
             IsDuplicateDkpSpentCallError = false;
+            IsZeroDkpError = false;
             ErrorMessageText = Strings.GetString("PlayerLootedItemEntryNotFound");
         }
         else if (_currentEntry.PossibleError == PossibleError.DkpSpentPlayerNameTypo)
@@ -254,6 +266,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             IsNoPlayerLootedError = false;
             IsPlayerNameTypoError = true;
             IsDuplicateDkpSpentCallError = false;
+            IsZeroDkpError = false;
             ErrorMessageText = Strings.GetString("PlayerNameTypo");
 
             for (int i = 8; i > 0; i--)
@@ -275,10 +288,20 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             IsNoPlayerLootedError = false;
             IsPlayerNameTypoError = false;
             IsDuplicateDkpSpentCallError = true;
+            IsZeroDkpError = false;
 
             ErrorMessageText = Strings.GetString("DuplicateDkpSpentCall");
 
             SetDuplicateDkpSpentEntries();
+        }
+        else if (_currentEntry.PossibleError == PossibleError.ZeroDkp)
+        {
+            IsNoPlayerLootedError = false;
+            IsPlayerNameTypoError = false;
+            IsDuplicateDkpSpentCallError = false;
+            IsZeroDkpError = true;
+
+            ErrorMessageText = Strings.GetString("ZeroDkpSpentCall");
         }
     }
 
@@ -321,6 +344,16 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     {
         _currentEntry.PlayerName = SelectedPlayerName;
         PlayerName = _currentEntry.PlayerName;
+    }
+
+    private void FixZeroDkpError()
+    {
+        if (!int.TryParse(DkpSpent, out int parsedDkp))
+        {
+            MessageBox.Show(string.Format(Strings.GetString("DkpSpentErrorFormatText"), DkpSpent.ToString()), Strings.GetString("DkpSpentError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+        _currentEntry.DkpSpent = parsedDkp;
     }
 
     private void RemoveDkpEntry()
@@ -372,6 +405,8 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
 
     DelegateCommand FixPlayerTypoUsingSelectionCommand { get; }
 
+    DelegateCommand FixZeroDkpErrorCommand { get; }
+
     bool IsDuplicateDkpSpentCallError { get; }
 
     bool IsFilterByItemChecked { get; set; }
@@ -381,6 +416,8 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
     bool IsNoPlayerLootedError { get; }
 
     bool IsPlayerNameTypoError { get; }
+
+    bool IsZeroDkpError { get; }
 
     string ItemName { get; set; }
 

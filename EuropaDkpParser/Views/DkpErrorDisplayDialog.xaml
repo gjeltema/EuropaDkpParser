@@ -224,6 +224,44 @@
             <Button Grid.Row="5" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110" Height="30" HorizontalAlignment="Right"/>
         </Grid>
 
+        <!-- Zero DKP Error -->
+        <Grid Grid.Row="1" Visibility="{Binding IsZeroDkpError, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource RawLogEntry}"/>
+                <TextBlock Grid.Column="1" Text="{Binding RawLogLine}" Margin="4"/>
+            </Grid>
+
+            <Label Grid.Row="1" Content="{Binding ItemName}" Margin="4"/>
+
+            <Label Grid.Row="2" Content="{StaticResource DkpSpent}"/>
+
+            <Grid Grid.Row="3" Margin="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0" Text="{Binding DkpSpent, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,5,6"/>
+
+                <Button Grid.Column="1" Content="{StaticResource ManualFix}" Command="{Binding FixZeroDkpErrorCommand}" Margin="2" Width="110" Height="30"/>
+            </Grid>
+
+            <Button Grid.Row="4" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110" Height="30" HorizontalAlignment="Right"/>
+        </Grid>
+
         <Grid Grid.Row="2" Margin="0,8,0,0">
             <Button Content="{Binding NextButtonText}" Command="{Binding MoveToNextErrorCommand}" HorizontalAlignment="Right" Height="30" Width="85"/>
         </Grid>
