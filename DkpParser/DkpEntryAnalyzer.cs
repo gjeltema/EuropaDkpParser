@@ -8,8 +8,6 @@ using System.Text.RegularExpressions;
 
 internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 {
-    [GeneratedRegex("\\d+", RegexOptions.Compiled)]
-    private static partial Regex FindDigitsRegex();
     private readonly Regex _findDigits = FindDigitsRegex();
     private RaidEntries _raidEntries;
 
@@ -29,6 +27,9 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             }
         }
     }
+
+    [GeneratedRegex("\\d+", RegexOptions.Compiled)]
+    private static partial Regex FindDigitsRegex();
 
     private void CheckDkpPlayerName(DkpEntry dkpEntry)
     {

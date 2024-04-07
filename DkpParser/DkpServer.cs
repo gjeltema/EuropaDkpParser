@@ -32,22 +32,14 @@ public sealed class DkpServer : IDkpServer
         GC.SuppressFinalize(this);
     }
 
-    private void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _httpClient.Dispose();
-        }
-    }
-
     public async Task InitializeCharacterIds(IEnumerable<PlayerCharacter> players, IEnumerable<DkpEntry> dkpCalls, RaidUploadResults results)
     {
-        foreach(PlayerCharacter player in players)
+        foreach (PlayerCharacter player in players)
         {
             await GetCharacterId(player.PlayerName, results);
         }
 
-        foreach(DkpEntry dkpEntry in dkpCalls)
+        foreach (DkpEntry dkpEntry in dkpCalls)
         {
             await GetCharacterId(dkpEntry.PlayerName, results);
         }
@@ -129,6 +121,14 @@ public sealed class DkpServer : IDkpServer
         return null;
     }
 
+    private void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _httpClient.Dispose();
+        }
+    }
+
     private async Task<int> GetCharacterId(string characterName)
     {
         if (_playerIdCache.TryGetValue(characterName, out int characterId))
@@ -178,6 +178,7 @@ public sealed class DkpServerMessageResult
 public interface IDkpServer : IDisposable
 {
     Task InitializeCharacterIds(IEnumerable<PlayerCharacter> players, IEnumerable<DkpEntry> dkpCalls, RaidUploadResults results);
+
     Task<DkpServerMessageResult> UploadAttendance(AttendanceEntry attendanceEntry);
 
     Task<DkpServerMessageResult> UploadDkpSpent(DkpEntry dkpEntry);

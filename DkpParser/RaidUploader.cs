@@ -21,21 +21,13 @@ public sealed class RaidUploader : IRaidUpload
         GC.SuppressFinalize(this);
     }
 
-    private void Dispose(bool disposing)
-    {
-        if(disposing)
-        {
-            _dkpServer?.Dispose();
-        }
-    }
-
     public async Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries)
     {
         RaidUploadResults results = new();
 
         await _dkpServer.InitializeCharacterIds(raidEntries.AllPlayersInRaid, raidEntries.DkpEntries, results);
 
-        if(results.FailedCharacterIdRetrievals.Count > 0)
+        if (results.FailedCharacterIdRetrievals.Count > 0)
             return results;
 
         try
@@ -51,6 +43,14 @@ public sealed class RaidUploader : IRaidUpload
         await UploadDkpSpendings(raidEntries.DkpEntries, results);
 
         return results;
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _dkpServer?.Dispose();
+        }
     }
 
     private async Task UploadAttendances(ICollection<AttendanceEntry> attendanceEntries, RaidUploadResults results)
@@ -77,12 +77,12 @@ public sealed class RaidUploader : IRaidUpload
 
 public sealed class RaidUploadResults
 {
-    public ICollection<CharacterIdFailure> FailedCharacterIdRetrievals { get; } = [];
-
     //** Not sure yet
     public ICollection<DkpServerMessageResult> AttendanceUploadResults { get; } = [];
 
     public ICollection<DkpServerMessageResult> DkpSpentUploadResults { get; } = [];
+
+    public ICollection<CharacterIdFailure> FailedCharacterIdRetrievals { get; } = [];
 
     public void AddAttendanceResult(DkpServerMessageResult result)
     {
@@ -97,9 +97,9 @@ public sealed class RaidUploadResults
 
 public sealed class CharacterIdFailure
 {
-    public string PlayerName { get; set; }
-
     public Exception Error { get; set; }
+
+    public string PlayerName { get; set; }
 }
 
 public interface IRaidUpload : IDisposable
