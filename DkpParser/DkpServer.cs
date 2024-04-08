@@ -4,17 +4,15 @@
 
 namespace DkpParser;
 
-using System.Net;
 using System.Net.Http;
 using System.Xml.Linq;
 
 public sealed class DkpServer : IDkpServer
 {
-    private const string AddRaidFunction = "add_raid";
-    private const string AddSpendFunction = "add_item";
-    private const string EventsFunction = "events";
-    private static readonly HttpClient _httpClient = new();
-    private readonly Dictionary<string, int> _playerIdCache = new();
+    private const string ServerTimeFormat = "yyyy-mm-dd HH:mm";
+    private static readonly HttpClient LocalHttpClient = new();
+    private readonly Dictionary<string, int> _eventIdCache = [];
+    private readonly Dictionary<string, int> _playerIdCache = [];
     private readonly IDkpParserSettings _settings;
 
     public DkpServer(IDkpParserSettings settings)
@@ -22,133 +20,86 @@ public sealed class DkpServer : IDkpServer
         _settings = settings;
     }
 
-    public async Task InitializeCharacterIds(IEnumerable<PlayerCharacter> players, IEnumerable<DkpEntry> dkpCalls, RaidUploadResults results)
+    public async Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
     {
-        foreach (PlayerCharacter player in players)
+        foreach (string playerName in playerNames)
         {
-            await GetCharacterId(player.PlayerName, results);
+            await GetCharacterIdFromServer(playerName, results);
         }
 
-        foreach (DkpEntry dkpEntry in dkpCalls)
-        {
-            await GetCharacterId(dkpEntry.PlayerName, results);
-        }
+        await GetEventIds(zoneNames, results);
     }
 
-    public async Task<DkpServerMessageResult> UploadAttendance(AttendanceEntry attendanceEntry)
+    public async Task UploadAttendance(AttendanceEntry attendanceEntry)
     {
-        DkpServerMessageResult result = new();
-
-        string postBody;
-
-        try
-        {
-            postBody = CraftAttendanceString(attendanceEntry);
-        }
-        catch (Exception ex)
-        {
-            //** Set failure
-            return result;
-        }
-
-        using HttpContent postContent = GetPostContent(postBody);
-        using HttpResponseMessage response = await _httpClient.PostAsync(AddRaidFunction, postContent);
-
-        if (response.StatusCode == System.Net.HttpStatusCode.OK)
-        {
-            //** Set success
-        }
-        else
-        {
-            //** set failure
-        }
-
-        return result;
+        string postBody = CraftAttendanceString(attendanceEntry);
+        await UploadMessage("add_raid", postBody); //** Need to get response
     }
 
-    public async Task<DkpServerMessageResult> UploadDkpSpent(DkpEntry dkpEntry)
+    public async Task UploadDkpSpent(DkpEntry dkpEntry, int raidId)
     {
-        DkpServerMessageResult result = new();
-
-        string postBody;
-
-        try
-        {
-            postBody = await CraftDkpString(dkpEntry);
-        }
-        catch (Exception ex)
-        {
-            //** Set failure
-            return result;
-        }
-
-        using HttpContent postContent = GetPostContent(postBody);
-        using HttpResponseMessage response = await _httpClient.PostAsync(AddSpendFunction, postContent);
-
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            //** Set success
-        }
-        else
-        {
-            //** set failure
-        }
-
-        return result;
+        string postBody = CraftDkpString(dkpEntry, raidId);
+        await UploadMessage("add_item", postBody);
     }
 
     private string CraftAttendanceString(AttendanceEntry attendanceEntry)
     {
+        IEnumerable<int> memberIds = attendanceEntry.Players.Select(x => x.PlayerName).Select(playerName => _playerIdCache[playerName]);
+        int eventId = _eventIdCache[attendanceEntry.ZoneName];
+        int dkpValue = 0; //** Need to implement raid values
+        var attendanceContent =
+            new XElement("request",
+                new XElement("raid_date", attendanceEntry.Timestamp.ToString(ServerTimeFormat)),
+                new XElement("raid_value", dkpValue),
+                new XElement("raid_event_id", eventId),
+                new XElement("raid_note", attendanceEntry.RaidName),
+                new XElement("raid_attendees",
+                    memberIds.Select(x => new XElement("member", x))
+                )
+            );
 
-        return null;
+        return attendanceContent.ToString();
     }
 
-    private async Task<string> CraftDkpString(DkpEntry dkpEntry)
+    private string CraftDkpString(DkpEntry dkpEntry, int raidId)
     {
-        int characterId = await GetCharacterId(dkpEntry.PlayerName);
+        int characterId = _playerIdCache[dkpEntry.PlayerName];
+        var dkpContent =
+            new XElement("request",
+                new XElement("item_date", dkpEntry.Timestamp.ToString(ServerTimeFormat)),
+                new XElement("item_value", dkpEntry.DkpSpent),
+                new XElement("item_name", dkpEntry.Item),
+                new XElement("item_raid_id", raidId),
+                new XElement("item_itempool_id", 1),
+                new XElement("item_buyers",
+                    new XElement("member", characterId))
+            );
 
-        return null;
+        return dkpContent.ToString();
     }
 
-    private async Task<int> GetCharacterId(string characterName)
+    private async Task<int> GetCharacterIdFromServer(string characterName)
     {
-        if (_playerIdCache.TryGetValue(characterName, out int characterId))
-        {
-            return characterId;
-        }
-
-        //using HttpRequestMessage request = new() { Method = HttpMethod.Get };
-
-        //request.Headers.Add(TokenHeader, _settings.ApiReadToken);
-        //request.Headers.Add(Function, SearchFunction);
-        //request.Headers.Add(InHeader, CharnameHeaderValue);
-        //request.Headers.Add(ForHeader, characterName);
-
-        //using HttpResponseMessage response = await _httpClient.SendAsync(request);
-
-        //string uri = _settings.ApiUrl + "&atoken=" + _settings.ApiReadToken + "&function=search&in=charname&for=" + characterName;
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=search&in=charname&for={characterName}";
-        using HttpResponseMessage response = await _httpClient.GetAsync(uri);
+        using HttpResponseMessage response = await LocalHttpClient.GetAsync(uri);
 
         response.EnsureSuccessStatusCode();
 
         string responseText = await response.Content.ReadAsStringAsync();
 
-        XDocument doc = XDocument.Parse(responseText);
-        XElement userIdElement = doc.Descendants("id").FirstOrDefault();
-        string userIdText = userIdElement.Value;
-        characterId = int.Parse(userIdText);
+        XElement root = XDocument.Parse(responseText).Root;
+        int characterId = (int)root.Descendants("id").FirstOrDefault();
 
-        _playerIdCache.Add(characterName, characterId);
+        _playerIdCache[characterName] = characterId;
 
         return characterId;
     }
 
-    private async Task GetCharacterId(string playerName, RaidUploadResults results)
+    private async Task GetCharacterIdFromServer(string playerName, RaidUploadResults results)
     {
         try
         {
-            await GetCharacterId(playerName);
+            await GetCharacterIdFromServer(playerName);
         }
         catch (Exception ex)
         {
@@ -161,20 +112,63 @@ public sealed class DkpServer : IDkpServer
         }
     }
 
+    private async Task GetEventIds(IEnumerable<string> zoneNames, RaidUploadResults results)
+    {
+        XDocument eventIdsDoc = await GetEventIdsFromServer(results);
+        if (results.EventIdCallFailure != null)
+            return;
+
+        foreach (string zoneName in zoneNames)
+        {
+            int idValue = (int)eventIdsDoc.Root.Elements()
+                .Where(x => x.Elements().Any(x => x.Name == "name" && x.Value == zoneName))
+                .Elements().First(x => x.Name == "id");
+
+            _eventIdCache[zoneName] = idValue;
+        }
+    }
+
+    private async Task<XDocument> GetEventIdsFromServer(RaidUploadResults results)
+    {
+        try
+        {
+            string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=events";
+            using HttpResponseMessage response = await LocalHttpClient.GetAsync(uri);
+
+            response.EnsureSuccessStatusCode();
+
+            string responseText = await response.Content.ReadAsStringAsync();
+
+            XDocument doc = XDocument.Parse(responseText);
+            return doc;
+        }
+        catch (Exception ex)
+        {
+            results.EventIdCallFailure = ex;
+        }
+
+        return null;
+    }
+
     private HttpContent GetPostContent(string postBody)
         => new StringContent(postBody);
-}
 
-public sealed class DkpServerMessageResult
-{
+    private async Task UploadMessage(string function, string content)
+    {
+        using HttpContent postContent = GetPostContent(content);
+        postContent.Headers.Add("Content-Type", "application/xml");
+        string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiWriteToken}&function={function}";
+        using HttpResponseMessage response = await LocalHttpClient.PostAsync(uri, postContent);
 
+        response.EnsureSuccessStatusCode();
+    }
 }
 
 public interface IDkpServer
 {
-    Task InitializeCharacterIds(IEnumerable<PlayerCharacter> players, IEnumerable<DkpEntry> dkpCalls, RaidUploadResults results);
+    Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
 
-    Task<DkpServerMessageResult> UploadAttendance(AttendanceEntry attendanceEntry);
+    Task UploadAttendance(AttendanceEntry attendanceEntry);
 
-    Task<DkpServerMessageResult> UploadDkpSpent(DkpEntry dkpEntry);
+    Task UploadDkpSpent(DkpEntry dkpEntry, int raidId);
 }

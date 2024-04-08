@@ -60,6 +60,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public string GeneratedLogFilesArchiveDirectory { get; set; }
 
+    public bool IsApiConfigured
+        => !string.IsNullOrEmpty(ApiUrl) && !string.IsNullOrEmpty(ApiReadToken) && !string.IsNullOrEmpty(ApiWriteToken);
+
     public int MainWindowX { get; set; } = DefaultWindowLocation;
 
     public int MainWindowY { get; set; } = DefaultWindowLocation;
@@ -336,6 +339,8 @@ public interface IDkpParserSettings
     int GeneratedLogFilesAgeToArchiveInDays { get; set; }
 
     string GeneratedLogFilesArchiveDirectory { get; set; }
+
+    bool IsApiConfigured { get; }
 
     int MainWindowX { get; set; }
 

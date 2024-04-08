@@ -21,8 +21,8 @@ internal sealed class DialogFactory : IDialogFactory
     public IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries)
         => new AttendanceEntryModiferDialogViewModel(_viewFactory, raidEntries);
 
-    public ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, string completionMessage)
-        => new CompletedDialogViewModel(_viewFactory, logFilePath, completionMessage);
+    public ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, RaidUploadResults uploadResults)
+        => new CompletedDialogViewModel(_viewFactory, logFilePath, uploadResults);
 
     public IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
         => new DkpErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
@@ -43,7 +43,7 @@ public interface IDialogFactory
 
     IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries);
 
-    ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, string completionMessage);
+    ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, RaidUploadResults uploadResults);
 
     IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 

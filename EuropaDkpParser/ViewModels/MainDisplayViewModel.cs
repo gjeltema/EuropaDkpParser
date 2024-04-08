@@ -392,7 +392,19 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         if (!success)
             return;
 
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile, Strings.GetString("SuccessfulCompleteMessage"));
+        RaidUploadResults uploadResults = null;
+
+        //** temp test code
+
+        if (_settings.IsApiConfigured)
+        {
+            var server = new RaidUploader(_settings);
+            uploadResults = await server.UploadRaid(raidEntries);
+        }
+
+        //** end temp test
+
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile, uploadResults);
         completedDialog.ShowDialog();
     }
 
