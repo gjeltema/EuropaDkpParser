@@ -20,7 +20,7 @@ public static class Constants
     public const string DkpSpent = "DKPSPENT";
     public const string DoubleDash = "--";
     public const string EndLootedDashes = ".--";
-    public const string EqLogSearchPattern = "eqlog_*.txt";
+    public const string EqLogSearchPattern = "*eqlog*.txt";
     public const string EuropaGuildTag = "<Europa>";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
     public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-";
