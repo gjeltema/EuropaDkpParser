@@ -34,5 +34,6 @@ public enum PossibleError : byte
     PlayerLootedMessageNotFound,
     DuplicateRaidEntry,
     BossMobNameTypo,
-    NoZoneName
+    NoZoneName,
+    RaidNameTooShort
 }

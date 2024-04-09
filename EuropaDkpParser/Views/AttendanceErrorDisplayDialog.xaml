@@ -54,7 +54,7 @@
 
                 <Label Grid.Row="0" Content="{Binding ErrorMessageText}" />
 
-                <ListView Grid.Row="1" ItemsSource="{Binding ErrorAttendances}" SelectedItem="{Binding SelectedErrorEntry}">
+                <ListView Grid.Row="1" ItemsSource="{Binding ErrorAttendances}" SelectedItem="{Binding SelectedErrorEntry}" Margin="0,0,0,5">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="{x:Type ListViewItem}">
                             <Setter Property="ToolTip">
@@ -80,7 +80,7 @@
                     </Grid.ColumnDefinitions>
 
                     <ComboBox Grid.Column="0" ItemsSource="{Binding ApprovedBossNames}" SelectedValue="{Binding SelectedBossName}" Margin="0,0,4,0"/>
-                    <Button Grid.Column="1" Content="{StaticResource SetBoss}" Command="{Binding ChangeBossMobNameCommand}" Width="75" />
+                    <Button Grid.Column="1" Content="{StaticResource SetBoss}" Command="{Binding ChangeBossMobNameCommand}" Width="85" Height="30" />
                 </Grid>
 
                 <Grid Grid.Row="2" Visibility="{Binding IsNoZoneNameError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
@@ -89,8 +89,18 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBox Grid.Column="0" Text="{Binding ZoneNameText}" Margin="0,0,4,0"/>
-                    <Button Grid.Column="1" Content="{StaticResource UpdateZone}" Command="{Binding UpdateZoneNameCommand}" Width="75" />
+                    <TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
+                    <Button Grid.Column="1" Content="{StaticResource UpdateZone}" Command="{Binding UpdateZoneNameCommand}" Width="85" Height="30" />
+                </Grid>
+
+                <Grid Grid.Row="2" Visibility="{Binding IsRaidNameTooShortError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0" Text="{Binding RaidNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
+                    <Button Grid.Column="1" Content="{StaticResource UpdateRaidName}" Command="{Binding UpdateRaidNameCommand}" Width="85" Height="30" />
                 </Grid>
 
             </Grid>

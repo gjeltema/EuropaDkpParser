@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v1.5</system:String>
+    <system:String x:Key="Version">v2.0</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -12,6 +12,8 @@
     <system:String x:Key="CompletedDialogTitleText">Log Generation Complete</system:String>
     <system:String x:Key="FileArchiveDialogTitleText">File Archive</system:String>
     <system:String x:Key="AttendanceEntryModifierDialogTitleText">Create or Move Attendance Entry</system:String>
+    <system:String x:Key="RaidUploadDialogTitleText">Upload Raid to DKP Server</system:String>
+    <system:String x:Key="PossibleLinkdeadErrorDialogTitleText">Player Possibly Linkdead Review</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>
@@ -67,11 +69,14 @@
     <system:String x:Key="PossibleBossTypo">Possible boss name typo:</system:String>
     <system:String x:Key="UpdateZone">Update Zone</system:String>
     <system:String x:Key="NoZoneNameErrorText">No zone name was found for Attendance call</system:String>
+    <system:String x:Key="RaidNameTooShort">Raid name is too short:</system:String>
+    <system:String x:Key="UpdateRaidName">Update Name</system:String>
     
     <!-- FinalSummaryDisplay -->
     <system:String x:Key="AttendanceCalls">Attendance Calls</system:String>
     <system:String x:Key="DkpSpentCalls">DKPSPENT Calls</system:String>
     <system:String x:Key="AddModify">Add/Modify</system:String>
+    <system:String x:Key="UploadToServerText">Upload to DKP server</system:String>
     
     <!-- LogSelectionDialog -->
     <system:String x:Key="EqLogDir">Everquest Log Directory</system:String>
@@ -155,4 +160,15 @@
     <system:String x:Key="NewRaidName">New Raid Name</system:String>
     <system:String x:Key="NewAttendanceTime">New Timestamp</system:String>
 
+    <!-- RaidUploadDialog -->
+    <system:String x:Key="BeginStatus">Click Begin Upload to start uploading</system:String>
+    <system:String x:Key="UploadingStatus">Raid uploading is in progress</system:String>
+    <system:String x:Key="SuccessStatus">Raid was successfully uploaded</system:String>
+    <system:String x:Key="FailureStatus">Failures were encountered while uploading the raid</system:String>
+    <system:String x:Key="BeginUploadButton">Begin Upload</system:String>
+    
+    <!-- PossibleLinkdeadErrorDialog -->
+    <system:String x:Key="AttendancesAndJoinsLabelText">All Attendance Calls and Leave/Join Raid</system:String>
+    <system:String x:Key="AttendanceMissingFrom">Attendance missing from:</system:String>
+    <system:String x:Key="AddToRaid">Add To Raid</system:String>
 </ResourceDictionary>

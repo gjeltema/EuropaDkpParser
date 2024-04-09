@@ -83,7 +83,7 @@
                 <Label Content="{StaticResource SelectedLogFilesToParse}" Grid.Row="0"/>
 
                 <ListBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SelectedCharacterLogFiles}" SelectedValue="{Binding SelectedLogFileToParse}" 
-                         Margin="0,0,10,0" Height="85" VerticalAlignment="Top"/>
+                         Margin="0,0,10,0"  VerticalAlignment="Top" MinHeight="85"/>
                 <Button Grid.Row="1" Grid.Column="1"  Content="{StaticResource Remove}" Command="{Binding RemoveLogFileFromListCommand}" Height="25" Width="60" VerticalAlignment="Top"/>
             </Grid>
 

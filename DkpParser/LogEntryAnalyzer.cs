@@ -4,6 +4,9 @@
 
 namespace DkpParser;
 
+using System;
+using System.Diagnostics;
+
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
     private readonly RaidEntries _raidEntries = new();
@@ -25,9 +28,53 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         AddUnvisitedEntries(logParseResults);
 
+        SetRaidInfo();
         ErrorPostAnalysis(logParseResults);
 
         return _raidEntries;
+    }
+
+    private void AddRaidInfoEntries()
+    {
+        IEnumerable<string> zoneNames = _raidEntries.AttendanceEntries
+            .OrderBy(x => x.Timestamp)
+            .Select(x => GetZoneRaidAlias(x.ZoneName))
+            .Distinct();
+
+        foreach (string zoneName in zoneNames)
+        {
+            RaidInfo raidInfo = new() { RaidZone = zoneName };
+            _raidEntries.Raids.Add(raidInfo);
+        }
+
+        foreach (RaidInfo raidInfo in _raidEntries.Raids)
+        {
+            IOrderedEnumerable<AttendanceEntry> attendancesForRaid = _raidEntries.AttendanceEntries
+                .Where(x => GetZoneRaidAlias(x.ZoneName) == raidInfo.RaidZone)
+                .OrderBy(x => x.Timestamp);
+
+            raidInfo.FirstAttendanceCall = attendancesForRaid.First();
+            raidInfo.LastAttendanceCall = attendancesForRaid.Last();
+        }
+
+        DateTime startTime = DateTime.MinValue;
+        DateTime endTime = DateTime.MaxValue;
+        for (int i = 0; i < _raidEntries.Raids.Count; i++)
+        {
+            RaidInfo currentRaidInfo = _raidEntries.Raids[i];
+            currentRaidInfo.StartTime = startTime;
+
+            if (i + 1 < _raidEntries.Raids.Count)
+            {
+                RaidInfo nextRaid = _raidEntries.Raids[i + 1];
+                currentRaidInfo.EndTime = nextRaid.FirstAttendanceCall.Timestamp.AddSeconds(-2);
+                startTime = nextRaid.FirstAttendanceCall.Timestamp;
+            }
+            else
+            {
+                currentRaidInfo.EndTime = DateTime.MaxValue;
+            }
+        }
     }
 
     private void AddUnvisitedEntries(LogParseResults logParseResults)
@@ -52,6 +99,17 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         IDkpEntryAnalyzer dkpEntryAnalyzer = new DkpEntryAnalyzer();
         dkpEntryAnalyzer.AnalyzeLootCalls(logParseResults, _raidEntries);
+    }
+
+    private void AssociateDkpEntriesWithAttendance()
+    {
+        foreach (DkpEntry dkpEntry in _raidEntries.DkpEntries)
+        {
+            RaidInfo associatedRaid = _raidEntries.Raids
+                .FirstOrDefault(x => x.StartTime <= dkpEntry.Timestamp && dkpEntry.Timestamp <= x.EndTime);
+
+            dkpEntry.AssociatedAttendanceCall = associatedRaid.LastAttendanceCall;
+        }
     }
 
     private void CheckDkpSpentTypos(LogParseResults logParseResults)
@@ -91,18 +149,66 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
+    private void CheckPotentialLinkdeads()
+    {
+        List<AttendanceEntry> orderedAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        foreach (PlayerCharacter player in _raidEntries.AllPlayersInRaid)
+        {
+            IEnumerable<AttendanceEntry> attendancesMissingFrom = _raidEntries.AttendanceEntries.Where(x => !x.Players.Contains(player));
+            foreach (AttendanceEntry attendance in attendancesMissingFrom)
+            {
+                AttendanceEntry previousAttendance = orderedAttendances
+                    .Where(x => x.Timestamp < attendance.Timestamp)
+                    .LastOrDefault();
+
+                AttendanceEntry nextAttendance = orderedAttendances
+                    .Where(x => x.Timestamp > attendance.Timestamp)
+                    .FirstOrDefault();
+
+                bool playerInPreviousAttendance = previousAttendance == null || previousAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
+                bool playerInNextAttendance = nextAttendance == null || nextAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
+                if (playerInPreviousAttendance && playerInNextAttendance)
+                {
+                    PlayerPossibleLinkdead ld = new()
+                    {
+                        Player = player,
+                        AttendanceMissingFrom = attendance
+                    };
+                    _raidEntries.PossibleLinkdeads.Add(ld);
+                }
+            }
+        }
+    }
+
     private void CheckRaidBossTypo(LogParseResults logParseResults)
     {
+        ICollection<string> bossMobNames = _settings.RaidValue.AllBossMobNames;
+
         // Dont bother checking if the file wasnt found
-        if (_settings.BossMobs.Count == 0)
+        if (bossMobNames.Count == 0)
             return;
 
         foreach (AttendanceEntry killCall in _raidEntries.AttendanceEntries.Where(x => x.AttendanceCallType == AttendanceCallType.Kill))
         {
-            if (!_settings.BossMobs.Contains(killCall.RaidName))
+            if (!bossMobNames.Contains(killCall.RaidName))
             {
                 killCall.PossibleError = PossibleError.BossMobNameTypo;
             }
+        }
+    }
+
+    private void CheckRaidNameErrors()
+    {
+        string shortestBossName = _settings.RaidValue.AllBossMobNames.MinBy(x => x.Length);
+        int minBossNameLength = shortestBossName == null ? 5 : shortestBossName.Length;
+        foreach (AttendanceEntry attendance in _raidEntries.AttendanceEntries)
+        {
+            int minLength = attendance.AttendanceCallType == AttendanceCallType.Time
+                ? Constants.MinimumRaidNameLength
+                : minBossNameLength;
+
+            if (attendance.RaidName.Length < minLength)
+                attendance.PossibleError = PossibleError.RaidNameTooShort;
         }
     }
 
@@ -112,6 +218,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         CheckRaidBossTypo(logParseResults);
         CheckDkpSpentTypos(logParseResults);
         CheckDuplicateDkpEntries(logParseResults);
+        CheckRaidNameErrors();
+        CheckPotentialLinkdeads();
     }
 
     private PlayerJoinRaidEntry ExtractePlayerJoin(EqLogEntry entry)
@@ -164,6 +272,9 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         };
     }
 
+    private string GetZoneRaidAlias(string zoneName)
+        => _settings.RaidValue.GetZoneRaidAlias(zoneName);
+
     private void PopulateLootList(LogParseResults logParseResults)
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
@@ -207,6 +318,25 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             _raidEntries.PlayerJoinCalls = playersJoined.ToList();
         }
     }
+
+    private void SetRaidInfo()
+    {
+        AddRaidInfoEntries();
+        AssociateDkpEntriesWithAttendance();
+    }
+}
+
+[DebuggerDisplay("{DebugDisplay}")]
+public sealed class PlayerPossibleLinkdead
+{
+    public bool Addressed { get; set; }
+
+    public AttendanceEntry AttendanceMissingFrom { get; init; }
+
+    public PlayerCharacter Player { get; init; }
+
+    private string DebugDisplay
+        => $"{Player} {AttendanceMissingFrom}";
 }
 
 public interface ILogEntryAnalyzer

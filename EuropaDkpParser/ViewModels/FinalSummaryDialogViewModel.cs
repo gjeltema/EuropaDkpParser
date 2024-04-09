@@ -13,13 +13,16 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
     private readonly IDialogFactory _dialogFactory;
     private readonly RaidEntries _raidEntries;
     private ICollection<AttendanceEntry> _attendanceCalls;
+    private bool _uploadToServer;
 
-    internal FinalSummaryDialogViewModel(IDialogViewFactory viewFactory, IDialogFactory dialogFactory, RaidEntries raidEntries)
+    internal FinalSummaryDialogViewModel(IDialogViewFactory viewFactory, IDialogFactory dialogFactory, RaidEntries raidEntries, bool canUploadToServer)
         : base(viewFactory)
     {
         Title = Strings.GetString("LogParseSummaryDialogTitleText");
         _dialogFactory = dialogFactory;
         _raidEntries = raidEntries;
+        ShowUploadToServer = canUploadToServer;
+        UploadToServer = canUploadToServer;
 
         AttendanceCalls = new List<AttendanceEntry>(_raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp));
         DkpSpentCalls = new List<DkpEntry>(_raidEntries.DkpEntries.OrderBy(x => x.Timestamp));
@@ -37,6 +40,14 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
 
     public ICollection<DkpEntry> DkpSpentCalls { get; }
 
+    public bool ShowUploadToServer { get; }
+
+    public bool UploadToServer
+    {
+        get => _uploadToServer;
+        set => SetProperty(ref _uploadToServer, value);
+    }
+
     private void AddOrModifyAttendanceEntry()
     {
         IAttendanceEntryModiferDialogViewModel modifier = _dialogFactory.CreateAttendanceModifierDialogViewModel(_raidEntries);
@@ -53,4 +64,8 @@ public interface IFinalSummaryDialogViewModel : IDialogViewModel
     ICollection<AttendanceEntry> AttendanceCalls { get; }
 
     ICollection<DkpEntry> DkpSpentCalls { get; }
+
+    bool ShowUploadToServer { get; }
+
+    bool UploadToServer { get; set; }
 }

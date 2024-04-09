@@ -6,21 +6,19 @@ namespace EuropaDkpParser.ViewModels;
 
 using System.Diagnostics;
 using System.IO;
-using DkpParser;
 using EuropaDkpParser.Resources;
 using Prism.Commands;
 
 internal sealed class CompletedDialogViewModel : DialogViewModelBase, ICompletedDialogViewModel
 {
-    internal CompletedDialogViewModel(IDialogViewFactory viewFactory, string logFilePath, RaidUploadResults uploadResults)
+    internal CompletedDialogViewModel(IDialogViewFactory viewFactory, string logFilePath)
         : base(viewFactory)
     {
         Title = Strings.GetString("CompletedDialogTitleText");
 
-        string completionMessage = Strings.GetString("SuccessfulCompleteMessage"); //** Need failure message too
+        CompletionMessage = Strings.GetString("SuccessfulCompleteMessage");
 
         LogFilePath = logFilePath;
-        CompletionMessage = completionMessage;
 
         OpenLogFileDirectoryCommand = new DelegateCommand(OpenLogFileDirectory);
     }

@@ -11,15 +11,18 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Label Content="{Binding CompletionMessage}" Grid.Row="0" />
+        <Label Grid.Row="0" Content="{Binding CompletionMessage}" />
 
-        <TextBlock Text="{Binding LogFilePath}" Grid.Row="1" Margin="5,10"/>
+        <TextBlock Grid.Row="1" Text="{Binding LogFilePath}" Margin="5,10"/>
 
-        <Grid Grid.Row="2" HorizontalAlignment="Right">
+        <!-- Grid.Row="2" is just filler-->
+        
+        <Grid Grid.Row="3" HorizontalAlignment="Right">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>

@@ -25,13 +25,13 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string WindowLocationSection = "WINDOW_LOCATION";
-    private readonly string _bossMobsFilePath;
+    private readonly string _raidValuesFileName;
     private readonly string _settingsFilePath;
 
-    public DkpParserSettings(string settingsFilePath, string bossMobsFilePath)
+    public DkpParserSettings(string settingsFilePath, string raidValuesFileName)
     {
         _settingsFilePath = settingsFilePath;
-        _bossMobsFilePath = bossMobsFilePath;
+        _raidValuesFileName = raidValuesFileName;
     }
 
     public string ApiReadToken { get; set; }
@@ -69,26 +69,20 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public string OutputDirectory { get; set; }
 
+    public IRaidValues RaidValue { get; private set; }
+
     public ICollection<string> SelectedLogFiles { get; set; } = [];
 
     public void LoadAllSettings()
     {
         LoadSettings();
-        LoadBossMobs();
-    }
-
-    public void LoadBossMobs()
-    {
-        if (!File.Exists(_bossMobsFilePath))
-            return;
-
-        string[] fileContents = File.ReadAllLines(_bossMobsFilePath);
-        foreach (string bossName in fileContents)
-            BossMobs.Add(bossName.Trim());
     }
 
     public void LoadSettings()
     {
+        RaidValue = new RaidValues(_raidValuesFileName);
+        RaidValue.LoadSettings();
+
         if (!File.Exists(_settingsFilePath))
         {
             SaveSettings();
@@ -103,11 +97,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetSimpleArchiveSettings(fileContents);
         SetDebugOptions(fileContents);
         SetApiValues(fileContents);
-    }
-
-    public void SaveBossMobs()
-    {
-        File.WriteAllLines(_bossMobsFilePath, BossMobs);
     }
 
     public void SaveSettings()
@@ -241,7 +230,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         return DefaultWindowLocation;
     }
 
-    private bool IsValidIndex(int indexOfSection, IList<string> fileContents)
+    private bool IsValidIndex(int indexOfSection, ICollection<string> fileContents)
         => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
 
     private void SetApiValues(string[] fileContents)
@@ -322,8 +311,6 @@ public interface IDkpParserSettings
 
     bool ArchiveAllEqLogFiles { get; set; }
 
-    ICollection<string> BossMobs { get; }
-
     bool EnableDebugOptions { get; set; }
 
     string EqDirectory { get; set; }
@@ -348,15 +335,13 @@ public interface IDkpParserSettings
 
     string OutputDirectory { get; set; }
 
+    IRaidValues RaidValue { get; }
+
     ICollection<string> SelectedLogFiles { get; set; }
 
     void LoadAllSettings();
 
-    void LoadBossMobs();
-
     void LoadSettings();
-
-    void SaveBossMobs();
 
     void SaveSettings();
 }

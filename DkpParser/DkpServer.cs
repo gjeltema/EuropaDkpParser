@@ -5,14 +5,17 @@
 namespace DkpParser;
 
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Xml.Linq;
 
 public sealed class DkpServer : IDkpServer
 {
-    private const string ServerTimeFormat = "yyyy-mm-dd HH:mm";
+    private const string ServerTimeFormat = "yyyy-MM-dd HH:mm";
     private static readonly HttpClient LocalHttpClient = new();
     private readonly Dictionary<string, int> _eventIdCache = [];
+    private readonly MediaTypeHeaderValue _mediaHeader = new("application/xml");
     private readonly Dictionary<string, int> _playerIdCache = [];
+    private readonly Dictionary<string, int> _raidIdCache = [];
     private readonly IDkpParserSettings _settings;
 
     public DkpServer(IDkpParserSettings settings)
@@ -33,26 +36,37 @@ public sealed class DkpServer : IDkpServer
     public async Task UploadAttendance(AttendanceEntry attendanceEntry)
     {
         string postBody = CraftAttendanceString(attendanceEntry);
-        await UploadMessage("add_raid", postBody); //** Need to get response
+        string response = await UploadMessage("add_raid", postBody);
+
+        XElement root = XDocument.Parse(response).Root;
+        int raidId = (int)root.Descendants("raid_id").FirstOrDefault();
+
+        _raidIdCache[attendanceEntry.RaidName] = raidId;
     }
 
-    public async Task UploadDkpSpent(DkpEntry dkpEntry, int raidId)
+    public async Task UploadDkpSpent(DkpEntry dkpEntry)
     {
-        string postBody = CraftDkpString(dkpEntry, raidId);
+        string postBody = CraftDkpString(dkpEntry);
         await UploadMessage("add_item", postBody);
     }
 
     private string CraftAttendanceString(AttendanceEntry attendanceEntry)
     {
-        IEnumerable<int> memberIds = attendanceEntry.Players.Select(x => x.PlayerName).Select(playerName => _playerIdCache[playerName]);
+        IEnumerable<int> memberIds = attendanceEntry.Players
+            .Select(x => x.PlayerName)
+            .Select(playerName => _playerIdCache[playerName]);
+
         int eventId = _eventIdCache[attendanceEntry.ZoneName];
-        int dkpValue = 0; //** Need to implement raid values
+        int dkpValue = attendanceEntry.AttendanceCallType == AttendanceCallType.Time
+            ? _settings.RaidValue.GetTimeBasedValue(attendanceEntry.ZoneName)
+            : _settings.RaidValue.GetBossKillValue(attendanceEntry.RaidName);
+
         var attendanceContent =
             new XElement("request",
                 new XElement("raid_date", attendanceEntry.Timestamp.ToString(ServerTimeFormat)),
                 new XElement("raid_value", dkpValue),
                 new XElement("raid_event_id", eventId),
-                new XElement("raid_note", attendanceEntry.RaidName),
+                new XElement("raid_note", attendanceEntry.ToDkpServerDescription()),
                 new XElement("raid_attendees",
                     memberIds.Select(x => new XElement("member", x))
                 )
@@ -61,9 +75,11 @@ public sealed class DkpServer : IDkpServer
         return attendanceContent.ToString();
     }
 
-    private string CraftDkpString(DkpEntry dkpEntry, int raidId)
+    private string CraftDkpString(DkpEntry dkpEntry)
     {
         int characterId = _playerIdCache[dkpEntry.PlayerName];
+        int raidId = _raidIdCache[dkpEntry.AssociatedAttendanceCall.RaidName];
+
         var dkpContent =
             new XElement("request",
                 new XElement("item_date", dkpEntry.Timestamp.ToString(ServerTimeFormat)),
@@ -72,7 +88,8 @@ public sealed class DkpServer : IDkpServer
                 new XElement("item_raid_id", raidId),
                 new XElement("item_itempool_id", 1),
                 new XElement("item_buyers",
-                    new XElement("member", characterId))
+                    new XElement("member", characterId),
+                    new XElement("member"))
             );
 
         return dkpContent.ToString();
@@ -153,14 +170,19 @@ public sealed class DkpServer : IDkpServer
     private HttpContent GetPostContent(string postBody)
         => new StringContent(postBody);
 
-    private async Task UploadMessage(string function, string content)
+    private async Task<string> UploadMessage(string function, string content)
     {
         using HttpContent postContent = GetPostContent(content);
-        postContent.Headers.Add("Content-Type", "application/xml");
+        //postContent.Headers["Content-Type"] = "application/xml";
+        postContent.Headers.ContentType = _mediaHeader;
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiWriteToken}&function={function}";
         using HttpResponseMessage response = await LocalHttpClient.PostAsync(uri, postContent);
 
+        string text = await response.Content.ReadAsStringAsync();
+
         response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
     }
 }
 
@@ -170,5 +192,5 @@ public interface IDkpServer
 
     Task UploadAttendance(AttendanceEntry attendanceEntry);
 
-    Task UploadDkpSpent(DkpEntry dkpEntry, int raidId);
+    Task UploadDkpSpent(DkpEntry dkpEntry);
 }

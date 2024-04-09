@@ -5,17 +5,17 @@
 namespace DkpParser.Parsers;
 
 /// <summary>
-/// Parses out all the /tells between the user and a specified other person.
+/// Parses out all the /tells between the user and a specified other person(s).
 /// </summary>
 public sealed class ConversationParser : EqLogParserBase, IConversationParser
 {
-    private readonly string _personConversingWith;
+    private readonly string[] _peopleConversingWith;
     private readonly IDkpParserSettings _settings;
 
-    public ConversationParser(IDkpParserSettings settings, string personConversingWith)
+    public ConversationParser(IDkpParserSettings settings, string peopleConversingWith)
     {
         _settings = settings;
-        _personConversingWith = personConversingWith;
+        _peopleConversingWith = peopleConversingWith.Split(';');
     }
 
     public ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime)
@@ -23,7 +23,7 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
 
     protected override void InitializeEntryParsers(EqLogFile logFile, DateTime startTime, DateTime endTime)
     {
-        ConversationEntryParser conversationEntryParser = new(logFile, _personConversingWith);
+        ConversationEntryParser conversationEntryParser = new(logFile, _peopleConversingWith);
         FindStartTimeEntryParser findStartParser = new(this, startTime, conversationEntryParser);
 
         SetEntryParser(findStartParser);
@@ -32,32 +32,35 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
     private sealed class ConversationEntryParser : IParseEntry
     {
         private readonly EqLogFile _logFile;
-        private readonly string _personConversingWith;
+        private readonly ICollection<string> _peopleConversingWith;
 
-        public ConversationEntryParser(EqLogFile logFile, string personConversingWith)
+        public ConversationEntryParser(EqLogFile logFile, ICollection<string> peopleConversingWith)
         {
             _logFile = logFile;
-            _personConversingWith = personConversingWith;
+            _peopleConversingWith = peopleConversingWith;
         }
 
         public void ParseEntry(string logLine, DateTime entryTimeStamp)
         {
-            if (!logLine.Contains(_personConversingWith, StringComparison.OrdinalIgnoreCase))
+            if (!logLine.Contains(Constants.YouTold) && !logLine.Contains(Constants.TellsYou))
                 return;
 
             // [Fri Mar 01 21:49:34 2024] Klawse tells you, 'need key'
             // [Fri Mar 01 21:55:29 2024] You told Klawse, 'I cant do anything with the raid window.'
-            if (logLine.Contains($"{Constants.YouTold} {_personConversingWith}, '", StringComparison.OrdinalIgnoreCase)
-                || logLine.Contains($"{_personConversingWith} {Constants.TellsYou}, '", StringComparison.OrdinalIgnoreCase))
+            foreach (string person in _peopleConversingWith)
             {
-                EqLogEntry logEntry = new()
+                if (logLine.Contains($"{Constants.YouTold} {person}, '", StringComparison.OrdinalIgnoreCase)
+                    || logLine.Contains($"{person} {Constants.TellsYou}, '", StringComparison.OrdinalIgnoreCase))
                 {
-                    EntryType = LogEntryType.Unknown,
-                    LogLine = logLine,
-                    Timestamp = entryTimeStamp
-                };
+                    EqLogEntry logEntry = new()
+                    {
+                        EntryType = LogEntryType.Unknown,
+                        LogLine = logLine,
+                        Timestamp = entryTimeStamp
+                    };
 
-                _logFile.LogEntries.Add(logEntry);
+                    _logFile.LogEntries.Add(logEntry);
+                }
             }
         }
     }

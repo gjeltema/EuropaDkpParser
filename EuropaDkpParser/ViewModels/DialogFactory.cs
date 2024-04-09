@@ -21,8 +21,8 @@ internal sealed class DialogFactory : IDialogFactory
     public IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries)
         => new AttendanceEntryModiferDialogViewModel(_viewFactory, raidEntries);
 
-    public ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, RaidUploadResults uploadResults)
-        => new CompletedDialogViewModel(_viewFactory, logFilePath, uploadResults);
+    public ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath)
+        => new CompletedDialogViewModel(_viewFactory, logFilePath);
 
     public IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
         => new DkpErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
@@ -30,8 +30,14 @@ internal sealed class DialogFactory : IDialogFactory
     public IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings)
         => new FileArchiveDialogViewModel(_viewFactory, settings);
 
-    public IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries)
-        => new FinalSummaryDialogViewModel(_viewFactory, dialogFactory, raidEntries);
+    public IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, bool canUploadToServer)
+        => new FinalSummaryDialogViewModel(_viewFactory, dialogFactory, raidEntries, canUploadToServer);
+
+    public IPossibleLinkdeadErrorDialogViewModel CreatePossibleLinkdeadErrorDialogViewModel(RaidEntries raidEntries)
+        => new PossibleLinkdeadErrorDialogViewModel(_viewFactory, raidEntries);
+
+    public IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(RaidEntries raidEntries, IDkpParserSettings settings)
+        => new RaidUploadDialogViewModel(_viewFactory, raidEntries, settings);
 
     public ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings)
         => new LogSelectionViewModel(_viewFactory, settings);
@@ -43,13 +49,17 @@ public interface IDialogFactory
 
     IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries);
 
-    ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath, RaidUploadResults uploadResults);
+    ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath);
 
     IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
     IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings);
 
-    IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries);
+    IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, bool canUploadToServer);
+
+    IPossibleLinkdeadErrorDialogViewModel CreatePossibleLinkdeadErrorDialogViewModel(RaidEntries raidEntries);
+
+    IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(RaidEntries raidEntries, IDkpParserSettings settings);
 
     ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings);
 }

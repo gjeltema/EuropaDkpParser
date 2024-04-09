@@ -4,6 +4,8 @@
 
 namespace DkpParser;
 
+using System.Diagnostics;
+
 public sealed class RaidUploader : IRaidUpload
 {
     private readonly IDkpServer _dkpServer;
@@ -67,7 +69,7 @@ public sealed class RaidUploader : IRaidUpload
         {
             try
             {
-                await _dkpServer.UploadDkpSpent(dkpEntry, 0); //** Need to get raid ID, or name and convert to ID
+                await _dkpServer.UploadDkpSpent(dkpEntry);
             }
             catch (Exception ex)
             {
@@ -114,6 +116,7 @@ public sealed class RaidUploadResults
     }
 }
 
+[DebuggerDisplay("{Attendance}")]
 public sealed class AttendanceUploadFailure
 {
     public AttendanceEntry Attendance { get; set; }
@@ -121,6 +124,7 @@ public sealed class AttendanceUploadFailure
     public Exception Error { get; set; }
 }
 
+[DebuggerDisplay("{Dkp}")]
 public sealed class DkpUploadFailure
 {
     public DkpEntry Dkp { get; set; }
@@ -128,6 +132,7 @@ public sealed class DkpUploadFailure
     public Exception Error { get; set; }
 }
 
+[DebuggerDisplay("{PlayerName}")]
 public sealed class CharacterIdFailure
 {
     public Exception Error { get; set; }
@@ -135,6 +140,7 @@ public sealed class CharacterIdFailure
     public string PlayerName { get; set; }
 }
 
+[DebuggerDisplay("{ZoneName}")]
 public sealed class EventIdFailure
 {
     public Exception Error { set; get; }

@@ -12,7 +12,7 @@ using EuropaDkpParser.Views;
 
 public partial class App : Application
 {
-    private const string BossMobsFilePath = "BossMobs.txt";
+    private const string RaidValuesFilePath = "RaidValues.txt";
     private const string SettingsFilePath = "Settings.txt";
     private IDkpParserSettings _settings;
     private ShellView _shellView;
@@ -32,7 +32,7 @@ public partial class App : Application
         DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledExceptionHandler;
 
-        _settings = new DkpParserSettings(SettingsFilePath, BossMobsFilePath);
+        _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath);
         _settings.LoadAllSettings();
 
         var shellViewModel = new ShellViewModel(_settings, new DialogFactory(new DialogViewFactory()));

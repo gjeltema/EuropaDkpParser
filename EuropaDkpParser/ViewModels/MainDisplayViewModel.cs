@@ -184,7 +184,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         IFullEqLogParser fullLogParser = new FullEqLogParser(_settings);
         ICollection<EqLogFile> logFiles = await Task.Run(() => fullLogParser.GetEqLogFiles(startTime, endTime));
 
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? Directory.GetCurrentDirectory() : OutputDirectory;
+        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
 
         string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string fullLogOutputFullPath = Path.Combine(directory, fullLogOutputFile);
@@ -194,7 +194,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             await CreateFile(fullLogOutputFullPath, logFile.GetAllLogLines());
         }
 
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(fullLogOutputFullPath, Strings.GetString("SuccessfulCompleteMessage"));
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(fullLogOutputFullPath);
         completedDialog.ShowDialog();
     }
 
@@ -206,7 +206,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         ITermParser termParser = new TermParser(_settings, SearchTermText, IsCaseSensitive);
         ICollection<EqLogFile> logFiles = await Task.Run(() => termParser.GetEqLogFiles(startTime, endTime));
 
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? Directory.GetCurrentDirectory() : OutputDirectory;
+        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
         string searchTermOutputFile = $"{Constants.SearchTermFileNamePrefix}{SearchTermText}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string searchTermOutputFullPath = Path.Combine(directory, searchTermOutputFile);
         bool anySearchTermFound = false;
@@ -225,9 +225,12 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             return;
         }
 
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(searchTermOutputFullPath, Strings.GetString("SuccessfulCompleteMessage"));
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(searchTermOutputFullPath);
         completedDialog.ShowDialog();
     }
+
+    private string GetUserProfilePath()
+        => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "EuropaDKP");
 
     private void OpenFileArchiveDialog()
     {
@@ -269,7 +272,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
     private async Task OutputRawAnalyzerResults(RaidEntries raidEntries)
     {
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? Directory.GetCurrentDirectory() : OutputDirectory;
+        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
 
         string rawAnalyzerOutputFile = $"RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
@@ -278,7 +281,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
     private async Task OutputRawParseResults(LogParseResults results)
     {
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? Directory.GetCurrentDirectory() : OutputDirectory;
+        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
 
         string rawParseOutputFile = $"RawParseOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawParseOutputFullPath = Path.Combine(directory, rawParseOutputFile);
@@ -296,8 +299,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         IConversationParser conversationParser = new ConversationParser(_settings, ConversationPlayer);
         ICollection<EqLogFile> logFiles = await Task.Run(() => conversationParser.GetEqLogFiles(startTime, endTime));
 
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? Directory.GetCurrentDirectory() : OutputDirectory;
-        string conversationOutputFile = $"{Constants.ConversationFileNamePrefix}{ConversationPlayer}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string conversationPlayers = string.Join("-", ConversationPlayer.Split(';'));
+        string conversationOutputFile = $"{Constants.ConversationFileNamePrefix}{conversationPlayers}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string conversationOutputFullPath = Path.Combine(directory, conversationOutputFile);
         bool anyConversationFound = false;
         foreach (EqLogFile logFile in logFiles)
@@ -315,7 +319,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             return;
         }
 
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(conversationOutputFullPath, Strings.GetString("SuccessfulCompleteMessage"));
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(conversationOutputFullPath);
         completedDialog.ShowDialog();
     }
 
@@ -337,12 +341,12 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
     private void SetOutputDirectory()
     {
-        OutputDirectory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? Directory.GetCurrentDirectory() : _settings.OutputDirectory;
+        OutputDirectory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? GetUserProfilePath() : _settings.OutputDirectory;
     }
 
     private void SetOutputFile()
     {
-        string directory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? Directory.GetCurrentDirectory() : _settings.OutputDirectory;
+        string directory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? GetUserProfilePath() : _settings.OutputDirectory;
         string outputFile = $"{Constants.GeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmm}.txt";
         GeneratedFile = Path.Combine(directory, outputFile);
     }
@@ -382,7 +386,13 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
                 return;
         }
 
-        IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, raidEntries);
+        if(raidEntries.PossibleLinkdeads.Count > 0)
+        {
+            IPossibleLinkdeadErrorDialogViewModel possibleLDDialog = _dialogFactory.CreatePossibleLinkdeadErrorDialogViewModel(raidEntries);
+            possibleLDDialog.ShowDialog();
+        }
+
+        IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, raidEntries, _settings.IsApiConfigured);
         if (finalSummaryDialog.ShowDialog() == false)
             return;
 
@@ -392,19 +402,13 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         if (!success)
             return;
 
-        RaidUploadResults uploadResults = null;
-
-        //** temp test code
-
-        if (_settings.IsApiConfigured)
+        if (finalSummaryDialog.UploadToServer && _settings.IsApiConfigured)
         {
-            var server = new RaidUploader(_settings);
-            uploadResults = await server.UploadRaid(raidEntries);
+            IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(raidEntries, _settings);
+            raidUpload.ShowDialog();
         }
 
-        //** end temp test
-
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile, uploadResults);
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile);
         completedDialog.ShowDialog();
     }
 

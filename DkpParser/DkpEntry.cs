@@ -11,6 +11,8 @@ public sealed class DkpEntry
 {
     public const string You = "You";
 
+    public AttendanceEntry AssociatedAttendanceCall { get; set; }
+
     public string Auctioneer { get; set; }
 
     public int DkpSpent { get; set; }

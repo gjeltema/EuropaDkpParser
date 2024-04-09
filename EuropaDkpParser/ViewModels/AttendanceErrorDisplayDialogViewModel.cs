@@ -20,7 +20,9 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     private bool _isBossMobTypoError;
     private bool _isDuplicateError;
     private bool _isNoZoneNameError;
+    private bool _isRaidNameTooShortError;
     private string _nextButtonText;
+    private string _raidNameText;
     private string _selectedBossName;
     private AttendanceEntry _selectedErrorEntry;
     private string _zoneNameText;
@@ -33,7 +35,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         _settings = settings;
         _raidEntries = raidEntries;
 
-        ApprovedBossNames = _settings.BossMobs;
+        ApprovedBossNames = _settings.RaidValue.AllBossMobNames;
         string firstBossName = ApprovedBossNames.FirstOrDefault();
         if (!string.IsNullOrEmpty(firstBossName))
         {
@@ -43,9 +45,11 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         MoveToNextErrorCommand = new DelegateCommand(AdvanceToNextError);
         RemoveDuplicateErrorEntryCommand = new DelegateCommand(RemoveDuplicateErrorEntry, () => _currentEntry?.PossibleError == PossibleError.DuplicateRaidEntry && SelectedErrorEntry != null)
             .ObservesProperty(() => SelectedErrorEntry);
-        ChangeBossMobNameCommand = new DelegateCommand(ChangeBossMobName, () => _currentEntry?.PossibleError == PossibleError.BossMobNameTypo);
+        ChangeBossMobNameCommand = new DelegateCommand(ChangeBossMobName);
         UpdateZoneNameCommand = new DelegateCommand(UpdateZoneName, () => !string.IsNullOrWhiteSpace(ZoneNameText))
             .ObservesProperty(() => ZoneNameText);
+        UpdateRaidNameCommand = new DelegateCommand(UpdateRaidName, () => !string.IsNullOrWhiteSpace(RaidNameText))
+            .ObservesProperty(() => RaidNameText);
 
         AdvanceToNextError();
     }
@@ -78,8 +82,6 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         set => SetProperty(ref _errorMessageText, value);
     }
 
-    public DelegateCommand FinishReviewingErrorsCommand { get; }
-
     public bool IsBossMobTypoError
     {
         get => _isBossMobTypoError;
@@ -98,12 +100,24 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         private set => SetProperty(ref _isNoZoneNameError, value);
     }
 
+    public bool IsRaidNameTooShortError
+    {
+        get => _isRaidNameTooShortError;
+        private set => SetProperty(ref _isRaidNameTooShortError, value);
+    }
+
     public DelegateCommand MoveToNextErrorCommand { get; }
 
     public string NextButtonText
     {
         get => _nextButtonText;
         private set => SetProperty(ref _nextButtonText, value);
+    }
+
+    public string RaidNameText
+    {
+        get => _raidNameText;
+        set => SetProperty(ref _raidNameText, value);
     }
 
     public DelegateCommand RemoveDuplicateErrorEntryCommand { get; }
@@ -119,6 +133,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         get => _selectedErrorEntry;
         set => SetProperty(ref _selectedErrorEntry, value);
     }
+
+    public DelegateCommand UpdateRaidNameCommand { get; }
 
     public DelegateCommand UpdateZoneNameCommand { get; }
 
@@ -153,12 +169,15 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
         RemoveDuplicateErrorEntryCommand.RaiseCanExecuteChanged();
         ChangeBossMobNameCommand.RaiseCanExecuteChanged();
+        UpdateZoneNameCommand.RaiseCanExecuteChanged();
+        UpdateRaidNameCommand.RaiseCanExecuteChanged();
 
         if (_currentEntry.PossibleError == PossibleError.DuplicateRaidEntry)
         {
             IsBossMobTypoError = false;
             IsDuplicateError = true;
             IsNoZoneNameError = false;
+            IsRaidNameTooShortError = false;
 
             ErrorMessageText = Strings.GetString("PossibleDupEntries");
             ErrorAttendances = _raidEntries.AttendanceEntries
@@ -170,31 +189,41 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             IsBossMobTypoError = true;
             IsDuplicateError = false;
             IsNoZoneNameError = false;
+            IsRaidNameTooShortError = false;
 
             ErrorMessageText = Strings.GetString("PossibleBossTypo");
             ErrorAttendances = [_currentEntry];
 
-            for (int i = 8; i > 0; i--)
-            {
-                if (_currentEntry.RaidName.Length < i)
-                    continue;
-
-                string startOfBossName = _currentEntry.RaidName[..i];
-                string approvedBossName = _settings.BossMobs.FirstOrDefault(x => x.StartsWith(startOfBossName));
-                if (approvedBossName != null)
-                {
-                    SelectedBossName = approvedBossName;
-                    break;
-                }
-            }
+            SetSelectedBossName();
         }
         else if (_currentEntry.PossibleError == PossibleError.NoZoneName)
         {
             IsBossMobTypoError = false;
             IsDuplicateError = false;
             IsNoZoneNameError = true;
+            IsRaidNameTooShortError = false;
 
             ErrorMessageText = Strings.GetString("NoZoneNameErrorText");
+            ErrorAttendances = [_currentEntry];
+        }
+        else if (_currentEntry.PossibleError == PossibleError.RaidNameTooShort)
+        {
+            IsDuplicateError = false;
+            IsNoZoneNameError = false;
+
+            if (_currentEntry.AttendanceCallType == AttendanceCallType.Time)
+            {
+                IsRaidNameTooShortError = true;
+                IsBossMobTypoError = false;
+            }
+            else
+            {
+                IsRaidNameTooShortError = false;
+                IsBossMobTypoError = true;
+                SetSelectedBossName();
+            }
+
+            ErrorMessageText = Strings.GetString("RaidNameTooShort");
             ErrorAttendances = [_currentEntry];
         }
     }
@@ -222,9 +251,33 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         NextButtonText = numberOfErrors > 1 ? Strings.GetString("Next") : Strings.GetString("Finish");
     }
 
+    private void SetSelectedBossName()
+    {
+        for (int i = 8; i > 0; i--)
+        {
+            if (_currentEntry.RaidName.Length < i)
+                continue;
+
+            string startOfBossName = _currentEntry.RaidName[..i];
+            string approvedBossName = ApprovedBossNames.FirstOrDefault(x => x.StartsWith(startOfBossName));
+            if (approvedBossName != null)
+            {
+                SelectedBossName = approvedBossName;
+                break;
+            }
+        }
+    }
+
+    private void UpdateRaidName()
+    {
+        _currentEntry.RaidName = RaidNameText;
+        ErrorAttendances = [_currentEntry];
+    }
+
     private void UpdateZoneName()
     {
         _currentEntry.ZoneName = ZoneNameText;
+        ErrorAttendances = [_currentEntry];
     }
 }
 
@@ -242,23 +295,27 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
 
     string ErrorMessageText { get; }
 
-    DelegateCommand FinishReviewingErrorsCommand { get; }
-
     bool IsBossMobTypoError { get; }
 
     bool IsDuplicateError { get; }
 
     bool IsNoZoneNameError { get; }
 
+    bool IsRaidNameTooShortError { get; }
+
     DelegateCommand MoveToNextErrorCommand { get; }
 
     string NextButtonText { get; }
+
+    string RaidNameText { get; set; }
 
     DelegateCommand RemoveDuplicateErrorEntryCommand { get; }
 
     string SelectedBossName { get; set; }
 
     AttendanceEntry SelectedErrorEntry { get; set; }
+
+    DelegateCommand UpdateRaidNameCommand { get; }
 
     DelegateCommand UpdateZoneNameCommand { get; }
 

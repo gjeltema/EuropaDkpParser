@@ -19,6 +19,10 @@ public sealed class RaidEntries
 
     public ICollection<PlayerLooted> PlayerLootedEntries { get; set; }
 
+    public ICollection<PlayerPossibleLinkdead> PossibleLinkdeads { get; } = new List<PlayerPossibleLinkdead>();
+
+    public IList<RaidInfo> Raids { get; } = new List<RaidInfo>();
+
     public ICollection<EqLogEntry> UnvisitedEntries { get; set; } = new List<EqLogEntry>();
 
     public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)

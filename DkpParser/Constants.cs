@@ -29,6 +29,7 @@ public static class Constants
     public const string LeftRaid = " has left the raid.";
     public const string LogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string LootedA = " looted a ";
+    public const int MinimumRaidNameLength = 5;
     /// <summary>
     /// Entry for noting the number of players and zone.  Assuming for a raid call, it will always be plural.  If there is one player returned, it will say "... player in...".<br/>
     /// [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.

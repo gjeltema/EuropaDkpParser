@@ -38,6 +38,12 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:AttendanceEntryModiferDialogViewModel}">
                     <dialogsView:AttendanceEntryModiferDialog />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:RaidUploadDialogViewModel}">
+                    <dialogsView:RaidUploadDialog />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:PossibleLinkdeadErrorDialogViewModel}">
+                    <dialogsView:PossibleLinkdeadErrorDialog />
+                </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>
     </ContentPresenter>

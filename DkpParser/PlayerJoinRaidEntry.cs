@@ -20,4 +20,7 @@ public sealed class PlayerJoinRaidEntry
 
     public string ToDisplayString()
         => $"{PlayerName} {(EntryType == LogEntryType.JoinedRaid ? "Join" : "Leave")} {Timestamp:HH:mm:ss}";
+
+    public override string ToString() 
+        => $"{Timestamp:HH:mm:ss} {PlayerName} has {(EntryType == LogEntryType.JoinedRaid ? "joined" : "left")} the raid";
 }
