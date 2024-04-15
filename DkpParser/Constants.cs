@@ -15,6 +15,7 @@ public static class Constants
     public const string ArchiveFileNameTimeFormat = "yyyyMMdd-HHmmss";
     public const string Attendance = "Attendance";
     public const string AttendanceDelimiter = ":::";
+    public const string CommunicationFileNamePrefix = "CommunicationOutput-";
     public const string ConversationFileNamePrefix = "ConversationOutput-";
     public const string Dashes = "---------------------------";
     public const string DkpSpent = "DKPSPENT";

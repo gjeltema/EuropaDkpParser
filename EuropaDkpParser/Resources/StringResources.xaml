@@ -114,6 +114,10 @@
     <system:String x:Key="StartConversationParse">Get Convo</system:String>
     <system:String x:Key="NoConversationFoundTitle">No conversation found.</system:String>
     <system:String x:Key="NoConversationFound">No conversation entries with the player were found.</system:String>
+    <system:String x:Key="NoCommunicationFoundTitle">No communications found.</system:String>
+    <system:String x:Key="NoCommunicationFound">No communication entries were found.</system:String>
+    <system:String x:Key="ParseCommunication">Parse all comms (/t, ooc, say, rs, shout, guild, channels)</system:String>
+    <system:String x:Key="StartCommunicationParse">Get All Comm</system:String>
     <system:String x:Key="NoSearchTermFoundTitle">No Search Term Found.</system:String>
     <system:String x:Key="NoSearchTermFound">No entries with the search term were found.</system:String>
     <system:String x:Key="StartLogGeneration">Generate Log</system:String>

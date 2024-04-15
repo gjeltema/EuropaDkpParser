@@ -40,6 +40,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         ResetTimeCommand = new DelegateCommand(ResetTime);
         GetConversationCommand = new DelegateCommand(ParseConversation, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(ConversationPlayer) && !string.IsNullOrWhiteSpace(OutputDirectory))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputDirectory).ObservesProperty(() => ConversationPlayer);
+        GetAllCommunicationCommand = new DelegateCommand(GetAllCommunication, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(OutputDirectory))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputDirectory);
         GetSearchTermCommand = new DelegateCommand(GetSearchTerm, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(SearchTermText) && !string.IsNullOrWhiteSpace(OutputDirectory))
            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputDirectory).ObservesProperty(() => SearchTermText);
         OpenFileArchiveDialogCommand = new DelegateCommand(OpenFileArchiveDialog);
@@ -83,6 +85,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         get => _generatedFile;
         set => SetProperty(ref _generatedFile, value);
     }
+
+    public DelegateCommand GetAllCommunicationCommand { get; }
 
     public DelegateCommand GetConversationCommand { get; }
 
@@ -165,6 +169,37 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             _performingParse = false;
             RefreshCommands();
         }
+    }
+
+    private async void GetAllCommunication()
+        => await ExecuteParse(GetAllCommunicationAsync);
+
+    private async Task GetAllCommunicationAsync(DateTime startTime, DateTime endTime)
+    {
+        IAllCommunicationParser communicationParser = new AllCommunicationParser(_settings);
+        ICollection<EqLogFile> logFiles = await Task.Run(() => communicationParser.GetEqLogFiles(startTime, endTime));
+
+        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string communicationOutputFile = $"{Constants.CommunicationFileNamePrefix}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string communicationOutputFullPath = Path.Combine(directory, communicationOutputFile);
+        bool anyCommunicationFound = false;
+        foreach (EqLogFile logFile in logFiles)
+        {
+            if (logFile.LogEntries.Count > 0)
+            {
+                await CreateFile(communicationOutputFullPath, logFile.GetAllLogLines());
+                anyCommunicationFound = true;
+            }
+        }
+
+        if (!anyCommunicationFound)
+        {
+            MessageBox.Show(Strings.GetString("NoCommunicationFound"), Strings.GetString("NoCommunicationFoundTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(communicationOutputFullPath);
+        completedDialog.ShowDialog();
     }
 
     private int GetIntValue(string inputValue)
@@ -386,7 +421,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
                 return;
         }
 
-        if(raidEntries.PossibleLinkdeads.Count > 0)
+        if (raidEntries.PossibleLinkdeads.Count > 0)
         {
             IPossibleLinkdeadErrorDialogViewModel possibleLDDialog = _dialogFactory.CreatePossibleLinkdeadErrorDialogViewModel(raidEntries);
             possibleLDDialog.ShowDialog();
@@ -446,6 +481,8 @@ public interface IMainDisplayViewModel : IEuropaViewModel
     string EndTimeText { get; set; }
 
     string GeneratedFile { get; set; }
+
+    DelegateCommand GetAllCommunicationCommand { get; }
 
     DelegateCommand GetConversationCommand { get; }
 

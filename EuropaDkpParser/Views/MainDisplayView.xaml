@@ -75,6 +75,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Rectangle Grid.Row="0" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,0,0,4"/>
@@ -91,7 +92,17 @@
                 <Button Grid.Column="2" Content="{StaticResource StartConversationParse}" Command="{Binding GetConversationCommand}" Width="85" Height="25"/>
             </Grid>
 
-            <Rectangle Grid.Row="2" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,4,0,0"/>
+            <Grid Grid.Row="2" Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource ParseCommunication}" />
+                <Button Grid.Column="1" Content="{StaticResource StartCommunicationParse}" Command="{Binding GetAllCommunicationCommand}" Width="85" Height="25"/>
+            </Grid>
+
+            <Rectangle Grid.Row="3" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,4,0,0"/>
         </Grid>
 
         <!-- Search Term -->
