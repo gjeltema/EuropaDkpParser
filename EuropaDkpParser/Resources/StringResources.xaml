@@ -62,6 +62,9 @@
     <system:String x:Key="PlayerNameErrorMessage">Player name is empty.</system:String>
     <system:String x:Key="RawLogEntry">Raw Log Entry:</system:String>
     <system:String x:Key="ZeroDkpSpentCall">The DKP amount is zero.</system:String>
+    <system:String x:Key="FixedPlayerNotLootedMessage">Player DKPSPENT entry was successfully updated.</system:String>
+    <system:String x:Key="RemovedPlayerNotLootedMessage">Player DKPSPENT entry was successfully removed.</system:String>
+    <system:String x:Key="FixedPlayerTypoMessage">Player DKPSPENT entry was successfully updated.</system:String>
     
     <!-- AttendanceErrorDisplay -->
     <system:String x:Key="SetBoss">Set Boss</system:String>
@@ -175,4 +178,5 @@
     <system:String x:Key="AttendancesAndJoinsLabelText">All Attendance Calls and Leave/Join Raid</system:String>
     <system:String x:Key="AttendanceMissingFrom">Attendance missing from:</system:String>
     <system:String x:Key="AddToRaid">Add To Raid</system:String>
+    <system:String x:Key="PlayerAddedMessage">Player was successfully added to the raid.</system:String>
 </ResourceDictionary>

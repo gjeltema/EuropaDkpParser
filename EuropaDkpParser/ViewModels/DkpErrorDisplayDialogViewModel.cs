@@ -33,6 +33,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private PlayerLooted _selectedPlayerLooted;
     private string _selectedPlayerName;
     private string _timestamp;
+    private string _updatePlayerNotLootedErrorMessage;
 
     internal DkpErrorDisplayDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
@@ -221,9 +222,17 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         get => _timestamp;
         set => SetProperty(ref _timestamp, value);
     }
+    
+    public string UpdatePlayerNotLootedErrorMessage
+    {
+        get => _updatePlayerNotLootedErrorMessage;
+        set => SetProperty(ref _updatePlayerNotLootedErrorMessage, value);
+    }
 
     private void AdvanceToNextError()
     {
+        UpdatePlayerNotLootedErrorMessage = string.Empty;
+
         // Clean up previous error entries
         if (DuplicateDkpspentEntries.Count > 0)
         {
@@ -315,6 +324,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         _currentEntry.PlayerName = PlayerName;
         _currentEntry.Item = ItemName;
         _currentEntry.DkpSpent = parsedDkp;
+
+        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedPlayerNotLootedMessage");
     }
 
     private void FixNoLootedMessageUsingSelection()
@@ -326,6 +337,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         }
         _currentEntry.PlayerName = _selectedPlayerLooted.PlayerName;
         _currentEntry.Item = _selectedPlayerLooted.ItemLooted;
+
+        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedPlayerNotLootedMessage");
     }
 
     private void FixPlayerTypoManual()
@@ -338,12 +351,16 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         }
 
         _currentEntry.PlayerName = PlayerName;
+
+        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedPlayerTypoMessage");
     }
 
     private void FixPlayerTypoUsingSelection()
     {
         _currentEntry.PlayerName = SelectedPlayerName;
         PlayerName = _currentEntry.PlayerName;
+
+        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedPlayerTypoMessage");
     }
 
     private void FixZeroDkpError()
@@ -359,6 +376,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private void RemoveDkpEntry()
     {
         _raidEntries.DkpEntries.Remove(_currentEntry);
+
+        UpdatePlayerNotLootedErrorMessage = Strings.GetString("RemovedPlayerNotLootedMessage");
     }
 
     private void RemoveDuplicateDkpspentCall()
@@ -442,4 +461,6 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
     PlayerLooted SelectedPlayerLooted { get; set; }
 
     string SelectedPlayerName { get; set; }
+
+    string UpdatePlayerNotLootedErrorMessage { get; }
 }

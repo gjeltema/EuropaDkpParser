@@ -15,6 +15,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
     private ICollection<string> _attendancesAndJoins;
     private PlayerPossibleLinkdead _currentEntry;
     private string _nextButtonText;
+    private string _playerAddedMessage;
     private string _playerName;
     private string _selectedAttendance;
 
@@ -52,6 +53,12 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         get => _nextButtonText;
         private set => SetProperty(ref _nextButtonText, value);
     }
+    
+    public string PlayerAddedMessage
+    {
+        get => _playerAddedMessage;
+        private set => SetProperty(ref _playerAddedMessage, value);
+    }
 
     public string PlayerName
     {
@@ -64,14 +71,17 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         get => _selectedAttendance;
         set => SetProperty(ref _selectedAttendance, value);
     }
-
+    
     private void AddToAttendance()
     {
         _currentEntry.AttendanceMissingFrom.Players.Add(_currentEntry.Player);
+        PlayerAddedMessage = Strings.GetString("PlayerAddedMessage");
     }
 
     private void MoveToNextError()
     {
+        PlayerAddedMessage = string.Empty;
+
         if (_currentEntry != null)
             _currentEntry.Addressed = true;
 
@@ -127,4 +137,6 @@ public interface IPossibleLinkdeadErrorDialogViewModel : IDialogViewModel
     string PlayerName { get; }
 
     string SelectedAttendance { get; set; }
+
+    string PlayerAddedMessage { get; }
 }

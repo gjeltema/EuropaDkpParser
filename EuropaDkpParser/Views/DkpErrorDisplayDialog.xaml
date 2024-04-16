@@ -60,6 +60,8 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
                 <Grid Grid.Row="0">
@@ -99,6 +101,10 @@
                     </Button.ToolTip>
                 </Button>
                 <Button Grid.Row="3" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="0,30,0,0" Width="130" Height="30" HorizontalAlignment="Left"/>
+            
+                <!-- Row 4 is filler -->
+
+                <Label Grid.Row="5" Content="{Binding UpdatePlayerNotLootedErrorMessage}" />
             </Grid>
 
         </Grid>
@@ -175,6 +181,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
@@ -222,6 +229,8 @@
             </Grid>
 
             <Button Grid.Row="5" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110" Height="30" HorizontalAlignment="Right"/>
+
+            <Label Grid.Row="6" Content="{Binding UpdatePlayerNotLootedErrorMessage}" Margin="0,20,0,0" />
         </Grid>
 
         <!-- Zero DKP Error -->
