@@ -90,13 +90,15 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         string[] fileContents = File.ReadAllLines(_settingsFilePath);
         SetWindowLocation(fileContents);
-        SetEqDirectory(fileContents);
-        SetOutputDirectory(fileContents);
-        SetSelectedLogFiles(fileContents);
+        SetDirectories(fileContents);
         SetSimpleArchiveSettings(fileContents);
-        SetDebugOptions(fileContents);
-        SetApiValues(fileContents);
-        SetMiscSettings(fileContents);
+
+        SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
+        EnableDebugOptions = GetBoolValue(fileContents, EnableDebugOptionsSection);
+        ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection);
+        ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
+        ApiUrl = GetStringValue(fileContents, ApiUrlSection);
+        AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
     }
 
     public void SaveSettings()
@@ -254,40 +256,15 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private bool IsValidIndex(int indexOfSection, ICollection<string> fileContents)
         => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
 
-    private void SetApiValues(string[] fileContents)
-    {
-        ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection);
-        ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
-        ApiUrl = GetStringValue(fileContents, ApiUrlSection);
-    }
-
-    private void SetDebugOptions(string[] fileContents)
-    {
-        EnableDebugOptions = GetBoolValue(fileContents, EnableDebugOptionsSection);
-    }
-
-    private void SetEqDirectory(string[] fileContents)
+    private void SetDirectories(string[] fileContents)
     {
         EqDirectory = GetStringValue(fileContents, EqDirectorySection);
-    }
 
-    private void SetMiscSettings(string[] fileContents)
-    {
-        AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
-    }
-
-    private void SetOutputDirectory(string[] fileContents)
-    {
         OutputDirectory = GetStringValue(fileContents, OutputDirectorySection);
         if (string.IsNullOrWhiteSpace(OutputDirectory) && !string.IsNullOrWhiteSpace(EqDirectory))
         {
             OutputDirectory = EqDirectory;
         }
-    }
-
-    private void SetSelectedLogFiles(string[] fileContents)
-    {
-        SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
     }
 
     private void SetSimpleArchiveSettings(string[] fileContents)
