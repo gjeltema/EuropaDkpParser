@@ -39,6 +39,9 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
 
     public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)
     {
+        if (playerCharacter == null)
+            return;
+
         PlayerCharacter currentChar = Players.FirstOrDefault(x => x.PlayerName == playerCharacter.PlayerName);
         if (currentChar != null)
         {

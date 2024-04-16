@@ -21,7 +21,8 @@ public enum LogEntryType : byte
     PlayerLooted,
     Conversation,
     JoinedRaid,
-    LeftRaid
+    LeftRaid, 
+    Crashed
 }
 
 public enum PossibleError : byte

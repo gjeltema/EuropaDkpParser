@@ -8,6 +8,7 @@ using System.Diagnostics;
 
 internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 {
+    private static readonly TimeSpan thirtyMinutes = TimeSpan.FromMinutes(30);
     private readonly List<PlayerAttend> _playersAttending = [];
     private readonly List<ZoneNameInfo> _zones = [];
     private RaidEntries _raidEntries;
@@ -19,6 +20,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         PopulateZoneNames(logParseResults);
 
         AnalyzeLogFilesAttendanceCalls(logParseResults);
+        HandleCrashedEntries(logParseResults);
     }
 
     private void AddPlayersFromPlayersAttending(EqLogEntry logEntry, AttendanceEntry call)
@@ -60,31 +62,28 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-            foreach (EqLogEntry logEntry in log.LogEntries)
+            foreach (EqLogEntry logEntry in log.LogEntries.Where(x => x.EntryType == LogEntryType.Attendance || x.EntryType == LogEntryType.Kill))
             {
-                if (logEntry.EntryType == LogEntryType.Attendance || logEntry.EntryType == LogEntryType.Kill)
-                {
-                    string correctedLogLine = CorrectDelimiter(logEntry.LogLine);
-                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.LogLine };
+                string correctedLogLine = CorrectDelimiter(logEntry.LogLine);
+                AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.LogLine };
 
-                    SetAttendanceType(logEntry, call, correctedLogLine);
+                SetAttendanceType(logEntry, call, correctedLogLine);
 
-                    if (IsRemoveCall(logEntry, call, correctedLogLine))
-                        continue;
+                if (IsRemoveCall(logEntry, call, correctedLogLine))
+                    continue;
 
-                    AddRaidDumpMembers(logParseResults, logEntry, call);
+                AddRaidDumpMembers(logParseResults, logEntry, call);
 
-                    AddRaidListMembers(logParseResults, logEntry, call);
+                AddRaidListMembers(logParseResults, logEntry, call);
 
-                    AddPlayersFromPlayersAttending(logEntry, call);
+                AddPlayersFromPlayersAttending(logEntry, call);
 
-                    UpdatePlayerInfo(call);
+                UpdatePlayerInfo(call);
 
-                    SetZoneName(logEntry, call);
+                SetZoneName(logEntry, call);
 
-                    logEntry.Visited = true;
-                    _raidEntries.AttendanceEntries.Add(call);
-                }
+                logEntry.Visited = true;
+                _raidEntries.AttendanceEntries.Add(call);
             }
         }
     }
@@ -153,6 +152,17 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
     }
 
+    private PlayerCharacter ExtractCrashedPlayer(EqLogEntry logEntry)
+    {
+        // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::CRASHED:::'
+
+        string linePastTimestamp = logEntry.LogLine[(Constants.LogDateTimeLength + 1)..];
+        string[] parts = linePastTimestamp.Split(' ');
+        string playerName = parts[0];
+        PlayerCharacter character = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerName);
+        return character;
+    }
+
     private ZoneNameInfo ExtractZoneName(EqLogEntry entry)
     {
         // [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
@@ -178,6 +188,47 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
 
         return lastOneFound;
+    }
+
+    private void HandleCrashedEntries(LogParseResults logParseResults)
+    {
+        foreach (EqLogFile logFile in logParseResults.EqLogFiles)
+        {
+            foreach (EqLogEntry logEntry in logFile.LogEntries.Where(x => x.EntryType == LogEntryType.Crashed))
+            {
+                PlayerCharacter crashedPlayer = ExtractCrashedPlayer(logEntry);
+                if (crashedPlayer == null)
+                    continue;
+
+                PlayerJoinRaidEntry previousLeaveEntry = _raidEntries.PlayerJoinCalls
+                    .Where(x => x.EntryType == LogEntryType.LeftRaid && x.PlayerName == crashedPlayer.PlayerName && x.Timestamp < logEntry.Timestamp)
+                    .MaxBy(x => x.Timestamp);
+
+                DateTime startTimestamp = previousLeaveEntry.Timestamp;
+                bool isMoreThan30Minutes = (logEntry.Timestamp - previousLeaveEntry.Timestamp) > thirtyMinutes;
+                if (isMoreThan30Minutes)
+                {
+                    AttendanceEntry previousTimeAttendance = _raidEntries.AttendanceEntries
+                        .Where(x => x.AttendanceCallType == AttendanceCallType.Time
+                                        && x.Timestamp < logEntry.Timestamp
+                                        && (logEntry.Timestamp - x.Timestamp) < thirtyMinutes)
+                        .MaxBy(x => x.Timestamp);
+
+                    if (previousLeaveEntry == null)
+                        continue;
+
+                    startTimestamp = previousTimeAttendance.Timestamp;
+                }
+
+                IEnumerable<AttendanceEntry> missingFromAttendanceEnties = _raidEntries.AttendanceEntries
+                    .Where(x => startTimestamp <= x.Timestamp && x.Timestamp < logEntry.Timestamp);
+
+                foreach (AttendanceEntry entry in missingFromAttendanceEnties)
+                {
+                    entry.AddOrMergeInPlayerCharacter(crashedPlayer);
+                }
+            }
+        }
     }
 
     private bool IsRemoveCall(EqLogEntry logEntry, AttendanceEntry call, string logLine)

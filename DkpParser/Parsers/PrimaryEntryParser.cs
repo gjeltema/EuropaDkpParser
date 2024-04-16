@@ -69,6 +69,10 @@ internal sealed class PrimaryEntryParser : IParseEntry
             _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
             _setParser.SetEntryParser(_populationListingStartParser);
         }
+        else if (logLine.Contains(Constants.Crashed) && logLine.Contains(" tells the raid, "))
+        {
+            logEntry.EntryType = LogEntryType.Crashed;
+        }
     }
 
     private void AddLootedEntry(string logLine, DateTime entryTimeStamp)
