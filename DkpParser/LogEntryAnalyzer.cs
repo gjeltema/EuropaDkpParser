@@ -158,11 +158,11 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             foreach (AttendanceEntry attendance in attendancesMissingFrom)
             {
                 AttendanceEntry previousAttendance = orderedAttendances
-                    .Where(x => x.Timestamp < attendance.Timestamp)
+                    .Where(x => x.Timestamp < attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
                     .LastOrDefault();
 
                 AttendanceEntry nextAttendance = orderedAttendances
-                    .Where(x => x.Timestamp > attendance.Timestamp)
+                    .Where(x => x.Timestamp > attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
                     .FirstOrDefault();
 
                 bool playerInPreviousAttendance = previousAttendance == null || previousAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
