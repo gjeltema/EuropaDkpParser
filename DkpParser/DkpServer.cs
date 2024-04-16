@@ -63,7 +63,7 @@ public sealed class DkpServer : IDkpServer
 
         var attendanceContent =
             new XElement("request",
-                new XElement("raid_date", attendanceEntry.Timestamp.ToString(ServerTimeFormat)),
+                new XElement("raid_date", attendanceEntry.Timestamp.ToUsTimestamp(ServerTimeFormat)),
                 new XElement("raid_value", dkpValue),
                 new XElement("raid_event_id", eventId),
                 new XElement("raid_note", attendanceEntry.ToDkpServerDescription()),
@@ -82,7 +82,7 @@ public sealed class DkpServer : IDkpServer
 
         var dkpContent =
             new XElement("request",
-                new XElement("item_date", dkpEntry.Timestamp.ToString(ServerTimeFormat)),
+                new XElement("item_date", dkpEntry.Timestamp.ToUsTimestamp(ServerTimeFormat)),
                 new XElement("item_value", dkpEntry.DkpSpent),
                 new XElement("item_name", dkpEntry.Item),
                 new XElement("item_raid_id", raidId),
@@ -173,7 +173,6 @@ public sealed class DkpServer : IDkpServer
     private async Task<string> UploadMessage(string function, string content)
     {
         using HttpContent postContent = GetPostContent(content);
-        //postContent.Headers["Content-Type"] = "application/xml";
         postContent.Headers.ContentType = _mediaHeader;
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiWriteToken}&function={function}";
         using HttpResponseMessage response = await LocalHttpClient.PostAsync(uri, postContent);
