@@ -427,6 +427,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             possibleLDDialog.ShowDialog();
         }
 
+        IBonusDkpAnalyzer bonusDkp = new BonusDkpAnalyzer(_settings);
+        bonusDkp.AddBonusAttendance(raidEntries);
+
         IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, raidEntries, _settings.IsApiConfigured);
         if (finalSummaryDialog.ShowDialog() == false)
             return;

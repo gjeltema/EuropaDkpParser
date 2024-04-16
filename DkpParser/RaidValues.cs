@@ -10,6 +10,7 @@ using System.IO;
 public sealed class RaidValues : IRaidValues
 {
     private const string AliasSection = "ZONE_ALIAS_SECTION";
+    private const string BonusZonesSection = "BONUS_ZONES_SECTION";
     private const string BossSection = "BOSS_SECTION";
     private const string Comment = "#";
     private const char Delimiter = '\t';
@@ -21,6 +22,7 @@ public sealed class RaidValues : IRaidValues
     private readonly Dictionary<int, int> _tiers = [];
     private readonly Dictionary<string, string> _zoneRaidAliases = [];
     private readonly List<ZoneValue> _zoneValues = [];
+    private List<string> _bonusZones;
 
     public RaidValues(string raidValuesFileName)
     {
@@ -60,6 +62,12 @@ public sealed class RaidValues : IRaidValues
     public string GetZoneRaidAlias(string zoneName)
         => _zoneRaidAliases.TryGetValue(zoneName, out string alias) ? alias : zoneName;
 
+    public bool IsBonusZone(string zoneName)
+    {
+        string aliasName = GetZoneRaidAlias(zoneName);
+        return _bonusZones.Contains(aliasName);
+    }
+
     public void LoadSettings()
     {
         if (!File.Exists(_raidValuesFileName))
@@ -72,6 +80,7 @@ public sealed class RaidValues : IRaidValues
         LoadBossSection(fileContents);
         LoadZoneSection(fileContents);
         LoadZoneAliasSection(fileContents);
+        LoadBonusZones(fileContents);
     }
 
     private static int GetStartingIndex(IList<string> fileContents, string configurationSectionName)
@@ -102,6 +111,11 @@ public sealed class RaidValues : IRaidValues
         }
 
         return entries;
+    }
+
+    private void LoadBonusZones(string[] fileContents)
+    {
+        _bonusZones = GetAllEntriesInSection(fileContents, BonusZonesSection);
     }
 
     private void LoadBossSection(string[] fileContents)
@@ -208,6 +222,8 @@ public interface IRaidValues
     int GetTimeBasedValue(string zoneName);
 
     string GetZoneRaidAlias(string zoneName);
+
+    bool IsBonusZone(string zoneName);
 
     void LoadSettings();
 }

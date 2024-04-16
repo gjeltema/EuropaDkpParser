@@ -19,7 +19,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string ArchiveGeneratedLogFileDirectorySection = "ARCHIVE_GEN_LOG_DIRECTORY";
     private const string ArchiveSelectedFilesToArchiveSection = "ARCHIVE_SELECTED_EQ_LOG_FILES";
     private const int DefaultWindowLocation = 200;
+    private const char Delimiter = '=';
     private const string EnableDebugOptionsSection = "ENABLE_DEBUG";
+    private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string SectionEnding = "_END";
@@ -33,6 +35,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         _settingsFilePath = settingsFilePath;
         _raidValuesFileName = raidValuesFileName;
     }
+
+    public bool AddBonusDkpRaid { get; set; }
 
     public string ApiReadToken { get; set; }
 
@@ -73,11 +77,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public ICollection<string> SelectedLogFiles { get; set; } = [];
 
-    public void LoadAllSettings()
-    {
-        LoadSettings();
-    }
-
     public void LoadSettings()
     {
         RaidValue = new RaidValues(_raidValuesFileName);
@@ -97,6 +96,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetSimpleArchiveSettings(fileContents);
         SetDebugOptions(fileContents);
         SetApiValues(fileContents);
+        SetMiscSettings(fileContents);
     }
 
     public void SaveSettings()
@@ -107,61 +107,42 @@ public sealed class DkpParserSettings : IDkpParserSettings
             MainWindowX.ToString(),
             MainWindowY.ToString(),
             WindowLocationSection + SectionEnding,
-            EqDirectorySection,
-            EqDirectory,
-            EqDirectorySection + SectionEnding,
-            OutputDirectorySection,
-            OutputDirectory,
-            OutputDirectorySection + SectionEnding,
-            EnableDebugOptionsSection,
-            EnableDebugOptions.ToString(),
-            EnableDebugOptionsSection + SectionEnding,
-            ArchiveAllOrSelectedEqLogFileSection,
-            ArchiveAllEqLogFiles.ToString(),
-            ArchiveAllOrSelectedEqLogFileSection + SectionEnding,
-            ArchiveEqLogFileDirectorySection,
-            EqLogFileArchiveDirectory,
-            ArchiveEqLogFileDirectorySection + SectionEnding,
-            ArchiveEqLogFileAgeSection,
-            EqLogFileAgeToArchiveInDays.ToString(),
-            ArchiveEqLogFileAgeSection + SectionEnding,
-            ArchiveEqLogFilesSizeSection,
-            EqLogFileSizeToArchiveInMBs.ToString(),
-            ArchiveEqLogFilesSizeSection + SectionEnding,
-            ArchiveGeneratedLogFileDirectorySection,
-            GeneratedLogFilesArchiveDirectory,
-            ArchiveGeneratedLogFileDirectorySection + SectionEnding,
-            ArchiveGeneratedLogFileAgeSection,
-            GeneratedLogFilesAgeToArchiveInDays.ToString(),
-            ArchiveGeneratedLogFileAgeSection + SectionEnding,
-            ApiReadTokenSection,
-            ApiReadToken,
-            ApiReadTokenSection + SectionEnding,
-            ApiWriteTokenSection,
-            ApiWriteToken,
-            ApiWriteTokenSection + SectionEnding,
-            ApiUrlSection,
-            ApiUrl,
-            ApiUrlSection + SectionEnding
+            CreateFileEntry(EqDirectorySection, EqDirectory),
+            CreateFileEntry(OutputDirectorySection, OutputDirectory),
+            CreateFileEntry(EnableDebugOptionsSection, EnableDebugOptions),
+            CreateFileEntry(ArchiveAllOrSelectedEqLogFileSection, ArchiveAllEqLogFiles),
+            CreateFileEntry(ArchiveEqLogFileDirectorySection, EqLogFileArchiveDirectory),
+            CreateFileEntry(ArchiveEqLogFileAgeSection, EqLogFileAgeToArchiveInDays),
+            CreateFileEntry(ArchiveEqLogFilesSizeSection, EqLogFileSizeToArchiveInMBs),
+            CreateFileEntry(ArchiveGeneratedLogFileDirectorySection, GeneratedLogFilesArchiveDirectory),
+            CreateFileEntry(ArchiveGeneratedLogFileAgeSection, GeneratedLogFilesAgeToArchiveInDays),
+            CreateFileEntry(ApiReadTokenSection, ApiReadToken),
+            CreateFileEntry(ApiWriteTokenSection, ApiWriteToken),
+            CreateFileEntry(ApiUrlSection, ApiUrl),
+            CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid)
         };
 
-        settingsFileContent.Add(SelectedLogFilesSection);
-        if (SelectedLogFiles.Count > 0)
-            settingsFileContent.AddRange(SelectedLogFiles);
+        AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
 
-        settingsFileContent.Add(SelectedLogFilesSection + SectionEnding);
-
-        settingsFileContent.Add(ArchiveSelectedFilesToArchiveSection);
-        if (EqLogFilesToArchive.Count > 0)
-            settingsFileContent.AddRange(EqLogFilesToArchive);
-
-        settingsFileContent.Add(ArchiveSelectedFilesToArchiveSection + SectionEnding);
+        AddCollection(settingsFileContent, EqLogFilesToArchive, ArchiveSelectedFilesToArchiveSection);
 
         File.WriteAllLines(_settingsFilePath, settingsFileContent);
     }
 
-    private static int GetStartingIndex(IList<string> fileContents, string configurationSectionName)
-        => fileContents.IndexOf(configurationSectionName);
+    private static int GetStartingIndex(string[] fileContents, string configurationSectionName)
+        => Array.FindIndex(fileContents, x => x.StartsWith(configurationSectionName));
+
+    private void AddCollection(List<string> settingsFileContent, IEnumerable<string> contentsToAdd, string sectionName)
+    {
+        settingsFileContent.Add(sectionName);
+
+        settingsFileContent.AddRange(contentsToAdd);
+
+        settingsFileContent.Add(sectionName + SectionEnding);
+    }
+
+    private string CreateFileEntry<T>(string settingName, T settingValue)
+        => $"{settingName}{Delimiter}{settingValue}";
 
     private ICollection<string> GetAllEntriesInSection(string[] fileContents, string key)
     {
@@ -183,18 +164,51 @@ public sealed class DkpParserSettings : IDkpParserSettings
         return entries;
     }
 
+    private bool GetBoolValue(string[] fileContents, string key, bool defaultValue = false)
+    {
+        int index = GetStartingIndex(fileContents, key);
+        if (!IsValidIndex(index, fileContents))
+            return defaultValue;
+
+        string setting = fileContents[index];
+        string[] split = setting.Split(Delimiter);
+        if (split.Length > 1)
+            return split[1].Equals("TRUE", StringComparison.OrdinalIgnoreCase);
+
+        index++;
+        string settingValue = fileContents[index];
+        if (settingValue == key + SectionEnding)
+            return defaultValue;
+
+        return settingValue.Equals("TRUE", StringComparison.OrdinalIgnoreCase);
+    }
+
     private int GetIntValue(string[] fileContents, string key, int defaultValue = 0)
     {
         int index = GetStartingIndex(fileContents, key);
         if (!IsValidIndex(index, fileContents))
-            return 0;
-
-        index++;
-        string setting = fileContents[index];
-        if (setting == key + SectionEnding)
             return defaultValue;
 
-        if (int.TryParse(setting, out int intValue))
+        string setting = fileContents[index];
+        string[] split = setting.Split(Delimiter);
+        if (split.Length > 1)
+        {
+            if (int.TryParse(split[1], out int parsedValue))
+            {
+                return parsedValue;
+            }
+            else
+            {
+                return defaultValue;
+            }
+        }
+
+        index++;
+        string settingValue = fileContents[index];
+        if (settingValue == key + SectionEnding)
+            return defaultValue;
+
+        if (int.TryParse(settingValue, out int intValue))
         {
             return intValue;
         }
@@ -208,13 +222,20 @@ public sealed class DkpParserSettings : IDkpParserSettings
         if (!IsValidIndex(index, fileContents))
             return defaultValue;
 
-        index++;
         string setting = fileContents[index];
+        string[] split = setting.Split(Delimiter);
+        if (split.Length > 1)
+        {
+            return split[1];
+        }
 
-        if (setting == key + SectionEnding)
+        index++;
+        string settingValue = fileContents[index];
+
+        if (settingValue == key + SectionEnding)
             return defaultValue;
 
-        return setting;
+        return settingValue;
     }
 
     private int GetWindowLoc(string setting)
@@ -242,8 +263,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     private void SetDebugOptions(string[] fileContents)
     {
-        string debugOptionsStringValue = GetStringValue(fileContents, EnableDebugOptionsSection);
-        EnableDebugOptions = debugOptionsStringValue.Equals("true", StringComparison.OrdinalIgnoreCase);
+        EnableDebugOptions = GetBoolValue(fileContents, EnableDebugOptionsSection);
     }
 
     private void SetEqDirectory(string[] fileContents)
@@ -251,20 +271,18 @@ public sealed class DkpParserSettings : IDkpParserSettings
         EqDirectory = GetStringValue(fileContents, EqDirectorySection);
     }
 
+    private void SetMiscSettings(string[] fileContents)
+    {
+        AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
+    }
+
     private void SetOutputDirectory(string[] fileContents)
     {
-        int index = GetStartingIndex(fileContents, OutputDirectorySection);
-        if (!IsValidIndex(index, fileContents))
+        OutputDirectory = GetStringValue(fileContents, OutputDirectorySection);
+        if (string.IsNullOrWhiteSpace(OutputDirectory) && !string.IsNullOrWhiteSpace(EqDirectory))
         {
-            if (!string.IsNullOrWhiteSpace(EqDirectory))
-            {
-                OutputDirectory = EqDirectory;
-            }
+            OutputDirectory = EqDirectory;
         }
-
-        index++;
-        string setting = fileContents[index];
-        OutputDirectory = setting;
     }
 
     private void SetSelectedLogFiles(string[] fileContents)
@@ -280,13 +298,12 @@ public sealed class DkpParserSettings : IDkpParserSettings
         EqLogFileSizeToArchiveInMBs = GetIntValue(fileContents, ArchiveEqLogFilesSizeSection);
         GeneratedLogFilesAgeToArchiveInDays = GetIntValue(fileContents, ArchiveGeneratedLogFileAgeSection);
 
-        string archiveAllStringValue = GetStringValue(fileContents, ArchiveAllOrSelectedEqLogFileSection, "false");
-        ArchiveAllEqLogFiles = !archiveAllStringValue.Equals("false", StringComparison.OrdinalIgnoreCase);
+        ArchiveAllEqLogFiles = GetBoolValue(fileContents, ArchiveAllOrSelectedEqLogFileSection, true);
 
         EqLogFilesToArchive = GetAllEntriesInSection(fileContents, ArchiveSelectedFilesToArchiveSection);
     }
 
-    private void SetWindowLocation(IList<string> fileContents)
+    private void SetWindowLocation(string[] fileContents)
     {
         int index = GetStartingIndex(fileContents, WindowLocationSection);
         if (!IsValidIndex(index, fileContents))
@@ -303,6 +320,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
 public interface IDkpParserSettings
 {
+    bool AddBonusDkpRaid { get; set; }
+
     string ApiReadToken { get; set; }
 
     string ApiUrl { get; set; }
@@ -338,8 +357,6 @@ public interface IDkpParserSettings
     IRaidValues RaidValue { get; }
 
     ICollection<string> SelectedLogFiles { get; set; }
-
-    void LoadAllSettings();
 
     void LoadSettings();
 

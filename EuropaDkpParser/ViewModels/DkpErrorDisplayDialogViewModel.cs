@@ -222,7 +222,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         get => _timestamp;
         set => SetProperty(ref _timestamp, value);
     }
-    
+
     public string UpdatePlayerNotLootedErrorMessage
     {
         get => _updatePlayerNotLootedErrorMessage;

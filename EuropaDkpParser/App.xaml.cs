@@ -33,7 +33,7 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledExceptionHandler;
 
         _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath);
-        _settings.LoadAllSettings();
+        _settings.LoadSettings();
 
         var shellViewModel = new ShellViewModel(_settings, new DialogFactory(new DialogViewFactory()));
         _shellView = new ShellView(shellViewModel);
