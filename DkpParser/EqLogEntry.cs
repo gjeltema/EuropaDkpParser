@@ -23,5 +23,16 @@ public sealed class EqLogEntry
     public bool Visited { get; set; } = false;
 
     private string DebugDisplay
-        => $"{EntryType} {LogLine.Substring(Constants.LogDateTimeLength, 12)}...";
+        => $"{EntryType} {LogLine.Substring(Constants.LogDateTimeLength + 1, 16)}...";
+}
+
+[DebuggerDisplay("{DebugDisplay,nq}")]
+public sealed class LeanEqLogEntry
+{
+    public string LogLine { get; set; }
+
+    public DateTime Timestamp { get; set; }
+
+    private string DebugDisplay
+        => $"{LogLine.Substring(Constants.LogDateTimeLength + 1, 16)}...";
 }

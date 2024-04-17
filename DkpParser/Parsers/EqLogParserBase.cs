@@ -45,7 +45,7 @@ public abstract class EqLogParserBase : IEqLogParser
     {
         // [Wed Feb 21 16:34:07 2024] ...
 
-        if (logLine.Length < Constants.LogDateTimeLength || string.IsNullOrWhiteSpace(logLine))
+        if (logLine == null || logLine.Length < Constants.LogDateTimeLength)
         {
             result = DateTime.MinValue;
             return false;
@@ -55,7 +55,7 @@ public abstract class EqLogParserBase : IEqLogParser
         return DateTime.TryParseExact(timeEntry, Constants.LogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
     }
 
-    protected ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime, ICollection<string> selectedLogFileNames)
+    protected ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime, IEnumerable<string> selectedLogFileNames)
     {
         List<EqLogFile> logFiles = [];
         foreach (string logFileName in selectedLogFileNames)

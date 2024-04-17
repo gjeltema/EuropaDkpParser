@@ -60,6 +60,8 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
                     };
 
                     _logFile.LogEntries.Add(logEntry);
+
+                    return;
                 }
             }
         }
