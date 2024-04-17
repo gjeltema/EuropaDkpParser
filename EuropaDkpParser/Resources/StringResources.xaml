@@ -14,6 +14,7 @@
     <system:String x:Key="AttendanceEntryModifierDialogTitleText">Create or Move Attendance Entry</system:String>
     <system:String x:Key="RaidUploadDialogTitleText">Upload Raid to DKP Server</system:String>
     <system:String x:Key="PossibleLinkdeadErrorDialogTitleText">Player Possibly Linkdead Review</system:String>
+    <system:String x:Key="GeneralParserDialogTitleText">Player Possibly Linkdead Review</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>

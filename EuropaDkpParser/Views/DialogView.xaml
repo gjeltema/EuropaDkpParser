@@ -44,6 +44,9 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:PossibleLinkdeadErrorDialogViewModel}">
                     <dialogsView:PossibleLinkdeadErrorDialog />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:GeneralEqLogParserDialogViewModel}">
+                    <dialogsView:GeneralEqLogParserDialog />
+                </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>
     </ContentPresenter>

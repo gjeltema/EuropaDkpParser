@@ -33,6 +33,9 @@ internal sealed class DialogFactory : IDialogFactory
     public IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, bool canUploadToServer)
         => new FinalSummaryDialogViewModel(_viewFactory, dialogFactory, raidEntries, canUploadToServer);
 
+    public IGeneralEqLogParserDialogViewModel CreateGeneralEqParserDialogViewModel() 
+        => new GeneralEqLogParserDialogViewModel(_viewFactory);
+
     public IPossibleLinkdeadErrorDialogViewModel CreatePossibleLinkdeadErrorDialogViewModel(RaidEntries raidEntries)
         => new PossibleLinkdeadErrorDialogViewModel(_viewFactory, raidEntries);
 
@@ -56,6 +59,8 @@ public interface IDialogFactory
     IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings);
 
     IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, bool canUploadToServer);
+
+    IGeneralEqLogParserDialogViewModel CreateGeneralEqParserDialogViewModel();
 
     IPossibleLinkdeadErrorDialogViewModel CreatePossibleLinkdeadErrorDialogViewModel(RaidEntries raidEntries);
 
