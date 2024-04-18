@@ -130,6 +130,7 @@
     <system:String x:Key="SearchTermLabel">Search for term:</system:String>
     <system:String x:Key="SearchTermButtonText">Find Term</system:String>
     <system:String x:Key="CaseSensitive">Case senstive</system:String>
+    <system:String x:Key="OpenGeneralLogParser">General Parser</system:String>
 
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>
@@ -180,4 +181,32 @@
     <system:String x:Key="AttendanceMissingFrom">Attendance missing from:</system:String>
     <system:String x:Key="AddToRaid">Add To Raid</system:String>
     <system:String x:Key="PlayerAddedMessage">Player was successfully added to the raid.</system:String>
+    
+    <!-- GeneralEqLogParserDialog -->
+    <system:String x:Key="CaseInsensitiveSearchTerms">Case Insensitive Search Terms</system:String>
+    <system:String x:Key="CaseSensitiveSearchTerms">Case Sensitive Search Terms</system:String>
+    <system:String x:Key="ConversationWith">Get /tells with (semi-colon separated list):</system:String>
+    <system:String x:Key="DeSelectAll">(De)Select All</system:String>
+    <system:String x:Key="AllTellsText">All Tells</system:String>
+    <system:String x:Key="AuctionText">/auc</system:String>
+    <system:String x:Key="ChannelText">Channel</system:String>
+    <system:String x:Key="DiesText">Dies</system:String>
+    <system:String x:Key="FactionStandingText">Faction</system:String>
+    <system:String x:Key="GuildText">/gu</system:String>
+    <system:String x:Key="JoinRaidText">Join Raid</system:String>
+    <system:String x:Key="OocText">/ooc</system:String>
+    <system:String x:Key="RaidSayText">/rs</system:String>
+    <system:String x:Key="SayText">/say</system:String>
+    <system:String x:Key="ShoutText">/shout</system:String>
+    <system:String x:Key="WhoText">/who</system:String>
+    <system:String x:Key="YouText">You</system:String>
+    <system:String x:Key="ChannelTooltipText">All messages sent to a custom chat channel.</system:String>
+    <system:String x:Key="DiesTooltipText">All entries where a player dies.</system:String>
+    <system:String x:Key="FactionStandingTooltipText">All entries which show a faction standing change.</system:String>
+    <system:String x:Key="JoinRaidTooltipText">All entries where a player joines or leaves a raid.</system:String>
+    <system:String x:Key="YouTooltipText">All entries that have "You" (case sensitive) in it.  Gets spells cast and other actions by You.</system:String>
+    <system:String x:Key="StartParse">Start Parse</system:String>
+    <system:String x:Key="NoEntriesFound">No entries in the specified time period that match the settings were found.</system:String>
+    <system:String x:Key="NoEntriesFoundTitle">No Entries Found</system:String>
+    
 </ResourceDictionary>

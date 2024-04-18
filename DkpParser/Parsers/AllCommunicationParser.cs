@@ -40,16 +40,17 @@ public sealed class AllCommunicationParser : EqLogParserBase, IAllCommunicationP
             if (!logLine.Contains("You ") && !logLine.Contains(" say") && !logLine.Contains(" tell") && !logLine.Contains(" shout"))
                 return;
 
-            if (logLine.Contains(Constants.YouTold)
-                || logLine.Contains(Constants.TellsYou)
+            // commented out redundant checks, but leaving them in to show they are intended to be found.
+            if (logLine.Contains("You tell ") // [Mon Mar 18 23:25:23 2024] You tell Eu.officers:1, '...
+                || logLine.Contains(" tells ") // [Mon Mar 18 23:25:59 2024] Overture tells Eu.officers:1, 'awesome'
+                || logLine.Contains(Constants.YouTold)
+                //|| logLine.Contains(Constants.TellsYou)
                 || logLine.Contains(" says, ")
                 || logLine.Contains("You say, ")
-                || logLine.Contains(" tells the guild, ")
+                //|| logLine.Contains(" tells the guild, ")
                 || logLine.Contains("You say to your guild, ")
-                || logLine.Contains("You tell your raid, ")
-                || logLine.Contains(" tells the raid, ")
-                || logLine.Contains("You tell ") // [Mon Mar 18 23:25:23 2024] You tell Eu.officers:1, '...
-                || logLine.Contains(" tells ") // [Mon Mar 18 23:25:59 2024] Overture tells Eu.officers:1, 'awesome'
+                //|| logLine.Contains("You tell your raid, ")
+                //|| logLine.Contains(" tells the raid, ")
                 || logLine.Contains(" says out of character, ")
                 || logLine.Contains("You say out of character, ") // Need to verify how you say something to /ooc
                 || logLine.Contains(" shouts, ")

@@ -6,26 +6,25 @@ namespace DkpParser.Parsers;
 
 using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 
-public sealed class GeneralEqLogParser : IGeneralEqLogParser
+public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 {
     private const string DiesTerm = " dies.";
     private const string FactionStandingTerm = "Your faction standing with ";
     private const string OocTerm = " out of character, ";
     private const string OtherAuctionTerm = " auctions, ";
-    private const string OtherChannelTerm = " tells ";
     private const string OtherGuildTerm = " tells the guild, ";
     private const string OtherRaidTerm = " tells the raid, ";
     private const string OtherSayTerm = " says, ";
     private const string OtherShoutTerm = " shouts, ";
     private const string YouAuctionTerm = "You auction, ";
-    private const string YouChannelTerm = "You tell ";
     private const string YouGuildTerm = "You say to your guild, ";
     private const string YouRaidTerm = "You tell your raid, ";
     private const string YouSayTerm = "You say, ";
     private const string YouShoutTerm = "You shout, ";
     private const string YouTerm = "You";
-    private List<IEntryParser> _entryParsers = [];
+    private readonly List<IEntryParser> _entryParsers = [];
 
     public ICollection<EqLogFile> GetLogFiles(GeneralEqLogParserSettings settings, IEnumerable<string> logFileNames, DateTime startTime, DateTime endTime)
     {
@@ -41,26 +40,6 @@ public sealed class GeneralEqLogParser : IGeneralEqLogParser
         }
 
         return logFiles;
-    }
-
-    public EqLogFile ParseLogFile(string filename, DateTime startTime, DateTime endTime)
-    {
-        EqLogFile logFile = new() { LogFile = filename };
-
-
-        foreach (string logLine in File.ReadLines(filename))
-        {
-            if (!TryExtractEqLogTimeStamp(logLine, out DateTime entryTimeStamp))
-                continue;
-            else if (entryTimeStamp < startTime)
-                continue;
-            else if (entryTimeStamp > endTime)
-                break;
-
-            ParseLogEntry(logFile, logLine, entryTimeStamp);
-        }
-
-        return logFile;
     }
 
     private static bool TryExtractEqLogTimeStamp(string logLine, out DateTime result)
@@ -121,8 +100,7 @@ public sealed class GeneralEqLogParser : IGeneralEqLogParser
         }
         if (settings.Channel)
         {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouChannelTerm));
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OtherChannelTerm));
+            _entryParsers.Add(new ChannelMessageEntryParser());
         }
         if (settings.JoinRaid)
         {
@@ -163,6 +141,25 @@ public sealed class GeneralEqLogParser : IGeneralEqLogParser
                 return;
             }
         }
+    }
+
+    private EqLogFile ParseLogFile(string filename, DateTime startTime, DateTime endTime)
+    {
+        EqLogFile logFile = new() { LogFile = filename };
+
+        foreach (string logLine in File.ReadLines(filename))
+        {
+            if (!TryExtractEqLogTimeStamp(logLine, out DateTime entryTimeStamp))
+                continue;
+            else if (entryTimeStamp < startTime)
+                continue;
+            else if (entryTimeStamp > endTime)
+                break;
+
+            ParseLogEntry(logFile, logLine, entryTimeStamp);
+        }
+
+        return logFile;
     }
 
     private sealed class ConversationEntryParser : IEntryParser
@@ -332,6 +329,36 @@ public sealed class GeneralEqLogParser : IGeneralEqLogParser
             }
         }
     }
+}
+
+public sealed partial class ChannelMessageEntryParser : IEntryParser
+{
+    private readonly Regex _findTellChannelRegex = FindTellChannelRegex();
+
+    public bool TryParseEntry(string logLine, DateTime entryTimeStamp, out EqLogEntry eqLogEntry)
+    {
+        bool findMatch = _findTellChannelRegex.IsMatch(logLine);
+
+        if (findMatch && (logLine.Contains("You tell ") || logLine.Contains(" tells ")))
+        {
+            eqLogEntry = new()
+            {
+                EntryType = LogEntryType.Unknown,
+                LogLine = logLine,
+                Timestamp = entryTimeStamp
+            };
+
+            return true;
+        }
+        else
+        {
+            eqLogEntry = null;
+            return false;
+        }
+    }
+
+    [GeneratedRegex(@"[A-Za-z]+:\d+, '", RegexOptions.Compiled)]
+    private static partial Regex FindTellChannelRegex();
 }
 
 public sealed class GeneralEqLogParserSettings

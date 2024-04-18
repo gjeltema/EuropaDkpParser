@@ -45,6 +45,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         GetSearchTermCommand = new DelegateCommand(GetSearchTerm, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(SearchTermText) && !string.IsNullOrWhiteSpace(OutputDirectory))
            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputDirectory).ObservesProperty(() => SearchTermText);
         OpenFileArchiveDialogCommand = new DelegateCommand(OpenFileArchiveDialog);
+        OpenGeneralParserCommand = new DelegateCommand(OpenGeneralParser);
 
         ResetTime();
 
@@ -113,6 +114,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     }
 
     public DelegateCommand OpenFileArchiveDialogCommand { get; }
+
+    public DelegateCommand OpenGeneralParserCommand { get; }
 
     public DelegateCommand OpenSettingsDialogCommand { get; }
 
@@ -282,6 +285,13 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.GeneratedLogFilesArchiveDirectory = fileArchiveDialog.GeneratedLogsArchiveDirectory;
 
         _settings.SaveSettings();
+    }
+
+    private void OpenGeneralParser()
+    {
+        IGeneralEqLogParserDialogViewModel parser = _dialogFactory.CreateGeneralEqParserDialogViewModel(_dialogFactory, _settings);
+        if (parser.ShowDialog() != true)
+            return;
     }
 
     private void OpenSettingsDialog()
@@ -500,6 +510,8 @@ public interface IMainDisplayViewModel : IEuropaViewModel
     bool IsRawParseResultsChecked { get; set; }
 
     DelegateCommand OpenFileArchiveDialogCommand { get; }
+
+    DelegateCommand OpenGeneralParserCommand { get; }
 
     DelegateCommand OpenSettingsDialogCommand { get; }
 
