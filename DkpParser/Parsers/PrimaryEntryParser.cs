@@ -25,12 +25,6 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
     public void ParseEntry(string logLine, DateTime entryTimeStamp)
     {
-        // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
-        // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
-        // [Sun Feb 25 22:52:46 2024] You have joined the group.
-        // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
-        // [Thu Feb 22 23:13:52 2024] You have joined the raid.
-
         // Check for just '::' first as it's a fast check.  Do more in depth parsing of the line if this is present.
         if (logLine.Contains(Constants.PossibleErrorDelimiter))
         {
@@ -57,17 +51,22 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             logEntry.EntryType = LogEntryType.DkpSpent;
         }
-        else if (logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase))
+        if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
         {
-            logEntry.EntryType = LogEntryType.Kill;
-            _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
-            _setParser.SetEntryParser(_populationListingStartParser);
-        }
-        else if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
-        {
-            logEntry.EntryType = LogEntryType.Attendance;
-            _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
-            _setParser.SetEntryParser(_populationListingStartParser);
+            // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
+            if (logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase))
+            {
+                logEntry.EntryType = LogEntryType.Kill;
+                _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
+                _setParser.SetEntryParser(_populationListingStartParser);
+            }
+            // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
+            else
+            {
+                logEntry.EntryType = LogEntryType.Attendance;
+                _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
+                _setParser.SetEntryParser(_populationListingStartParser);
+            }
         }
         else if (logLine.Contains(Constants.Crashed) && logLine.Contains(" tells the raid, "))
         {
@@ -84,13 +83,19 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
     private void AddRaidJoinLeaveEntry(string logLine, DateTime entryTimeStamp)
     {
-        if (logLine.Contains(Constants.JoinedRaid))
+        // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
+        // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
+        // [Sun Feb 25 22:52:46 2024] You have joined the group.
+        // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
+        // [Thu Feb 22 23:13:52 2024] You have joined the raid.
+
+        if (logLine.EndsWith(Constants.JoinedRaid))
         {
             EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
             _logFile.LogEntries.Add(logEntry);
             logEntry.EntryType = LogEntryType.JoinedRaid;
         }
-        else if (logLine.Contains(Constants.LeftRaid))
+        else if (logLine.EndsWith(Constants.LeftRaid))
         {
             EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
             _logFile.LogEntries.Add(logEntry);
