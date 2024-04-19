@@ -14,6 +14,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private readonly IDkpParserSettings _settings;
     private ICollection<string> _errorMessages;
     private bool _hasErrorMessages;
+    private string _selectedError;
     private bool _showProgress;
     private string _statusMessage;
     private bool _uploadButtonEnabled;
@@ -31,6 +32,8 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         UploadButtonEnabled = true;
 
         BeginUploadCommand = new DelegateCommand(BeginUpload);
+        RemoveSelectedPlayerCommand = new DelegateCommand(RemoveSelectedPlayer, () => !string.IsNullOrWhiteSpace(SelectedError))
+            .ObservesProperty(() => SelectedError);
     }
 
     public DelegateCommand BeginUploadCommand { get; }
@@ -45,6 +48,14 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     {
         get => _hasErrorMessages;
         set => SetProperty(ref _hasErrorMessages, value);
+    }
+
+    public DelegateCommand RemoveSelectedPlayerCommand { get; }
+
+    public string SelectedError
+    {
+        get => _selectedError;
+        set => SetProperty(ref _selectedError, value);
     }
 
     public bool ShowProgress
@@ -70,6 +81,8 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
     private async Task BeginUploadAsync()
     {
+        HasErrorMessages = false;
+
         try
         {
             UploadButtonEnabled = false;
@@ -84,7 +97,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         }
         catch (Exception e)
         {
-            ErrorMessages = [$"Unexpected rrror encountered when uploading: {e}"];
+            ErrorMessages = [$"Unexpected error encountered when uploading: {e}"];
             HasErrorMessages = true;
             StatusMessage = Strings.GetString("FailureStatus");
         }
@@ -95,6 +108,29 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             StatusMessage = HasErrorMessages ? Strings.GetString("FailureStatus") : Strings.GetString("SuccessStatus");
         }
     }
+
+    private void RemoveSelectedPlayer()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedError))
+            return;
+
+        string[] errorMessageParts = SelectedError.Split(RaidUploadResults.PlayerDelimiter);
+        if (errorMessageParts.Length < 3)
+            return;
+
+        string playerName = errorMessageParts[1];
+        PlayerCharacter playerChar = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerName);
+        if (playerChar == null)
+            return;
+
+        IEnumerable<AttendanceEntry> attendancesToRemoveFrom = _raidEntries.AttendanceEntries.Where(x => x.Players.Contains(playerChar));
+        foreach (AttendanceEntry attendance in attendancesToRemoveFrom)
+        {
+            attendance.Players.Remove(playerChar);
+        }
+
+        _raidEntries.AllPlayersInRaid.Remove(playerChar);
+    }
 }
 
 public interface IRaidUploadDialogViewModel : IDialogViewModel
@@ -104,6 +140,10 @@ public interface IRaidUploadDialogViewModel : IDialogViewModel
     ICollection<string> ErrorMessages { get; }
 
     bool HasErrorMessages { get; }
+
+    DelegateCommand RemoveSelectedPlayerCommand { get; }
+
+    string SelectedError { get; set; }
 
     bool ShowProgress { get; set; }
 

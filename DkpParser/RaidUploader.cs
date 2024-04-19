@@ -87,6 +87,8 @@ public sealed class RaidUploader : IRaidUpload
 
 public sealed class RaidUploadResults
 {
+    public const string PlayerDelimiter = "**";
+
     public AttendanceUploadFailure AttendanceError { get; set; }
 
     public DkpUploadFailure DkpFailure { get; set; }
@@ -105,7 +107,7 @@ public sealed class RaidUploadResults
 
         foreach (CharacterIdFailure characterIdFail in FailedCharacterIdRetrievals)
         {
-            yield return $"Failed to get character ID for {characterIdFail.PlayerName}: {characterIdFail.Error.Message}";
+            yield return $"Failed to get character ID for {PlayerDelimiter}{characterIdFail.PlayerName}{PlayerDelimiter}: {characterIdFail.Error.Message}";
         }
 
         if (AttendanceError != null)
