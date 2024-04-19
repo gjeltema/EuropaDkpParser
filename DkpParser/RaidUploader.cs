@@ -95,10 +95,12 @@ public sealed class RaidUploadResults
 
     public Exception EventIdCallFailure { get; set; }
 
+    public ICollection<string> EventIdNotFoundErrors { get; } = [];
+
     public ICollection<CharacterIdFailure> FailedCharacterIdRetrievals { get; } = [];
 
     public bool HasInitializationError
-        => EventIdCallFailure != null || FailedCharacterIdRetrievals.Count > 0;
+        => EventIdCallFailure != null || FailedCharacterIdRetrievals.Count > 0 || EventIdNotFoundErrors.Count > 0;
 
     public IEnumerable<string> GetErrorMessages()
     {
@@ -106,9 +108,10 @@ public sealed class RaidUploadResults
             yield return $"Failed to get event IDs: {EventIdCallFailure.Message}";
 
         foreach (CharacterIdFailure characterIdFail in FailedCharacterIdRetrievals)
-        {
             yield return $"Failed to get character ID for {PlayerDelimiter}{characterIdFail.PlayerName}{PlayerDelimiter}: {characterIdFail.Error.Message}";
-        }
+
+        foreach (string eventIdNotFound in EventIdNotFoundErrors)
+            yield return $"Unable to retrieve event ID for {eventIdNotFound}";
 
         if (AttendanceError != null)
             yield return $"Failed to upload attendance call {AttendanceError.Attendance.RaidName}: {AttendanceError.Error.Message}";

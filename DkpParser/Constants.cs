@@ -53,6 +53,7 @@ public static class Constants
     public const string Undo = "UNDO";
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";
+    public const string YouTellRaid = "You tell your raid, '";
     public const string YouTold = "You told";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(2);
     public static readonly int LogDateTimeLength = LogDateTimeFormat.Length;

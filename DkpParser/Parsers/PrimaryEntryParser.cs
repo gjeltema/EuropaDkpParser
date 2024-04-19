@@ -43,6 +43,9 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
     private void AddDelimiterEntry(string logLine, DateTime entryTimeStamp)
     {
+        if (!logLine.Contains(Constants.YouTellRaid) && !logLine.Contains(" tells the raid, "))
+            return;
+
         EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
         _logFile.LogEntries.Add(logEntry);
         CheckForTwoColonError(logEntry, logLine);
@@ -51,7 +54,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             logEntry.EntryType = LogEntryType.DkpSpent;
         }
-        if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
+        else if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
         {
             // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
             if (logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase))

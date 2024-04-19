@@ -137,11 +137,23 @@ public sealed class DkpServer : IDkpServer
 
         foreach (string zoneName in zoneNames)
         {
-            int idValue = (int)eventIdsDoc.Root.Elements()
-                .Where(x => x.Elements().Any(x => x.Name == "name" && x.Value == zoneName))
-                .Elements().First(x => x.Name == "id");
+            string aliasedZoneName = _settings.RaidValue.GetZoneRaidAlias(zoneName);
 
-            _eventIdCache[zoneName] = idValue;
+            XElement idValue = eventIdsDoc.Root.Elements()
+                .Where(x => x.Elements().Any(x => x.Name == "name" && x.Value == aliasedZoneName))
+                .Elements().FirstOrDefault(x => x.Name == "id");
+
+            if (idValue == null)
+            {
+                if (zoneName == aliasedZoneName)
+                    results.EventIdNotFoundErrors.Add($"{zoneName}");
+                else
+                    results.EventIdNotFoundErrors.Add($"{zoneName} with alias {aliasedZoneName}");
+            }
+
+            int eventId = (int)idValue;
+
+            _eventIdCache[zoneName] = eventId;
         }
     }
 
