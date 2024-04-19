@@ -83,7 +83,9 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 SetZoneName(logEntry, call);
 
                 logEntry.Visited = true;
-                _raidEntries.AttendanceEntries.Add(call);
+
+                if (call.Players.Count > 1)
+                    _raidEntries.AttendanceEntries.Add(call);
             }
         }
     }
@@ -172,7 +174,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
         entry.Visited = true;
 
-        return new() { ZoneName = zoneName, Timestamp = entry.Timestamp };
+        return new() { ZoneName = zoneName ?? "", Timestamp = entry.Timestamp };
     }
 
     private AttendanceEntry GetAssociatedLogEntry(AttendanceEntry call)

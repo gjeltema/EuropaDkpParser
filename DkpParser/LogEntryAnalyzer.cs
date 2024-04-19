@@ -38,7 +38,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         IEnumerable<string> zoneNames = _raidEntries.AttendanceEntries
             .OrderBy(x => x.Timestamp)
-            .Select(x => GetZoneRaidAlias(x.ZoneName))
+            .Select(x => GetZoneRaidAlias(x.ZoneName ?? ""))
             .Distinct();
 
         foreach (string zoneName in zoneNames)
