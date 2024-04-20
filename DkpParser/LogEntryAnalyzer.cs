@@ -29,7 +29,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         AddUnvisitedEntries(logParseResults);
 
         SetRaidInfo();
-        ErrorPostAnalysis(logParseResults);
+        ErrorPostAnalysis();
 
         return _raidEntries;
     }
@@ -108,16 +108,16 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             RaidInfo associatedRaid = _raidEntries.Raids
                 .FirstOrDefault(x => x.StartTime <= dkpEntry.Timestamp && dkpEntry.Timestamp <= x.EndTime);
 
-            dkpEntry.AssociatedAttendanceCall = associatedRaid.LastAttendanceCall;
+            dkpEntry.AssociatedAttendanceCall = associatedRaid?.LastAttendanceCall;
         }
     }
 
-    private void CheckDkpSpentTypos(LogParseResults logParseResults)
+    private void CheckDkpSpentTypos()
     {
         //** Still debating on this.
     }
 
-    private void CheckDuplicateAttendanceEntries(LogParseResults logParseResults)
+    private void CheckDuplicateAttendanceEntries()
     {
         var grouped = from a in _raidEntries.AttendanceEntries
                       group a by a.RaidName.ToUpper() into ae
@@ -133,7 +133,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
-    private void CheckDuplicateDkpEntries(LogParseResults logParseResults)
+    private void CheckDuplicateDkpEntries()
     {
         var grouped = from d in _raidEntries.DkpEntries
                       group d by new { PlayerName = d.PlayerName.ToUpper(), d.Item, d.DkpSpent } into de
@@ -180,7 +180,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
-    private void CheckRaidBossTypo(LogParseResults logParseResults)
+    private void CheckRaidBossTypo()
     {
         ICollection<string> bossMobNames = _settings.RaidValue.AllBossMobNames;
 
@@ -212,12 +212,12 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         }
     }
 
-    private void ErrorPostAnalysis(LogParseResults logParseResults)
+    private void ErrorPostAnalysis()
     {
-        CheckDuplicateAttendanceEntries(logParseResults);
-        CheckRaidBossTypo(logParseResults);
-        CheckDkpSpentTypos(logParseResults);
-        CheckDuplicateDkpEntries(logParseResults);
+        CheckDuplicateAttendanceEntries();
+        CheckRaidBossTypo();
+        CheckDkpSpentTypos();
+        CheckDuplicateDkpEntries();
         CheckRaidNameErrors();
         CheckPotentialLinkdeads();
     }

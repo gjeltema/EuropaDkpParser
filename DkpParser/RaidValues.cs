@@ -60,7 +60,7 @@ public sealed class RaidValues : IRaidValues
     }
 
     public string GetZoneRaidAlias(string zoneName)
-        => _zoneRaidAliases.TryGetValue(zoneName, out string alias) ? alias : zoneName;
+        => _zoneRaidAliases.TryGetValue(zoneName ?? "", out string alias) ? alias : zoneName ?? "";
 
     public bool IsBonusZone(string zoneName)
     {

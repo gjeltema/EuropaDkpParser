@@ -63,7 +63,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                
+
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -90,18 +90,18 @@
                     <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Timestamp}" Margin="0,3,2,7"/>
                 </Grid>
 
-                <Button Grid.Row="1" Content="{StaticResource FixUsingSelected}" Command="{Binding FixNoLootedMessageUsingSelectionCommand}" Width="130" Height="30" Margin="0,20,0,10" HorizontalAlignment="Left">
+                <Button Grid.Row="1" Content="{StaticResource FixUsingSelected}" Command="{Binding FixNoLootedMessageUsingSelectionCommand}" Width="130" Margin="0,20,0,10" HorizontalAlignment="Left">
                     <Button.ToolTip>
                         <TextBlock Text="{StaticResource FixDkpSpentSelectedToolTip}"/>
                     </Button.ToolTip>
                 </Button>
-                <Button Grid.Row="2" Content="{StaticResource ManualFix}" Command="{Binding FixNoLootedMessageManualCommand}" Width="130" Height="30" HorizontalAlignment="Left" >
+                <Button Grid.Row="2" Content="{StaticResource ManualFix}" Command="{Binding FixNoLootedMessageManualCommand}" Width="130"  HorizontalAlignment="Left" >
                     <Button.ToolTip>
                         <TextBlock Text="{StaticResource ManualDkpFixTooltip}"/>
                     </Button.ToolTip>
                 </Button>
-                <Button Grid.Row="3" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="0,30,0,0" Width="130" Height="30" HorizontalAlignment="Left"/>
-            
+                <Button Grid.Row="3" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="0,30,0,0" Width="130" HorizontalAlignment="Left"/>
+
                 <!-- Row 4 is filler -->
 
                 <Label Grid.Row="5" Content="{Binding UpdatePlayerNotLootedErrorMessage}" />
@@ -167,7 +167,7 @@
                 </ListView>
 
                 <Button Grid.Row="1" Margin="0,4,0,0" Content="{StaticResource Remove}" Command="{Binding RemoveDuplicateSelectionCommand}" 
-                        HorizontalAlignment="Right" Width="83" Height="30"/>
+                        HorizontalAlignment="Right"/>
             </Grid>
 
         </Grid>
@@ -197,7 +197,7 @@
             <TextBlock Grid.Row="1" Text="{Binding ItemNameAndDkp}" Margin="4"/>
 
             <Label Grid.Row="2" Content="{StaticResource PlayerName}"/>
-            
+
             <Grid Grid.Row="3" Margin="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -206,7 +206,7 @@
 
                 <TextBox Grid.Column="0" Text="{Binding PlayerName}" Margin="0,4,5,6"/>
 
-                <Button Grid.Column="1" Content="{StaticResource ManualFix}" Command="{Binding FixPlayerTypoManualCommand}" Margin="2" Width="110" Height="30">
+                <Button Grid.Column="1" Content="{StaticResource ManualFix}" Command="{Binding FixPlayerTypoManualCommand}" Margin="2" Width="110" >
                     <Button.ToolTip>
                         <TextBlock Text="{StaticResource FixDkpSpentPlayerNameTooltip}"/>
                     </Button.ToolTip>
@@ -221,14 +221,14 @@
                 </Grid.ColumnDefinitions>
 
                 <ComboBox Grid.Column="0" ItemsSource="{Binding AllPlayers}" SelectedValue="{Binding SelectedPlayerName}" Margin="0,4,5,4"/>
-                <Button Grid.Column="1" Content="{StaticResource FixUsingSelected}" Command="{Binding FixPlayerTypoUsingSelectionCommand}" Margin="2" Width="110" Height="30">
+                <Button Grid.Column="1" Content="{StaticResource FixUsingSelected}" Command="{Binding FixPlayerTypoUsingSelectionCommand}" Margin="2" Width="110" >
                     <Button.ToolTip>
                         <TextBlock Text="{StaticResource ManualDkpSpentPlayerNameTooltip}"/>
                     </Button.ToolTip>
                 </Button>
             </Grid>
 
-            <Button Grid.Row="5" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110" Height="30" HorizontalAlignment="Right"/>
+            <Button Grid.Row="5" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110"  HorizontalAlignment="Right"/>
 
             <Label Grid.Row="6" Content="{Binding UpdatePlayerNotLootedErrorMessage}" Margin="0,20,0,0" />
         </Grid>
@@ -241,38 +241,37 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0">
+            <Label Grid.Row="0" Content="{StaticResource RawLogEntry}"/>
+
+            <TextBlock Grid.Row="1" Text="{Binding RawLogLine}" Margin="5,0,0,0"/>
+
+            <Label Grid.Row="2" Content="{Binding ItemName}" Margin="0,15,4,4"/>
+
+            <Grid Grid.Row="4" Margin="0,4,4,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Label Grid.Column="0" Content="{StaticResource RawLogEntry}"/>
-                <TextBlock Grid.Column="1" Text="{Binding RawLogLine}" Margin="4"/>
-            </Grid>
-
-            <Label Grid.Row="1" Content="{Binding ItemName}" Margin="4"/>
-
-            <Label Grid.Row="2" Content="{StaticResource DkpSpent}"/>
-
-            <Grid Grid.Row="3" Margin="2">
-                <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Column="0" Text="{Binding DkpSpent, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,5,6"/>
+                <Label Grid.Column="0" Content="{StaticResource DkpSpent}"/>
 
-                <Button Grid.Column="1" Content="{StaticResource ManualFix}" Command="{Binding FixZeroDkpErrorCommand}" Margin="2" Width="110" Height="30"/>
+                <TextBox Grid.Column="1" Text="{Binding DkpSpent, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0" Padding="3,0,0,0"/>
+
+                <Button Grid.Column="2" Content="{StaticResource ManualFix}" Command="{Binding FixZeroDkpErrorCommand}" Width="110" />
             </Grid>
 
-            <Button Grid.Row="4" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110" Height="30" HorizontalAlignment="Right"/>
+            <Button Grid.Row="5" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110" HorizontalAlignment="Right"/>
+
+            <Label Grid.Row="6" Content="{Binding UpdatePlayerNotLootedErrorMessage}" Margin="0,20,0,0" />
         </Grid>
 
         <Grid Grid.Row="2" Margin="0,8,0,0">
-            <Button Content="{Binding NextButtonText}" Command="{Binding MoveToNextErrorCommand}" HorizontalAlignment="Right" Height="30" Width="85"/>
+            <Button Content="{Binding NextButtonText}" Command="{Binding MoveToNextErrorCommand}" HorizontalAlignment="Right"/>
         </Grid>
 
     </Grid>

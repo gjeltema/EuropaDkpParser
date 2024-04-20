@@ -34,8 +34,8 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             AddLootedEntry(logLine, entryTimeStamp);
         }
-        // Check for just 'raid.' first as it's a fast check.  More in depth after blah blah.
-        else if (logLine.Contains(Constants.Raid))
+        // Check for just 'raid.' first as it's a fast check. Do more in depth parsing of the line if this is present.
+        else if (logLine.EndsWith(Constants.Raid))
         {
             AddRaidJoinLeaveEntry(logLine, entryTimeStamp);
         }
@@ -43,7 +43,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
     private void AddDelimiterEntry(string logLine, DateTime entryTimeStamp)
     {
-        if (!logLine.Contains(Constants.YouTellRaid) && !logLine.Contains(" tells the raid, "))
+        if (!logLine.Contains(Constants.YouTellRaid) && !logLine.Contains(Constants.TellsTheRaid))
             return;
 
         EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
@@ -56,6 +56,10 @@ internal sealed class PrimaryEntryParser : IParseEntry
         }
         else if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
         {
+            // Only accept raid attendance calls from yourself into /rs.
+            if (!logLine.Contains(Constants.YouTellRaid))
+                return;
+
             // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
             if (logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase))
             {
@@ -71,7 +75,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
                 _setParser.SetEntryParser(_populationListingStartParser);
             }
         }
-        else if (logLine.Contains(Constants.Crashed) && logLine.Contains(" tells the raid, "))
+        else if (logLine.Contains(Constants.Crashed))
         {
             logEntry.EntryType = LogEntryType.Crashed;
         }

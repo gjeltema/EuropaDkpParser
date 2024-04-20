@@ -32,7 +32,7 @@ internal sealed class PopulationListingEntryParser : IParseEntry
             };
             _logFile.LogEntries.Add(logEntry);
         }
-        else if (logLine.Contains(Constants.WhoZonePrefixPlural) || logLine.Contains(Constants.WhoZonePrefixSingle))
+        else if (logLine.Contains(Constants.WhoZonePrefixPlural) && logLine.Contains(Constants.PlayersIn))
         {
             EqLogEntry logEntry = new()
             {

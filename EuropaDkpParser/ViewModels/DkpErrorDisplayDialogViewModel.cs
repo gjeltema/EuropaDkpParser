@@ -371,6 +371,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             return;
         }
         _currentEntry.DkpSpent = parsedDkp;
+
+        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedZeroDkpMessage");
     }
 
     private void RemoveDkpEntry()

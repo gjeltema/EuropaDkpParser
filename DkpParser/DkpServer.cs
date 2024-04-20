@@ -78,7 +78,10 @@ public sealed class DkpServer : IDkpServer
     private string CraftDkpString(DkpEntry dkpEntry)
     {
         int characterId = _playerIdCache[dkpEntry.PlayerName];
-        int raidId = _raidIdCache[dkpEntry.AssociatedAttendanceCall.RaidName];
+        AttendanceEntry associatedEntry = dkpEntry.AssociatedAttendanceCall;
+        int raidId = _raidIdCache.Last().Value;
+        if (associatedEntry != null && !string.IsNullOrEmpty(associatedEntry.RaidName))
+            raidId = _raidIdCache[dkpEntry.AssociatedAttendanceCall.RaidName];
 
         var dkpContent =
             new XElement("request",

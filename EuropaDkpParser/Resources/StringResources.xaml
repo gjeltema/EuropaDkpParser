@@ -66,6 +66,7 @@
     <system:String x:Key="FixedPlayerNotLootedMessage">Player DKPSPENT entry was successfully updated.</system:String>
     <system:String x:Key="RemovedPlayerNotLootedMessage">Player DKPSPENT entry was successfully removed.</system:String>
     <system:String x:Key="FixedPlayerTypoMessage">Player DKPSPENT entry was successfully updated.</system:String>
+    <system:String x:Key="FixedZeroDkpMessage">Player DKPSPENT entry was successfully updated.</system:String>
     
     <!-- AttendanceErrorDisplay -->
     <system:String x:Key="SetBoss">Set Boss</system:String>
@@ -131,6 +132,7 @@
     <system:String x:Key="SearchTermButtonText">Find Term</system:String>
     <system:String x:Key="CaseSensitive">Case senstive</system:String>
     <system:String x:Key="OpenGeneralLogParser">General Parser</system:String>
+    <system:String x:Key="UnexpectedError">Unexpected Error Encountered</system:String>
 
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>

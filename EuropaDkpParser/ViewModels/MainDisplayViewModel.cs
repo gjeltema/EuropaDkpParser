@@ -336,6 +336,29 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
     }
 
+    private async Task<RaidEntries> ParseAndAnalyzeLogFiles(DateTime startTime, DateTime endTime)
+    {
+        try
+        {
+            IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
+            LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
+
+            if (IsRawParseResultsChecked)
+            {
+                await OutputRawParseResults(results);
+            }
+
+            ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
+            return await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+        }
+        catch (EuropaDkpParserException e)
+        {
+            string errorMessage = $"{e.Message}{Environment.NewLine}{e.LogLine}";
+            MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return null;
+        }
+    }
+
     private async void ParseConversation()
         => await ExecuteParse(ParseConversationAsync);
 
@@ -401,16 +424,10 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
     private async Task StartLogParseAsync(DateTime startTime, DateTime endTime)
     {
-        IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
-        LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
+        RaidEntries raidEntries = await ParseAndAnalyzeLogFiles(startTime, endTime);
 
-        if (IsRawParseResultsChecked)
-        {
-            await OutputRawParseResults(results);
-        }
-
-        ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
-        RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+        if (raidEntries == null)
+            return;
 
         if (IsRawAnalyzerResultsChecked)
         {

@@ -58,43 +58,50 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
     private DkpEntry ExtractDkpSpentInfo(EqLogEntry entry)
     {
-        // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
-        // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
-        string logLine = CorrectDelimiter(entry.LogLine);
-
-        string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
-        string itemName = dkpLineParts[1]?.Trim();
-        string[] playerParts = dkpLineParts[2]?.Trim()?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        string playerName = playerParts[0]?.Trim();
-
-        DkpEntry dkpEntry = new()
+        try
         {
-            PlayerName = playerName,
-            Item = itemName,
-            Timestamp = entry.Timestamp,
-            RawLogLine = entry.LogLine,
-        };
-
-        if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
-        {
-            DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
-            if (toBeRemoved != null)
-            {
-                _raidEntries.DkpEntries.Remove(toBeRemoved);
-            }
             entry.Visited = true;
-            return null;
+
+            // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
+            // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
+            string logLine = CorrectDelimiter(entry.LogLine);
+
+            string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
+            string itemName = dkpLineParts[1].Trim();
+            string[] playerParts = dkpLineParts[2].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            string playerName = playerParts[0].Trim();
+
+            DkpEntry dkpEntry = new()
+            {
+                PlayerName = playerName,
+                Item = itemName,
+                Timestamp = entry.Timestamp,
+                RawLogLine = entry.LogLine,
+            };
+
+            if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
+            {
+                DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
+                if (toBeRemoved != null)
+                {
+                    _raidEntries.DkpEntries.Remove(toBeRemoved);
+                }
+                return null;
+            }
+
+            CheckDkpPlayerName(dkpEntry);
+
+            GetDkpAmount(dkpLineParts[2], dkpEntry);
+            GetAuctioneerName(dkpLineParts[0], dkpEntry);
+
+            return dkpEntry;
         }
-
-        CheckDkpPlayerName(dkpEntry);
-
-        GetDkpAmount(dkpLineParts[2], dkpEntry);
-        GetAuctioneerName(dkpLineParts[0], dkpEntry);
-
-        entry.Visited = true;
-
-        return dkpEntry;
+        catch (Exception ex)
+        {
+            EuropaDkpParserException eex = new("An unexpected error occurred when analyzing a DKPSPENT call.", entry.LogLine, ex);
+            throw eex;
+        }
     }
 
     private DkpEntry GetAssociatedDkpEntry(RaidEntries raidEntries, DkpEntry dkpEntry)
