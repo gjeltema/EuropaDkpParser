@@ -13,7 +13,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
         foreach (RaidInfo raid in raidEntries.Raids)
         {
             DateTime dateStamp = raid.StartTime;
-            if(dateStamp == DateTime.MinValue)
+            if (dateStamp == DateTime.MinValue)
             {
                 dateStamp = raid.FirstAttendanceCall.Timestamp.AddMinutes(-10);
             }
@@ -53,8 +53,8 @@ public sealed class FileOutputGenerator : IOutputGenerator
         */
         string dateStampText = call.Timestamp.ToEqLogTimestamp();
         string header = call.AttendanceCallType == AttendanceCallType.Time
-            ? $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
-            : $"{dateStampText} You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
+            ? $"You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
+            : $"You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
 
         yield return $"{dateStampText} {header}";
         yield return $"{dateStampText} {Constants.PlayersOnEverquest}";
