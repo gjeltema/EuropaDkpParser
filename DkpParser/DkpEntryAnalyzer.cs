@@ -89,7 +89,6 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
         CheckDkpPlayerName(dkpEntry);
 
-        string dkpAmountText = playerParts[1].Trim();
         GetDkpAmount(dkpLineParts[2], dkpEntry);
         GetAuctioneerName(dkpLineParts[0], dkpEntry);
 
