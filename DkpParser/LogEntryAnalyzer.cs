@@ -38,7 +38,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         IEnumerable<string> zoneNames = _raidEntries.AttendanceEntries
             .OrderBy(x => x.Timestamp)
-            .Select(x => GetZoneRaidAlias(x.ZoneName ?? ""))
+            .Select(x => GetZoneRaidAlias(x.ZoneName))
+            .Where(x => !string.IsNullOrEmpty(x))
             .Distinct();
 
         foreach (string zoneName in zoneNames)
@@ -108,7 +109,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             RaidInfo associatedRaid = _raidEntries.Raids
                 .FirstOrDefault(x => x.StartTime <= dkpEntry.Timestamp && dkpEntry.Timestamp <= x.EndTime);
 
-            dkpEntry.AssociatedAttendanceCall = associatedRaid?.LastAttendanceCall;
+            if (associatedRaid == null)
+            {
+                string analysisError = $"Unable to find any associated attendance entry for DKPSPENT call: {dkpEntry.RawLogLine}";
+                _raidEntries.AnalysisErrors.Add(analysisError);
+                return;
+            }
+
+            dkpEntry.AssociatedAttendanceCall = associatedRaid.LastAttendanceCall;
         }
     }
 
@@ -230,16 +238,45 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
         // [Thu Feb 22 23:13:52 2024] You have joined the raid.
         int indexOfLastBracket = entry.LogLine.IndexOf(']');
-        string entryMessage = entry.LogLine[(indexOfLastBracket + 2)..].Trim();
+        if (indexOfLastBracket < 0 || entry.LogLine.Length < indexOfLastBracket + 3)
+        {
+            string analysisError = $"Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
+
+        string entryMessage = entry.LogLine[(indexOfLastBracket + 2)..];
+        if (string.IsNullOrWhiteSpace(entryMessage))
+        {
+            string analysisError = $"Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
+
+        entryMessage = entryMessage.Trim();
+
         if (entryMessage.Contains("You have "))
             return null;
 
         int indexOfSpace = entryMessage.IndexOf(' ');
+        if (indexOfSpace < 2)
+        {
+            string analysisError = $"Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
+
         string playerName = entryMessage[0..indexOfSpace];
+        if (string.IsNullOrWhiteSpace(playerName))
+        {
+            string analysisError = $"Unable to find player name in a Player Joined/Left raid entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
 
         return new PlayerJoinRaidEntry
         {
-            PlayerName = playerName,
+            PlayerName = playerName.Trim(),
             Timestamp = entry.Timestamp,
             EntryType = entry.EntryType
         };
@@ -247,21 +284,66 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private PlayerLooted ExtractPlayerLooted(EqLogEntry entry)
     {
+        entry.Visited = true;
+
         // [Wed Feb 21 18:49:31 2024] --Orsino has looted a Part of Tasarin's Grimoire Pg. 24.--
         // [Wed Feb 21 16:34:07 2024] --You have looted a Bloodstained Key.--
         int indexOfFirstDashes = entry.LogLine.IndexOf(Constants.DoubleDash);
+        if (indexOfFirstDashes <= Constants.LogDateTimeLength)
+        {
+            string analysisError = $"Unable to validate log entry is a player looted entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
         int startIndex = indexOfFirstDashes + Constants.DoubleDash.Length;
         int endIndex = entry.LogLine.Length - Constants.EndLootedDashes.Length;
-        string lootString = entry.LogLine[startIndex..endIndex];
+        if (startIndex >= endIndex)
+        {
+            string analysisError = $"Unable to validate log entry is a player looted entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
+
+        string lootString = entry.LogLine[startIndex..endIndex].Trim();
+        if (string.IsNullOrWhiteSpace(lootString))
+        {
+            string analysisError = $"Unable to extract string after timestamp from player looted entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
 
         int indexOfSpace = lootString.IndexOf(' ');
+        if (indexOfSpace < 1)
+        {
+            string analysisError = $"Unable to validate log entry is a player looted entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
+
         string playerName = lootString[0..indexOfSpace];
+        if (string.IsNullOrWhiteSpace(playerName))
+        {
+            string analysisError = $"Unable to extract player name from player looted entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
 
         int indexOfLooted = lootString.IndexOf(Constants.LootedA);
         int startIndexOfItem = indexOfLooted + Constants.LootedA.Length;
-        string itemName = lootString[startIndexOfItem..];
+        if (indexOfLooted < 1)
+        {
+            string analysisError = $"Unable to validate log entry is a player looted entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
 
-        entry.Visited = true;
+        string itemName = lootString[startIndexOfItem..];
+        if (string.IsNullOrWhiteSpace(itemName))
+        {
+            string analysisError = $"Unable to extract looted item from player looted entry: {entry.LogLine}";
+            _raidEntries.AnalysisErrors.Add(analysisError);
+            return null;
+        }
 
         return new PlayerLooted
         {
@@ -281,7 +363,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         {
             IEnumerable<PlayerLooted> playersLooted = log.LogEntries
                 .Where(x => x.EntryType == LogEntryType.PlayerLooted)
-                .Select(ExtractPlayerLooted);
+                .Select(ExtractPlayerLooted)
+                .Where(x => x != null);
 
             _raidEntries.PlayerLootedEntries = playersLooted.ToList();
         }

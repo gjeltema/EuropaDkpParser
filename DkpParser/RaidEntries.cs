@@ -11,6 +11,8 @@ public sealed class RaidEntries
 {
     public ICollection<PlayerCharacter> AllPlayersInRaid { get; set; } = new HashSet<PlayerCharacter>();
 
+    public ICollection<string> AnalysisErrors { get; } = new List<string>();
+
     public ICollection<AttendanceEntry> AttendanceEntries { get; set; } = new List<AttendanceEntry>();
 
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
@@ -40,6 +42,10 @@ public sealed class RaidEntries
 
     public IEnumerable<string> GetAllEntries()
     {
+        yield return "-------------------- Analyzer Errors -------------------";
+        foreach (string error in AnalysisErrors)
+            yield return error;
+
         yield return "-------------------- Attendance Entries -------------------";
         foreach (AttendanceEntry attEntry in AttendanceEntries)
         {

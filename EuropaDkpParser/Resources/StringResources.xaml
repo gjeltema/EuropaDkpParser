@@ -133,6 +133,7 @@
     <system:String x:Key="CaseSensitive">Case senstive</system:String>
     <system:String x:Key="OpenGeneralLogParser">General Parser</system:String>
     <system:String x:Key="UnexpectedError">Unexpected Error Encountered</system:String>
+    <system:String x:Key="OutputAnalyzerErrors">Output analyzer errors to file name starting with 'AnalyzerErrors'</system:String>
 
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>

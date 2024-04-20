@@ -67,15 +67,37 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             string logLine = CorrectDelimiter(entry.LogLine);
 
             string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
-            string itemName = dkpLineParts[1].Trim();
-            string[] playerParts = dkpLineParts[2].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (dkpLineParts.Length < 3)
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
+                return null;
+            }
 
-            string playerName = playerParts[0].Trim();
+            string itemName = dkpLineParts[1];
+            if (string.IsNullOrWhiteSpace(itemName))
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable to extract item name from DkpEntry: {entry.LogLine}");
+                return null;
+            }
+
+            string[] playerParts = dkpLineParts[2].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (playerParts.Length < 1)
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
+                return null;
+            }
+
+            string playerName = playerParts[0];
+            if (string.IsNullOrWhiteSpace(playerName))
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable to extract player name from DkpEntry: {entry.LogLine}");
+                return null;
+            }
 
             DkpEntry dkpEntry = new()
             {
-                PlayerName = playerName,
-                Item = itemName,
+                PlayerName = playerName.Trim(),
+                Item = itemName.Trim(),
                 Timestamp = entry.Timestamp,
                 RawLogLine = entry.LogLine,
             };
@@ -91,7 +113,6 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             }
 
             CheckDkpPlayerName(dkpEntry);
-
             GetDkpAmount(dkpLineParts[2], dkpEntry);
             GetAuctioneerName(dkpLineParts[0], dkpEntry);
 
@@ -106,29 +127,32 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
     private DkpEntry GetAssociatedDkpEntry(RaidEntries raidEntries, DkpEntry dkpEntry)
     {
-        DkpEntry lastOneFound = null;
-        IOrderedEnumerable<DkpEntry> associatedEntries = raidEntries.DkpEntries
-            .Where(x => x.PlayerName == dkpEntry.PlayerName && x.Item == dkpEntry.Item)
-            .OrderBy(x => x.Timestamp);
+        DkpEntry associatedEntry = raidEntries.DkpEntries
+            .Where(x => x.Timestamp < dkpEntry.Timestamp && x.PlayerName == dkpEntry.PlayerName && x.Item == dkpEntry.Item)
+            .MaxBy(x => x.Timestamp);
 
-        foreach (DkpEntry entry in associatedEntries)
-        {
-            if (entry.Timestamp < dkpEntry.Timestamp)
-                lastOneFound = entry;
-            else
-                break;
-        }
-
-        return lastOneFound;
+        return associatedEntry;
     }
 
     private void GetAuctioneerName(string initialLogLine, DkpEntry dkpEntry)
     {
         int indexOfBracket = initialLogLine.IndexOf(']');
         int indexOfTell = initialLogLine.IndexOf(" tell");
+        if (indexOfBracket < 1 || indexOfTell < 1)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to extract auctioneer name from DkpEntry: {initialLogLine}");
+            dkpEntry.Auctioneer = string.Empty;
+            return;
+        }
 
-        string auctioneerName = initialLogLine[(indexOfBracket + 1)..indexOfTell].Trim();
-        dkpEntry.Auctioneer = auctioneerName;
+        string auctioneerName = initialLogLine[(indexOfBracket + 1)..indexOfTell];
+        if (string.IsNullOrWhiteSpace(auctioneerName))
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to extract auctioneer name from DkpEntry: {initialLogLine}");
+            return;
+        }
+
+        dkpEntry.Auctioneer = auctioneerName.Trim();
     }
 
     private string GetDigits(string endText)
@@ -141,6 +165,13 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
     {
         // Get digits, since it must be assumed that the auctioneer will add extraneous characters such as '-' and 'alt'.
         string dkpNumber = GetDigits(endText);
+        if (string.IsNullOrWhiteSpace(dkpNumber))
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to extract DKP amount from DkpEntry: {dkpEntry.RawLogLine}");
+            dkpEntry.DkpSpent = 0;
+            dkpEntry.PossibleError = PossibleError.ZeroDkp;
+            return;
+        }
 
         int.TryParse(dkpNumber, out int dkpAmount);
         if (dkpAmount == 0)

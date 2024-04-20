@@ -23,6 +23,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private bool _isCaseSensitive;
     private bool _isOutputRawParseResultsChecked;
     private bool _isRawAnalyzerResultsChecked;
+    private bool _outputAnalyzerErrors;
     private string _outputDirectory;
     private bool _performingParse = false;
     private string _searchTermText;
@@ -118,6 +119,12 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     public DelegateCommand OpenGeneralParserCommand { get; }
 
     public DelegateCommand OpenSettingsDialogCommand { get; }
+
+    public bool OutputAnalyzerErrors
+    {
+        get => _outputAnalyzerErrors;
+        set => SetProperty(ref _outputAnalyzerErrors, value);
+    }
 
     public string OutputDirectory
     {
@@ -315,6 +322,15 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         DebugOptionsEnabled = _settings.EnableDebugOptions;
     }
 
+    private async Task OutputAnalyzerErrorsToFile(RaidEntries raidEntries)
+    {
+        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+
+        string rawAnalyzerOutputFile = $"AnalyzerErrors-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
+        await CreateFile(rawAnalyzerOutputFullPath, raidEntries.AnalysisErrors);
+    }
+
     private async Task OutputRawAnalyzerResults(RaidEntries raidEntries)
     {
         string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
@@ -434,6 +450,11 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             await OutputRawAnalyzerResults(raidEntries);
         }
 
+        if (OutputAnalyzerErrors && raidEntries.AnalysisErrors.Count > 0)
+        {
+            await OutputAnalyzerErrorsToFile(raidEntries);
+        }
+
         if (raidEntries.AttendanceEntries.Any(x => x.PossibleError != PossibleError.None))
         {
             IAttendanceErrorDisplayDialogViewModel attendanceErrorDialog = _dialogFactory.CreateAttendanceErrorDisplayDialogViewModel(_settings, raidEntries);
@@ -531,6 +552,8 @@ public interface IMainDisplayViewModel : IEuropaViewModel
     DelegateCommand OpenGeneralParserCommand { get; }
 
     DelegateCommand OpenSettingsDialogCommand { get; }
+
+    bool OutputAnalyzerErrors { get; set; }
 
     string OutputDirectory { get; }
 

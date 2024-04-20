@@ -34,24 +34,24 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     private void AddRaidDumpMembers(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
     {
         RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
-        if (raidDump != null)
+        if (raidDump == null)
+            return;
+
+        foreach (PlayerCharacter player in raidDump.Characters)
         {
-            foreach (PlayerCharacter player in raidDump.Characters)
-            {
-                call.AddOrMergeInPlayerCharacter(player);
-            }
+            call.AddOrMergeInPlayerCharacter(player);
         }
     }
 
     private void AddRaidListMembers(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
     {
         RaidListFile raidList = logParseResults.RaidListFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
-        if (raidList != null)
+        if (raidList == null)
+            return;
+
+        foreach (PlayerCharacter player in raidList.CharacterNames)
         {
-            foreach (PlayerCharacter player in raidList.CharacterNames)
-            {
-                call.AddOrMergeInPlayerCharacter(player);
-            }
+            call.AddOrMergeInPlayerCharacter(player);
         }
     }
 
@@ -114,45 +114,80 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Sun Mar 17 21:27:54 2024] [50 Monk] Pullz (Human) <Europa>
         // [Sun Mar 17 21:27:54 2024] [ANONYMOUS] Mendrik <Europa>
         // [Sat Mar 09 20:23:41 2024]  <LINKDEAD>[50 Rogue] Noggen (Dwarf) <Europa>
+        entry.Visited = true;
 
         string logLineNoTimestamp = entry.LogLine[(Constants.LogDateTimeLength + 1)..];
         int indexOfLastBracket = logLineNoTimestamp.LastIndexOf(']');
-        if (indexOfLastBracket == -1)
+        if (indexOfLastBracket < 0)
         {
             // Should not reach here.
             Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayer)} that should not be reached. No ']'.  Logline: {entry.LogLine}");
+            _raidEntries.AnalysisErrors.Add($"Unable to extract attending player. No ']'.: {entry.LogLine}");
             return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
         }
 
         int firstIndexOfEndMarker = logLineNoTimestamp.LastIndexOf('(');
-        if (firstIndexOfEndMarker == -1)
+        if (firstIndexOfEndMarker < 0)
         {
             firstIndexOfEndMarker = logLineNoTimestamp.LastIndexOf('<');
-            if (firstIndexOfEndMarker == -1)
+            if (firstIndexOfEndMarker < 0)
             {
                 // Should not reach here.
                 Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayer)} that should not be reached. No '(' or '<'.  Logline: {entry.LogLine}");
+                _raidEntries.AnalysisErrors.Add($"Unable to extract attending player. No '(' or '<'.: {entry.LogLine}");
                 return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
             }
         }
 
         string playerName = logLineNoTimestamp[(indexOfLastBracket + 1)..firstIndexOfEndMarker].Trim();
-        entry.Visited = true;
+        if (string.IsNullOrEmpty(playerName))
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to get player name from 'who' entry: {entry.LogLine}");
+            return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
+        }
 
         PlayerCharacter character = new() { PlayerName = playerName };
 
-        if (logLineNoTimestamp.Contains(Constants.Anonymous))
+        if (logLineNoTimestamp.Contains(Constants.AnonWithBrackets))
         {
             _raidEntries.AddOrMergeInPlayerCharacter(character);
             return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
         }
 
         int indexOfLeadingClassBracket = logLineNoTimestamp.LastIndexOf('[');
+        if (indexOfLeadingClassBracket < 0)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to find leading '[' in 'who' entry: {entry.LogLine}");
+            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+        }
+
         string classLevelString = logLineNoTimestamp[(indexOfLeadingClassBracket + 1)..indexOfLastBracket];
+        if (string.IsNullOrWhiteSpace(classLevelString))
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to get class and level in 'who' entry: {entry.LogLine}");
+            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+        }
+
         string[] classAndLevel = classLevelString.Split(' ');
+        if (classAndLevel.Length < 2)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to get class and level in 'who' entry: {entry.LogLine}");
+            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+        }
 
         int indexOfLastParens = logLineNoTimestamp.LastIndexOf(')');
+        if (indexOfLastParens < 0)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to find trailing ')' in 'who' entry: {entry.LogLine}");
+            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+        }
+
         string race = logLineNoTimestamp[(firstIndexOfEndMarker + 1)..indexOfLastParens];
+        if (string.IsNullOrWhiteSpace(race))
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable to get race in 'who' entry: {entry.LogLine}");
+            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+        }
 
         character.ClassName = classAndLevel.Length > 2 ? string.Join(" ", classAndLevel[1], classAndLevel[2]) : classAndLevel[1];
         character.Level = int.Parse(classAndLevel[0]);
@@ -166,9 +201,27 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::CRASHED:::'
 
+        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + 2)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get player name in CRASHED entry: {logEntry.LogLine}");
+            return null;
+        }
+
         string linePastTimestamp = logEntry.LogLine[(Constants.LogDateTimeLength + 1)..];
         string[] parts = linePastTimestamp.Split(' ');
-        string playerName = parts[0];
+        if (parts.Length < 1)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get player name in CRASHED entry: {logEntry.LogLine}");
+            return null;
+        }
+
+        string playerName = parts[0].Trim();
+        if (string.IsNullOrEmpty(playerName))
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get player name in CRASHED entry: {logEntry.LogLine}");
+            return null;
+        }
+
         PlayerCharacter character = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerName);
         return character;
     }
@@ -180,15 +233,24 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
         int indexOfPlayersIn = entry.LogLine.IndexOf(Constants.PlayersIn);
         if (indexOfPlayersIn < Constants.LogDateTimeLength + Constants.PlayersIn.Length)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get zone name: {entry.LogLine}");
             return null;
+        }
 
         int endIndexOfPlayersIn = indexOfPlayersIn + Constants.PlayersIn.Length;
         if (endIndexOfPlayersIn + Constants.MinimumRaidNameLength > entry.LogLine.Length)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get zone name: {entry.LogLine}");
             return null;
+        }
 
         string zoneName = entry.LogLine[endIndexOfPlayersIn..^1].Trim();
         if (string.IsNullOrEmpty(zoneName))
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get zone name: {entry.LogLine}");
             return null;
+        }
 
         return new() { ZoneName = zoneName, Timestamp = entry.Timestamp };
     }
@@ -216,6 +278,8 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             {
                 try
                 {
+                    logEntry.Visited = true;
+
                     PlayerCharacter crashedPlayer = ExtractCrashedPlayer(logEntry);
                     if (crashedPlayer == null)
                         continue;
@@ -223,6 +287,12 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                     PlayerJoinRaidEntry previousLeaveEntry = _raidEntries.PlayerJoinCalls
                         .Where(x => x.EntryType == LogEntryType.LeftRaid && x.PlayerName == crashedPlayer.PlayerName && x.Timestamp < logEntry.Timestamp)
                         .MaxBy(x => x.Timestamp);
+
+                    if (previousLeaveEntry == null)
+                    {
+                        _raidEntries.AnalysisErrors.Add($"Unable get find previous 'left raid' entry for CRASHED entry: {logEntry.LogLine}");
+                        continue;
+                    }
 
                     DateTime startTimestamp = previousLeaveEntry.Timestamp;
                     bool isMoreThan30Minutes = (logEntry.Timestamp - previousLeaveEntry.Timestamp) > thirtyMinutes;
@@ -235,7 +305,10 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                             .MaxBy(x => x.Timestamp);
 
                         if (previousLeaveEntry == null)
+                        {
+                            _raidEntries.AnalysisErrors.Add($"Unable get find previous time attendance for CRASHED entry: {logEntry.LogLine}");
                             continue;
+                        }
 
                         startTimestamp = previousTimeAttendance.Timestamp;
                     }
@@ -261,12 +334,14 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
         {
+            logEntry.Visited = true;
+
             AttendanceEntry toBeRemoved = GetAssociatedLogEntry(call);
             if (toBeRemoved != null)
             {
                 _raidEntries.AttendanceEntries.Remove(toBeRemoved);
             }
-            logEntry.Visited = true;
+
             return true;
         }
 
@@ -303,13 +378,33 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         string[] splitEntry = logLine.Split(Constants.AttendanceDelimiter);
         if (logEntry.EntryType == LogEntryType.Attendance)
         {
-            call.RaidName = splitEntry[3].Trim();
             call.AttendanceCallType = AttendanceCallType.Time;
+
+            if (splitEntry.Length < 4)
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable get get raid name from Time attendance entry: {logEntry.LogLine}");
+                return;
+            }
+            call.RaidName = splitEntry[3].Trim();
+            if (string.IsNullOrEmpty(call.RaidName))
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable get get raid name from Time attendance entry: {logEntry.LogLine}");
+            }
         }
         else
         {
-            call.RaidName = splitEntry[2].Trim();
             call.AttendanceCallType = AttendanceCallType.Kill;
+
+            if (splitEntry.Length < 3)
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable get get raid name from Kill attendance entry: {logEntry.LogLine}");
+                return;
+            }
+            call.RaidName = splitEntry[2].Trim();
+            if (string.IsNullOrEmpty(call.RaidName))
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable get get raid name from Kill attendance entry: {logEntry.LogLine}");
+            }
         }
     }
 
@@ -322,8 +417,10 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
         else
         {
-            //** Heuristic to find nearby zone name
+            //** Heuristic to find nearby zone name?
             call.PossibleError = PossibleError.NoZoneName;
+            call.ZoneName = string.Empty;
+            _raidEntries.AnalysisErrors.Add($"Unable get get zone name from attendance entry: {logEntry.LogLine}");
         }
     }
 
@@ -333,9 +430,14 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         {
             PlayerCharacter character = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == player.PlayerName);
             if (character != null)
+            {
                 player.Merge(character);
+            }
             else // Shouldnt reach here
+            {
                 Debug.Fail($"No PlayerCharacter found in {nameof(UpdatePlayerInfo)}. Playername: {player.PlayerName}");
+                _raidEntries.AnalysisErrors.Add($"No player character found in AllPlayers collection to update player info: {player.PlayerName}");
+            }
         }
     }
 
