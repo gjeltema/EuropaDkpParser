@@ -141,6 +141,11 @@ public sealed class DkpServer : IDkpServer
         foreach (string zoneName in zoneNames)
         {
             string aliasedZoneName = _settings.RaidValue.GetZoneRaidAlias(zoneName);
+            if (string.IsNullOrEmpty(aliasedZoneName))
+            {
+                results.EventIdNotFoundErrors.Add($"Unable to get alias for {zoneName}");
+                continue;
+            }
 
             XElement idValue = eventIdsDoc.Root.Elements()
                 .Where(x => x.Elements().Any(x => x.Name == "name" && x.Value == aliasedZoneName))
@@ -152,9 +157,15 @@ public sealed class DkpServer : IDkpServer
                     results.EventIdNotFoundErrors.Add($"{zoneName}");
                 else
                     results.EventIdNotFoundErrors.Add($"{zoneName} with alias {aliasedZoneName}");
+
+                continue;
             }
 
-            int eventId = (int)idValue;
+            if (!int.TryParse(idValue.Value, out int eventId))
+            {
+                results.EventIdNotFoundErrors.Add($"Unable to get event ID for {zoneName}, value in DKP server was: {idValue.Value}");
+                continue;
+            }
 
             _eventIdCache[zoneName] = eventId;
         }
