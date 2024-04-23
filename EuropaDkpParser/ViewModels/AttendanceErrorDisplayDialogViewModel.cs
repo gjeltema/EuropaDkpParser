@@ -46,7 +46,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         RemoveDuplicateErrorEntryCommand = new DelegateCommand(RemoveDuplicateErrorEntry, () => _currentEntry?.PossibleError == PossibleError.DuplicateRaidEntry && SelectedErrorEntry != null)
             .ObservesProperty(() => SelectedErrorEntry);
         ChangeBossMobNameCommand = new DelegateCommand(ChangeBossMobName);
-        UpdateZoneNameCommand = new DelegateCommand(UpdateZoneName, () => !string.IsNullOrWhiteSpace(ZoneNameText))
+        UpdateZoneNameCommand = new DelegateCommand(UpdateZoneName, () => !string.IsNullOrWhiteSpace(ZoneNameText) && ZoneNameText != _currentEntry?.ZoneName)
             .ObservesProperty(() => ZoneNameText);
         UpdateRaidNameCommand = new DelegateCommand(UpdateRaidName, () => !string.IsNullOrWhiteSpace(RaidNameText))
             .ObservesProperty(() => RaidNameText);
@@ -167,6 +167,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         }
 
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        ZoneNameText = _currentEntry.ZoneName;
         RemoveDuplicateErrorEntryCommand.RaiseCanExecuteChanged();
         ChangeBossMobNameCommand.RaiseCanExecuteChanged();
         UpdateZoneNameCommand.RaiseCanExecuteChanged();
