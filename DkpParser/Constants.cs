@@ -9,7 +9,6 @@ using System.Globalization;
 public static class Constants
 {
     public const string AnonWithBrackets = "[ANONYMOUS]";
-    public const string Anonymous = "ANONYMOUS";
     /// <summary>
     /// Used in the file-archiving functionality.
     /// </summary>

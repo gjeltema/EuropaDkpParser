@@ -13,6 +13,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
     private readonly RaidEntries _raidEntries;
     private string _attendanceMissingFrom;
     private ICollection<string> _attendancesAndJoins;
+    private ICollection<string> _attendees;
     private PlayerPossibleLinkdead _currentEntry;
     private string _nextButtonText;
     private string _playerAddedMessage;
@@ -46,6 +47,12 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         private set => SetProperty(ref _attendancesAndJoins, value);
     }
 
+    public ICollection<string> Attendees
+    {
+        get => _attendees;
+        private set => SetProperty(ref _attendees, value);
+    }
+
     public DelegateCommand MoveToNextErrorCommand { get; }
 
     public string NextButtonText
@@ -53,7 +60,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         get => _nextButtonText;
         private set => SetProperty(ref _nextButtonText, value);
     }
-    
+
     public string PlayerAddedMessage
     {
         get => _playerAddedMessage;
@@ -71,10 +78,11 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         get => _selectedAttendance;
         set => SetProperty(ref _selectedAttendance, value);
     }
-    
+
     private void AddToAttendance()
     {
         _currentEntry.AttendanceMissingFrom.Players.Add(_currentEntry.Player);
+        Attendees = _currentEntry.AttendanceMissingFrom.Players.Select(x => x.PlayerName).Order().ToList();
         PlayerAddedMessage = Strings.GetString("PlayerAddedMessage");
     }
 
@@ -113,6 +121,8 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
 
         AttendancesAndJoins = entries.ToList();
         SelectedAttendance = _currentEntry.AttendanceMissingFrom.ToDisplayString();
+
+        Attendees = _currentEntry.AttendanceMissingFrom.Players.Select(x => x.PlayerName).Order().ToList();
     }
 
     private void SetNextButtonText()
@@ -130,13 +140,15 @@ public interface IPossibleLinkdeadErrorDialogViewModel : IDialogViewModel
 
     ICollection<string> AttendancesAndJoins { get; }
 
+    ICollection<string> Attendees { get; }
+
     DelegateCommand MoveToNextErrorCommand { get; }
 
     string NextButtonText { get; }
 
+    string PlayerAddedMessage { get; }
+
     string PlayerName { get; }
 
     string SelectedAttendance { get; set; }
-
-    string PlayerAddedMessage { get; }
 }

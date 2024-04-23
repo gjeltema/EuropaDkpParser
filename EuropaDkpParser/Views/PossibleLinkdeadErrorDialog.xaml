@@ -25,20 +25,36 @@
 
             <Label Grid.Row="0" Content="{StaticResource AttendancesAndJoinsLabelText}" />
 
-            <ListView Grid.Row="1" ItemsSource="{Binding AttendancesAndJoins}" SelectedItem="{Binding SelectedAttendance}" Margin="0,5,0,0">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListViewItem}">
-                        <Setter Property="Focusable" Value="False"/>
-                        <Setter Property="ToolTip">
-                            <Setter.Value>
-                                <UniformGrid Columns="1">
-                                    <TextBlock Text="{Binding}"/>
-                                </UniformGrid>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListView.ItemContainerStyle>
-            </ListView>
+            <Grid Grid.Row="1" Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <ListView Grid.Column="0" ItemsSource="{Binding AttendancesAndJoins}" SelectedItem="{Binding SelectedAttendance}" Margin="0,0,5,0">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="Focusable" Value="False"/>
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <UniformGrid Columns="1">
+                                        <TextBlock Text="{Binding}"/>
+                                    </UniformGrid>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+
+                <ListView Grid.Column="1" ItemsSource="{Binding Attendees}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="Focusable" Value="False"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+            </Grid>
+            
 
             <Grid Grid.Row="2" Margin="0,5,0,5">
                 <Grid.ColumnDefinitions>

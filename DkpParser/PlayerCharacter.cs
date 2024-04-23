@@ -71,7 +71,7 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
         string race = string.IsNullOrEmpty(Race) ? "Unknown" : Race;
 
         return IsAnonymous
-            ? $"[{Constants.Anonymous}] {PlayerName}  <Europa>"
+            ? $"{Constants.AnonWithBrackets} {PlayerName}  <Europa>"
             : $"[{Level} {ClassName}] {PlayerName} ({race}) <Europa>";
     }
 }

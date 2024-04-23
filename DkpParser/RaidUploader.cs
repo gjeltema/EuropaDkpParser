@@ -108,7 +108,7 @@ public sealed class RaidUploadResults
             yield return $"Failed to get event IDs: {EventIdCallFailure.Message}";
 
         foreach (CharacterIdFailure characterIdFail in FailedCharacterIdRetrievals)
-            yield return $"Failed to get character ID for {PlayerDelimiter}{characterIdFail.PlayerName}{PlayerDelimiter}: {characterIdFail.Error.Message}";
+            yield return $"Failed to get character ID for {PlayerDelimiter}{characterIdFail.PlayerName}{PlayerDelimiter}, likely character does not exist on DKP server";
 
         foreach (string eventIdNotFound in EventIdNotFoundErrors)
             yield return $"Unable to retrieve event ID for {eventIdNotFound}";
