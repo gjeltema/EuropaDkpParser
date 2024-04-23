@@ -159,6 +159,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void CheckPotentialLinkdeads()
     {
+        // For each player in the raid, find any attendances they're missing from.
+        // If they are present in the Time attendance before and after, then put them up for review.
+        // Dont bother with the first and last attendance calls of the raid - too many false positives.
+
         List<AttendanceEntry> orderedAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
         foreach (PlayerCharacter player in _raidEntries.AllPlayersInRaid)
         {
@@ -169,20 +173,22 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     .Where(x => x.Timestamp < attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
                     .LastOrDefault();
 
+                if (previousAttendance == null)
+                    continue;
+
                 AttendanceEntry nextAttendance = orderedAttendances
                     .Where(x => x.Timestamp > attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
                     .FirstOrDefault();
 
-                bool playerInPreviousAttendance = previousAttendance == null || previousAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
-                bool playerInNextAttendance = nextAttendance == null || nextAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
+                if (nextAttendance == null)
+                    continue;
+
+                bool playerInPreviousAttendance = previousAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
+                bool playerInNextAttendance = nextAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
+
                 if (playerInPreviousAttendance && playerInNextAttendance)
                 {
-                    PlayerPossibleLinkdead ld = new()
-                    {
-                        Player = player,
-                        AttendanceMissingFrom = attendance
-                    };
-                    _raidEntries.PossibleLinkdeads.Add(ld);
+                    _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = attendance });
                 }
             }
         }
