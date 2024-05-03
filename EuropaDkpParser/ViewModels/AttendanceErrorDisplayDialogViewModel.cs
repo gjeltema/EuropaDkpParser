@@ -48,6 +48,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         ChangeBossMobNameCommand = new DelegateCommand(ChangeBossMobName);
         UpdateZoneNameCommand = new DelegateCommand(UpdateZoneName, () => !string.IsNullOrWhiteSpace(ZoneNameText) && ZoneNameText != _currentEntry?.ZoneName)
             .ObservesProperty(() => ZoneNameText);
+        UpdateSelectedRaidNameCommand = new DelegateCommand(UpdateSelectedRaidName, () => !string.IsNullOrWhiteSpace(RaidNameText) && SelectedErrorEntry != null)
+            .ObservesProperty(() => RaidNameText).ObservesProperty(() => SelectedErrorEntry);
         UpdateRaidNameCommand = new DelegateCommand(UpdateRaidName, () => !string.IsNullOrWhiteSpace(RaidNameText))
             .ObservesProperty(() => RaidNameText);
 
@@ -135,6 +137,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     }
 
     public DelegateCommand UpdateRaidNameCommand { get; }
+
+    public DelegateCommand UpdateSelectedRaidNameCommand { get; }
 
     public DelegateCommand UpdateZoneNameCommand { get; }
 
@@ -275,6 +279,14 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         ErrorAttendances = [_currentEntry];
     }
 
+    private void UpdateSelectedRaidName()
+    {
+        ICollection<AttendanceEntry> attendances = ErrorAttendances;
+        AttendanceEntry selectedAttendance = SelectedErrorEntry;
+        selectedAttendance.RaidName = RaidNameText;
+        ErrorAttendances = [.. attendances];
+    }
+
     private void UpdateZoneName()
     {
         _currentEntry.ZoneName = ZoneNameText;
@@ -317,6 +329,8 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
     AttendanceEntry SelectedErrorEntry { get; set; }
 
     DelegateCommand UpdateRaidNameCommand { get; }
+
+    DelegateCommand UpdateSelectedRaidNameCommand { get; }
 
     DelegateCommand UpdateZoneNameCommand { get; }
 

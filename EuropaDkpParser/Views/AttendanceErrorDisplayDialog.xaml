@@ -70,7 +70,22 @@
 
                 <!-- These 4 grids overlay each other, controlled by visibility. -->
                 <Grid Grid.Row="2" Visibility="{Binding IsDuplicateError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,4,0,0">
-                    <Button Content="{StaticResource Remove}" Command="{Binding RemoveDuplicateErrorEntryCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Button Grid.Row="0" Content="{StaticResource Remove}" Command="{Binding RemoveDuplicateErrorEntryCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
+
+                    <Grid Grid.Row="1" Margin="0,5,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0" Text="{Binding RaidNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
+                        <Button Grid.Column="1" Content="{StaticResource UpdateRaidName}" Command="{Binding UpdateSelectedRaidNameCommand}" Width="85" Height="30" />
+                    </Grid>
                 </Grid>
 
                 <Grid Grid.Row="2" Visibility="{Binding IsBossMobTypoError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
