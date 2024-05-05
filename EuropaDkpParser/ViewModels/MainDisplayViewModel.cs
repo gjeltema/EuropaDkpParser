@@ -495,6 +495,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile);
+        completedDialog.DkpSpentEntries = string.Join(Environment.NewLine, raidEntries.GetDkpspentEntries());
         completedDialog.ShowDialog();
     }
 

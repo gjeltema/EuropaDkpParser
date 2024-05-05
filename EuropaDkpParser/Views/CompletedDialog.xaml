@@ -20,7 +20,19 @@
 
         <TextBlock Grid.Row="1" Text="{Binding LogFilePath}" Margin="5,10"/>
 
-        <!-- Grid.Row="2" is just filler-->
+        <Grid Grid.Row="2" Visibility="{Binding ShowDkpSpentEntries, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Content="{StaticResource DkpSpentCalls}" />
+
+            <TextBox Grid.Row="1" Text="{Binding DkpSpentEntries}" TextWrapping="Wrap"/>
+
+            <!--<Button Grid.Row="2" Content="{StaticResource ClipboardText}" Command="{Binding CopyToClipboardCommand}" HorizontalAlignment="Right" Width="100" Height="30" Margin="0,0,10,0"/>-->
+        </Grid>
         
         <Grid Grid.Row="3" HorizontalAlignment="Right">
             <Grid.ColumnDefinitions>

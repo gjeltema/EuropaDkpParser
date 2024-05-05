@@ -137,6 +137,7 @@
 
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>
+    <system:String x:Key="ClipboardText">Copy to Clipboard</system:String>
     
     <!-- FileArchiveDialog -->
     <system:String x:Key="GeneratedLogAgeError">Days is not valid</system:String>
