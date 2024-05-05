@@ -6,6 +6,7 @@ namespace DkpParser;
 
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Xml;
 using System.Xml.Linq;
 
 public sealed class DkpServer : IDkpServer
@@ -66,7 +67,7 @@ public sealed class DkpServer : IDkpServer
                 new XElement("raid_date", attendanceEntry.Timestamp.ToUsTimestamp(ServerTimeFormat)),
                 new XElement("raid_value", dkpValue),
                 new XElement("raid_event_id", eventId),
-                new XElement("raid_note", attendanceEntry.ToDkpServerDescription()),
+                new XElement("raid_note", SanitizeString(attendanceEntry.ToDkpServerDescription())),
                 new XElement("raid_attendees",
                     memberIds.Select(x => new XElement("member", x))
                 )
@@ -87,7 +88,7 @@ public sealed class DkpServer : IDkpServer
             new XElement("request",
                 new XElement("item_date", dkpEntry.Timestamp.ToUsTimestamp(ServerTimeFormat)),
                 new XElement("item_value", dkpEntry.DkpSpent),
-                new XElement("item_name", dkpEntry.Item),
+                new XElement("item_name", SanitizeString(dkpEntry.Item)),
                 new XElement("item_raid_id", raidId),
                 new XElement("item_itempool_id", 1),
                 new XElement("item_buyers",
@@ -195,6 +196,12 @@ public sealed class DkpServer : IDkpServer
 
     private HttpContent GetPostContent(string postBody)
         => new StringContent(postBody);
+
+    private string SanitizeString(string toBeSanitized)
+    {
+        char[] sanitizedChars = toBeSanitized.Where(XmlConvert.IsXmlChar).ToArray();
+        return new string(sanitizedChars);
+    }
 
     private async Task<string> UploadMessage(string function, string content)
     {
