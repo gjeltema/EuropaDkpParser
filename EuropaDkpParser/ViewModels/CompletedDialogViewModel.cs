@@ -21,12 +21,9 @@ internal sealed class CompletedDialogViewModel : DialogViewModelBase, ICompleted
         LogFilePath = logFilePath;
 
         OpenLogFileDirectoryCommand = new DelegateCommand(OpenLogFileDirectory);
-        CopyToClipboardCommand = new DelegateCommand(CopyToClipboard);
     }
 
     public string CompletionMessage { get; }
-
-    public DelegateCommand CopyToClipboardCommand { get; }
 
     public string DkpSpentEntries { get; set; }
 
@@ -36,11 +33,6 @@ internal sealed class CompletedDialogViewModel : DialogViewModelBase, ICompleted
 
     public bool ShowDkpSpentEntries
         => !string.IsNullOrWhiteSpace(DkpSpentEntries);
-
-    private void CopyToClipboard()
-    {
-
-    }
 
     private void OpenLogFileDirectory()
     {
@@ -52,8 +44,6 @@ internal sealed class CompletedDialogViewModel : DialogViewModelBase, ICompleted
 public interface ICompletedDialogViewModel : IDialogViewModel
 {
     string CompletionMessage { get; }
-
-    DelegateCommand CopyToClipboardCommand { get; }
 
     string DkpSpentEntries { get; set; }
 

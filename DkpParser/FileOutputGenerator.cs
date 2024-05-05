@@ -70,18 +70,8 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
     private void CreateDkpEntries(RaidEntries raidEntries, List<string> outputContents, RaidInfo raid)
     {
-        IEnumerable<DkpEntry> dkpEntries = raidEntries.DkpEntries
-            .Where(x => raid.StartTime <= x.Timestamp && x.Timestamp <= raid.EndTime)
-            .OrderBy(x => x.Timestamp);
-
-        // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
-        // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
-        foreach (DkpEntry dkpEntry in dkpEntries)
-        {
-            string timestampText = dkpEntry.Timestamp.ToEqLogTimestamp();
-            string dkpEntryText = $"{timestampText} {dkpEntry.ToLogString()}";
-            outputContents.Add(dkpEntryText);
-        }
+        IEnumerable<string> dkpEntriesText = raidEntries.GetDkpspentEntriesForRaid(raid);
+        outputContents.AddRange(dkpEntriesText);
     }
 }
 

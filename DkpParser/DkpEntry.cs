@@ -31,9 +31,11 @@ public sealed class DkpEntry
     {
         // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
         // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
+
+        string timestampText = Timestamp.ToEqLogTimestamp();
         return Auctioneer == You
-            ? $"You tell your raid, '{Constants.AttendanceDelimiter}{Item}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'"
-            : $"{Auctioneer} tells the raid,  '{Constants.AttendanceDelimiter}{Item}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'";
+            ? $"{timestampText} You tell your raid, '{Constants.AttendanceDelimiter}{Item}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'"
+            : $"{timestampText} {Auctioneer} tells the raid,  '{Constants.AttendanceDelimiter}{Item}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'";
     }
 
     public override string ToString()
