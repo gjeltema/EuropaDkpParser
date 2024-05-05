@@ -28,7 +28,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         AddUnvisitedEntries(logParseResults);
 
-        SetRaidInfo();
+        AddRaidInfoEntries();
         ErrorPostAnalysis();
 
         return _raidEntries;
@@ -48,34 +48,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             _raidEntries.Raids.Add(raidInfo);
         }
 
-        foreach (RaidInfo raidInfo in _raidEntries.Raids)
-        {
-            IOrderedEnumerable<AttendanceEntry> attendancesForRaid = _raidEntries.AttendanceEntries
-                .Where(x => GetZoneRaidAlias(x.ZoneName) == raidInfo.RaidZone)
-                .OrderBy(x => x.Timestamp);
-
-            raidInfo.FirstAttendanceCall = attendancesForRaid.First();
-            raidInfo.LastAttendanceCall = attendancesForRaid.Last();
-        }
-
-        DateTime startTime = DateTime.MinValue;
-        DateTime endTime = DateTime.MaxValue;
-        for (int i = 0; i < _raidEntries.Raids.Count; i++)
-        {
-            RaidInfo currentRaidInfo = _raidEntries.Raids[i];
-            currentRaidInfo.StartTime = startTime;
-
-            if (i + 1 < _raidEntries.Raids.Count)
-            {
-                RaidInfo nextRaid = _raidEntries.Raids[i + 1];
-                currentRaidInfo.EndTime = nextRaid.FirstAttendanceCall.Timestamp.AddSeconds(-2);
-                startTime = nextRaid.FirstAttendanceCall.Timestamp;
-            }
-            else
-            {
-                currentRaidInfo.EndTime = DateTime.MaxValue;
-            }
-        }
+        _raidEntries.UpdateRaids(GetZoneRaidAlias);
     }
 
     private void AddUnvisitedEntries(LogParseResults logParseResults)
@@ -100,24 +73,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         IDkpEntryAnalyzer dkpEntryAnalyzer = new DkpEntryAnalyzer();
         dkpEntryAnalyzer.AnalyzeLootCalls(logParseResults, _raidEntries);
-    }
-
-    private void AssociateDkpEntriesWithAttendance()
-    {
-        foreach (DkpEntry dkpEntry in _raidEntries.DkpEntries)
-        {
-            RaidInfo associatedRaid = _raidEntries.Raids
-                .FirstOrDefault(x => x.StartTime <= dkpEntry.Timestamp && dkpEntry.Timestamp <= x.EndTime);
-
-            if (associatedRaid == null)
-            {
-                string analysisError = $"Unable to find any associated attendance entry for DKPSPENT call: {dkpEntry.RawLogLine}";
-                _raidEntries.AnalysisErrors.Add(analysisError);
-                return;
-            }
-
-            dkpEntry.AssociatedAttendanceCall = associatedRaid.LastAttendanceCall;
-        }
     }
 
     private void CheckDkpSpentTypos()
@@ -406,12 +361,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
             _raidEntries.PlayerJoinCalls = playersJoined.ToList();
         }
-    }
-
-    private void SetRaidInfo()
-    {
-        AddRaidInfoEntries();
-        AssociateDkpEntriesWithAttendance();
     }
 }
 

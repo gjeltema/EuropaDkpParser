@@ -32,6 +32,8 @@ public sealed class RaidValues : IRaidValues
     public ICollection<string> AllBossMobNames
         => _bossKillValues.Select(x => x.BossName).ToList();
 
+    public ICollection<string> AllValidRaidZoneNames { get; private set; }
+
     public int GetBossKillValue(string bossName)
     {
         BossKillValue boss = _bossKillValues.FirstOrDefault(x => x.BossName == bossName);
@@ -184,6 +186,8 @@ public sealed class RaidValues : IRaidValues
 
             _zoneValues.Add(zone);
         }
+
+        AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).ToList();
     }
 
     [DebuggerDisplay("{BossName}")]
@@ -216,6 +220,8 @@ public sealed class RaidValues : IRaidValues
 public interface IRaidValues
 {
     ICollection<string> AllBossMobNames { get; }
+
+    ICollection<string> AllValidRaidZoneNames { get; }
 
     int GetBossKillValue(string bossName);
 

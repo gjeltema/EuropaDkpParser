@@ -4,6 +4,7 @@
 
 namespace EuropaDkpParser.ViewModels;
 
+using System.Linq;
 using DkpParser;
 using EuropaDkpParser.Resources;
 using Prism.Commands;
@@ -25,7 +26,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     private string _raidNameText;
     private string _selectedBossName;
     private AttendanceEntry _selectedErrorEntry;
-    private string _zoneNameText;
+    private string _selectedZoneName;
 
     internal AttendanceErrorDisplayDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
@@ -34,6 +35,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
         _settings = settings;
         _raidEntries = raidEntries;
+
+        ZoneNames = _settings.RaidValue.AllValidRaidZoneNames;
 
         ApprovedBossNames = _settings.RaidValue.AllBossMobNames;
         string firstBossName = ApprovedBossNames.FirstOrDefault();
@@ -46,8 +49,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         RemoveDuplicateErrorEntryCommand = new DelegateCommand(RemoveDuplicateErrorEntry, () => _currentEntry?.PossibleError == PossibleError.DuplicateRaidEntry && SelectedErrorEntry != null)
             .ObservesProperty(() => SelectedErrorEntry);
         ChangeBossMobNameCommand = new DelegateCommand(ChangeBossMobName);
-        UpdateZoneNameCommand = new DelegateCommand(UpdateZoneName, () => !string.IsNullOrWhiteSpace(ZoneNameText) && ZoneNameText != _currentEntry?.ZoneName)
-            .ObservesProperty(() => ZoneNameText);
+        UpdateZoneNameCommand = new DelegateCommand(UpdateZoneName, () => !string.IsNullOrWhiteSpace(SelectedZoneName) && SelectedZoneName != _currentEntry?.ZoneName)
+            .ObservesProperty(() => SelectedZoneName);
         UpdateSelectedRaidNameCommand = new DelegateCommand(UpdateSelectedRaidName, () => !string.IsNullOrWhiteSpace(RaidNameText) && SelectedErrorEntry != null)
             .ObservesProperty(() => RaidNameText).ObservesProperty(() => SelectedErrorEntry);
         UpdateRaidNameCommand = new DelegateCommand(UpdateRaidName, () => !string.IsNullOrWhiteSpace(RaidNameText))
@@ -136,17 +139,19 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         set => SetProperty(ref _selectedErrorEntry, value);
     }
 
+    public string SelectedZoneName
+    {
+        get => _selectedZoneName;
+        set => SetProperty(ref _selectedZoneName, value);
+    }
+
     public DelegateCommand UpdateRaidNameCommand { get; }
 
     public DelegateCommand UpdateSelectedRaidNameCommand { get; }
 
     public DelegateCommand UpdateZoneNameCommand { get; }
 
-    public string ZoneNameText
-    {
-        get => _zoneNameText;
-        set => SetProperty(ref _zoneNameText, value);
-    }
+    public ICollection<string> ZoneNames { get; }
 
     private void AdvanceToNextError()
     {
@@ -171,11 +176,15 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         }
 
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
-        ZoneNameText = _currentEntry.ZoneName;
         RemoveDuplicateErrorEntryCommand.RaiseCanExecuteChanged();
         ChangeBossMobNameCommand.RaiseCanExecuteChanged();
         UpdateZoneNameCommand.RaiseCanExecuteChanged();
         UpdateRaidNameCommand.RaiseCanExecuteChanged();
+
+        if (ZoneNames.Contains(_currentEntry.ZoneName))
+        {
+            SelectedZoneName = _currentEntry.ZoneName;
+        }
 
         if (_currentEntry.PossibleError == PossibleError.DuplicateRaidEntry)
         {
@@ -289,7 +298,18 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     private void UpdateZoneName()
     {
-        _currentEntry.ZoneName = ZoneNameText;
+        _currentEntry.ZoneName = SelectedZoneName;
+        string zoneAlias = _settings.RaidValue.GetZoneRaidAlias(_currentEntry.ZoneName);
+
+        RaidInfo raidInfo = _raidEntries.Raids.FirstOrDefault(x => x.RaidZone == zoneAlias);
+        if (raidInfo == null)
+        {
+            RaidInfo newRaidInfo = new() { RaidZone = _currentEntry.ZoneName };
+            _raidEntries.Raids.Add(newRaidInfo);
+        }
+
+        _raidEntries.UpdateRaids(_settings.RaidValue.GetZoneRaidAlias);
+
         ErrorAttendances = [_currentEntry];
     }
 }
@@ -328,11 +348,13 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
 
     AttendanceEntry SelectedErrorEntry { get; set; }
 
+    string SelectedZoneName { get; set; }
+
     DelegateCommand UpdateRaidNameCommand { get; }
 
     DelegateCommand UpdateSelectedRaidNameCommand { get; }
 
     DelegateCommand UpdateZoneNameCommand { get; }
 
-    string ZoneNameText { get; set; }
+    ICollection<string> ZoneNames { get; }
 }

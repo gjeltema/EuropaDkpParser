@@ -100,7 +100,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <ComboBox Grid.Column="0" ItemsSource="{Binding ApprovedBossNames}" SelectedValue="{Binding SelectedBossName}" Margin="0,0,4,0"/>
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding ApprovedBossNames}" SelectedValue="{Binding SelectedBossName}" IsEditable="False" Margin="0,0,4,0"/>
                         <Button Grid.Column="1" Content="{StaticResource SetBoss}" Command="{Binding ChangeBossMobNameCommand}" Width="85" Height="30" />
                     </Grid>
 
@@ -110,7 +110,8 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding ZoneNames}" SelectedItem="{Binding SelectedZoneName}" IsEditable="False" Height="30" Margin="0,0,4,0" />
+                        <!--<TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>-->
                         <Button Grid.Column="1" Content="{StaticResource UpdateZone}" Command="{Binding UpdateZoneNameCommand}" Width="85" Height="30" />
                     </Grid>
                 </Grid>
@@ -137,7 +138,8 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding ZoneNames}" SelectedItem="{Binding SelectedZoneName}" IsEditable="False" Height="30" Margin="0,0,4,0"/>
+                        <!--<TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>-->
                         <Button Grid.Column="1" Content="{StaticResource UpdateZone}" Command="{Binding UpdateZoneNameCommand}" Width="85" Height="30" />
                     </Grid>
                 </Grid>
@@ -164,7 +166,8 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding ZoneNames}" SelectedItem="{Binding SelectedZoneName}" IsEditable="False" Height="30" Margin="0,0,4,0"/>
+                        <!--<TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>-->
                         <Button Grid.Column="1" Content="{StaticResource UpdateZone}" Command="{Binding UpdateZoneNameCommand}" Width="85" Height="30" />
                     </Grid>
                 </Grid>

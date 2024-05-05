@@ -88,4 +88,56 @@ public sealed class RaidEntries
 
         yield return "";
     }
+
+    public void UpdateRaids(Func<string, string> getZoneRaidAlias)
+    {
+        foreach (RaidInfo raidInfo in Raids)
+        {
+            IOrderedEnumerable<AttendanceEntry> attendancesForRaid = AttendanceEntries
+                .Where(x => getZoneRaidAlias(x.ZoneName) == raidInfo.RaidZone)
+                .OrderBy(x => x.Timestamp);
+
+            raidInfo.FirstAttendanceCall = attendancesForRaid.First();
+            raidInfo.LastAttendanceCall = attendancesForRaid.Last();
+        }
+
+        DateTime startTime = DateTime.MinValue;
+        DateTime endTime = DateTime.MaxValue;
+        for (int i = 0; i < Raids.Count; i++)
+        {
+            RaidInfo currentRaidInfo = Raids[i];
+            currentRaidInfo.StartTime = startTime;
+
+            if (i + 1 < Raids.Count)
+            {
+                RaidInfo nextRaid = Raids[i + 1];
+                currentRaidInfo.EndTime = nextRaid.FirstAttendanceCall.Timestamp.AddSeconds(-2);
+                startTime = nextRaid.FirstAttendanceCall.Timestamp;
+            }
+            else
+            {
+                currentRaidInfo.EndTime = DateTime.MaxValue;
+            }
+        }
+
+        AssociateDkpEntriesWithAttendance();
+    }
+
+    private void AssociateDkpEntriesWithAttendance()
+    {
+        foreach (DkpEntry dkpEntry in DkpEntries)
+        {
+            RaidInfo associatedRaid = Raids
+                .FirstOrDefault(x => x.StartTime <= dkpEntry.Timestamp && dkpEntry.Timestamp <= x.EndTime);
+
+            if (associatedRaid == null)
+            {
+                string analysisError = $"Unable to find any associated attendance entry for DKPSPENT call: {dkpEntry.RawLogLine}";
+                AnalysisErrors.Add(analysisError);
+                continue;
+            }
+
+            dkpEntry.AssociatedAttendanceCall = associatedRaid.LastAttendanceCall;
+        }
+    }
 }
