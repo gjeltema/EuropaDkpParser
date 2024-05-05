@@ -6,7 +6,6 @@ namespace DkpParser;
 
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Xml;
 using System.Xml.Linq;
 
 public sealed class DkpServer : IDkpServer
@@ -199,7 +198,7 @@ public sealed class DkpServer : IDkpServer
 
     private string SanitizeString(string toBeSanitized)
     {
-        char[] sanitizedChars = toBeSanitized.Where(XmlConvert.IsXmlChar).ToArray();
+        char[] sanitizedChars = toBeSanitized.Where(x => x != '<' && x != '>').ToArray();
         return new string(sanitizedChars);
     }
 
