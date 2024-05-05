@@ -12,13 +12,13 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
 {
     private readonly RaidEntries _raidEntries;
     private string _attendanceMissingFrom;
-    private ICollection<string> _attendancesAndJoins;
+    private ICollection<AttendanceJoinDisplay> _attendancesAndJoins;
     private ICollection<string> _attendees;
     private PlayerPossibleLinkdead _currentEntry;
     private string _nextButtonText;
     private string _playerAddedMessage;
     private string _playerName;
-    private string _selectedAttendance;
+    private AttendanceJoinDisplay _selectedAttendance;
 
     public PossibleLinkdeadErrorDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries)
         : base(viewFactory)
@@ -41,7 +41,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         private set => SetProperty(ref _attendanceMissingFrom, value);
     }
 
-    public ICollection<string> AttendancesAndJoins
+    public ICollection<AttendanceJoinDisplay> AttendancesAndJoins
     {
         get => _attendancesAndJoins;
         private set => SetProperty(ref _attendancesAndJoins, value);
@@ -73,7 +73,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         private set => SetProperty(ref _playerName, value);
     }
 
-    public string SelectedAttendance
+    public AttendanceJoinDisplay SelectedAttendance
     {
         get => _selectedAttendance;
         set => SetProperty(ref _selectedAttendance, value);
@@ -111,16 +111,16 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
 
     private void PopulateAttendancesAndJoins()
     {
-        IOrderedEnumerable<string> entries = _raidEntries.AttendanceEntries.Select(x => x.ToDisplayString())
+        IOrderedEnumerable<AttendanceJoinDisplay> entries = _raidEntries.AttendanceEntries.Select(x => new AttendanceJoinDisplay(x))
             .Union(
                 _raidEntries.PlayerJoinCalls
                 .Where(x => x.PlayerName == _currentEntry.Player.PlayerName)
-                .Select(x => x.ToString())
+                .Select(x => new AttendanceJoinDisplay(x))
             )
-            .Order();
+            .OrderBy(x => x.Timestamp);
 
         AttendancesAndJoins = entries.ToList();
-        SelectedAttendance = _currentEntry.AttendanceMissingFrom.ToDisplayString();
+        SelectedAttendance = AttendancesAndJoins.FirstOrDefault(x => x.Timestamp == _currentEntry.AttendanceMissingFrom.Timestamp);
 
         Attendees = _currentEntry.AttendanceMissingFrom.Players.Select(x => x.PlayerName).Order().ToList();
     }
@@ -132,13 +132,35 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
     }
 }
 
+public sealed class AttendanceJoinDisplay
+{
+    public AttendanceJoinDisplay(AttendanceEntry entry)
+    {
+        Timestamp = entry.Timestamp;
+        DisplayString = $"{entry.RaidName}\t{entry.ZoneName}";
+    }
+
+    public AttendanceJoinDisplay(PlayerJoinRaidEntry entry)
+    {
+        Timestamp = entry.Timestamp;
+        DisplayString = $"**** {entry.PlayerName} has {(entry.EntryType == LogEntryType.JoinedRaid ? "JOINED" : "LEFT")} the raid ****";
+    }
+
+    public string DisplayString { get; set; }
+
+    public DateTime Timestamp { get; set; }
+
+    public sealed override string ToString()
+        => $"{Timestamp:HH:mm:ss}  {DisplayString}";
+}
+
 public interface IPossibleLinkdeadErrorDialogViewModel : IDialogViewModel
 {
     DelegateCommand AddToAttendanceCommand { get; }
 
     string AttendanceMissingFrom { get; }
 
-    ICollection<string> AttendancesAndJoins { get; }
+    ICollection<AttendanceJoinDisplay> AttendancesAndJoins { get; }
 
     ICollection<string> Attendees { get; }
 
@@ -150,5 +172,5 @@ public interface IPossibleLinkdeadErrorDialogViewModel : IDialogViewModel
 
     string PlayerName { get; }
 
-    string SelectedAttendance { get; set; }
+    AttendanceJoinDisplay SelectedAttendance { get; set; }
 }

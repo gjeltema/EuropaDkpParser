@@ -63,7 +63,7 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
         => RaidName.GetHashCode() ^ Timestamp.GetHashCode();
 
     public string ToDisplayString()
-        => $"{Timestamp:MM dd HH:mm:ss}\t{RaidName}\t{ZoneName}";
+        => $"{Timestamp:HH:mm:ss} {RaidName}\t{ZoneName}";
 
     public string ToDkpServerDescription()
         => AttendanceCallType == AttendanceCallType.Time
