@@ -74,7 +74,7 @@
     <system:String x:Key="PossibleBossTypo">Possible boss name typo:</system:String>
     <system:String x:Key="UpdateZone">Update Zone</system:String>
     <system:String x:Key="NoZoneNameErrorText">No zone name was found for Attendance call</system:String>
-    <system:String x:Key="InvalidZoneNameErrorText">An invalid zone name was found for Attendance call</system:String>
+    <system:String x:Key="InvalidZoneNameErrorText">An invalid zone name was found for Attendance call. May need to update RaidValues.txt</system:String>
     <system:String x:Key="RaidNameTooShort">Raid name is too short:</system:String>
     <system:String x:Key="UpdateRaidName">Update Name</system:String>
     
