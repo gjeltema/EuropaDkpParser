@@ -114,14 +114,26 @@ public sealed class RaidEntries
 
     public void UpdateRaids(Func<string, string> getZoneRaidAlias)
     {
+        List<RaidInfo> raidsToBeRemoved = [];
         foreach (RaidInfo raidInfo in Raids)
         {
             IOrderedEnumerable<AttendanceEntry> attendancesForRaid = AttendanceEntries
                 .Where(x => getZoneRaidAlias(x.ZoneName) == raidInfo.RaidZone)
                 .OrderBy(x => x.Timestamp);
 
+            if (!attendancesForRaid.Any())
+            {
+                raidsToBeRemoved.Add(raidInfo);
+                continue;
+            }
+
             raidInfo.FirstAttendanceCall = attendancesForRaid.First();
             raidInfo.LastAttendanceCall = attendancesForRaid.Last();
+        }
+
+        foreach (RaidInfo raidInfo in raidsToBeRemoved)
+        {
+            Raids.Remove(raidInfo);
         }
 
         DateTime startTime = DateTime.MinValue;

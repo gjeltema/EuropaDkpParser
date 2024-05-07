@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v2.4</system:String>
+    <system:String x:Key="Version">v2.4.1</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -74,6 +74,7 @@
     <system:String x:Key="PossibleBossTypo">Possible boss name typo:</system:String>
     <system:String x:Key="UpdateZone">Update Zone</system:String>
     <system:String x:Key="NoZoneNameErrorText">No zone name was found for Attendance call</system:String>
+    <system:String x:Key="InvalidZoneNameErrorText">An invalid zone name was found for Attendance call</system:String>
     <system:String x:Key="RaidNameTooShort">Raid name is too short:</system:String>
     <system:String x:Key="UpdateRaidName">Update Name</system:String>
     

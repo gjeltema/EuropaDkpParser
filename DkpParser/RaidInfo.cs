@@ -3,7 +3,9 @@
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
+using System.Diagnostics;
 
+[DebuggerDisplay("{DebugText,nq}")]
 public sealed class RaidInfo
 {
     public DateTime EndTime { get; set; }
@@ -15,4 +17,7 @@ public sealed class RaidInfo
     public string RaidZone { get; set; }
 
     public DateTime StartTime { get; set; }
+
+    private string DebugText
+        => $"{RaidZone} {StartTime:HH:mm:ss}";
 }

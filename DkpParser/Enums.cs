@@ -36,5 +36,6 @@ public enum PossibleError : byte
     DuplicateRaidEntry,
     BossMobNameTypo,
     NoZoneName,
-    RaidNameTooShort
+    RaidNameTooShort,
+    InvalidZoneName
 }

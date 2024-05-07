@@ -10,8 +10,14 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 {
     private static readonly TimeSpan thirtyMinutes = TimeSpan.FromMinutes(30);
     private readonly List<PlayerAttend> _playersAttending = [];
+    private readonly IDkpParserSettings _settings;
     private readonly List<ZoneNameInfo> _zones = [];
     private RaidEntries _raidEntries;
+
+    public AttendanceEntryAnalyzer(IDkpParserSettings settings)
+    {
+        _settings = settings;
+    }
 
     public void AnalyzeAttendanceCalls(LogParseResults logParseResults, RaidEntries raidEntries)
     {
@@ -414,10 +420,13 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         if (zoneLogEntry != null)
         {
             call.ZoneName = zoneLogEntry.ZoneName;
+            if (!_settings.RaidValue.AllValidRaidZoneNames.Contains(zoneLogEntry.ZoneName))
+            {
+                call.PossibleError = PossibleError.InvalidZoneName;
+            }
         }
         else
         {
-            //** Heuristic to find nearby zone name?
             call.PossibleError = PossibleError.NoZoneName;
             call.ZoneName = string.Empty;
             _raidEntries.AnalysisErrors.Add($"Unable get get zone name from attendance entry: {logEntry.LogLine}");

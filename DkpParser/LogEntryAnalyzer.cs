@@ -65,7 +65,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void AnalyzeAttendanceCalls(LogParseResults logParseResults)
     {
-        IAttendanceEntryAnalyzer attendanceAnalyzer = new AttendanceEntryAnalyzer();
+        IAttendanceEntryAnalyzer attendanceAnalyzer = new AttendanceEntryAnalyzer(_settings);
         attendanceAnalyzer.AnalyzeAttendanceCalls(logParseResults, _raidEntries);
     }
 

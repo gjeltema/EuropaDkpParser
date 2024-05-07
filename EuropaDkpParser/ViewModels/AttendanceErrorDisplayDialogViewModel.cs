@@ -176,6 +176,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         }
 
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        RaidNameText = string.Empty;
         RemoveDuplicateErrorEntryCommand.RaiseCanExecuteChanged();
         ChangeBossMobNameCommand.RaiseCanExecuteChanged();
         UpdateZoneNameCommand.RaiseCanExecuteChanged();
@@ -210,14 +211,14 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
             SetSelectedBossName();
         }
-        else if (_currentEntry.PossibleError == PossibleError.NoZoneName)
+        else if (_currentEntry.PossibleError == PossibleError.NoZoneName || _currentEntry.PossibleError == PossibleError.InvalidZoneName)
         {
             IsBossMobTypoError = false;
             IsDuplicateError = false;
             IsNoZoneNameError = true;
             IsRaidNameTooShortError = false;
 
-            ErrorMessageText = Strings.GetString("NoZoneNameErrorText");
+            ErrorMessageText = _currentEntry.PossibleError == PossibleError.NoZoneName ? Strings.GetString("NoZoneNameErrorText") : Strings.GetString("InvalidZoneNameErrorText");
             ErrorAttendances = [_currentEntry];
         }
         else if (_currentEntry.PossibleError == PossibleError.RaidNameTooShort)

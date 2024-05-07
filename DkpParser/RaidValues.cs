@@ -73,9 +73,7 @@ public sealed class RaidValues : IRaidValues
     public void LoadSettings()
     {
         if (!File.Exists(_raidValuesFileName))
-        {
             return;
-        }
 
         string[] fileContents = File.ReadAllLines(_raidValuesFileName);
         LoadTierSection(fileContents);
@@ -83,6 +81,8 @@ public sealed class RaidValues : IRaidValues
         LoadZoneSection(fileContents);
         LoadZoneAliasSection(fileContents);
         LoadBonusZones(fileContents);
+
+        AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).Union(_zoneRaidAliases.Keys).Order().ToList();
     }
 
     private static int GetStartingIndex(IList<string> fileContents, string configurationSectionName)
@@ -186,8 +186,6 @@ public sealed class RaidValues : IRaidValues
 
             _zoneValues.Add(zone);
         }
-
-        AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).ToList();
     }
 
     [DebuggerDisplay("{BossName}")]
