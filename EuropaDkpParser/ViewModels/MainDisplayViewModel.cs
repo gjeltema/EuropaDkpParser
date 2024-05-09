@@ -497,6 +497,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile);
         completedDialog.DkpSpentEntries = string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries());
         completedDialog.ShowDialog();
+
+        SetOutputFile();
     }
 
     private bool ValidateTimeSettings(out DateTime startTime, out DateTime endTime)

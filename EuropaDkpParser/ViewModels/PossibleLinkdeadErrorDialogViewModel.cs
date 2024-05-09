@@ -137,7 +137,7 @@ public sealed class AttendanceJoinDisplay
     public AttendanceJoinDisplay(AttendanceEntry entry)
     {
         Timestamp = entry.Timestamp;
-        DisplayString = $"{entry.RaidName}\t{entry.ZoneName}";
+        DisplayString = $"{entry.CallName}\t{entry.ZoneName}";
     }
 
     public AttendanceJoinDisplay(PlayerJoinRaidEntry entry)

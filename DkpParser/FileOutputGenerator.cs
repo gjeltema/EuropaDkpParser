@@ -53,8 +53,8 @@ public sealed class FileOutputGenerator : IOutputGenerator
         */
         string dateStampText = call.Timestamp.ToEqLogTimestamp();
         string header = call.AttendanceCallType == AttendanceCallType.Time
-            ? $"You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}'"
-            : $"You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.RaidName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
+            ? $"You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}'"
+            : $"You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
 
         yield return $"{dateStampText} {header}";
         yield return $"{dateStampText} {Constants.PlayersOnEverquest}";

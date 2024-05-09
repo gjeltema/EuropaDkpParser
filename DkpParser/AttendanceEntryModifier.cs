@@ -24,7 +24,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
         AttendanceEntry newEntry = new()
         {
             AttendanceCallType = AttendanceCallType.Time,
-            RaidName = newRaidName,
+            CallName = newRaidName,
             Players = new HashSet<PlayerCharacter>(baseline.Players),
             RawHeaderLogLine = "<Created Attendance Entry>",
             Timestamp = newAttendanceTimestamp,

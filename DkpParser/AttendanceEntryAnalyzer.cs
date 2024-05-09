@@ -34,6 +34,14 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         foreach (PlayerAttend player in _playersAttending.Where(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp)))
         {
             call.AddOrMergeInPlayerCharacter(new PlayerCharacter { PlayerName = player.PlayerName });
+            if (player.IsAfk)
+            {
+                PlayerCharacter afkPlayer = call.Players.FirstOrDefault(x => x.PlayerName == player.PlayerName);
+                if (afkPlayer != null)
+                {
+                    call.AfkPlayers.Add(afkPlayer);
+                }
+            }
         }
     }
 
@@ -200,7 +208,8 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         character.Race = race;
         _raidEntries.AddOrMergeInPlayerCharacter(character);
 
-        return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+        bool isAfk = logLineNoTimestamp.Contains(Constants.Afk);
+        return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp, IsAfk = isAfk };
     }
 
     private PlayerCharacter ExtractCrashedPlayer(EqLogEntry logEntry)
@@ -265,7 +274,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         AttendanceEntry lastOneFound = null;
         IEnumerable<AttendanceEntry> matchingAttendanceEntries =
-            _raidEntries.AttendanceEntries.Where(x => x.RaidName == call.RaidName && x.AttendanceCallType == call.AttendanceCallType);
+            _raidEntries.AttendanceEntries.Where(x => x.CallName == call.CallName && x.AttendanceCallType == call.AttendanceCallType);
 
         foreach (AttendanceEntry entry in matchingAttendanceEntries)
         {
@@ -391,8 +400,8 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 _raidEntries.AnalysisErrors.Add($"Unable get get raid name from Time attendance entry: {logEntry.LogLine}");
                 return;
             }
-            call.RaidName = splitEntry[3].Trim();
-            if (string.IsNullOrEmpty(call.RaidName))
+            call.CallName = splitEntry[3].Trim();
+            if (string.IsNullOrEmpty(call.CallName))
             {
                 _raidEntries.AnalysisErrors.Add($"Unable get get raid name from Time attendance entry: {logEntry.LogLine}");
             }
@@ -406,8 +415,8 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 _raidEntries.AnalysisErrors.Add($"Unable get get raid name from Kill attendance entry: {logEntry.LogLine}");
                 return;
             }
-            call.RaidName = splitEntry[2].Trim();
-            if (string.IsNullOrEmpty(call.RaidName))
+            call.CallName = splitEntry[2].Trim();
+            if (string.IsNullOrEmpty(call.CallName))
             {
                 _raidEntries.AnalysisErrors.Add($"Unable get get raid name from Kill attendance entry: {logEntry.LogLine}");
             }
@@ -453,6 +462,8 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     [DebuggerDisplay("{DebugText}")]
     private sealed class PlayerAttend
     {
+        public bool IsAfk { get; init; }
+
         public string PlayerName { get; init; }
 
         public DateTime Timestamp { get; init; }

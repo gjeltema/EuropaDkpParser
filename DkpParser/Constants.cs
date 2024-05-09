@@ -8,6 +8,7 @@ using System.Globalization;
 
 public static class Constants
 {
+    public const string Afk = " AFK ";
     public const string AnonWithBrackets = "[ANONYMOUS]";
     /// <summary>
     /// Used in the file-archiving functionality.

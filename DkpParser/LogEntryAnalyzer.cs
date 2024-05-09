@@ -83,7 +83,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     private void CheckDuplicateAttendanceEntries()
     {
         var grouped = from a in _raidEntries.AttendanceEntries
-                      group a by a.RaidName.ToUpper() into ae
+                      group a by a.CallName.ToUpper() into ae
                       where ae.Count() > 1
                       select new { Attendances = ae };
 
@@ -159,7 +159,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         foreach (AttendanceEntry killCall in _raidEntries.AttendanceEntries.Where(x => x.AttendanceCallType == AttendanceCallType.Kill))
         {
-            if (!bossMobNames.Contains(killCall.RaidName))
+            if (!bossMobNames.Contains(killCall.CallName))
             {
                 killCall.PossibleError = PossibleError.BossMobNameTypo;
             }
@@ -176,7 +176,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                 ? Constants.MinimumRaidNameLength
                 : minBossNameLength;
 
-            if (attendance.RaidName.Length < minLength)
+            if (attendance.CallName.Length < minLength)
                 attendance.PossibleError = PossibleError.RaidNameTooShort;
         }
     }

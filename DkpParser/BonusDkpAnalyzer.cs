@@ -41,7 +41,7 @@ public sealed class BonusDkpAnalyzer : IBonusDkpAnalyzer
         AttendanceEntry bonusEntry = new()
         {
             AttendanceCallType = AttendanceCallType.Time,
-            RaidName = "Bonus for " + zoneName,
+            CallName = "Bonus for " + zoneName,
             ZoneName = zoneName,
             Timestamp = lastTimestamp.AddMinutes(10),
         };

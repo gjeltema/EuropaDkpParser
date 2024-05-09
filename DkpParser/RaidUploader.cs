@@ -114,7 +114,7 @@ public sealed class RaidUploadResults
             yield return $"Unable to retrieve event ID for {eventIdNotFound}";
 
         if (AttendanceError != null)
-            yield return $"Failed to upload attendance call {AttendanceError.Attendance.RaidName}: {AttendanceError.Error.Message}";
+            yield return $"Failed to upload attendance call {AttendanceError.Attendance.CallName}: {AttendanceError.Error.Message}";
 
         if (DkpFailure != null)
             yield return $"Failed to upload DKP spend call for {DkpFailure.Dkp.PlayerName} for item {DkpFailure.Dkp.Item}: {DkpFailure.Error.Message}";

@@ -9,13 +9,18 @@ using System.Diagnostics;
 [DebuggerDisplay("{RaidName,nq} {AttendanceCallType,nq}")]
 public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
 {
+    public ICollection<PlayerCharacter> AfkPlayers { get; } = new HashSet<PlayerCharacter>();
+
     public AttendanceCallType AttendanceCallType { get; set; }
+
+    /// <summary>
+    /// Either the call name if a time based entry (e.g. First Call), or the boss name if a Kill entry.
+    /// </summary>
+    public string CallName { get; set; }
 
     public ICollection<PlayerCharacter> Players { get; set; } = new HashSet<PlayerCharacter>();
 
     public PossibleError PossibleError { get; set; }
-
-    public string RaidName { get; set; }
 
     public string RawHeaderLogLine { get; set; }
 
@@ -28,7 +33,7 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
         if (a is null || b is null)
             return false;
 
-        if (a.RaidName != b.RaidName)
+        if (a.CallName != b.CallName)
             return false;
 
         if (a.Timestamp != b.Timestamp)
@@ -60,16 +65,16 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
         => Equals(this, other);
 
     public override int GetHashCode()
-        => RaidName.GetHashCode() ^ Timestamp.GetHashCode();
+        => CallName.GetHashCode() ^ Timestamp.GetHashCode();
 
     public string ToDisplayString()
-        => $"{Timestamp:HH:mm:ss} {RaidName}\t{ZoneName}";
+        => $"{Timestamp:HH:mm:ss} {CallName}\t{ZoneName}";
 
     public string ToDkpServerDescription()
         => AttendanceCallType == AttendanceCallType.Time
-            ? $"Attendance - {RaidName}"
-            : $"{RaidName} - KILL";
+            ? $"Attendance - {CallName}"
+            : $"{CallName} - KILL";
 
     public override string ToString()
-        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}\t{RaidName}\t{ZoneName}";
+        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}\t{CallName}\t{ZoneName}";
 }

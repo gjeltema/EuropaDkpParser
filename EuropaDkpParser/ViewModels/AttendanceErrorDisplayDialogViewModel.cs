@@ -196,7 +196,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
             ErrorMessageText = Strings.GetString("PossibleDupEntries");
             ErrorAttendances = _raidEntries.AttendanceEntries
-                .Where(x => x.RaidName.Equals(_currentEntry.RaidName, StringComparison.OrdinalIgnoreCase))
+                .Where(x => x.CallName.Equals(_currentEntry.CallName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
         else if (_currentEntry.PossibleError == PossibleError.BossMobNameTypo)
@@ -245,7 +245,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     private void ChangeBossMobName()
     {
-        _currentEntry.RaidName = SelectedBossName;
+        _currentEntry.CallName = SelectedBossName;
         ErrorAttendances = [_currentEntry];
     }
 
@@ -253,7 +253,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         _raidEntries.AttendanceEntries.Remove(SelectedErrorEntry);
         ErrorAttendances = _raidEntries.AttendanceEntries
-            .Where(x => x.RaidName.Equals(_currentEntry.RaidName, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.CallName.Equals(_currentEntry.CallName, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
@@ -270,10 +270,10 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         for (int i = 8; i > 0; i--)
         {
-            if (_currentEntry.RaidName.Length < i)
+            if (_currentEntry.CallName.Length < i)
                 continue;
 
-            string startOfBossName = _currentEntry.RaidName[..i];
+            string startOfBossName = _currentEntry.CallName[..i];
             string approvedBossName = ApprovedBossNames.FirstOrDefault(x => x.StartsWith(startOfBossName));
             if (approvedBossName != null)
             {
@@ -285,7 +285,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     private void UpdateRaidName()
     {
-        _currentEntry.RaidName = RaidNameText;
+        _currentEntry.CallName = RaidNameText;
         ErrorAttendances = [_currentEntry];
     }
 
@@ -293,7 +293,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         ICollection<AttendanceEntry> attendances = ErrorAttendances;
         AttendanceEntry selectedAttendance = SelectedErrorEntry;
-        selectedAttendance.RaidName = RaidNameText;
+        selectedAttendance.CallName = RaidNameText;
         ErrorAttendances = [.. attendances];
     }
 

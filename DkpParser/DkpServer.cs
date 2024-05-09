@@ -41,7 +41,7 @@ public sealed class DkpServer : IDkpServer
         XElement root = XDocument.Parse(response).Root;
         int raidId = (int)root.Descendants("raid_id").FirstOrDefault();
 
-        _raidIdCache[attendanceEntry.RaidName] = raidId;
+        _raidIdCache[attendanceEntry.CallName] = raidId;
     }
 
     public async Task UploadDkpSpent(DkpEntry dkpEntry)
@@ -59,7 +59,7 @@ public sealed class DkpServer : IDkpServer
         int eventId = _eventIdCache[attendanceEntry.ZoneName];
         int dkpValue = attendanceEntry.AttendanceCallType == AttendanceCallType.Time
             ? _settings.RaidValue.GetTimeBasedValue(attendanceEntry.ZoneName)
-            : _settings.RaidValue.GetBossKillValue(attendanceEntry.RaidName);
+            : _settings.RaidValue.GetBossKillValue(attendanceEntry.CallName);
 
         var attendanceContent =
             new XElement("request",
@@ -80,8 +80,8 @@ public sealed class DkpServer : IDkpServer
         int characterId = _playerIdCache[dkpEntry.PlayerName];
         AttendanceEntry associatedEntry = dkpEntry.AssociatedAttendanceCall;
         int raidId = _raidIdCache.Last().Value;
-        if (associatedEntry != null && !string.IsNullOrEmpty(associatedEntry.RaidName))
-            raidId = _raidIdCache[dkpEntry.AssociatedAttendanceCall.RaidName];
+        if (associatedEntry != null && !string.IsNullOrEmpty(associatedEntry.CallName))
+            raidId = _raidIdCache[dkpEntry.AssociatedAttendanceCall.CallName];
 
         var dkpContent =
             new XElement("request",
