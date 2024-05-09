@@ -15,6 +15,9 @@ internal sealed class DialogFactory : IDialogFactory
         _viewFactory = viewFactory;
     }
 
+    public IAfkCheckerDialogViewModel CreateAfkCheckerDialogViewModel(RaidEntries raidEntries)
+        => new AfkCheckerDialogViewModel(_viewFactory, raidEntries);
+
     public IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
         => new AttendanceErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
 
@@ -48,6 +51,8 @@ internal sealed class DialogFactory : IDialogFactory
 
 public interface IDialogFactory
 {
+    IAfkCheckerDialogViewModel CreateAfkCheckerDialogViewModel(RaidEntries raidEntries);
+
     IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
     IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries);

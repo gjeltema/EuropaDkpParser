@@ -6,7 +6,7 @@ namespace DkpParser;
 
 using System.Diagnostics;
 
-[DebuggerDisplay("{RaidName,nq} {AttendanceCallType,nq}")]
+[DebuggerDisplay("{DebugText,nq}")]
 public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
 {
     public ICollection<PlayerCharacter> AfkPlayers { get; } = new HashSet<PlayerCharacter>();
@@ -27,6 +27,9 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
     public DateTime Timestamp { get; set; }
 
     public string ZoneName { get; set; }
+
+    private string DebugText
+        => $"{CallName} {AttendanceCallType}";
 
     public static bool Equals(AttendanceEntry a, AttendanceEntry b)
     {

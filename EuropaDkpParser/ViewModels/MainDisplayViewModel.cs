@@ -314,6 +314,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.ApiUrl = settingsDialog.ApiUrl;
         _settings.ApiReadToken = settingsDialog.ApiReadToken;
         _settings.ApiWriteToken = settingsDialog.ApiWriteToken;
+        _settings.ShowAfkReview = settingsDialog.ShowAfkReview;
         _settings.SaveSettings();
 
         DebugOptionsEnabled = _settings.EnableDebugOptions;
@@ -473,6 +474,13 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         {
             IPossibleLinkdeadErrorDialogViewModel possibleLDDialog = _dialogFactory.CreatePossibleLinkdeadErrorDialogViewModel(raidEntries);
             possibleLDDialog.ShowDialog();
+        }
+
+        if (_settings.ShowAfkReview)
+        {
+            IAfkCheckerDialogViewModel afkDialog = _dialogFactory.CreateAfkCheckerDialogViewModel(raidEntries);
+            if (afkDialog.SetNextAfkPlayer())
+                afkDialog.ShowDialog();
         }
 
         IBonusDkpAnalyzer bonusDkp = new BonusDkpAnalyzer(_settings);

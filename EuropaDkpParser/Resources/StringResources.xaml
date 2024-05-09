@@ -15,6 +15,7 @@
     <system:String x:Key="RaidUploadDialogTitleText">Upload Raid to DKP Server</system:String>
     <system:String x:Key="PossibleLinkdeadErrorDialogTitleText">Player Possibly Linkdead Review</system:String>
     <system:String x:Key="GeneralParserDialogTitleText">Player Possibly Linkdead Review</system:String>
+    <system:String x:Key="AfkCheckerDialogTitleText">AFK Review</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>
@@ -95,6 +96,7 @@
     <system:String x:Key="ApiUrlLabel">API URL:</system:String>
     <system:String x:Key="ApiReadTokenLabel">API Read Token:</system:String>
     <system:String x:Key="ApiWriteTokenLabel">API Write Token:</system:String>
+    <system:String x:Key="ShowAfkReviewLabel">Show AFK Review Dialog</system:String>
 
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>
@@ -216,4 +218,7 @@
     <system:String x:Key="NoEntriesFound">No entries in the specified time period that match the settings were found.</system:String>
     <system:String x:Key="NoEntriesFoundTitle">No Entries Found</system:String>
     
+    <!-- AfkCheckerDialog -->
+    <system:String x:Key="AfkHeaderLabel">List of all attendances for player</system:String>
+
 </ResourceDictionary>

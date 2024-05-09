@@ -21,6 +21,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _outputDirectory;
     private string _selectedLogFileToAdd;
     private string _selectedLogFileToParse;
+    private bool _showAfkReview;
 
     internal LogSelectionViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings)
         : base(viewFactory)
@@ -44,6 +45,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         ApiUrl = _settings.ApiUrl;
         ApiReadToken = _settings.ApiReadToken;
         ApiWriteToken = _settings.ApiWriteToken;
+
+        ShowAfkReview = _settings.ShowAfkReview;
 
         SetAllCharacterLogFiles();
     }
@@ -113,6 +116,12 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     public DelegateCommand SelectEqDirectoryCommand { get; }
 
     public DelegateCommand SelectOutputDirectoryCommand { get; }
+
+    public bool ShowAfkReview
+    {
+        get => _showAfkReview;
+        set => SetProperty(ref _showAfkReview, value);
+    }
 
     private void AddLogFile()
     {
@@ -222,4 +231,6 @@ public interface ILogSelectionViewModel : IDialogViewModel
     DelegateCommand SelectEqDirectoryCommand { get; }
 
     DelegateCommand SelectOutputDirectoryCommand { get; }
+
+    bool ShowAfkReview { get; set; }
 }

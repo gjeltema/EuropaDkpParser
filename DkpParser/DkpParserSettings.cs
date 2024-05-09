@@ -26,6 +26,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
+    private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
     private const string WindowLocationSection = "WINDOW_LOCATION";
     private readonly string _raidValuesFileName;
     private readonly string _settingsFilePath;
@@ -77,6 +78,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public ICollection<string> SelectedLogFiles { get; set; } = [];
 
+    public bool ShowAfkReview { get; set; }
+
     public void LoadSettings()
     {
         RaidValue = new RaidValues(_raidValuesFileName);
@@ -99,6 +102,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
         ApiUrl = GetStringValue(fileContents, ApiUrlSection);
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
+        ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
     }
 
     public void SaveSettings()
@@ -121,7 +125,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(ApiReadTokenSection, ApiReadToken),
             CreateFileEntry(ApiWriteTokenSection, ApiWriteToken),
             CreateFileEntry(ApiUrlSection, ApiUrl),
-            CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid)
+            CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid),
+            CreateFileEntry(ShowAfkReviewSection, ShowAfkReview)
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -334,6 +339,8 @@ public interface IDkpParserSettings
     IRaidValues RaidValue { get; }
 
     ICollection<string> SelectedLogFiles { get; set; }
+
+    bool ShowAfkReview { get; set; }
 
     void LoadSettings();
 
