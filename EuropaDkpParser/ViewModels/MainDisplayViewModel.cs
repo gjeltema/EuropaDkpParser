@@ -317,7 +317,6 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.ShowAfkReview = settingsDialog.ShowAfkReview;
         _settings.SaveSettings();
 
-        DebugOptionsEnabled = _settings.EnableDebugOptions;
         SetOutputDirectory();
         SetOutputFile();
         DebugOptionsEnabled = _settings.EnableDebugOptions;
