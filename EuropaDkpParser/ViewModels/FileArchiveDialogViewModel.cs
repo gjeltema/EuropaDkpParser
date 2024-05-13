@@ -251,7 +251,7 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
         IEnumerable<string> logFilesToArchive = SelectedEqLogFiles;
         if (IsAllLogsArchived)
         {
-            logFilesToArchive = Directory.EnumerateFiles(_settings.EqDirectory, Constants.EqLogSearchPattern);
+            logFilesToArchive = Directory.EnumerateFiles(_settings.EqDirectory, _settings.LogFileMatchPattern);
         }
 
         foreach (string logFile in logFilesToArchive)
@@ -329,7 +329,7 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
             return;
         }
 
-        IEnumerable<string> logFiles = Directory.EnumerateFiles(_settings.EqDirectory, Constants.EqLogSearchPattern);
+        IEnumerable<string> logFiles = Directory.EnumerateFiles(_settings.EqDirectory, _settings.LogFileMatchPattern);
         PossibleEqLogFiles = new List<string>(logFiles);
         if (PossibleEqLogFiles.Count > 0)
             SelectedEqLogFileToAdd = PossibleEqLogFiles.First();

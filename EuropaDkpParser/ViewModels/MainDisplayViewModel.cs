@@ -315,6 +315,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         _settings.ApiReadToken = settingsDialog.ApiReadToken;
         _settings.ApiWriteToken = settingsDialog.ApiWriteToken;
         _settings.ShowAfkReview = settingsDialog.ShowAfkReview;
+        _settings.LogFileMatchPattern = settingsDialog.LogFileMatchPattern;
         _settings.SaveSettings();
 
         SetOutputDirectory();

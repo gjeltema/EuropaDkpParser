@@ -97,6 +97,7 @@
     <system:String x:Key="ApiReadTokenLabel">API Read Token:</system:String>
     <system:String x:Key="ApiWriteTokenLabel">API Write Token:</system:String>
     <system:String x:Key="ShowAfkReviewLabel">Show AFK Review Dialog</system:String>
+    <system:String x:Key="LogMatchPatternLabel">Log File Name Search Pattern</system:String>
 
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>

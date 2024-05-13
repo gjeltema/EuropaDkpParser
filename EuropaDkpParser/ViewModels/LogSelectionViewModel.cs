@@ -18,6 +18,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _apiWriteToken;
     private string _eqDirectory;
     private bool _isDebugOptionsEnabled;
+    private string _logFileMatchPattern;
     private string _outputDirectory;
     private string _selectedLogFileToAdd;
     private string _selectedLogFileToParse;
@@ -37,10 +38,11 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         RemoveLogFileFromListCommand = new DelegateCommand(RemoveLogFileFromList, () => !string.IsNullOrWhiteSpace(SelectedLogFileToParse))
             .ObservesProperty(() => SelectedLogFileToParse);
 
-        EqDirectory = _settings.EqDirectory;
+        _eqDirectory = _settings.EqDirectory;
         OutputDirectory = _settings.OutputDirectory;
         SelectedCharacterLogFiles = new List<string>(_settings.SelectedLogFiles);
         IsDebugOptionsEnabled = _settings.EnableDebugOptions;
+        _logFileMatchPattern = _settings.LogFileMatchPattern;
 
         ApiUrl = _settings.ApiUrl;
         ApiReadToken = _settings.ApiReadToken;
@@ -89,6 +91,16 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     {
         get => _isDebugOptionsEnabled;
         set => SetProperty(ref _isDebugOptionsEnabled, value);
+    }
+
+    public string LogFileMatchPattern
+    {
+        get => _logFileMatchPattern;
+        set
+        {
+            SetProperty(ref _logFileMatchPattern, value);
+            SetAllCharacterLogFiles();
+        }
     }
 
     public string OutputDirectory
@@ -193,7 +205,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
             return;
         }
 
-        IEnumerable<string> logFiles = Directory.EnumerateFiles(EqDirectory, Constants.EqLogSearchPattern);
+        IEnumerable<string> logFiles = Directory.EnumerateFiles(EqDirectory, LogFileMatchPattern);
         AllCharacterLogFiles = new List<string>(logFiles);
         if (AllCharacterLogFiles.Count > 0)
             SelectedLogFileToAdd = AllCharacterLogFiles.First();
@@ -217,6 +229,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string EqDirectory { get; set; }
 
     bool IsDebugOptionsEnabled { get; set; }
+
+    string LogFileMatchPattern { get; set; }
 
     string OutputDirectory { get; set; }
 

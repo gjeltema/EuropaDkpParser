@@ -18,11 +18,13 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string ArchiveGeneratedLogFileAgeSection = "ARCHIVE_GEN_LOGS_AGE";
     private const string ArchiveGeneratedLogFileDirectorySection = "ARCHIVE_GEN_LOG_DIRECTORY";
     private const string ArchiveSelectedFilesToArchiveSection = "ARCHIVE_SELECTED_EQ_LOG_FILES";
+    private const string DefaultMatchPattern = "*eqlog*.txt";
     private const int DefaultWindowLocation = 200;
     private const char Delimiter = '=';
     private const string EnableDebugOptionsSection = "ENABLE_DEBUG";
     private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
+    private const string LogMatchPatternSection = "LOG_MATCH_PATTERN";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
@@ -68,6 +70,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public bool IsApiConfigured
         => !string.IsNullOrEmpty(ApiUrl) && !string.IsNullOrEmpty(ApiReadToken) && !string.IsNullOrEmpty(ApiWriteToken);
 
+    public string LogFileMatchPattern { get; set; }
+
     public int MainWindowX { get; set; } = DefaultWindowLocation;
 
     public int MainWindowY { get; set; } = DefaultWindowLocation;
@@ -103,6 +107,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         ApiUrl = GetStringValue(fileContents, ApiUrlSection);
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
         ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
+        LogFileMatchPattern = GetStringValue(fileContents, LogMatchPatternSection, DefaultMatchPattern);
     }
 
     public void SaveSettings()
@@ -126,7 +131,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(ApiWriteTokenSection, ApiWriteToken),
             CreateFileEntry(ApiUrlSection, ApiUrl),
             CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid),
-            CreateFileEntry(ShowAfkReviewSection, ShowAfkReview)
+            CreateFileEntry(ShowAfkReviewSection, ShowAfkReview),
+            CreateFileEntry(LogMatchPatternSection, LogFileMatchPattern)
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -329,6 +335,8 @@ public interface IDkpParserSettings
     string GeneratedLogFilesArchiveDirectory { get; set; }
 
     bool IsApiConfigured { get; }
+
+    string LogFileMatchPattern { get; set; }
 
     int MainWindowX { get; set; }
 
