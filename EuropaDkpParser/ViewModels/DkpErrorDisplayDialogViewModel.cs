@@ -242,6 +242,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             }
         }
 
+        GOTO_NEXT_ENTRY:
+
         if (_currentEntry != null)
             _currentEntry.PossibleError = PossibleError.None;
 
@@ -264,6 +266,9 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
 
         if (_currentEntry.PossibleError == PossibleError.PlayerLootedMessageNotFound)
         {
+            if (_raidEntries.PlayerLootedEntries.Count == 0)
+                goto GOTO_NEXT_ENTRY; // switch to a while loop if more than one error type may need skipping.
+
             IsNoPlayerLootedError = true;
             IsPlayerNameTypoError = false;
             IsDuplicateDkpSpentCallError = false;
