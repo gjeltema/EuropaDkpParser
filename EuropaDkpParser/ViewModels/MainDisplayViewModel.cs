@@ -370,7 +370,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
         catch (EuropaDkpParserException e)
         {
-            string errorMessage = $"{e.Message}{Environment.NewLine}{e.LogLine}";
+            string errorMessage = $"{e.Message}: {e.InnerException?.Message}{Environment.NewLine}{e.LogLine}";
             MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }
