@@ -216,7 +216,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::CRASHED:::'
 
-        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + 2)
+        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.Crashed.Length + Constants.TellsTheRaid.Length + 5)
         {
             _raidEntries.AnalysisErrors.Add($"Unable get player name in CRASHED entry: {logEntry.LogLine}");
             return null;
@@ -224,7 +224,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
         string linePastTimestamp = logEntry.LogLine[(Constants.LogDateTimeLength + 1)..];
         string[] parts = linePastTimestamp.Split(' ');
-        if (parts.Length < 1)
+        if (parts.Length < 4)
         {
             _raidEntries.AnalysisErrors.Add($"Unable get player name in CRASHED entry: {logEntry.LogLine}");
             return null;

@@ -18,7 +18,7 @@ public static class Constants
     public const string AttendanceDelimiter = ":::";
     public const string CommunicationFileNamePrefix = "CommunicationOutput-";
     public const string ConversationFileNamePrefix = "ConversationOutput-";
-    public const string Crashed = "CRASHED";
+    public const string Crashed = ":::CRASHED:::";
     public const string Dashes = "---------------------------";
     public const string DkpSpent = "DKPSPENT";
     public const string DoubleDash = "--";
