@@ -33,9 +33,10 @@ public sealed class DkpEntry
         // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
 
         string timestampText = Timestamp.ToEqLogTimestamp();
+        string itemName = Item.Replace('`', '\'');
         return Auctioneer == You
-            ? $"{timestampText} You tell your raid, '{Constants.AttendanceDelimiter}{Item}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'"
-            : $"{timestampText} {Auctioneer} tells the raid,  '{Constants.AttendanceDelimiter}{Item}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'";
+            ? $"{timestampText} You tell your raid, '{Constants.AttendanceDelimiter}{itemName}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'"
+            : $"{timestampText} {Auctioneer} tells the raid,  '{Constants.AttendanceDelimiter}{itemName}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'";
     }
 
     public override string ToString()
