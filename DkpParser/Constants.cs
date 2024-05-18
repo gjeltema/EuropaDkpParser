@@ -26,7 +26,7 @@ public static class Constants
     public const string EqLogSearchPattern = "*eqlog*.txt";
     public const string EuropaGuildTag = "<Europa>";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
-    public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-";
+    public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-eqlog-";
     public const string JoinedRaid = " joined the raid.";
     public const string KillCall = "KILL";
     public const string LeftRaid = " has left the raid.";
