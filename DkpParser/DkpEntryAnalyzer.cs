@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 {
     private readonly Regex _findDigits = FindDigitsRegex();
+    private readonly DelimiterStringSanitizer _sanitizer = new();
     private RaidEntries _raidEntries;
 
     public void AnalyzeLootCalls(LogParseResults logParseResults, RaidEntries raidEntries)
@@ -48,14 +49,6 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         dkpEntry.PossibleError = PossibleError.PlayerLootedMessageNotFound;
     }
 
-    private string CorrectDelimiter(string logLine)
-    {
-        logLine = logLine.Replace(Constants.PossibleErrorDelimiter, Constants.AttendanceDelimiter);
-        logLine = logLine.Replace(Constants.TooLongDelimiter, Constants.AttendanceDelimiter);
-        logLine = logLine.Replace(';', ':');
-        return logLine;
-    }
-
     private DkpEntry ExtractDkpSpentInfo(EqLogEntry entry)
     {
         try
@@ -64,7 +57,7 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
             // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
             // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
-            string logLine = CorrectDelimiter(entry.LogLine);
+            string logLine = _sanitizer.SanitizeDelimiterString(entry.LogLine);
 
             string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
             if (dkpLineParts.Length < 3)

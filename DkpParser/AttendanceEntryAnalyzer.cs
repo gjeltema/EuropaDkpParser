@@ -10,6 +10,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 {
     private static readonly TimeSpan thirtyMinutes = TimeSpan.FromMinutes(30);
     private readonly List<PlayerAttend> _playersAttending = [];
+    private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly IDkpParserSettings _settings;
     private readonly List<ZoneNameInfo> _zones = [];
     private RaidEntries _raidEntries;
@@ -78,9 +79,11 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         {
             foreach (EqLogEntry logEntry in log.LogEntries.Where(x => x.EntryType == LogEntryType.Attendance || x.EntryType == LogEntryType.Kill))
             {
+                logEntry.Visited = true;
+
                 try
                 {
-                    string correctedLogLine = CorrectDelimiter(logEntry.LogLine);
+                    string correctedLogLine = _sanitizer.SanitizeDelimiterString(logEntry.LogLine);
                     AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.LogLine };
 
                     SetAttendanceType(logEntry, call, correctedLogLine);
@@ -98,8 +101,6 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
                     SetZoneName(logEntry, call);
 
-                    logEntry.Visited = true;
-
                     if (call.Players.Count > 1)
                         _raidEntries.AttendanceEntries.Add(call);
                 }
@@ -110,14 +111,6 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 }
             }
         }
-    }
-
-    private string CorrectDelimiter(string logLine)
-    {
-        logLine = logLine.Replace(Constants.PossibleErrorDelimiter, Constants.AttendanceDelimiter);
-        logLine = logLine.Replace(Constants.TooLongDelimiter, Constants.AttendanceDelimiter);
-        logLine = logLine.Replace(';', ':');
-        return logLine;
     }
 
     private PlayerAttend ExtractAttendingPlayer(EqLogEntry entry)

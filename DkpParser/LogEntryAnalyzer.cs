@@ -198,6 +198,9 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         // [Sun Feb 25 22:52:46 2024] You have joined the group.
         // [Thu Feb 22 23:13:52 2024] Luciania joined the raid.
         // [Thu Feb 22 23:13:52 2024] You have joined the raid.
+
+        entry.Visited = true;
+
         int indexOfLastBracket = entry.LogLine.IndexOf(']');
         if (indexOfLastBracket < 0 || entry.LogLine.Length < indexOfLastBracket + 3)
         {
