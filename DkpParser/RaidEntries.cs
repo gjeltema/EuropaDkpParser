@@ -25,6 +25,8 @@ public sealed class RaidEntries
 
     public IList<RaidInfo> Raids { get; } = new List<RaidInfo>();
 
+    public ICollection<DkpEntry> RemovedDkpEntries { get; set; } = new List<DkpEntry>();
+
     public ICollection<EqLogEntry> UnvisitedEntries { get; set; } = new List<EqLogEntry>();
 
     public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)

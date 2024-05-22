@@ -212,6 +212,20 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         completedDialog.ShowDialog();
     }
 
+    private string GetDkpSpentEntries(RaidEntries raidEntries)
+    {
+        string entries = string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries());
+
+        if (raidEntries.RemovedDkpEntries.Count > 0)
+        {
+            entries += Environment.NewLine + Environment.NewLine;
+            entries += "-------------- DKPSPENT Entries Removed Due To No Player On DKP Server --------------";
+            entries += string.Join(Environment.NewLine, raidEntries.RemovedDkpEntries);
+        }
+
+        return entries;
+    }
+
     private int GetIntValue(string inputValue)
     {
         if (int.TryParse(inputValue, out int parsedValue))
@@ -503,7 +517,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile);
-        completedDialog.DkpSpentEntries = string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries());
+        completedDialog.DkpSpentEntries = GetDkpSpentEntries(raidEntries);
         completedDialog.ShowDialog();
 
         SetOutputFile();

@@ -129,6 +129,13 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             attendance.Players.Remove(playerChar);
         }
 
+        List<DkpEntry> dkpSpentsToRemove = _raidEntries.DkpEntries.Where(x => x.PlayerName == playerName).ToList();
+        _raidEntries.RemovedDkpEntries = dkpSpentsToRemove;
+        foreach (DkpEntry dkpToRemove in dkpSpentsToRemove)
+        {
+            _raidEntries.DkpEntries.Remove(dkpToRemove);
+        }
+
         _raidEntries.AllPlayersInRaid.Remove(playerChar);
     }
 }
