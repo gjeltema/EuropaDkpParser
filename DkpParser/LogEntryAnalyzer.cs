@@ -20,7 +20,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     public RaidEntries AnalyzeRaidLogEntries(LogParseResults logParseResults)
     {
         PopulateMemberLists(logParseResults);
-        PopulateLootList(logParseResults);
+        PopulateLootedList(logParseResults);
         PopulateRaidJoin(logParseResults);
 
         AnalyzeAttendanceCalls(logParseResults);
@@ -321,8 +321,9 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     private string GetZoneRaidAlias(string zoneName)
         => _settings.RaidValue.GetZoneRaidAlias(zoneName);
 
-    private void PopulateLootList(LogParseResults logParseResults)
+    private void PopulateLootedList(LogParseResults logParseResults)
     {
+        List<PlayerLooted> lootedEntries = [];
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
             IEnumerable<PlayerLooted> playersLooted = log.LogEntries
@@ -330,8 +331,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                 .Select(ExtractPlayerLooted)
                 .Where(x => x != null);
 
-            _raidEntries.PlayerLootedEntries = playersLooted.ToList();
+            lootedEntries.AddRange(playersLooted);
         }
+
+        _raidEntries.PlayerLootedEntries = lootedEntries;
     }
 
     private void PopulateMemberLists(LogParseResults logParseResults)

@@ -298,7 +298,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
                     if (previousLeaveEntry == null)
                     {
-                        _raidEntries.AnalysisErrors.Add($"Unable get find previous 'left raid' entry for CRASHED entry: {logEntry.LogLine}");
+                        _raidEntries.AnalysisErrors.Add($"Unable to find previous 'left raid' entry for CRASHED entry: {logEntry.LogLine}");
                         continue;
                     }
 
@@ -314,7 +314,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
                         if (previousLeaveEntry == null)
                         {
-                            _raidEntries.AnalysisErrors.Add($"Unable get find previous time attendance for CRASHED entry: {logEntry.LogLine}");
+                            _raidEntries.AnalysisErrors.Add($"Unable to find previous time attendance for CRASHED entry: {logEntry.LogLine}");
                             continue;
                         }
 
