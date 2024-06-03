@@ -31,6 +31,8 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
             .ObservesProperty(() => SelectedAttendanceEntry).ObservesProperty(() => NewRaidName).ObservesProperty(() => NewTimeText);
         MoveAttendanceCallCommand = new DelegateCommand(MoveAttendanceCall, () => SelectedAttendanceEntry != null && !string.IsNullOrWhiteSpace(NewTimeText))
             .ObservesProperty(() => SelectedAttendanceEntry).ObservesProperty(() => NewTimeText);
+        RemoveAttendanceEntryCommand = new DelegateCommand(RemoveAttendance, () => SelectedAttendanceEntry != null)
+            .ObservesProperty(() => SelectedAttendanceEntry);
     }
 
     public DelegateCommand AddAttendanceCallCommand { get; }
@@ -54,6 +56,8 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         get => _newTimeText;
         set => SetProperty(ref _newTimeText, value);
     }
+
+    public DelegateCommand RemoveAttendanceEntryCommand { get; }
 
     public AttendanceEntry SelectedAttendanceEntry
     {
@@ -104,6 +108,17 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         AllAttendances.Insert(indexOfNextEntry, selectedEntry);
     }
 
+    private void RemoveAttendance()
+    {
+        AttendanceEntry selected = SelectedAttendanceEntry;
+        if (selected == null)
+            return;
+
+        SelectedAttendanceEntry = null;
+        _raidEntries.AttendanceEntries.Remove(selected);
+        AllAttendances.Remove(selected);
+    }
+
     private bool ValidateInputItems(out DateTime newTimestamp, bool isAddAttendanceCommand)
     {
         newTimestamp = DateTime.MinValue;
@@ -140,6 +155,8 @@ public interface IAttendanceEntryModiferDialogViewModel : IDialogViewModel
     string NewRaidName { get; set; }
 
     string NewTimeText { get; set; }
+
+    DelegateCommand RemoveAttendanceEntryCommand { get; }
 
     AttendanceEntry SelectedAttendanceEntry { get; set; }
 }
