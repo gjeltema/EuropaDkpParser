@@ -38,7 +38,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
         ZoneNames = _settings.RaidValue.AllValidRaidZoneNames;
 
-        ApprovedBossNames = _settings.RaidValue.AllBossMobNames;
+        ApprovedBossNames = _settings.RaidValue.AllBossMobNames.Order().ToList();
         string firstBossName = ApprovedBossNames.FirstOrDefault();
         if (!string.IsNullOrEmpty(firstBossName))
         {
