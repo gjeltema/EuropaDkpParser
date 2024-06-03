@@ -5,6 +5,7 @@
 namespace EuropaDkpParser.ViewModels;
 
 using System.IO;
+using System.Text;
 using System.Windows;
 using DkpParser;
 using DkpParser.Parsers;
@@ -189,7 +190,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         IAllCommunicationParser communicationParser = new AllCommunicationParser(_settings);
         ICollection<EqLogFile> logFiles = await Task.Run(() => communicationParser.GetEqLogFiles(startTime, endTime));
 
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string directory = GetOutputPath();
         string communicationOutputFile = $"{Constants.CommunicationFileNamePrefix}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string communicationOutputFullPath = Path.Combine(directory, communicationOutputFile);
         bool anyCommunicationFound = false;
@@ -235,6 +236,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         return 0;
     }
 
+    private string GetOutputPath()
+        => string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+
     private async void GetRawLogFilesParse()
         => await ExecuteParse(GetRawLogFilesParseAsync);
 
@@ -243,7 +247,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         IFullEqLogParser fullLogParser = new FullEqLogParser(_settings);
         ICollection<EqLogFile> logFiles = await Task.Run(() => fullLogParser.GetEqLogFiles(startTime, endTime));
 
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string directory = GetOutputPath();
 
         string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string fullLogOutputFullPath = Path.Combine(directory, fullLogOutputFile);
@@ -265,7 +269,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         ITermParser termParser = new TermParser(_settings, SearchTermText, IsCaseSensitive);
         ICollection<EqLogFile> logFiles = await Task.Run(() => termParser.GetEqLogFiles(startTime, endTime));
 
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string directory = GetOutputPath();
         string searchTermOutputFile = $"{Constants.SearchTermFileNamePrefix}{SearchTermText}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string searchTermOutputFullPath = Path.Combine(directory, searchTermOutputFile);
         bool anySearchTermFound = false;
@@ -339,25 +343,25 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
     private async Task OutputAnalyzerErrorsToFile(RaidEntries raidEntries)
     {
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string directory = GetOutputPath();
 
-        string rawAnalyzerOutputFile = $"AnalyzerErrors-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string rawAnalyzerOutputFile = $"DEBUG_AnalyzerErrors-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
         await CreateFile(rawAnalyzerOutputFullPath, raidEntries.AnalysisErrors);
     }
 
     private async Task OutputRawAnalyzerResults(RaidEntries raidEntries)
     {
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string directory = GetOutputPath();
 
-        string rawAnalyzerOutputFile = $"RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string rawAnalyzerOutputFile = $"DEBUG_RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
         await CreateFile(rawAnalyzerOutputFullPath, raidEntries.GetAllEntries());
     }
 
     private async Task OutputRawParseResults(LogParseResults results)
     {
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string directory = GetOutputPath();
 
         string rawParseOutputFile = $"RawParseOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawParseOutputFullPath = Path.Combine(directory, rawParseOutputFile);
@@ -384,8 +388,17 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
         catch (EuropaDkpParserException e)
         {
+            await WriteEuropaExceptionToLogFile(e);
+
             string errorMessage = $"{e.Message}: {e.InnerException?.Message}{Environment.NewLine}{e.LogLine}";
             MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return null;
+        }
+        catch (Exception e)
+        {
+            await WriteExceptionToLogFile(e);
+
+            MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }
     }
@@ -398,7 +411,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         IConversationParser conversationParser = new ConversationParser(_settings, ConversationPlayer);
         ICollection<EqLogFile> logFiles = await Task.Run(() => conversationParser.GetEqLogFiles(startTime, endTime));
 
-        string directory = string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        string directory = GetOutputPath();
         string conversationPlayers = string.Join("-", ConversationPlayer.Split(';'));
         string conversationOutputFile = $"{Constants.ConversationFileNamePrefix}{conversationPlayers}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string conversationOutputFullPath = Path.Combine(directory, conversationOutputFile);
@@ -545,6 +558,34 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         }
 
         return true;
+    }
+
+    private async Task WriteEuropaExceptionToLogFile(EuropaDkpParserException e)
+    {
+        StringBuilder message = new();
+        message.AppendLine(e.Message);
+        message.Append("Raw log line: ").AppendLine(e.LogLine);
+        message.Append("Inner exception message: ").AppendLine(e.InnerException?.Message);
+        message.Append("Stack trace:").AppendLine(e.InnerException?.StackTrace).AppendLine();
+        message.AppendLine("Inner exception ToString: ").AppendLine(e.InnerException?.ToString());
+
+        string directory = GetOutputPath();
+        string errorOutputFile = $"ERROR_EXCEPTION-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string errorOutputFullPath = Path.Combine(directory, errorOutputFile);
+        await CreateFile(errorOutputFullPath, [message.ToString()]);
+    }
+
+    private async Task WriteExceptionToLogFile(Exception e)
+    {
+        StringBuilder message = new();
+        message.AppendLine(e.Message);
+        message.Append("Stack trace:").AppendLine(e.StackTrace).AppendLine();
+        message.AppendLine("Exception ToString: ").AppendLine(e.ToString());
+
+        string directory = GetOutputPath();
+        string errorOutputFile = $"ERROR_EXCEPTION-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string errorOutputFullPath = Path.Combine(directory, errorOutputFile);
+        await CreateFile(errorOutputFullPath, [message.ToString()]);
     }
 }
 
