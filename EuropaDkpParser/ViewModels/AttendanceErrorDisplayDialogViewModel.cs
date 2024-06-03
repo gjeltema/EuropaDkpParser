@@ -280,6 +280,14 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
                 SelectedBossName = approvedBossName;
                 break;
             }
+
+            string bossNameWithThe = "The " + startOfBossName;
+            string approvedBossNameWithThe = ApprovedBossNames.FirstOrDefault(x => x.StartsWith(bossNameWithThe));
+            if (approvedBossNameWithThe != null)
+            {
+                SelectedBossName = approvedBossNameWithThe;
+                break;
+            }
         }
     }
 
