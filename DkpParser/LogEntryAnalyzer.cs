@@ -358,6 +358,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void PopulateRaidJoin(LogParseResults logParseResults)
     {
+        List<PlayerJoinRaidEntry> joins = [];
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
             IEnumerable<PlayerJoinRaidEntry> playersJoined = log.LogEntries
@@ -365,8 +366,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                 .Select(ExtractePlayerJoin)
                 .Where(x => x != null);
 
-            _raidEntries.PlayerJoinCalls = playersJoined.ToList();
+            joins.AddRange(playersJoined);
         }
+
+        _raidEntries.PlayerJoinCalls = joins;
     }
 }
 
@@ -380,7 +383,7 @@ public sealed class PlayerPossibleLinkdead
     public PlayerCharacter Player { get; init; }
 
     private string DebugDisplay
-        => $"{Player} {AttendanceMissingFrom}";
+        => $"{Player.PlayerName} {AttendanceMissingFrom}";
 }
 
 public interface ILogEntryAnalyzer
