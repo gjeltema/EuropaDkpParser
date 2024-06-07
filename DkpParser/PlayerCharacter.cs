@@ -74,4 +74,7 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
             ? $"{Constants.AnonWithBrackets} {PlayerName}  <Europa>"
             : $"[{Level} {ClassName}] {PlayerName} ({race}) <Europa>";
     }
+
+    public override string ToString()
+        => ToLogString();
 }

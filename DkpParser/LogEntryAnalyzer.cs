@@ -9,6 +9,7 @@ using System.Diagnostics;
 
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
+    private readonly TimeSpan _joinedTimeLimit = TimeSpan.FromMinutes(20);
     private readonly RaidEntries _raidEntries = new();
     private readonly IDkpParserSettings _settings;
 
@@ -115,35 +116,82 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     private void CheckPotentialLinkdeads()
     {
         // For each player in the raid, find any attendances they're missing from.
-        // If they are present in the Time attendance before and after, then put them up for review.
-        // Dont bother with the first and last attendance calls of the raid - too many false positives.
-
         List<AttendanceEntry> orderedAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
         foreach (PlayerCharacter player in _raidEntries.AllPlayersInRaid)
         {
+            // If they are present in the Time attendance before and after, then put them up for review.
+            // Dont bother with the first and last attendance calls of the raid - too many false positives.
             IEnumerable<AttendanceEntry> attendancesMissingFrom = _raidEntries.AttendanceEntries.Where(x => !x.Players.Contains(player));
             foreach (AttendanceEntry attendance in attendancesMissingFrom)
             {
-                AttendanceEntry previousAttendance = orderedAttendances
-                    .Where(x => x.Timestamp < attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
-                    .LastOrDefault();
-
-                if (previousAttendance == null)
-                    continue;
-
-                AttendanceEntry nextAttendance = orderedAttendances
-                    .Where(x => x.Timestamp > attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
-                    .FirstOrDefault();
-
-                if (nextAttendance == null)
-                    continue;
-
-                bool playerInPreviousAttendance = previousAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
-                bool playerInNextAttendance = nextAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
-
-                if (playerInPreviousAttendance && playerInNextAttendance)
+                try
                 {
-                    _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = attendance });
+                    AttendanceEntry previousAttendance = orderedAttendances
+                        .Where(x => x.Timestamp < attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
+                        .LastOrDefault();
+
+                    if (previousAttendance == null)
+                        continue;
+
+                    AttendanceEntry nextAttendance = orderedAttendances
+                        .Where(x => x.Timestamp > attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
+                        .FirstOrDefault();
+
+                    if (nextAttendance == null)
+                        continue;
+
+                    bool playerInPreviousAttendance = previousAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
+                    bool playerInNextAttendance = nextAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
+
+                    if (playerInPreviousAttendance && playerInNextAttendance)
+                    {
+                        _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = attendance });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    string analysisError = $"Error when analyzing for potential linkdeads method (1): {player}{Environment.NewLine}{ex}";
+                    _raidEntries.AnalysisErrors.Add(analysisError);
+                }
+            }
+
+            // Check in between a Joined and Left call to see if the player is missing from any of the attendances in between.  Limit the time between
+            // Joined and Left calls to 20 minutes.
+            List<PlayerJoinRaidEntry> playerJoinedCalls = _raidEntries.PlayerJoinCalls.Where(x => x.PlayerName == player.PlayerName).OrderBy(x => x.Timestamp).ToList();
+            PlayerJoinRaidEntry lastJoined = null;
+            foreach (PlayerJoinRaidEntry playerJoinCall in playerJoinedCalls)
+            {
+                if (playerJoinCall.EntryType == LogEntryType.JoinedRaid)
+                {
+                    lastJoined = playerJoinCall;
+                }
+                else
+                {
+                    if (lastJoined == null)
+                        continue;
+
+                    try
+                    {
+                        if (playerJoinCall.Timestamp - lastJoined.Timestamp <= _joinedTimeLimit)
+                        {
+                            IEnumerable<AttendanceEntry> missingAttendancesInBetween = attendancesMissingFrom
+                                .Where(x => lastJoined.Timestamp <= x.Timestamp && x.Timestamp <= playerJoinCall.Timestamp);
+                            foreach (AttendanceEntry missingAttendance in missingAttendancesInBetween)
+                            {
+                                PlayerPossibleLinkdead existingAttendance = _raidEntries.PossibleLinkdeads
+                                    .FirstOrDefault(x => x.Player.PlayerName == player.PlayerName && x.AttendanceMissingFrom == missingAttendance);
+                                if (existingAttendance != null)
+                                {
+                                    _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = missingAttendance });
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        string analysisError = $"Error when analyzing for potential linkdeads method (2): {playerJoinCall}{Environment.NewLine}{ex}";
+                        _raidEntries.AnalysisErrors.Add(analysisError);
+                    }
                 }
             }
         }
