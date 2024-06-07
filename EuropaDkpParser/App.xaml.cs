@@ -4,6 +4,7 @@
 
 namespace EuropaDkpParser;
 
+using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using DkpParser;
@@ -31,6 +32,13 @@ public partial class App : Application
     {
         DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledExceptionHandler;
+
+        if (!File.Exists(RaidValuesFilePath))
+        {
+            MessageBox.Show("RaidValues.txt file was not found. Obtain this file and place it in the same folder as this executable.", "RaidValues.txt Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+            Current?.Shutdown(1);
+            return;
+        }
 
         _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath);
         _settings.LoadSettings();
