@@ -34,31 +34,12 @@ public sealed class RaidValues : IRaidValues
 
     public ICollection<string> AllValidRaidZoneNames { get; private set; }
 
-    public int GetBossKillValue(string bossName, string zoneName)
+    public int GetDkpValueForRaid(AttendanceEntry attendanceEntry)
     {
-        BossKillValue boss = _bossKillValues.FirstOrDefault(x => x.BossName == bossName);
-        if (boss == null)
-            return GetTimeBasedValue(zoneName);
-
-        if (boss.UseOverrideValue)
-            return boss.OverrideValue;
-
-        int tierValue = _tiers[boss.Tier];
-        return tierValue;
-    }
-
-    public int GetTimeBasedValue(string zoneName)
-    {
-        string alias = GetZoneRaidAlias(zoneName);
-        ZoneValue zone = _zoneValues.FirstOrDefault(x => x.ZoneName == alias);
-        if (zone == null)
-            return 0;
-
-        if (zone.UseOverrideValue)
-            return zone.OverrideValue;
-
-        int tierValue = _tiers[zone.Tier];
-        return tierValue;
+        int dkpValue = attendanceEntry.AttendanceCallType == AttendanceCallType.Time
+            ? GetTimeBasedValue(attendanceEntry.ZoneName)
+            : GetBossKillValue(attendanceEntry.CallName, attendanceEntry.ZoneName);
+        return dkpValue;
     }
 
     public string GetZoneRaidAlias(string zoneName)
@@ -113,6 +94,33 @@ public sealed class RaidValues : IRaidValues
         }
 
         return entries;
+    }
+
+    private int GetBossKillValue(string bossName, string zoneName)
+    {
+        BossKillValue boss = _bossKillValues.FirstOrDefault(x => x.BossName == bossName);
+        if (boss == null)
+            return GetTimeBasedValue(zoneName);
+
+        if (boss.UseOverrideValue)
+            return boss.OverrideValue;
+
+        int tierValue = _tiers[boss.Tier];
+        return tierValue;
+    }
+
+    private int GetTimeBasedValue(string zoneName)
+    {
+        string alias = GetZoneRaidAlias(zoneName);
+        ZoneValue zone = _zoneValues.FirstOrDefault(x => x.ZoneName == alias);
+        if (zone == null)
+            return 0;
+
+        if (zone.UseOverrideValue)
+            return zone.OverrideValue;
+
+        int tierValue = _tiers[zone.Tier];
+        return tierValue;
     }
 
     private void LoadBonusZones(string[] fileContents)
@@ -221,9 +229,7 @@ public interface IRaidValues
 
     ICollection<string> AllValidRaidZoneNames { get; }
 
-    int GetBossKillValue(string bossName, string zoneName);
-
-    int GetTimeBasedValue(string zoneName);
+    int GetDkpValueForRaid(AttendanceEntry attendanceEntry);
 
     string GetZoneRaidAlias(string zoneName);
 

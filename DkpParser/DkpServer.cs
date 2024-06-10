@@ -57,9 +57,7 @@ public sealed class DkpServer : IDkpServer
             .Select(playerName => _playerIdCache[playerName]);
 
         int eventId = _eventIdCache[attendanceEntry.ZoneName];
-        int dkpValue = attendanceEntry.AttendanceCallType == AttendanceCallType.Time
-            ? _settings.RaidValue.GetTimeBasedValue(attendanceEntry.ZoneName)
-            : _settings.RaidValue.GetBossKillValue(attendanceEntry.CallName, attendanceEntry.ZoneName);
+        int dkpValue = _settings.RaidValue.GetDkpValueForRaid(attendanceEntry);
 
         var attendanceContent =
             new XElement("request",
@@ -81,7 +79,7 @@ public sealed class DkpServer : IDkpServer
         AttendanceEntry associatedEntry = dkpEntry.AssociatedAttendanceCall;
         int raidId = _raidIdCache.Last().Value;
         if (associatedEntry != null && !string.IsNullOrEmpty(associatedEntry.CallName))
-            raidId = _raidIdCache[dkpEntry.AssociatedAttendanceCall.CallName];
+            raidId = _raidIdCache[associatedEntry.CallName];
 
         var dkpContent =
             new XElement("request",
