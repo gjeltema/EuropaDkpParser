@@ -131,6 +131,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0">
@@ -144,7 +145,8 @@
                 </Grid>
                 
                 <CheckBox Grid.Row="1" IsChecked="{Binding IsDebugOptionsEnabled}" Content="{StaticResource EnableDebugOptions}" Margin="0,0,0,5"/>
-                <CheckBox Grid.Row="2" IsChecked="{Binding ShowAfkReview}" Content="{StaticResource ShowAfkReviewLabel}"/>
+                <CheckBox Grid.Row="2" IsChecked="{Binding ShowAfkReview}" Content="{StaticResource ShowAfkReviewLabel}" Margin="0,0,0,5"/>
+                <CheckBox Grid.Row="3" IsChecked="{Binding UseAdvancedDialog}" Content="{StaticResource UseAdvancedDialog}"/>
             </Grid>
 
             <Grid Grid.Row="6" HorizontalAlignment="Right" Margin="0,10,0,0">

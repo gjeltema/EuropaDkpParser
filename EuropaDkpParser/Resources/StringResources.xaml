@@ -14,8 +14,10 @@
     <system:String x:Key="AttendanceEntryModifierDialogTitleText">Create or Move Attendance Entry</system:String>
     <system:String x:Key="RaidUploadDialogTitleText">Upload Raid to DKP Server</system:String>
     <system:String x:Key="PossibleLinkdeadErrorDialogTitleText">Player Possibly Linkdead Review</system:String>
-    <system:String x:Key="GeneralParserDialogTitleText">Player Possibly Linkdead Review</system:String>
+    <system:String x:Key="GeneralParserDialogTitleText">General Parsing</system:String>
     <system:String x:Key="AfkCheckerDialogTitleText">AFK Review</system:String>
+    <system:String x:Key="ParserDialogTitleText">General Parsing</system:String>
+    <system:String x:Key="DkpParseDialogTitleText">DKP Parsing</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>
@@ -98,6 +100,7 @@
     <system:String x:Key="ApiWriteTokenLabel">API Write Token:</system:String>
     <system:String x:Key="ShowAfkReviewLabel">Show AFK Review Dialog</system:String>
     <system:String x:Key="LogMatchPatternLabel">Log File Name Search Pattern</system:String>
+    <system:String x:Key="UseAdvancedDialog">Use Advanced Dialog</system:String>
 
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>
@@ -221,5 +224,9 @@
     
     <!-- AfkCheckerDialog -->
     <system:String x:Key="AfkHeaderLabel">List of all attendances for player</system:String>
+    
+    <!-- SimpleStartDisplay -->
+    <system:String x:Key="OpenDkpParser">DKP Parser</system:String>
+    <system:String x:Key="OpenOtherParser">Other Parser</system:String>
 
 </ResourceDictionary>

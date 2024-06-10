@@ -147,6 +147,19 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
 
     public DelegateCommand SetGeneratedLogArchiveDirectoryCommand { get; }
 
+    public void UpdateSettings(IDkpParserSettings settings)
+    {
+        _settings.ArchiveAllEqLogFiles = IsAllLogsArchived;
+        _settings.EqLogFileArchiveDirectory = EqLogArchiveDirectory;
+        _settings.EqLogFileAgeToArchiveInDays = GetIntValue(EqLogArchiveFileAge);
+        _settings.EqLogFileSizeToArchiveInMBs = GetIntValue(EqLogArchiveFileSize);
+        _settings.EqLogFilesToArchive = SelectedEqLogFiles;
+        _settings.GeneratedLogFilesAgeToArchiveInDays = GetIntValue(GeneratedLogsArchiveFileAge);
+        _settings.GeneratedLogFilesArchiveDirectory = GeneratedLogsArchiveDirectory;
+
+        _settings.SaveSettings();
+    }
+
     private static void MoveFile(string currentFile, string destinationFile)
     {
         try
@@ -309,6 +322,15 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
         }
     }
 
+    private int GetIntValue(string inputValue)
+    {
+        if (int.TryParse(inputValue, out int parsedValue))
+        {
+            return parsedValue;
+        }
+        return 0;
+    }
+
     private void OpenEqLogArchiveDirectory()
     {
         string directory = Path.GetDirectoryName(EqLogArchiveDirectory);
@@ -435,4 +457,6 @@ public interface IFileArchiveDialogViewModel : IDialogViewModel
     DelegateCommand SetEqLogArchiveDirectoryCommand { get; }
 
     DelegateCommand SetGeneratedLogArchiveDirectoryCommand { get; }
+
+    void UpdateSettings(IDkpParserSettings settings);
 }

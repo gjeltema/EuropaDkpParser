@@ -3,6 +3,7 @@
                     xmlns:utilities="clr-namespace:EuropaDkpParser.Utility">
 
     <utilities:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <utilities:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
     <utilities:InverseBoolConverter x:Key="InverseBoolConverter" />
 
 </ResourceDictionary>

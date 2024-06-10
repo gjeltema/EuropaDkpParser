@@ -9,8 +9,13 @@
         mc:Ignorable="d"
         Title="{Binding TitleText}" Height="450" Width="450" MinHeight="150" MinWidth="200"
         Left="{Binding WindowLocationX}" Top="{Binding WindowLocationY}">
-    
+
     <Grid>
-        <local:MainDisplayView DataContext="{Binding MainDisplayVM}" />
+        <Grid Visibility="{Binding UseAdvancedDialog, Converter={StaticResource BoolToVisibilityConverter}}">
+            <local:MainDisplayView DataContext="{Binding MainDisplayVM}"/>
+        </Grid>
+        <Grid Visibility="{Binding UseAdvancedDialog, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+            <local:SimpleStartDisplayView DataContext="{Binding SimpleStartDisplayVM}" />
+        </Grid>
     </Grid>
 </Window>

@@ -30,6 +30,9 @@ internal sealed class DialogFactory : IDialogFactory
     public IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
         => new DkpErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
 
+    public IDkpParseDialogViewModel CreateDkpParseDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
+        => new DkpParseDialogViewModel(settings, dialogFactory, _viewFactory);
+
     public IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings)
         => new FileArchiveDialogViewModel(_viewFactory, settings);
 
@@ -38,6 +41,9 @@ internal sealed class DialogFactory : IDialogFactory
 
     public IGeneralEqLogParserDialogViewModel CreateGeneralEqParserDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings)
         => new GeneralEqLogParserDialogViewModel(_viewFactory, dialogFactory, settings);
+
+    public IParserDialogViewModel CreateParserDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
+        => new ParserDialogViewModel(settings, dialogFactory, _viewFactory);
 
     public IPossibleLinkdeadErrorDialogViewModel CreatePossibleLinkdeadErrorDialogViewModel(RaidEntries raidEntries)
         => new PossibleLinkdeadErrorDialogViewModel(_viewFactory, raidEntries);
@@ -61,11 +67,15 @@ public interface IDialogFactory
 
     IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
+    IDkpParseDialogViewModel CreateDkpParseDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory);
+
     IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings);
 
     IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, bool canUploadToServer);
 
     IGeneralEqLogParserDialogViewModel CreateGeneralEqParserDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings);
+
+    IParserDialogViewModel CreateParserDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory);
 
     IPossibleLinkdeadErrorDialogViewModel CreatePossibleLinkdeadErrorDialogViewModel(RaidEntries raidEntries);
 

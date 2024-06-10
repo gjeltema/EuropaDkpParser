@@ -51,6 +51,7 @@ public static class Constants
     public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TellsTheRaid = " tells the raid, ";
     public const string TellsYou = "tells you";
+    public const string TimePickerDisplayDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TooLongDelimiter = "::::";
     public const string Undo = "UNDO";
     public const string WhoZonePrefixPlural = "There are ";

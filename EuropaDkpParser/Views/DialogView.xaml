@@ -50,6 +50,12 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:AfkCheckerDialogViewModel}">
                     <dialogsView:AfkCheckerDialog />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:DkpParseDialogViewModel}">
+                    <dialogsView:DkpParseDialog />
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:ParserDialogViewModel}">
+                    <dialogsView:ParserDialog />
+                </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>
     </ContentPresenter>

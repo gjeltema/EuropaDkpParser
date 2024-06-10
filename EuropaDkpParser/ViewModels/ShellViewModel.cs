@@ -15,14 +15,24 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
     internal ShellViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
         TitleText = Strings.GetString("MainWindowTitleText") + " " + Strings.GetString("Version");
-        MainDisplayVM = new MainDisplayViewModel(settings, dialogFactory);
+
+        UseAdvancedDialog = settings.UseAdvancedDialog;
+        if (UseAdvancedDialog)
+            MainDisplayVM = new MainDisplayViewModel(settings, dialogFactory);
+        else
+            SimpleStartDisplayVM = new SimpleStartDisplayViewModel(settings, dialogFactory);
+
         WindowLocationX = settings.MainWindowX;
         WindowLocationY = settings.MainWindowY;
     }
 
     public IMainDisplayViewModel MainDisplayVM { get; }
 
+    public ISimpleStartDisplayViewModel SimpleStartDisplayVM { get; }
+
     public string TitleText { get; }
+
+    public bool UseAdvancedDialog { get; private set; }
 
     public int WindowLocationX
     {
@@ -39,9 +49,13 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 
 public interface IShellViewModel : IEuropaViewModel
 {
-    public string TitleText { get; }
-
     IMainDisplayViewModel MainDisplayVM { get; }
+
+    ISimpleStartDisplayViewModel SimpleStartDisplayVM { get; }
+
+    string TitleText { get; }
+
+    bool UseAdvancedDialog { get; }
 
     int WindowLocationX { get; set; }
 

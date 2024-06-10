@@ -29,6 +29,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
+    private const string UseAdvancedDialogSection = "USE_ADVANCED_DIALOG";
     private const string WindowLocationSection = "WINDOW_LOCATION";
     private readonly string _raidValuesFileName;
     private readonly string _settingsFilePath;
@@ -84,6 +85,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool ShowAfkReview { get; set; }
 
+    public bool UseAdvancedDialog { get; set; }
+
     public void LoadSettings()
     {
         RaidValue = new RaidValues(_raidValuesFileName);
@@ -108,6 +111,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
         ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
         LogFileMatchPattern = GetStringValue(fileContents, LogMatchPatternSection, DefaultMatchPattern);
+        UseAdvancedDialog = GetBoolValue(fileContents, UseAdvancedDialogSection);
     }
 
     public void SaveSettings()
@@ -132,7 +136,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(ApiUrlSection, ApiUrl),
             CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid),
             CreateFileEntry(ShowAfkReviewSection, ShowAfkReview),
-            CreateFileEntry(LogMatchPatternSection, LogFileMatchPattern)
+            CreateFileEntry(LogMatchPatternSection, LogFileMatchPattern),
+            CreateFileEntry(UseAdvancedDialogSection, UseAdvancedDialog)
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -349,6 +354,8 @@ public interface IDkpParserSettings
     ICollection<string> SelectedLogFiles { get; set; }
 
     bool ShowAfkReview { get; set; }
+
+    bool UseAdvancedDialog { get; set; }
 
     void LoadSettings();
 

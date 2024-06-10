@@ -5,17 +5,15 @@
 namespace EuropaDkpParser.ViewModels;
 
 using System.IO;
-using System.Text;
-using System.Windows;
 using DkpParser;
-using DkpParser.Parsers;
-using EuropaDkpParser.Resources;
+using EuropaDkpParser.Utility;
 using Prism.Commands;
 
 internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayViewModel
 {
-    private const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     private readonly IDialogFactory _dialogFactory;
+    private readonly DkpLogGenerator _logGenerator;
+    private readonly ParsedFileGenerator _parsedFileGenerator;
     private readonly IDkpParserSettings _settings;
     private string _conversationPlayer;
     private bool _debugOptionsEnabled;
@@ -34,6 +32,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     {
         _settings = settings;
         _dialogFactory = dialogFactory;
+        _logGenerator = new(settings, dialogFactory);
+        _parsedFileGenerator = new(settings, dialogFactory);
+
         OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
         StartLogParseCommand = new DelegateCommand(StartLogParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(GeneratedFile))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => GeneratedFile);
@@ -77,7 +78,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
             {
                 if (DateTime.TryParse(value, out DateTime endTime))
                 {
-                    StartTimeText = endTime.AddHours(-6).ToString(DateTimeFormat);
+                    StartTimeText = endTime.AddHours(-6).ToString(Constants.TimePickerDisplayDateTimeFormat);
                 }
             }
         }
@@ -149,23 +150,9 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         set => SetProperty(ref _startTimeText, value);
     }
 
-    private async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
-    {
-        try
-        {
-            await Task.Run(() => File.AppendAllLines(fileToWriteTo, fileContents));
-            return true;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.ToString(), Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
-        }
-    }
-
     private async Task ExecuteParse(Func<DateTime, DateTime, Task> parseToExecute)
     {
-        if (!ValidateTimeSettings(out DateTime startTime, out DateTime endTime))
+        if (!_logGenerator.ValidateTimeSettings(StartTimeText, EndTimeText, out DateTime startTime, out DateTime endTime))
             return;
 
         try
@@ -186,114 +173,22 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         => await ExecuteParse(GetAllCommunicationAsync);
 
     private async Task GetAllCommunicationAsync(DateTime startTime, DateTime endTime)
-    {
-        IAllCommunicationParser communicationParser = new AllCommunicationParser(_settings);
-        ICollection<EqLogFile> logFiles = await Task.Run(() => communicationParser.GetEqLogFiles(startTime, endTime));
-
-        string directory = GetOutputPath();
-        string communicationOutputFile = $"{Constants.CommunicationFileNamePrefix}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string communicationOutputFullPath = Path.Combine(directory, communicationOutputFile);
-        bool anyCommunicationFound = false;
-        foreach (EqLogFile logFile in logFiles)
-        {
-            if (logFile.LogEntries.Count > 0)
-            {
-                await CreateFile(communicationOutputFullPath, logFile.GetAllLogLines());
-                anyCommunicationFound = true;
-            }
-        }
-
-        if (!anyCommunicationFound)
-        {
-            MessageBox.Show(Strings.GetString("NoCommunicationFound"), Strings.GetString("NoCommunicationFoundTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(communicationOutputFullPath);
-        completedDialog.ShowDialog();
-    }
-
-    private string GetDkpSpentEntries(RaidEntries raidEntries)
-    {
-        string entries = string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries());
-
-        if (raidEntries.RemovedDkpEntries.Count > 0)
-        {
-            entries += Environment.NewLine + Environment.NewLine;
-            entries += "-------------- DKPSPENT Entries Removed Due To No Player On DKP Server --------------";
-            entries += string.Join(Environment.NewLine, raidEntries.RemovedDkpEntries);
-        }
-
-        return entries;
-    }
-
-    private int GetIntValue(string inputValue)
-    {
-        if (int.TryParse(inputValue, out int parsedValue))
-        {
-            return parsedValue;
-        }
-        return 0;
-    }
+        => await _parsedFileGenerator.GetAllCommunicationAsync(startTime, endTime, GetOutputPath());
 
     private string GetOutputPath()
-        => string.IsNullOrWhiteSpace(OutputDirectory) ? GetUserProfilePath() : OutputDirectory;
+        => string.IsNullOrWhiteSpace(OutputDirectory) ? _logGenerator.GetUserProfilePath() : OutputDirectory;
 
     private async void GetRawLogFilesParse()
         => await ExecuteParse(GetRawLogFilesParseAsync);
 
     private async Task GetRawLogFilesParseAsync(DateTime startTime, DateTime endTime)
-    {
-        IFullEqLogParser fullLogParser = new FullEqLogParser(_settings);
-        ICollection<EqLogFile> logFiles = await Task.Run(() => fullLogParser.GetEqLogFiles(startTime, endTime));
-
-        string directory = GetOutputPath();
-
-        string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string fullLogOutputFullPath = Path.Combine(directory, fullLogOutputFile);
-
-        foreach (EqLogFile logFile in logFiles)
-        {
-            await CreateFile(fullLogOutputFullPath, logFile.GetAllLogLines());
-        }
-
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(fullLogOutputFullPath);
-        completedDialog.ShowDialog();
-    }
+        => await _logGenerator.GetRawLogFilesParseAsync(startTime, endTime, GetOutputPath());
 
     private async void GetSearchTerm()
         => await ExecuteParse(GetSearchTermAsync);
 
     private async Task GetSearchTermAsync(DateTime startTime, DateTime endTime)
-    {
-        ITermParser termParser = new TermParser(_settings, SearchTermText, IsCaseSensitive);
-        ICollection<EqLogFile> logFiles = await Task.Run(() => termParser.GetEqLogFiles(startTime, endTime));
-
-        string directory = GetOutputPath();
-        string searchTermOutputFile = $"{Constants.SearchTermFileNamePrefix}{SearchTermText}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string searchTermOutputFullPath = Path.Combine(directory, searchTermOutputFile);
-        bool anySearchTermFound = false;
-        foreach (EqLogFile logFile in logFiles)
-        {
-            if (logFile.LogEntries.Count > 0)
-            {
-                await CreateFile(searchTermOutputFullPath, logFile.GetAllLogLines());
-                anySearchTermFound = true;
-            }
-        }
-
-        if (!anySearchTermFound)
-        {
-            MessageBox.Show(Strings.GetString("NoSearchTermFound"), Strings.GetString("NoSearchTermFoundTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(searchTermOutputFullPath);
-        completedDialog.ShowDialog();
-    }
-
-    private string GetUserProfilePath()
-        => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "EuropaDKP");
+        => await _parsedFileGenerator.GetSearchTermAsync(startTime, endTime, SearchTermText, IsCaseSensitive, GetOutputPath());
 
     private void OpenFileArchiveDialog()
     {
@@ -301,15 +196,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         if (fileArchiveDialog.ShowDialog() != true)
             return;
 
-        _settings.ArchiveAllEqLogFiles = fileArchiveDialog.IsAllLogsArchived;
-        _settings.EqLogFileArchiveDirectory = fileArchiveDialog.EqLogArchiveDirectory;
-        _settings.EqLogFileAgeToArchiveInDays = GetIntValue(fileArchiveDialog.EqLogArchiveFileAge);
-        _settings.EqLogFileSizeToArchiveInMBs = GetIntValue(fileArchiveDialog.EqLogArchiveFileSize);
-        _settings.EqLogFilesToArchive = fileArchiveDialog.SelectedEqLogFiles;
-        _settings.GeneratedLogFilesAgeToArchiveInDays = GetIntValue(fileArchiveDialog.GeneratedLogsArchiveFileAge);
-        _settings.GeneratedLogFilesArchiveDirectory = fileArchiveDialog.GeneratedLogsArchiveDirectory;
-
-        _settings.SaveSettings();
+        fileArchiveDialog.UpdateSettings(_settings);
     }
 
     private void OpenGeneralParser()
@@ -325,115 +212,18 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         if (settingsDialog.ShowDialog() != true)
             return;
 
-        _settings.EqDirectory = settingsDialog.EqDirectory;
-        _settings.SelectedLogFiles = settingsDialog.SelectedCharacterLogFiles;
-        _settings.OutputDirectory = settingsDialog.OutputDirectory;
-        _settings.EnableDebugOptions = settingsDialog.IsDebugOptionsEnabled;
-        _settings.ApiUrl = settingsDialog.ApiUrl;
-        _settings.ApiReadToken = settingsDialog.ApiReadToken;
-        _settings.ApiWriteToken = settingsDialog.ApiWriteToken;
-        _settings.ShowAfkReview = settingsDialog.ShowAfkReview;
-        _settings.LogFileMatchPattern = settingsDialog.LogFileMatchPattern;
-        _settings.SaveSettings();
+        settingsDialog.UpdateSettings(_settings);
 
         SetOutputDirectory();
         SetOutputFile();
         DebugOptionsEnabled = _settings.EnableDebugOptions;
     }
 
-    private async Task OutputAnalyzerErrorsToFile(RaidEntries raidEntries)
-    {
-        string directory = GetOutputPath();
-
-        string rawAnalyzerOutputFile = $"DEBUG_AnalyzerErrors-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
-        await CreateFile(rawAnalyzerOutputFullPath, raidEntries.AnalysisErrors);
-    }
-
-    private async Task OutputRawAnalyzerResults(RaidEntries raidEntries)
-    {
-        string directory = GetOutputPath();
-
-        string rawAnalyzerOutputFile = $"DEBUG_RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
-        await CreateFile(rawAnalyzerOutputFullPath, raidEntries.GetAllEntries());
-    }
-
-    private async Task OutputRawParseResults(LogParseResults results)
-    {
-        string directory = GetOutputPath();
-
-        string rawParseOutputFile = $"RawParseOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string rawParseOutputFullPath = Path.Combine(directory, rawParseOutputFile);
-        foreach (EqLogFile logFile in results.EqLogFiles)
-        {
-            await CreateFile(rawParseOutputFullPath, logFile.GetAllLogLines());
-        }
-    }
-
-    private async Task<RaidEntries> ParseAndAnalyzeLogFiles(DateTime startTime, DateTime endTime)
-    {
-        try
-        {
-            IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
-            LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(startTime, endTime));
-
-            if (IsRawParseResultsChecked)
-            {
-                await OutputRawParseResults(results);
-            }
-
-            ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
-            return await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
-        }
-        catch (EuropaDkpParserException e)
-        {
-            await WriteEuropaExceptionToLogFile(e);
-
-            string errorMessage = $"{e.Message}: {e.InnerException?.Message}{Environment.NewLine}{e.LogLine}";
-            MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return null;
-        }
-        catch (Exception e)
-        {
-            await WriteExceptionToLogFile(e);
-
-            MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return null;
-        }
-    }
-
     private async void ParseConversation()
         => await ExecuteParse(ParseConversationAsync);
 
     private async Task ParseConversationAsync(DateTime startTime, DateTime endTime)
-    {
-        IConversationParser conversationParser = new ConversationParser(_settings, ConversationPlayer);
-        ICollection<EqLogFile> logFiles = await Task.Run(() => conversationParser.GetEqLogFiles(startTime, endTime));
-
-        string directory = GetOutputPath();
-        string conversationPlayers = string.Join("-", ConversationPlayer.Split(';'));
-        string conversationOutputFile = $"{Constants.ConversationFileNamePrefix}{conversationPlayers}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string conversationOutputFullPath = Path.Combine(directory, conversationOutputFile);
-        bool anyConversationFound = false;
-        foreach (EqLogFile logFile in logFiles)
-        {
-            if (logFile.LogEntries.Count > 0)
-            {
-                await CreateFile(conversationOutputFullPath, logFile.GetAllLogLines());
-                anyConversationFound = true;
-            }
-        }
-
-        if (!anyConversationFound)
-        {
-            MessageBox.Show(Strings.GetString("NoConversationFound"), Strings.GetString("NoConversationFoundTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(conversationOutputFullPath);
-        completedDialog.ShowDialog();
-    }
+        => await _parsedFileGenerator.ParseConversationAsync(startTime, endTime, ConversationPlayer, GetOutputPath());
 
     private void RefreshCommands()
     {
@@ -446,19 +236,19 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private void ResetTime()
     {
         DateTime currentTime = DateTime.Now;
-        EndTimeText = currentTime.ToString(DateTimeFormat);
-        StartTimeText = currentTime.AddHours(-6).ToString(DateTimeFormat);
+        EndTimeText = currentTime.ToString(Constants.TimePickerDisplayDateTimeFormat);
+        StartTimeText = currentTime.AddHours(-6).ToString(Constants.TimePickerDisplayDateTimeFormat);
         SetOutputFile();
     }
 
     private void SetOutputDirectory()
     {
-        OutputDirectory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? GetUserProfilePath() : _settings.OutputDirectory;
+        OutputDirectory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? _logGenerator.GetUserProfilePath() : _settings.OutputDirectory;
     }
 
     private void SetOutputFile()
     {
-        string directory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? GetUserProfilePath() : _settings.OutputDirectory;
+        string directory = string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? _logGenerator.GetUserProfilePath() : _settings.OutputDirectory;
         string outputFile = $"{Constants.GeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmm}.txt";
         GeneratedFile = Path.Combine(directory, outputFile);
     }
@@ -468,124 +258,21 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
     private async Task StartLogParseAsync(DateTime startTime, DateTime endTime)
     {
-        RaidEntries raidEntries = await ParseAndAnalyzeLogFiles(startTime, endTime);
-
-        if (raidEntries == null)
-            return;
-
-        if (IsRawAnalyzerResultsChecked)
+        DkpLogGenerationSessionSettings sessionSettings = new()
         {
-            await OutputRawAnalyzerResults(raidEntries);
-        }
+            StartTime = startTime,
+            EndTime = endTime,
+            IsRawAnalyzerResultsChecked = IsRawAnalyzerResultsChecked,
+            IsRawParseResultsChecked = IsRawParseResultsChecked,
+            OutputAnalyzerErrors = OutputAnalyzerErrors,
+            OutputDirectory = OutputDirectory,
+            GeneratedFile = GeneratedFile,
+            OutputPath = GetOutputPath()
+        };
 
-        if (OutputAnalyzerErrors && raidEntries.AnalysisErrors.Count > 0)
-        {
-            await OutputAnalyzerErrorsToFile(raidEntries);
-        }
-
-        if (raidEntries.AttendanceEntries.Any(x => x.PossibleError != PossibleError.None))
-        {
-            IAttendanceErrorDisplayDialogViewModel attendanceErrorDialog = _dialogFactory.CreateAttendanceErrorDisplayDialogViewModel(_settings, raidEntries);
-            if (attendanceErrorDialog.ShowDialog() == false)
-                return;
-        }
-
-        if (raidEntries.DkpEntries.Any(x => x.PossibleError != PossibleError.None))
-        {
-            IDkpErrorDisplayDialogViewModel dkpErrorDialog = _dialogFactory.CreateDkpErrorDisplayDialogViewModel(_settings, raidEntries);
-            if (dkpErrorDialog.ShowDialog() == false)
-                return;
-        }
-
-        if (raidEntries.PossibleLinkdeads.Count > 0)
-        {
-            IPossibleLinkdeadErrorDialogViewModel possibleLDDialog = _dialogFactory.CreatePossibleLinkdeadErrorDialogViewModel(raidEntries);
-            possibleLDDialog.ShowDialog();
-        }
-
-        if (_settings.ShowAfkReview)
-        {
-            IAfkCheckerDialogViewModel afkDialog = _dialogFactory.CreateAfkCheckerDialogViewModel(raidEntries);
-            if (afkDialog.SetNextAfkPlayer())
-                afkDialog.ShowDialog();
-        }
-
-        IBonusDkpAnalyzer bonusDkp = new BonusDkpAnalyzer(_settings);
-        bonusDkp.AddBonusAttendance(raidEntries);
-
-        IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, raidEntries, _settings.IsApiConfigured);
-        if (finalSummaryDialog.ShowDialog() == false)
-            return;
-
-        IOutputGenerator generator = new FileOutputGenerator();
-        ICollection<string> fileContents = generator.GenerateOutput(raidEntries);
-        bool success = await CreateFile(GeneratedFile, fileContents);
-        if (!success)
-            return;
-
-        if (finalSummaryDialog.UploadToServer && _settings.IsApiConfigured)
-        {
-            IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(raidEntries, _settings);
-            raidUpload.ShowDialog();
-        }
-
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(GeneratedFile);
-        completedDialog.DkpSpentEntries = GetDkpSpentEntries(raidEntries);
-        completedDialog.ShowDialog();
+        await _logGenerator.StartLogParseAsync(sessionSettings);
 
         SetOutputFile();
-    }
-
-    private bool ValidateTimeSettings(out DateTime startTime, out DateTime endTime)
-    {
-        endTime = DateTime.MinValue;
-        if (!DateTime.TryParse(StartTimeText, out startTime))
-        {
-            MessageBox.Show(Strings.GetString("StartTimeErrorMessage"), Strings.GetString("StartTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
-        }
-
-        if (!DateTime.TryParse(EndTimeText, out endTime))
-        {
-            MessageBox.Show(Strings.GetString("EndTimeErrorMessage"), Strings.GetString("EndTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
-        }
-
-        if (startTime > endTime)
-        {
-            MessageBox.Show(Strings.GetString("StartEndTimeErrorMessage"), Strings.GetString("StartEndTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
-        }
-
-        return true;
-    }
-
-    private async Task WriteEuropaExceptionToLogFile(EuropaDkpParserException e)
-    {
-        StringBuilder message = new();
-        message.AppendLine(e.Message);
-        message.Append("Raw log line: ").AppendLine(e.LogLine);
-        message.Append("Inner exception message: ").AppendLine(e.InnerException?.Message);
-        message.Append("Stack trace:").AppendLine(e.InnerException?.StackTrace).AppendLine();
-        message.AppendLine("Inner exception ToString: ").AppendLine(e.InnerException?.ToString());
-
-        string directory = GetOutputPath();
-        string errorOutputFile = $"ERROR_EXCEPTION-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string errorOutputFullPath = Path.Combine(directory, errorOutputFile);
-        await CreateFile(errorOutputFullPath, [message.ToString()]);
-    }
-
-    private async Task WriteExceptionToLogFile(Exception e)
-    {
-        StringBuilder message = new();
-        message.AppendLine(e.Message);
-        message.Append("Stack trace:").AppendLine(e.StackTrace).AppendLine();
-        message.AppendLine("Exception ToString: ").AppendLine(e.ToString());
-
-        string directory = GetOutputPath();
-        string errorOutputFile = $"ERROR_EXCEPTION-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string errorOutputFullPath = Path.Combine(directory, errorOutputFile);
-        await CreateFile(errorOutputFullPath, [message.ToString()]);
     }
 }
 
