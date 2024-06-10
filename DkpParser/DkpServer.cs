@@ -59,7 +59,7 @@ public sealed class DkpServer : IDkpServer
         int eventId = _eventIdCache[attendanceEntry.ZoneName];
         int dkpValue = attendanceEntry.AttendanceCallType == AttendanceCallType.Time
             ? _settings.RaidValue.GetTimeBasedValue(attendanceEntry.ZoneName)
-            : _settings.RaidValue.GetBossKillValue(attendanceEntry.CallName);
+            : _settings.RaidValue.GetBossKillValue(attendanceEntry.CallName, attendanceEntry.ZoneName);
 
         var attendanceContent =
             new XElement("request",

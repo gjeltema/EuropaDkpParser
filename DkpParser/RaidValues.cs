@@ -34,11 +34,11 @@ public sealed class RaidValues : IRaidValues
 
     public ICollection<string> AllValidRaidZoneNames { get; private set; }
 
-    public int GetBossKillValue(string bossName)
+    public int GetBossKillValue(string bossName, string zoneName)
     {
         BossKillValue boss = _bossKillValues.FirstOrDefault(x => x.BossName == bossName);
         if (boss == null)
-            return 0;
+            return GetTimeBasedValue(zoneName);
 
         if (boss.UseOverrideValue)
             return boss.OverrideValue;
@@ -221,7 +221,7 @@ public interface IRaidValues
 
     ICollection<string> AllValidRaidZoneNames { get; }
 
-    int GetBossKillValue(string bossName);
+    int GetBossKillValue(string bossName, string zoneName);
 
     int GetTimeBasedValue(string zoneName);
 
