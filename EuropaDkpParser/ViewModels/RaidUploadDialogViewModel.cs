@@ -18,6 +18,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private bool _showProgress;
     private string _statusMessage;
     private bool _uploadButtonEnabled;
+    private bool _uploadInProgress = false;
 
     public RaidUploadDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries, IDkpParserSettings settings)
         : base(viewFactory)
@@ -31,8 +32,8 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
         UploadButtonEnabled = true;
 
-        BeginUploadCommand = new DelegateCommand(BeginUpload);
-        RemoveSelectedPlayerCommand = new DelegateCommand(RemoveSelectedPlayer, () => !string.IsNullOrWhiteSpace(SelectedError))
+        BeginUploadCommand = new DelegateCommand(BeginUpload, () => !_uploadInProgress);
+        RemoveSelectedPlayerCommand = new DelegateCommand(RemoveSelectedPlayer, () => !_uploadInProgress && !string.IsNullOrWhiteSpace(SelectedError))
             .ObservesProperty(() => SelectedError);
     }
 
@@ -85,6 +86,9 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
         try
         {
+            _uploadInProgress = true;
+            RefreshCommands();
+
             UploadButtonEnabled = false;
             StatusMessage = Strings.GetString("UploadingStatus");
             ShowProgress = true;
@@ -103,10 +107,19 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         }
         finally
         {
+            _uploadInProgress = false;
+            RefreshCommands();
+
             ShowProgress = false;
             UploadButtonEnabled = !HasErrorMessages;
             StatusMessage = HasErrorMessages ? Strings.GetString("FailureStatus") : Strings.GetString("SuccessStatus");
         }
+    }
+
+    private void RefreshCommands()
+    {
+        BeginUploadCommand.RaiseCanExecuteChanged();
+        RemoveSelectedPlayerCommand.RaiseCanExecuteChanged();
     }
 
     private void RemoveSelectedPlayer()
