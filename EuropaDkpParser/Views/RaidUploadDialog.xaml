@@ -23,7 +23,7 @@
             </Grid.RowDefinitions>
 
             <Label Grid.Row="0" Content="{Binding StatusMessage}"/>
-            <CheckBox Grid.Row="1" Content="{StaticResource UploadSelectedAttendances}" IsChecked="{Binding UploadSelectedAttendances}" Margin="0,5,0,0"/>
+            <CheckBox Grid.Row="1" Content="{StaticResource UploadSelectedAttendances}" IsChecked="{Binding UploadSelectedAttendances}" Margin="5,5,0,0"/>
         </Grid>
 
         <!-- Errors and Selected Attendances displays overlay each other, with visibility controlled by properites. -->
@@ -89,9 +89,9 @@
                 </Grid.RowDefinitions>
 
                 <Button Grid.Row="0" Content="{StaticResource AddText}" Command="{Binding AddSelectedAttendanceCommand}" 
-                        Width="100" Height="30" Margin="5,50,5,30"/>
+                        Width="80" Height="30" Margin="5,90,5,30"/>
                 <Button Grid.Row="1" Content="{StaticResource Remove}" Command="{Binding RemoveSelectedAttendanceCommand}" 
-                        Width="100" Height="30" Margin="5,0,5,0"/>
+                        Width="80" Height="30" Margin="5,0,5,0"/>
             </Grid>
 
             <ListView Grid.Column="2" ItemsSource="{Binding SelectedAttendances}" SelectedItem="{Binding SelectedAttendanceToRemove}">

@@ -251,7 +251,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     private void RemoveDuplicateErrorEntry()
     {
-        _raidEntries.AttendanceEntries.Remove(SelectedErrorEntry);
+        _raidEntries.RemoveAttendance(SelectedErrorEntry, _settings.RaidValue.GetZoneRaidAlias);
+
         ErrorAttendances = _raidEntries.AttendanceEntries
             .Where(x => x.CallName.Equals(_currentEntry.CallName, StringComparison.OrdinalIgnoreCase))
             .ToList();

@@ -114,6 +114,19 @@ public sealed class RaidEntries
             yield return dkpEntry.ToLogString();
     }
 
+    public void RemoveAttendance(AttendanceEntry toBeRemoved, Func<string, string> getZoneRaidAlias)
+    {
+        List<PlayerPossibleLinkdead> possibleLinkdeadsToRemove = PossibleLinkdeads.Where(x => x.AttendanceMissingFrom == toBeRemoved).ToList();
+        foreach (PlayerPossibleLinkdead possibleLinkdead in possibleLinkdeadsToRemove)
+        {
+            PossibleLinkdeads.Remove(possibleLinkdead);
+        }
+
+        AttendanceEntries.Remove(toBeRemoved);
+
+        UpdateRaids(getZoneRaidAlias);
+    }
+
     public void UpdateRaids(Func<string, string> getZoneRaidAlias)
     {
         List<RaidInfo> raidsToBeRemoved = [];
