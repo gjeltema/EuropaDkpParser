@@ -16,14 +16,25 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Content="{Binding StatusMessage}" Margin="0,10,0,0"/>
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="1" Margin="2,0,2,10" Visibility="{Binding HasErrorMessages, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Label Grid.Row="0" Content="{Binding StatusMessage}"/>
+            <CheckBox Grid.Row="1" Content="{StaticResource UploadSelectedAttendances}" IsChecked="{Binding UploadSelectedAttendances}" Margin="0,5,0,0"/>
+        </Grid>
+
+        <!-- Errors and Selected Attendances displays overlay each other, with visibility controlled by properites. -->
+        
+        <!-- Errors Display -->
+        <Grid Grid.Row="1" Margin="2,0,2,10" Visibility="{Binding ShowErrorMessages, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            
+
             <ListView Grid.Row="0" ItemsSource="{Binding ErrorMessages}" SelectedItem="{Binding SelectedError}">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="{x:Type ListViewItem}">
@@ -47,6 +58,55 @@
                 <Label Grid.Column="0" Content="{StaticResource RemovePlayerText}" Margin="0,0,10,0"/>
                 <Button Grid.Column="1" Content="{StaticResource RemovePlayerButton}" Command="{Binding RemoveSelectedPlayerCommand}" Width="100" Height="30" />
             </Grid>
+        </Grid>
+        
+        <!-- Selected Attendances Display -->
+        <Grid Grid.Row="1" Margin="2,0,2,10" Visibility="{Binding UploadSelectedAttendances, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <ListView Grid.Column="0" ItemsSource="{Binding AllAttendances}" SelectedItem="{Binding SelectedAttendanceToAdd}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="ToolTip">
+                            <Setter.Value>
+                                <UniformGrid Columns="1">
+                                    <TextBlock Text="{Binding RawHeaderLogLine}"/>
+                                </UniformGrid>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Button Grid.Row="0" Content="{StaticResource AddText}" Command="{Binding AddSelectedAttendanceCommand}" 
+                        Width="100" Height="30" Margin="5,50,5,30"/>
+                <Button Grid.Row="1" Content="{StaticResource Remove}" Command="{Binding RemoveSelectedAttendanceCommand}" 
+                        Width="100" Height="30" Margin="5,0,5,0"/>
+            </Grid>
+
+            <ListView Grid.Column="2" ItemsSource="{Binding SelectedAttendances}" SelectedItem="{Binding SelectedAttendanceToRemove}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="ToolTip">
+                            <Setter.Value>
+                                <UniformGrid Columns="1">
+                                    <TextBlock Text="{Binding RawHeaderLogLine}"/>
+                                </UniformGrid>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
         </Grid>
 
         <ProgressBar Grid.Row="2" IsIndeterminate="True" Visibility="{Binding ShowProgress, Converter={StaticResource BoolToVisibilityConverter}}" 

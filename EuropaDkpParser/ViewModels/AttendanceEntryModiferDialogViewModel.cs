@@ -31,8 +31,8 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
 
         AddAttendanceCallCommand = new DelegateCommand(AddAttendanceCall, () => SelectedAttendanceEntry != null && !string.IsNullOrWhiteSpace(NewRaidName) && !string.IsNullOrWhiteSpace(NewTimeText))
             .ObservesProperty(() => SelectedAttendanceEntry).ObservesProperty(() => NewRaidName).ObservesProperty(() => NewTimeText);
-        MoveAttendanceCallCommand = new DelegateCommand(MoveAttendanceCall, () => SelectedAttendanceEntry != null && !string.IsNullOrWhiteSpace(NewTimeText))
-            .ObservesProperty(() => SelectedAttendanceEntry).ObservesProperty(() => NewTimeText);
+        MoveAttendanceCallCommand = new DelegateCommand(MoveAttendanceCall, () => SelectedAttendanceEntry != null && !string.IsNullOrWhiteSpace(MoveTimeText))
+            .ObservesProperty(() => SelectedAttendanceEntry).ObservesProperty(() => MoveTimeText);
         RemoveAttendanceEntryCommand = new DelegateCommand(RemoveAttendance, () => SelectedAttendanceEntry != null)
             .ObservesProperty(() => SelectedAttendanceEntry);
 

@@ -4,6 +4,7 @@
 
 namespace EuropaDkpParser.ViewModels;
 
+using System.Collections.ObjectModel;
 using DkpParser;
 using EuropaDkpParser.Resources;
 using Prism.Commands;
@@ -13,12 +14,16 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<string> _errorMessages;
-    private bool _hasErrorMessages;
+    private AttendanceEntry _selectedAttendance;
+    private ObservableCollection<AttendanceEntry> _selectedAttendances;
+    private AttendanceEntry _selectedAttendanceToRemove;
     private string _selectedError;
+    private bool _showErrorMessages;
     private bool _showProgress;
     private string _statusMessage;
     private bool _uploadButtonEnabled;
     private bool _uploadInProgress = false;
+    private bool _uploadSelectedAttendances;
 
     public RaidUploadDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries, IDkpParserSettings settings)
         : base(viewFactory)
@@ -32,10 +37,21 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
         UploadButtonEnabled = true;
 
-        BeginUploadCommand = new DelegateCommand(BeginUpload, () => !_uploadInProgress);
+        BeginUploadCommand = new DelegateCommand(BeginUpload, CanBeginUpload);
         RemoveSelectedPlayerCommand = new DelegateCommand(RemoveSelectedPlayer, () => !_uploadInProgress && !string.IsNullOrWhiteSpace(SelectedError))
             .ObservesProperty(() => SelectedError);
+        AddSelectedAttendanceCommand = new DelegateCommand(AddSelectedAttendance, () => SelectedAttendanceToAdd != null)
+            .ObservesProperty(() => SelectedAttendanceToAdd);
+        RemoveSelectedAttendanceCommand = new DelegateCommand(RemoveSelectedAttendance, () => SelectedAttendanceToRemove != null)
+            .ObservesProperty(() => SelectedAttendanceToRemove);
+
+        SelectedAttendances = new ObservableCollection<AttendanceEntry>();
+        AllAttendances = raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
     }
+
+    public DelegateCommand AddSelectedAttendanceCommand { get; }
+
+    public ICollection<AttendanceEntry> AllAttendances { get; }
 
     public DelegateCommand BeginUploadCommand { get; }
 
@@ -45,18 +61,38 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         set => SetProperty(ref _errorMessages, value);
     }
 
-    public bool HasErrorMessages
-    {
-        get => _hasErrorMessages;
-        set => SetProperty(ref _hasErrorMessages, value);
-    }
+    public DelegateCommand RemoveSelectedAttendanceCommand { get; }
 
     public DelegateCommand RemoveSelectedPlayerCommand { get; }
+
+    public ObservableCollection<AttendanceEntry> SelectedAttendances
+    {
+        get => _selectedAttendances;
+        set => SetProperty(ref _selectedAttendances, value);
+    }
+
+    public AttendanceEntry SelectedAttendanceToAdd
+    {
+        get => _selectedAttendance;
+        set => SetProperty(ref _selectedAttendance, value);
+    }
+
+    public AttendanceEntry SelectedAttendanceToRemove
+    {
+        get => _selectedAttendanceToRemove;
+        set => SetProperty(ref _selectedAttendanceToRemove, value);
+    }
 
     public string SelectedError
     {
         get => _selectedError;
         set => SetProperty(ref _selectedError, value);
+    }
+
+    public bool ShowErrorMessages
+    {
+        get => _showErrorMessages && !UploadSelectedAttendances;
+        set => SetProperty(ref _showErrorMessages, value);
     }
 
     public bool ShowProgress
@@ -77,12 +113,35 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         set => SetProperty(ref _uploadButtonEnabled, value);
     }
 
+    public bool UploadSelectedAttendances
+    {
+        get => _uploadSelectedAttendances;
+        set
+        {
+            SetProperty(ref _uploadSelectedAttendances, value);
+            RaisePropertyChanged(nameof(ShowErrorMessages));
+        }
+    }
+
+    private void AddSelectedAttendance()
+    {
+        if (SelectedAttendanceToAdd == null)
+            return;
+
+        AttendanceEntry nextAttendance = SelectedAttendances.Where(x => SelectedAttendanceToAdd.Timestamp < x.Timestamp).MinBy(x => x.Timestamp);
+        int indexOfNext = SelectedAttendances.IndexOf(nextAttendance);
+        if (indexOfNext < 0)
+            SelectedAttendances.Add(SelectedAttendanceToAdd);
+        else
+            SelectedAttendances.Insert(indexOfNext, SelectedAttendanceToAdd);
+    }
+
     private async void BeginUpload()
         => await BeginUploadAsync();
 
     private async Task BeginUploadAsync()
     {
-        HasErrorMessages = false;
+        ShowErrorMessages = false;
 
         try
         {
@@ -93,16 +152,23 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             StatusMessage = Strings.GetString("UploadingStatus");
             ShowProgress = true;
 
+            RaidEntries entriesToUpload = _raidEntries;
+            if (UploadSelectedAttendances)
+            {
+                UploadSelectedAttendances = false;
+                entriesToUpload = GetSelectedAttendancesToUpload();
+            }
+
             RaidUploader server = new(_settings);
-            RaidUploadResults uploadResults = await server.UploadRaid(_raidEntries);
+            RaidUploadResults uploadResults = await server.UploadRaid(entriesToUpload);
 
             ErrorMessages = uploadResults.GetErrorMessages().ToList();
-            HasErrorMessages = ErrorMessages.Count > 0;
+            ShowErrorMessages = ErrorMessages.Count > 0;
         }
         catch (Exception e)
         {
             ErrorMessages = [$"Unexpected error encountered when uploading: {e}"];
-            HasErrorMessages = true;
+            ShowErrorMessages = true;
             StatusMessage = Strings.GetString("FailureStatus");
         }
         finally
@@ -111,15 +177,46 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             RefreshCommands();
 
             ShowProgress = false;
-            UploadButtonEnabled = !HasErrorMessages;
-            StatusMessage = HasErrorMessages ? Strings.GetString("FailureStatus") : Strings.GetString("SuccessStatus");
+            UploadButtonEnabled = !ShowErrorMessages;
+            StatusMessage = ShowErrorMessages ? Strings.GetString("FailureStatus") : Strings.GetString("SuccessStatus");
         }
+    }
+
+    private bool CanBeginUpload()
+    {
+        if (_uploadInProgress)
+            return false;
+
+        if (UploadSelectedAttendances)
+        {
+            return SelectedAttendances.Any();
+        }
+
+        return true;
+    }
+
+    private RaidEntries GetSelectedAttendancesToUpload()
+    {
+        RaidEntries entriesToUpload = new();
+
+        entriesToUpload.AttendanceEntries = SelectedAttendances;
+        entriesToUpload.AllPlayersInRaid = _raidEntries.AllPlayersInRaid;
+
+        return entriesToUpload;
     }
 
     private void RefreshCommands()
     {
         BeginUploadCommand.RaiseCanExecuteChanged();
         RemoveSelectedPlayerCommand.RaiseCanExecuteChanged();
+    }
+
+    private void RemoveSelectedAttendance()
+    {
+        if (SelectedAttendanceToRemove == null)
+            return;
+
+        SelectedAttendances.Remove(SelectedAttendanceToRemove);
     }
 
     private void RemoveSelectedPlayer()
@@ -155,19 +252,33 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
 public interface IRaidUploadDialogViewModel : IDialogViewModel
 {
+    DelegateCommand AddSelectedAttendanceCommand { get; }
+
+    ICollection<AttendanceEntry> AllAttendances { get; }
+
     DelegateCommand BeginUploadCommand { get; }
 
     ICollection<string> ErrorMessages { get; }
 
-    bool HasErrorMessages { get; }
+    DelegateCommand RemoveSelectedAttendanceCommand { get; }
 
     DelegateCommand RemoveSelectedPlayerCommand { get; }
 
+    ObservableCollection<AttendanceEntry> SelectedAttendances { get; }
+
+    AttendanceEntry SelectedAttendanceToAdd { get; set; }
+
+    AttendanceEntry SelectedAttendanceToRemove { get; set; }
+
     string SelectedError { get; set; }
+
+    bool ShowErrorMessages { get; }
 
     bool ShowProgress { get; set; }
 
     string StatusMessage { get; }
 
     bool UploadButtonEnabled { get; }
+
+    bool UploadSelectedAttendances { get; set; }
 }

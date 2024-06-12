@@ -192,6 +192,7 @@
     <system:String x:Key="BeginUploadButton">Begin Upload</system:String>
     <system:String x:Key="RemovePlayerText">Remove the selected player from all attendance calls</system:String>
     <system:String x:Key="RemovePlayerButton">Remove Player</system:String>
+    <system:String x:Key="UploadSelectedAttendances">Upload Only Selected Attendances</system:String>
     
     <!-- PossibleLinkdeadErrorDialog -->
     <system:String x:Key="AttendancesAndJoinsLabelText">All Attendance Calls and Leave/Join Raid</system:String>
