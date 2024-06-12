@@ -177,8 +177,12 @@
     <system:String x:Key="NoRaidNameEnteredError">No Raid Name</system:String>
     <system:String x:Key="NoModifyEntryTimestampErrorMessage">Need to enter a valid timestamp.</system:String>
     <system:String x:Key="NoModifyEntryTimestampError">No Timestamp</system:String>
-    <system:String x:Key="NewRaidName">New Raid Name</system:String>
-    <system:String x:Key="NewAttendanceTime">New Timestamp</system:String>
+    <system:String x:Key="CreateNewAttendance">Create New Attendance Call</system:String>
+    <system:String x:Key="NewAttendanceName">New Attendance Name</system:String>
+    <system:String x:Key="NewAttendanceTime">New Attendance Timestamp</system:String>
+    <system:String x:Key="NewAttendanceType">New Attendance Type</system:String>
+    <system:String x:Key="MoveAttendanceTime">Change Attendance Time</system:String>
+    <system:String x:Key="UpdatedAttendanceTime">Updated Timestamp</system:String>
 
     <!-- RaidUploadDialog -->
     <system:String x:Key="BeginStatus">Click Begin Upload to start uploading</system:String>

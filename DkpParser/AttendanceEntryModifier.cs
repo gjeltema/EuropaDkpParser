@@ -19,11 +19,11 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
         _raidEntries = raidEntries;
     }
 
-    public AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newAttendanceTimestamp, string newRaidName)
+    public AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newAttendanceTimestamp, string newRaidName, AttendanceCallType newCallType)
     {
         AttendanceEntry newEntry = new()
         {
-            AttendanceCallType = AttendanceCallType.Time,
+            AttendanceCallType = newCallType,
             CallName = newRaidName,
             Players = new HashSet<PlayerCharacter>(baseline.Players),
             RawHeaderLogLine = "<Created Attendance Entry>",
@@ -131,7 +131,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
 /// </summary>
 public interface IAttendanceEntryModifier
 {
-    AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newEntryTimestamp, string newRaidName);
+    AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newEntryTimestamp, string newRaidName, AttendanceCallType newCallType);
 
     void MoveAttendanceEntry(AttendanceEntry toBeMoved, DateTime newTimestamp);
 }

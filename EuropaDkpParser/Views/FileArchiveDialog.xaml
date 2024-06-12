@@ -192,7 +192,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Button Grid.Column="1" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Margin="0,0,10,0" Height="25" Width="60"/>
-            <Button Grid.Column="2" Content="{StaticResource SaveButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Height="25" Width="60"/>
+            <Button Grid.Column="2" Content="{StaticResource CloseButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Height="25" Width="60"/>
         </Grid>
     </Grid>
 </UserControl>
