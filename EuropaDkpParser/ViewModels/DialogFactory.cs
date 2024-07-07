@@ -21,8 +21,8 @@ internal sealed class DialogFactory : IDialogFactory
     public IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
         => new AttendanceErrorDisplayDialogViewModel(_viewFactory, settings, raidEntries);
 
-    public IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries)
-        => new AttendanceEntryModiferDialogViewModel(_viewFactory, raidEntries);
+    public IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries)
+        => new AttendanceEntryModiferDialogViewModel(_viewFactory, settings, raidEntries);
 
     public ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath)
         => new CompletedDialogViewModel(_viewFactory, logFilePath);
@@ -36,8 +36,8 @@ internal sealed class DialogFactory : IDialogFactory
     public IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings)
         => new FileArchiveDialogViewModel(_viewFactory, settings);
 
-    public IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, bool canUploadToServer)
-        => new FinalSummaryDialogViewModel(_viewFactory, dialogFactory, raidEntries, canUploadToServer);
+    public IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings, RaidEntries raidEntries, bool canUploadToServer)
+        => new FinalSummaryDialogViewModel(_viewFactory, dialogFactory, settings, raidEntries, canUploadToServer);
 
     public IGeneralEqLogParserDialogViewModel CreateGeneralEqParserDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings)
         => new GeneralEqLogParserDialogViewModel(_viewFactory, dialogFactory, settings);
@@ -61,7 +61,7 @@ public interface IDialogFactory
 
     IAttendanceErrorDisplayDialogViewModel CreateAttendanceErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
-    IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(RaidEntries raidEntries);
+    IAttendanceEntryModiferDialogViewModel CreateAttendanceModifierDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
     ICompletedDialogViewModel CreateCompletedDialogViewModel(string logFilePath);
 
@@ -71,7 +71,7 @@ public interface IDialogFactory
 
     IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings);
 
-    IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, bool canUploadToServer);
+    IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings, RaidEntries raidEntries, bool canUploadToServer);
 
     IGeneralEqLogParserDialogViewModel CreateGeneralEqParserDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings);
 

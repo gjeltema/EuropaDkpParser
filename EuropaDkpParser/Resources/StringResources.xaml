@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v2.5</system:String>
+    <system:String x:Key="Version">v2.5.1</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -183,6 +183,7 @@
     <system:String x:Key="NewAttendanceType">New Attendance Type</system:String>
     <system:String x:Key="MoveAttendanceTime">Change Attendance Time</system:String>
     <system:String x:Key="UpdatedAttendanceTime">Updated Timestamp</system:String>
+    <system:String x:Key="UpdateAttendanceValues">Update Attendance Values</system:String>
 
     <!-- RaidUploadDialog -->
     <system:String x:Key="BeginStatus">Click Begin Upload to start uploading</system:String>

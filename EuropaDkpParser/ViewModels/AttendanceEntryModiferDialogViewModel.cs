@@ -13,18 +13,22 @@ using Prism.Commands;
 internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBase, IAttendanceEntryModiferDialogViewModel
 {
     private readonly RaidEntries _raidEntries;
+    private readonly IDkpParserSettings _settings;
     private ObservableCollection<AttendanceEntry> _allAttendances;
     private string _moveTimeText;
     private AttendanceCallType _newAttendanceCallType;
     private string _newRaidName;
     private string _newTimeText;
+    private string _raidNameText;
     private AttendanceEntry _selectedAttendanceEntry;
+    private string _selectedZoneName;
 
-    public AttendanceEntryModiferDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries)
+    public AttendanceEntryModiferDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
     {
         Title = Strings.GetString("AttendanceEntryModifierDialogTitleText");
 
+        _settings = settings;
         _raidEntries = raidEntries;
 
         AllAttendances = new ObservableCollection<AttendanceEntry>(_raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp));
@@ -35,6 +39,12 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
             .ObservesProperty(() => SelectedAttendanceEntry).ObservesProperty(() => MoveTimeText);
         RemoveAttendanceEntryCommand = new DelegateCommand(RemoveAttendance, () => SelectedAttendanceEntry != null)
             .ObservesProperty(() => SelectedAttendanceEntry);
+        UpdateZoneNameCommand = new DelegateCommand(UpdateZoneName, () => SelectedAttendanceEntry != null && !string.IsNullOrWhiteSpace(SelectedZoneName) && SelectedZoneName != SelectedAttendanceEntry.ZoneName)
+            .ObservesProperty(() => SelectedZoneName).ObservesProperty(() => SelectedAttendanceEntry);
+        UpdateRaidNameCommand = new DelegateCommand(UpdateRaidName, () => SelectedAttendanceEntry != null && !string.IsNullOrWhiteSpace(RaidNameText) && RaidNameText != SelectedAttendanceEntry.CallName)
+            .ObservesProperty(() => RaidNameText).ObservesProperty(() => SelectedAttendanceEntry);
+
+        ZoneNames = _settings.RaidValue.AllValidRaidZoneNames;
 
         AttendanceCallTypes = [AttendanceCallType.Time, AttendanceCallType.Kill];
         NewAttendanceCallType = AttendanceCallType.Time;
@@ -76,6 +86,12 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         set => SetProperty(ref _newTimeText, value);
     }
 
+    public string RaidNameText
+    {
+        get => _raidNameText;
+        set => SetProperty(ref _raidNameText, value);
+    }
+
     public DelegateCommand RemoveAttendanceEntryCommand { get; }
 
     public AttendanceEntry SelectedAttendanceEntry
@@ -89,9 +105,28 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
                 string timeText = value.Timestamp.ToString(Constants.StandardDateTimeDisplayFormat);
                 NewTimeText = timeText;
                 MoveTimeText = timeText;
+
+                if (ZoneNames.Contains(value.ZoneName))
+                {
+                    SelectedZoneName = value.ZoneName;
+                }
+
+                RaidNameText = value.CallName;
             }
         }
     }
+
+    public string SelectedZoneName
+    {
+        get => _selectedZoneName;
+        set => SetProperty(ref _selectedZoneName, value);
+    }
+
+    public DelegateCommand UpdateRaidNameCommand { get; }
+
+    public DelegateCommand UpdateZoneNameCommand { get; }
+
+    public ICollection<string> ZoneNames { get; }
 
     private void AddAttendanceCall()
     {
@@ -148,6 +183,47 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         AllAttendances.Remove(selected);
     }
 
+    private void UpdateEntryDisplay(AttendanceEntry updatedEntry)
+    {
+        int indexOfEntry = AllAttendances.IndexOf(updatedEntry);
+        if (indexOfEntry == -1)
+            return;
+
+        AllAttendances.RemoveAt(indexOfEntry);
+        AllAttendances.Insert(indexOfEntry, updatedEntry);
+    }
+
+    private void UpdateRaidName()
+    {
+        AttendanceEntry entryToUpdate = SelectedAttendanceEntry;
+        SelectedAttendanceEntry = null;
+
+        entryToUpdate.CallName = RaidNameText;
+
+        UpdateEntryDisplay(entryToUpdate);
+        SelectedAttendanceEntry = entryToUpdate;
+    }
+
+    private void UpdateZoneName()
+    {
+        AttendanceEntry entryToUpdate = SelectedAttendanceEntry;
+        SelectedAttendanceEntry = null;
+        entryToUpdate.ZoneName = SelectedZoneName;
+        string zoneAlias = _settings.RaidValue.GetZoneRaidAlias(entryToUpdate.ZoneName);
+
+        RaidInfo raidInfo = _raidEntries.Raids.FirstOrDefault(x => x.RaidZone == zoneAlias);
+        if (raidInfo == null)
+        {
+            RaidInfo newRaidInfo = new() { RaidZone = entryToUpdate.ZoneName };
+            _raidEntries.Raids.Add(newRaidInfo);
+        }
+
+        _raidEntries.UpdateRaids(_settings.RaidValue.GetZoneRaidAlias);
+
+        UpdateEntryDisplay(entryToUpdate);
+        SelectedAttendanceEntry = entryToUpdate;
+    }
+
     private bool ValidateInputItems(string newTimeText, out DateTime newTimestamp, bool isAddAttendanceCommand)
     {
         newTimestamp = DateTime.MinValue;
@@ -191,7 +267,17 @@ public interface IAttendanceEntryModiferDialogViewModel : IDialogViewModel
 
     string NewTimeText { get; set; }
 
+    string RaidNameText { get; set; }
+
     DelegateCommand RemoveAttendanceEntryCommand { get; }
 
     AttendanceEntry SelectedAttendanceEntry { get; set; }
+
+    string SelectedZoneName { get; set; }
+
+    DelegateCommand UpdateRaidNameCommand { get; }
+
+    DelegateCommand UpdateZoneNameCommand { get; }
+
+    ICollection<string> ZoneNames { get; }
 }

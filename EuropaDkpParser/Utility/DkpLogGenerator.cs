@@ -104,7 +104,7 @@ internal sealed class DkpLogGenerator
         IBonusDkpAnalyzer bonusDkp = new BonusDkpAnalyzer(_settings);
         bonusDkp.AddBonusAttendance(raidEntries);
 
-        IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, raidEntries, _settings.IsApiConfigured);
+        IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, _settings, raidEntries, _settings.IsApiConfigured);
         if (finalSummaryDialog.ShowDialog() == false)
             return;
 
