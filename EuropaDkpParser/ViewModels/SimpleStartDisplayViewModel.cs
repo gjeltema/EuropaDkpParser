@@ -4,13 +4,19 @@
 
 namespace EuropaDkpParser.ViewModels;
 
+using System.IO;
+using System.Windows;
 using DkpParser;
+using EuropaDkpParser.Utility;
+using Microsoft.Win32;
 using Prism.Commands;
 
 internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimpleStartDisplayViewModel
 {
     private readonly IDialogFactory _dialogFactory;
+    private readonly DkpLogGenerator _logGenerator;
     private readonly IDkpParserSettings _settings;
+    private bool _ableToUpload;
 
     internal SimpleStartDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
@@ -20,7 +26,17 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         OpenSettingsCommand = new DelegateCommand(OpenSettingsDialog);
         OpenArchiveFilesCommand = new DelegateCommand(OpenArchiveFilesDialog);
         OpenDkpParserCommand = new DelegateCommand(OpenDkpParserDialog);
+        UploadGeneratedLogCommand = new DelegateCommand(UploadGeneratedLog);
         OpenOtherParserCommand = new DelegateCommand(OpenOtherParserDialog);
+
+        _logGenerator = new DkpLogGenerator(settings, dialogFactory);
+        AbleToUpload = _settings.IsApiConfigured;
+    }
+
+    public bool AbleToUpload
+    {
+        get => _ableToUpload;
+        set => SetProperty(ref _ableToUpload, value);
     }
 
     public DelegateCommand OpenArchiveFilesCommand { get; }
@@ -30,6 +46,8 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     public DelegateCommand OpenOtherParserCommand { get; }
 
     public DelegateCommand OpenSettingsCommand { get; }
+
+    public DelegateCommand UploadGeneratedLogCommand { get; }
 
     private void OpenArchiveFilesDialog()
     {
@@ -59,11 +77,38 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
             return;
 
         settingsDialog.UpdateSettings(_settings);
+
+        AbleToUpload = _settings.IsApiConfigured;
+    }
+
+    private async void UploadGeneratedLog()
+        => await UploadGeneratedLogAsync();
+
+    private async Task UploadGeneratedLogAsync()
+    {
+        var fileDialog = new OpenFileDialog()
+        {
+            Title = "Select Generated Log File"
+        };
+
+        if (fileDialog.ShowDialog() != true)
+            return;
+
+        string generatedLogFile = fileDialog.FileName;
+        if (!File.Exists(generatedLogFile))
+        {
+            MessageBox.Show($"{generatedLogFile} does not exist.", "File Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        await _logGenerator.UploadGeneratedLogFile(generatedLogFile);
     }
 }
 
 public interface ISimpleStartDisplayViewModel : IEuropaViewModel
 {
+    bool AbleToUpload { get; set; }
+
     DelegateCommand OpenArchiveFilesCommand { get; }
 
     DelegateCommand OpenDkpParserCommand { get; }
@@ -71,4 +116,6 @@ public interface ISimpleStartDisplayViewModel : IEuropaViewModel
     DelegateCommand OpenOtherParserCommand { get; }
 
     DelegateCommand OpenSettingsCommand { get; }
+
+    DelegateCommand UploadGeneratedLogCommand { get; }
 }

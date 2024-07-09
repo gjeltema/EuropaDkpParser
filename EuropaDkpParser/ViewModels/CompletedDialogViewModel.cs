@@ -19,6 +19,8 @@ internal sealed class CompletedDialogViewModel : DialogViewModelBase, ICompleted
         CompletionMessage = Strings.GetString("SuccessfulCompleteMessage");
 
         LogFilePath = logFilePath;
+        if (!File.Exists(logFilePath))
+            CompletionMessage = "No File Generated";
 
         OpenLogFileDirectoryCommand = new DelegateCommand(OpenLogFileDirectory);
     }

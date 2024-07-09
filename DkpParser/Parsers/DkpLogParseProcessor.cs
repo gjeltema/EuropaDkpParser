@@ -18,6 +18,15 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
         _settings = settings;
     }
 
+    public LogParseResults ParseGeneratedLog(string generatedLogFile)
+    {
+        EqLogDkpParser parser = new(_settings);
+        EqLogFile parsedFile = parser.ParseLogFile(generatedLogFile, DateTime.MinValue, DateTime.MaxValue);
+
+        LogParseResults results = new([parsedFile], [], []);
+        return results;
+    }
+
     public LogParseResults ParseLogs(DateTime startTime, DateTime endTime)
     {
         List<RaidDumpFile> raidDumpFiles = GetRaidDumpFiles(startTime, endTime);
@@ -146,5 +155,7 @@ Tester	37	Magician	2024-03-22_09-47-32
 /// </summary>
 public interface IDkpLogParseProcessor
 {
+    LogParseResults ParseGeneratedLog(string generatedLogFile);
+
     LogParseResults ParseLogs(DateTime startTime, DateTime endTime);
 }

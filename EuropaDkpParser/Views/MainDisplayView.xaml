@@ -179,15 +179,23 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="{StaticResource RawDump}" Command="{Binding GetRawLogFileCommand}" Width="85" Height="25">
+            <Button Grid.Column="0" Content="{StaticResource RawDump}" Command="{Binding GetRawLogFileCommand}" Width="110" Height="25">
                 <Button.ToolTip>
                     <TextBlock Text="{StaticResource RawDumpToolTip}"/>
                 </Button.ToolTip>
             </Button>
 
-            <Button Grid.Column="1" Content="{StaticResource StartLogGeneration}" Command="{Binding StartLogParseCommand}" Width="85" Height="25"/>
+            <Button Grid.Column="1" Content="{StaticResource UploadGeneratedLog}" Command="{Binding UploadGeneratedLogCommand}" Width="110" Height="25" 
+                    Visibility="{Binding AbleToUpload, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Button.ToolTip>
+                    <TextBlock Text="{StaticResource UploadGeneratedLogTooltip}"/>
+                </Button.ToolTip>
+            </Button>
+
+            <Button Grid.Column="2" Content="{StaticResource StartLogGeneration}" Command="{Binding StartLogParseCommand}" Width="110" Height="25"/>
         </Grid>
     </Grid>
 </UserControl>

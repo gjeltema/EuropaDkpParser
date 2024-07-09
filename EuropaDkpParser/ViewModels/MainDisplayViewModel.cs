@@ -5,8 +5,10 @@
 namespace EuropaDkpParser.ViewModels;
 
 using System.IO;
+using System.Windows;
 using DkpParser;
 using EuropaDkpParser.Utility;
+using Microsoft.Win32;
 using Prism.Commands;
 
 internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayViewModel
@@ -15,6 +17,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private readonly DkpLogGenerator _logGenerator;
     private readonly ParsedFileGenerator _parsedFileGenerator;
     private readonly IDkpParserSettings _settings;
+    private bool _ableToUpload;
     private string _conversationPlayer;
     private bool _debugOptionsEnabled;
     private string _endTimeText;
@@ -49,12 +52,20 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => OutputDirectory).ObservesProperty(() => SearchTermText);
         OpenFileArchiveDialogCommand = new DelegateCommand(OpenFileArchiveDialog);
         OpenGeneralParserCommand = new DelegateCommand(OpenGeneralParser);
+        UploadGeneratedLogCommand = new DelegateCommand(UploadGeneratedLog);
 
         ResetTime();
 
         SetOutputDirectory();
         SetOutputFile();
         DebugOptionsEnabled = _settings.EnableDebugOptions;
+        AbleToUpload = _settings.IsApiConfigured;
+    }
+
+    public bool AbleToUpload
+    {
+        get => _ableToUpload;
+        set => SetProperty(ref _ableToUpload, value);
     }
 
     public string ConversationPlayer
@@ -150,6 +161,8 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         set => SetProperty(ref _startTimeText, value);
     }
 
+    public DelegateCommand UploadGeneratedLogCommand { get; }
+
     private async Task ExecuteParse(Func<DateTime, DateTime, Task> parseToExecute)
     {
         if (!_logGenerator.ValidateTimeSettings(StartTimeText, EndTimeText, out DateTime startTime, out DateTime endTime))
@@ -217,6 +230,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
         SetOutputDirectory();
         SetOutputFile();
         DebugOptionsEnabled = _settings.EnableDebugOptions;
+        AbleToUpload = _settings.IsApiConfigured;
     }
 
     private async void ParseConversation()
@@ -274,10 +288,48 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
 
         SetOutputFile();
     }
+
+    private async void UploadGeneratedLog()
+    {
+        try
+        {
+            _performingParse = true;
+            RefreshCommands();
+
+            await UploadGeneratedLogAsync();
+        }
+        finally
+        {
+            _performingParse = false;
+            RefreshCommands();
+        }
+    }
+
+    private async Task UploadGeneratedLogAsync()
+    {
+        var fileDialog = new OpenFileDialog()
+        {
+            Title = "Select Generated Log File"
+        };
+
+        if (fileDialog.ShowDialog() != true)
+            return;
+
+        string generatedLogFile = fileDialog.FileName;
+        if (!File.Exists(generatedLogFile))
+        {
+            MessageBox.Show($"{generatedLogFile} does not exist.", "File Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        await _logGenerator.UploadGeneratedLogFile(generatedLogFile);
+    }
 }
 
 public interface IMainDisplayViewModel : IEuropaViewModel
 {
+    bool AbleToUpload { get; set; }
+
     string ConversationPlayer { get; set; }
 
     bool DebugOptionsEnabled { get; }
@@ -317,4 +369,6 @@ public interface IMainDisplayViewModel : IEuropaViewModel
     DelegateCommand StartLogParseCommand { get; }
 
     string StartTimeText { get; set; }
+
+    DelegateCommand UploadGeneratedLogCommand { get; }
 }

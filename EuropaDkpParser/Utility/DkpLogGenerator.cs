@@ -125,6 +125,51 @@ internal sealed class DkpLogGenerator
         completedDialog.ShowDialog();
     }
 
+    public async Task UploadGeneratedLogFile(string generatedLogFile)
+    {
+        RaidEntries raidEntries = await ParseGeneratedLogFile(generatedLogFile);
+
+        if (raidEntries == null || (raidEntries.DkpEntries.Count == 0 && raidEntries.AttendanceEntries.Count == 0))
+            return;
+
+        IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, _settings, raidEntries, _settings.IsApiConfigured);
+        if (finalSummaryDialog.ShowDialog() == false)
+            return;
+
+        if (finalSummaryDialog.UploadToServer && _settings.IsApiConfigured)
+        {
+            IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(raidEntries, _settings);
+            raidUpload.ShowDialog();
+        }
+
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel("No file generated, uploaded existing generated file");
+        completedDialog.DkpSpentEntries = GetDkpSpentEntries(raidEntries);
+        completedDialog.ShowDialog();
+    }
+
+    private async Task<RaidEntries> ParseGeneratedLogFile(string generatedLogFile)
+    {
+        try
+        {
+            IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
+            LogParseResults results = await Task.Run(() => parseProcessor.ParseGeneratedLog(generatedLogFile));
+
+            ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
+            return await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+        }
+        catch (EuropaDkpParserException e)
+        {
+            string errorMessage = $"{e.Message}: {e.InnerException?.Message}{Environment.NewLine}{e.LogLine}";
+            MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return null;
+        }
+        catch (Exception e)
+        {
+            MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return null;
+        }
+    }
+
     public bool ValidateTimeSettings(string startTimeText, string endTimeText, out DateTime startTime, out DateTime endTime)
     {
         endTime = DateTime.MinValue;
