@@ -56,6 +56,9 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:ParserDialogViewModel}">
                     <dialogsView:ParserDialog />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:EditDkpspentDialogViewModel}">
+                    <dialogsView:EditDkpspentDialog />
+                </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>
     </ContentPresenter>

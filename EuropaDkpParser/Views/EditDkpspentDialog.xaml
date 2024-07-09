@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="EuropaDkpParser.Views.EditDkpspentDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EuropaDkpParser.Views"
+             xmlns:viewmodels="clr-namespace:EuropaDkpParser.ViewModels" 
+             d:DataContext="{d:DesignInstance Type=viewmodels:EditDkpspentDialogViewModel}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Grid Grid.Row="0" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0" Content="{StaticResource PlayerName}"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PlayerName}" Margin="0,3,2,7"/>
+
+            <Label Grid.Row="1" Grid.Column="0" Content="{StaticResource ItemName}" Margin="0,0,0,5"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ItemName}" Margin="0,3,2,7"/>
+
+            <Label Grid.Row="2" Grid.Column="0" Content="{StaticResource DkpSpent}" Margin="0,0,0,5"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DkpSpent}" Margin="0,3,2,7" />
+        </Grid>
+        
+        <!-- Grid.Row="1" is a filler -->
+
+        <Grid Grid.Row="2" HorizontalAlignment="Right">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button Grid.Column="0" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Margin="0,0,10,0" Height="25" Width="60"/>
+            <Button Grid.Column="1" Content="{StaticResource SaveButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Height="25" Width="60"/>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -49,7 +49,7 @@
             </Grid.RowDefinitions>
 
             <Label Content="{StaticResource DkpSpentCalls}" Grid.Row="0"/>
-            <ListView ItemsSource="{Binding DkpSpentCalls}" Grid.Row="1">
+            <ListView ItemsSource="{Binding DkpSpentCalls}" Grid.Row="1" SelectedItem="{Binding SelectedDkpspent}">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="{x:Type ListViewItem}">
                         <Setter Property="ToolTip">
@@ -64,8 +64,27 @@
             </ListView>
         </Grid>
 
-        <CheckBox Grid.Row="1" Margin="0,10,0,0" IsChecked="{Binding UploadToServer}" Content="{StaticResource UploadToServerText}" 
-                  Visibility="{Binding ShowUploadToServer, Converter={StaticResource BoolToVisibilityConverter}}"/>
+        <Button Grid.Row="1" Grid.Column="0" Margin="0,10,0,0" Content="{StaticResource AddModify}" Command="{Binding AddOrModifyAttendanceEntryCommand}" Height="30" Width="110"
+                HorizontalAlignment="Left">
+            <Button.ToolTip>
+                <TextBlock Text="{StaticResource AddModifyTooltip}"/>
+            </Button.ToolTip>
+        </Button>
+
+        <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="{StaticResource RemoveDkp}" Command="{Binding RemoveDkpSpentCommand}" Height="30" Width="110" Margin="0,0,10,0"/>
+            <Button Grid.Column="1" Content="{StaticResource EditDkp}" Command="{Binding EditDkpSpentCommand}" Height="30" Width="110"/>
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" Margin="0,15,0,0">
+            <CheckBox Margin="0,10,0,0" IsChecked="{Binding UploadToServer}" Content="{StaticResource UploadToServerText}" HorizontalAlignment="Left"
+                      Visibility="{Binding ShowUploadToServer, Converter={StaticResource BoolToVisibilityConverter}}"/>
+        </Grid>
 
         <Grid Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,15,0,0">
             <Grid.ColumnDefinitions>
@@ -74,9 +93,8 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="{StaticResource AddModify}" Command="{Binding AddOrModifyAttendanceEntryCommand}" HorizontalAlignment="Right" Height="30" Width="85" Margin="0,0,10,0"/>
-            <Button Grid.Column="1" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Height="30" Width="85" Margin="0,0,10,0"/>
-            <Button Grid.Column="2" Content="{StaticResource OkButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Height="30" Width="85"/>
+            <Button Grid.Column="0" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Height="30" Width="85" Margin="0,0,10,0"/>
+            <Button Grid.Column="1" Content="{StaticResource OkButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Height="30" Width="85"/>
         </Grid>
     </Grid>
 </UserControl>

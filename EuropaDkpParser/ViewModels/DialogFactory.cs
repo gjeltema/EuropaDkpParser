@@ -33,6 +33,9 @@ internal sealed class DialogFactory : IDialogFactory
     public IDkpParseDialogViewModel CreateDkpParseDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
         => new DkpParseDialogViewModel(settings, dialogFactory, _viewFactory);
 
+    public IEditDkpspentDialogViewModel CreateEditDkpspentDialogViewModel()
+        => new EditDkpspentDialogViewModel(_viewFactory);
+
     public IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings)
         => new FileArchiveDialogViewModel(_viewFactory, settings);
 
@@ -68,6 +71,8 @@ public interface IDialogFactory
     IDkpErrorDisplayDialogViewModel CreateDkpErrorDisplayDialogViewModel(IDkpParserSettings settings, RaidEntries raidEntries);
 
     IDkpParseDialogViewModel CreateDkpParseDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory);
+
+    IEditDkpspentDialogViewModel CreateEditDkpspentDialogViewModel();
 
     IFileArchiveDialogViewModel CreateFileArchiveDialogViewModel(IDkpParserSettings settings);
 

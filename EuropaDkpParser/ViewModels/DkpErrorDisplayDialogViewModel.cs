@@ -242,7 +242,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             }
         }
 
-        GOTO_NEXT_ENTRY:
+GOTO_NEXT_ENTRY:
 
         if (_currentEntry != null)
             _currentEntry.PossibleError = PossibleError.None;
