@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v2.5.2</system:String>
+    <system:String x:Key="Version">v2.5.3</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -19,6 +19,7 @@
     <system:String x:Key="ParserDialogTitleText">General Parsing</system:String>
     <system:String x:Key="DkpParseDialogTitleText">DKP Parsing</system:String>
     <system:String x:Key="EditDkpspentDialogTitleText">Edit DKPSPENT Call</system:String>
+    <system:String x:Key="DkpspentEntriesRemovedDialogTitleText">Bidding Calls For Removed DKPSPENT Calls</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>

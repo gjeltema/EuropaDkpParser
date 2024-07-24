@@ -312,7 +312,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                                             && (logEntry.Timestamp - x.Timestamp) < thirtyMinutes)
                             .MaxBy(x => x.Timestamp);
 
-                        if (previousLeaveEntry == null)
+                        if (previousTimeAttendance == null)
                         {
                             _raidEntries.AnalysisErrors.Add($"Unable to find previous time attendance for CRASHED entry: {logEntry.LogLine}");
                             continue;

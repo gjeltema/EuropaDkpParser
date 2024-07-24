@@ -116,7 +116,7 @@ internal sealed class DkpLogGenerator
 
         if (finalSummaryDialog.UploadToServer && _settings.IsApiConfigured)
         {
-            IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(raidEntries, _settings);
+            IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(_dialogFactory, raidEntries, _settings);
             raidUpload.ShowDialog();
         }
 
@@ -138,36 +138,13 @@ internal sealed class DkpLogGenerator
 
         if (finalSummaryDialog.UploadToServer && _settings.IsApiConfigured)
         {
-            IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(raidEntries, _settings);
+            IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(_dialogFactory, raidEntries, _settings);
             raidUpload.ShowDialog();
         }
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel("No file generated, uploaded existing generated file");
         completedDialog.DkpSpentEntries = GetDkpSpentEntries(raidEntries);
         completedDialog.ShowDialog();
-    }
-
-    private async Task<RaidEntries> ParseGeneratedLogFile(string generatedLogFile)
-    {
-        try
-        {
-            IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
-            LogParseResults results = await Task.Run(() => parseProcessor.ParseGeneratedLog(generatedLogFile));
-
-            ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
-            return await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
-        }
-        catch (EuropaDkpParserException e)
-        {
-            string errorMessage = $"{e.Message}: {e.InnerException?.Message}{Environment.NewLine}{e.LogLine}";
-            MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return null;
-        }
-        catch (Exception e)
-        {
-            MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return null;
-        }
     }
 
     public bool ValidateTimeSettings(string startTimeText, string endTimeText, out DateTime startTime, out DateTime endTime)
@@ -202,6 +179,7 @@ internal sealed class DkpLogGenerator
         {
             entries += Environment.NewLine + Environment.NewLine;
             entries += "-------------- DKPSPENT Entries Removed Due To No Player On DKP Server --------------";
+            entries += Environment.NewLine;
             entries += string.Join(Environment.NewLine, raidEntries.RemovedDkpEntries);
         }
 
@@ -265,6 +243,29 @@ internal sealed class DkpLogGenerator
         {
             await WriteExceptionToLogFile(e, sessionSettings);
 
+            MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return null;
+        }
+    }
+
+    private async Task<RaidEntries> ParseGeneratedLogFile(string generatedLogFile)
+    {
+        try
+        {
+            IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
+            LogParseResults results = await Task.Run(() => parseProcessor.ParseGeneratedLog(generatedLogFile));
+
+            ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
+            return await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+        }
+        catch (EuropaDkpParserException e)
+        {
+            string errorMessage = $"{e.Message}: {e.InnerException?.Message}{Environment.NewLine}{e.LogLine}";
+            MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return null;
+        }
+        catch (Exception e)
+        {
             MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }

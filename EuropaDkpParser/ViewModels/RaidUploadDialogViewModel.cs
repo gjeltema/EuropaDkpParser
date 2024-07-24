@@ -6,11 +6,15 @@ namespace EuropaDkpParser.ViewModels;
 
 using System.Collections.ObjectModel;
 using DkpParser;
+using DkpParser.Parsers;
 using EuropaDkpParser.Resources;
+using EuropaDkpParser.Utility;
 using Prism.Commands;
 
 internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUploadDialogViewModel
 {
+    private readonly IDialogFactory _dialogFactory;
+    private readonly ParsedFileGenerator _parsedFileGenerator;
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<UploadErrorDisplay> _errorMessages;
@@ -25,11 +29,11 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private bool _uploadInProgress = false;
     private bool _uploadSelectedAttendances;
 
-    public RaidUploadDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries, IDkpParserSettings settings)
+    public RaidUploadDialogViewModel(IDialogViewFactory viewFactory, IDialogFactory dialogFactory, RaidEntries raidEntries, IDkpParserSettings settings)
         : base(viewFactory)
     {
         Title = Strings.GetString("RaidUploadDialogTitleText");
-
+        _dialogFactory = dialogFactory;
         _raidEntries = raidEntries;
         _settings = settings;
 
@@ -195,6 +199,36 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         return true;
     }
 
+    private async Task<ICollection<string>> GetAllBiddingLogEntriesForDkpspentCalls(ICollection<DkpEntry> dkpSpentEntriesRemoved)
+    {
+        List<string> logEntries = new(dkpSpentEntriesRemoved.Count * 12);
+        foreach (DkpEntry entry in dkpSpentEntriesRemoved)
+        {
+            IEnumerable<string> logLines = await GetBiddingLogEntries(entry);
+            logEntries.AddRange(logLines);
+        }
+
+        return logEntries;
+    }
+
+    private async Task<IEnumerable<string>> GetBiddingLogEntries(DkpEntry entry)
+    {
+        ITermParser termParser = new TermParser(_settings, entry.Item, true);
+        ICollection<EqLogFile> logFiles = await Task.Run(() => termParser.GetEqLogFiles(entry.Timestamp.AddMinutes(-15), entry.Timestamp));
+
+        ICollection<string> logEntries = (from log in logFiles
+                                          from logEntry in log.LogEntries
+                                          orderby logEntry.Timestamp
+                                          select logEntry.LogLine)
+                                          .ToList();
+
+        if (logEntries.Count == 0)
+            return [];
+
+        string header = $"------------- {entry.Item} -------------";
+        return [header, .. logEntries, Environment.NewLine];
+    }
+
     private RaidEntries GetSelectedAttendancesToUpload()
     {
         RaidEntries entriesToUpload = new();
@@ -211,28 +245,20 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         RemoveSelectedPlayerCommand.RaiseCanExecuteChanged();
     }
 
-    private void RemoveSelectedAttendance()
+    private ICollection<DkpEntry> RemovePlayerDkpspentEntries(string playerName)
     {
-        if (SelectedAttendanceToRemove == null)
-            return;
-
-        SelectedAttendances.Remove(SelectedAttendanceToRemove);
-    }
-
-    private void RemoveSelectedPlayer()
-    {
-        if (SelectedError == null || SelectedError.FailedCharacterIdRetrieval == null)
-            return;
-
-        string playerName = SelectedError.FailedCharacterIdRetrieval.PlayerName;
-
-        IEnumerable<DkpEntry> dkpSpentsToRemove = _raidEntries.DkpEntries.Where(x => x.PlayerName == playerName);
+        ICollection<DkpEntry> dkpSpentsToRemove = _raidEntries.DkpEntries.Where(x => x.PlayerName == playerName).ToList();
         foreach (DkpEntry dkpToRemove in dkpSpentsToRemove)
         {
             _raidEntries.DkpEntries.Remove(dkpToRemove);
             _raidEntries.RemovedDkpEntries.Add(dkpToRemove);
         }
 
+        return dkpSpentsToRemove;
+    }
+
+    private void RemovePlayerFromAttendances(string playerName)
+    {
         PlayerCharacter playerChar = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerName);
         if (playerChar == null)
             return;
@@ -244,6 +270,39 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         }
 
         _raidEntries.AllPlayersInRaid.Remove(playerChar);
+    }
+
+    private void RemoveSelectedAttendance()
+    {
+        if (SelectedAttendanceToRemove == null)
+            return;
+
+        SelectedAttendances.Remove(SelectedAttendanceToRemove);
+    }
+
+    private async void RemoveSelectedPlayer()
+        => await RemoveSelectedPlayerAsync();
+
+    private async Task RemoveSelectedPlayerAsync()
+    {
+        if (SelectedError == null || SelectedError.FailedCharacterIdRetrieval == null)
+            return;
+
+        string playerName = SelectedError.FailedCharacterIdRetrieval.PlayerName;
+
+        RemovePlayerFromAttendances(playerName);
+        ICollection<DkpEntry> dkpSpentEntriesRemoved = RemovePlayerDkpspentEntries(playerName);
+
+        if (dkpSpentEntriesRemoved.Count == 0)
+            return;
+
+        ICollection<string> bidLogEntries = await GetAllBiddingLogEntriesForDkpspentCalls(dkpSpentEntriesRemoved);
+        if (bidLogEntries.Count == 0)
+            return;
+
+        ISimpleMultilineDisplayDialogViewModel displayDialog = _dialogFactory.CreateSimpleMultilineDisplayDialogViewModel();
+        displayDialog.DisplayLines = string.Join(Environment.NewLine, bidLogEntries);
+        displayDialog.ShowDialog();
     }
 
     private IEnumerable<UploadErrorDisplay> SetDisplayedErrorMessages(RaidUploadResults uploadResults)
@@ -284,7 +343,7 @@ public sealed class UploadErrorDisplay
     public override sealed string ToString()
     {
         if (EventIdCallFailure != null)
-            return $"Failed to get event IDs: {EventIdCallFailure.Message}";
+            return $"Failed to get listing of all event IDs from DKP server: {EventIdCallFailure.Message}";
         else if (FailedCharacterIdRetrieval != null)
             return $"Failed to get character ID for {PlayerDelimiter}{FailedCharacterIdRetrieval.PlayerName}{PlayerDelimiter}, likely character does not exist on DKP server";
         else if (EventIdNotFound != null)

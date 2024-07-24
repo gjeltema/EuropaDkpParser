@@ -51,11 +51,14 @@ internal sealed class DialogFactory : IDialogFactory
     public IPossibleLinkdeadErrorDialogViewModel CreatePossibleLinkdeadErrorDialogViewModel(RaidEntries raidEntries)
         => new PossibleLinkdeadErrorDialogViewModel(_viewFactory, raidEntries);
 
-    public IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(RaidEntries raidEntries, IDkpParserSettings settings)
-        => new RaidUploadDialogViewModel(_viewFactory, raidEntries, settings);
+    public IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, IDkpParserSettings settings)
+        => new RaidUploadDialogViewModel(_viewFactory, dialogFactory, raidEntries, settings);
 
     public ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings)
         => new LogSelectionViewModel(_viewFactory, settings);
+
+    public ISimpleMultilineDisplayDialogViewModel CreateSimpleMultilineDisplayDialogViewModel()
+        => new SimpleMultilineDisplayDialogViewModel(_viewFactory);
 }
 
 public interface IDialogFactory
@@ -84,7 +87,9 @@ public interface IDialogFactory
 
     IPossibleLinkdeadErrorDialogViewModel CreatePossibleLinkdeadErrorDialogViewModel(RaidEntries raidEntries);
 
-    IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(RaidEntries raidEntries, IDkpParserSettings settings);
+    IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, IDkpParserSettings settings);
 
     ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings);
+
+    ISimpleMultilineDisplayDialogViewModel CreateSimpleMultilineDisplayDialogViewModel();
 }
