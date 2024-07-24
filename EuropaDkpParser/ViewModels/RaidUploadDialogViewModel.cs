@@ -13,11 +13,11 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 {
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
-    private ICollection<string> _errorMessages;
+    private ICollection<UploadErrorDisplay> _errorMessages;
     private AttendanceEntry _selectedAttendance;
     private ObservableCollection<AttendanceEntry> _selectedAttendances;
     private AttendanceEntry _selectedAttendanceToRemove;
-    private string _selectedError;
+    private UploadErrorDisplay _selectedError;
     private bool _showErrorMessages;
     private bool _showProgress;
     private string _statusMessage;
@@ -38,7 +38,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         UploadButtonEnabled = true;
 
         BeginUploadCommand = new DelegateCommand(BeginUpload, CanBeginUpload);
-        RemoveSelectedPlayerCommand = new DelegateCommand(RemoveSelectedPlayer, () => !_uploadInProgress && !string.IsNullOrWhiteSpace(SelectedError))
+        RemoveSelectedPlayerCommand = new DelegateCommand(RemoveSelectedPlayer, () => !_uploadInProgress && SelectedError != null && SelectedError.FailedCharacterIdRetrieval != null)
             .ObservesProperty(() => SelectedError);
         AddSelectedAttendanceCommand = new DelegateCommand(AddSelectedAttendance, () => SelectedAttendanceToAdd != null)
             .ObservesProperty(() => SelectedAttendanceToAdd);
@@ -55,7 +55,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
     public DelegateCommand BeginUploadCommand { get; }
 
-    public ICollection<string> ErrorMessages
+    public ICollection<UploadErrorDisplay> ErrorMessages
     {
         get => _errorMessages;
         set => SetProperty(ref _errorMessages, value);
@@ -83,7 +83,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         set => SetProperty(ref _selectedAttendanceToRemove, value);
     }
 
-    public string SelectedError
+    public UploadErrorDisplay SelectedError
     {
         get => _selectedError;
         set => SetProperty(ref _selectedError, value);
@@ -162,12 +162,12 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             RaidUploader server = new(_settings);
             RaidUploadResults uploadResults = await server.UploadRaid(entriesToUpload);
 
-            ErrorMessages = uploadResults.GetErrorMessages().ToList();
+            ErrorMessages = SetDisplayedErrorMessages(uploadResults).ToList();
             ShowErrorMessages = ErrorMessages.Count > 0;
         }
         catch (Exception e)
         {
-            ErrorMessages = [$"Unexpected error encountered when uploading: {e}"];
+            ErrorMessages = [new UploadErrorDisplay { UnexpectedError = e }];
             ShowErrorMessages = true;
             StatusMessage = Strings.GetString("FailureStatus");
         }
@@ -221,14 +221,18 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
     private void RemoveSelectedPlayer()
     {
-        if (string.IsNullOrWhiteSpace(SelectedError))
+        if (SelectedError == null || SelectedError.FailedCharacterIdRetrieval == null)
             return;
 
-        string[] errorMessageParts = SelectedError.Split(RaidUploadResults.PlayerDelimiter);
-        if (errorMessageParts.Length < 3)
-            return;
+        string playerName = SelectedError.FailedCharacterIdRetrieval.PlayerName;
 
-        string playerName = errorMessageParts[1];
+        IEnumerable<DkpEntry> dkpSpentsToRemove = _raidEntries.DkpEntries.Where(x => x.PlayerName == playerName);
+        foreach (DkpEntry dkpToRemove in dkpSpentsToRemove)
+        {
+            _raidEntries.DkpEntries.Remove(dkpToRemove);
+            _raidEntries.RemovedDkpEntries.Add(dkpToRemove);
+        }
+
         PlayerCharacter playerChar = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerName);
         if (playerChar == null)
             return;
@@ -239,14 +243,79 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             attendance.Players.Remove(playerChar);
         }
 
-        List<DkpEntry> dkpSpentsToRemove = _raidEntries.DkpEntries.Where(x => x.PlayerName == playerName).ToList();
-        _raidEntries.RemovedDkpEntries = dkpSpentsToRemove;
-        foreach (DkpEntry dkpToRemove in dkpSpentsToRemove)
-        {
-            _raidEntries.DkpEntries.Remove(dkpToRemove);
-        }
-
         _raidEntries.AllPlayersInRaid.Remove(playerChar);
+    }
+
+    private IEnumerable<UploadErrorDisplay> SetDisplayedErrorMessages(RaidUploadResults uploadResults)
+    {
+        if (uploadResults.EventIdCallFailure != null)
+            yield return new UploadErrorDisplay { EventIdCallFailure = uploadResults.EventIdCallFailure };
+
+        foreach (CharacterIdFailure characterIdFail in uploadResults.FailedCharacterIdRetrievals)
+            yield return new UploadErrorDisplay { FailedCharacterIdRetrieval = characterIdFail };
+
+        foreach (EventIdNotFoundFailure eventIdNotFound in uploadResults.EventIdNotFoundErrors)
+            yield return new UploadErrorDisplay { EventIdNotFound = eventIdNotFound };
+
+        if (uploadResults.AttendanceError != null)
+            yield return new UploadErrorDisplay { AttendanceError = uploadResults.AttendanceError };
+
+        if (uploadResults.DkpFailure != null)
+            yield return new UploadErrorDisplay { DkpFailure = uploadResults.DkpFailure };
+    }
+}
+
+public sealed class UploadErrorDisplay
+{
+    private const string PlayerDelimiter = "**";
+
+    public AttendanceUploadFailure AttendanceError { get; init; }
+
+    public DkpUploadFailure DkpFailure { get; init; }
+
+    public Exception EventIdCallFailure { get; init; }
+
+    public EventIdNotFoundFailure EventIdNotFound { get; init; }
+
+    public CharacterIdFailure FailedCharacterIdRetrieval { get; init; }
+
+    public Exception UnexpectedError { get; init; }
+
+    public override sealed string ToString()
+    {
+        if (EventIdCallFailure != null)
+            return $"Failed to get event IDs: {EventIdCallFailure.Message}";
+        else if (FailedCharacterIdRetrieval != null)
+            return $"Failed to get character ID for {PlayerDelimiter}{FailedCharacterIdRetrieval.PlayerName}{PlayerDelimiter}, likely character does not exist on DKP server";
+        else if (EventIdNotFound != null)
+            return GetEventIdFailureMessage(EventIdNotFound);
+        else if (AttendanceError != null)
+            return $"Failed to upload attendance call {AttendanceError.Attendance.CallName}: {AttendanceError.Error.Message}";
+        else if (DkpFailure != null)
+            return $"Failed to upload DKP spend call for {DkpFailure.Dkp.PlayerName} for item {DkpFailure.Dkp.Item}: {DkpFailure.Error.Message}";
+        else if (UnexpectedError != null)
+            return $"Unexpected error encountered when uploading: {UnexpectedError}";
+        else
+            return "Error not found";
+    }
+
+    private string GetEventIdFailureMessage(EventIdNotFoundFailure eventIdNotFound)
+    {
+        const string Prefix = "Unable to retrieve event ID for ";
+
+        switch (eventIdNotFound.ErrorType)
+        {
+            case EventIdNotFoundFailure.EventIdError.ZoneNotConfigured:
+                return $"{Prefix} {eventIdNotFound.ZoneName}.  Update the RaidValues.txt to add, correct, or alias this zone.";
+            case EventIdNotFoundFailure.EventIdError.ZoneNotFoundOnDkpServer:
+                return eventIdNotFound.ZoneName == eventIdNotFound.ZoneAlias
+                    ? $"{Prefix} {eventIdNotFound.ZoneName}"
+                    : $"{Prefix} {eventIdNotFound.ZoneName} with alias {eventIdNotFound.ZoneAlias}";
+            case EventIdNotFoundFailure.EventIdError.InvalidZoneValue:
+                return $"{Prefix} {eventIdNotFound.ZoneName}, value returned from DKP server was: {eventIdNotFound.IdValue}";
+            default:
+                return "Error not found.";
+        };
     }
 }
 
@@ -258,7 +327,7 @@ public interface IRaidUploadDialogViewModel : IDialogViewModel
 
     DelegateCommand BeginUploadCommand { get; }
 
-    ICollection<string> ErrorMessages { get; }
+    ICollection<UploadErrorDisplay> ErrorMessages { get; }
 
     DelegateCommand RemoveSelectedAttendanceCommand { get; }
 
@@ -270,7 +339,7 @@ public interface IRaidUploadDialogViewModel : IDialogViewModel
 
     AttendanceEntry SelectedAttendanceToRemove { get; set; }
 
-    string SelectedError { get; set; }
+    UploadErrorDisplay SelectedError { get; set; }
 
     bool ShowErrorMessages { get; }
 

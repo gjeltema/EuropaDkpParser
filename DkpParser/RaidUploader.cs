@@ -87,38 +87,18 @@ public sealed class RaidUploader : IRaidUpload
 
 public sealed class RaidUploadResults
 {
-    public const string PlayerDelimiter = "**";
-
     public AttendanceUploadFailure AttendanceError { get; set; }
 
     public DkpUploadFailure DkpFailure { get; set; }
 
     public Exception EventIdCallFailure { get; set; }
 
-    public ICollection<string> EventIdNotFoundErrors { get; } = [];
+    public ICollection<EventIdNotFoundFailure> EventIdNotFoundErrors { get; } = [];
 
     public ICollection<CharacterIdFailure> FailedCharacterIdRetrievals { get; } = [];
 
     public bool HasInitializationError
         => EventIdCallFailure != null || FailedCharacterIdRetrievals.Count > 0 || EventIdNotFoundErrors.Count > 0;
-
-    public IEnumerable<string> GetErrorMessages()
-    {
-        if (EventIdCallFailure != null)
-            yield return $"Failed to get event IDs: {EventIdCallFailure.Message}";
-
-        foreach (CharacterIdFailure characterIdFail in FailedCharacterIdRetrievals)
-            yield return $"Failed to get character ID for {PlayerDelimiter}{characterIdFail.PlayerName}{PlayerDelimiter}, likely character does not exist on DKP server";
-
-        foreach (string eventIdNotFound in EventIdNotFoundErrors)
-            yield return $"Unable to retrieve event ID for {eventIdNotFound}";
-
-        if (AttendanceError != null)
-            yield return $"Failed to upload attendance call {AttendanceError.Attendance.CallName}: {AttendanceError.Error.Message}";
-
-        if (DkpFailure != null)
-            yield return $"Failed to upload DKP spend call for {DkpFailure.Dkp.PlayerName} for item {DkpFailure.Dkp.Item}: {DkpFailure.Error.Message}";
-    }
 }
 
 [DebuggerDisplay("{Attendance}")]
@@ -145,12 +125,26 @@ public sealed class CharacterIdFailure
     public string PlayerName { get; set; }
 }
 
-[DebuggerDisplay("{ZoneName}")]
-public sealed class EventIdFailure
+[DebuggerDisplay("{DebuggerDisplay}")]
+public sealed class EventIdNotFoundFailure
 {
-    public Exception Error { set; get; }
+    public enum EventIdError : byte
+    {
+        ZoneNotConfigured,
+        ZoneNotFoundOnDkpServer,
+        InvalidZoneValue
+    }
 
-    public string ZoneName { get; set; }
+    public EventIdError ErrorType { get; init; }
+
+    public string IdValue { get; init; }
+
+    public string ZoneAlias { get; init; }
+
+    public string ZoneName { get; init; }
+
+    private string DebuggerDisplay
+        => $"Zone:{ZoneName}, Alias:{ZoneAlias}, Error:{ErrorType}, ID:{IdValue}";
 }
 
 public interface IRaidUpload

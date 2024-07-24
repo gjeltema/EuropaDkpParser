@@ -141,7 +141,7 @@ public sealed class DkpServer : IDkpServer
             string aliasedZoneName = _settings.RaidValue.GetZoneRaidAlias(zoneName);
             if (string.IsNullOrEmpty(aliasedZoneName))
             {
-                results.EventIdNotFoundErrors.Add($"{zoneName}.  Update the RaidValues.txt to alias this zone if needed.");
+                results.EventIdNotFoundErrors.Add(new EventIdNotFoundFailure { ErrorType = EventIdNotFoundFailure.EventIdError.ZoneNotConfigured, ZoneName = zoneName });
                 continue;
             }
 
@@ -151,17 +151,23 @@ public sealed class DkpServer : IDkpServer
 
             if (idValue == null)
             {
-                if (zoneName == aliasedZoneName)
-                    results.EventIdNotFoundErrors.Add($"{zoneName}");
-                else
-                    results.EventIdNotFoundErrors.Add($"{zoneName} with alias {aliasedZoneName}");
-
+                results.EventIdNotFoundErrors.Add(
+                    new EventIdNotFoundFailure { ErrorType = EventIdNotFoundFailure.EventIdError.ZoneNotFoundOnDkpServer, ZoneName = zoneName, ZoneAlias = aliasedZoneName }
+                    );
                 continue;
             }
 
             if (!int.TryParse(idValue.Value, out int eventId))
             {
-                results.EventIdNotFoundErrors.Add($"{zoneName}, value in DKP server was: {idValue.Value}");
+                results.EventIdNotFoundErrors.Add(
+                    new EventIdNotFoundFailure
+                    {
+                        ErrorType = EventIdNotFoundFailure.EventIdError.ZoneNotFoundOnDkpServer,
+                        ZoneName = zoneName,
+                        ZoneAlias = aliasedZoneName,
+                        IdValue = idValue.Value
+                    }
+                    );
                 continue;
             }
 
