@@ -5,6 +5,8 @@
 namespace EuropaDkpParser.ViewModels;
 
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows;
 using DkpParser;
 using DkpParser.Parsers;
 using EuropaDkpParser.Resources;
@@ -18,6 +20,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<UploadErrorDisplay> _errorMessages;
+    private bool _outputDebugInfo;
     private AttendanceEntry _selectedAttendance;
     private ObservableCollection<AttendanceEntry> _selectedAttendances;
     private AttendanceEntry _selectedAttendanceToRemove;
@@ -63,6 +66,12 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     {
         get => _errorMessages;
         set => SetProperty(ref _errorMessages, value);
+    }
+
+    public bool OutputDebugInfo
+    {
+        get => _outputDebugInfo;
+        set => SetProperty(ref _outputDebugInfo, value);
     }
 
     public DelegateCommand RemoveSelectedAttendanceCommand { get; }
@@ -163,11 +172,14 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
                 entriesToUpload = GetSelectedAttendancesToUpload();
             }
 
-            RaidUploader server = new(_settings);
+            IUploadDebugInfo debugInfo = OutputDebugInfo ? new UploadDebugInfo() : new NullUploadDebugInfo();
+            RaidUploader server = new(_settings, debugInfo);
             RaidUploadResults uploadResults = await server.UploadRaid(entriesToUpload);
 
             ErrorMessages = SetDisplayedErrorMessages(uploadResults).ToList();
             ShowErrorMessages = ErrorMessages.Count > 0;
+
+            await WriteDebugInfo(debugInfo);
         }
         catch (Exception e)
         {
@@ -197,6 +209,20 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         }
 
         return true;
+    }
+
+    private async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
+    {
+        try
+        {
+            await Task.Run(() => File.AppendAllLines(fileToWriteTo, fileContents));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(Strings.GetString("DebugFileGenerationErrorMessage") + ex.ToString(), Strings.GetString("DebugFileGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
     }
 
     private async Task<ICollection<string>> GetAllBiddingLogEntriesForDkpspentCalls(ICollection<DkpEntry> dkpSpentEntriesRemoved)
@@ -322,6 +348,16 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         if (uploadResults.DkpFailure != null)
             yield return new UploadErrorDisplay { DkpFailure = uploadResults.DkpFailure };
     }
+
+    private async Task WriteDebugInfo(IUploadDebugInfo debugInfo)
+    {
+        if (!OutputDebugInfo)
+            return;
+
+        string outputFile = $"{Constants.UploadDebugInfoFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string fullOutputPath = Path.Combine(_settings.OutputDirectory, outputFile);
+        await CreateFile(fullOutputPath, debugInfo.GetFullDebugInfo());
+    }
 }
 
 public sealed class UploadErrorDisplay
@@ -387,6 +423,8 @@ public interface IRaidUploadDialogViewModel : IDialogViewModel
     DelegateCommand BeginUploadCommand { get; }
 
     ICollection<UploadErrorDisplay> ErrorMessages { get; }
+
+    bool OutputDebugInfo { get; set; }
 
     DelegateCommand RemoveSelectedAttendanceCommand { get; }
 

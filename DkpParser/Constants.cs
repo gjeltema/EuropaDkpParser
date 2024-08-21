@@ -54,6 +54,7 @@ public static class Constants
     public const string TimePickerDisplayDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TooLongDelimiter = "::::";
     public const string Undo = "UNDO";
+    public const string UploadDebugInfoFileNamePrefix = "DEBUGUploadInfo-";
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";
     public const string YouTellRaid = "You tell your raid, '";

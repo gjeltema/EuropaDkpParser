@@ -8,15 +8,19 @@ using System.Diagnostics;
 
 public sealed class RaidUploader : IRaidUpload
 {
+    private readonly IUploadDebugInfo _debugInfo;
     private readonly IDkpServer _dkpServer;
 
-    public RaidUploader(IDkpParserSettings settings)
+    public RaidUploader(IDkpParserSettings settings, IUploadDebugInfo debugInfo)
     {
-        _dkpServer = new DkpServer(settings);
+        _dkpServer = new DkpServer(settings, debugInfo);
+        _debugInfo = debugInfo;
     }
 
     public async Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries)
     {
+        _debugInfo.AddDebugMessage("=========== Beginning Upload Process ===========");
+
         RaidUploadResults results = new();
 
         IEnumerable<string> allPlayerNames = raidEntries.AllPlayersInRaid
@@ -28,13 +32,23 @@ public sealed class RaidUploader : IRaidUpload
         await _dkpServer.InitializeIdentifiers(allPlayerNames, zoneNames, results);
 
         if (results.HasInitializationError)
+        {
+            _debugInfo.AddDebugMessage("=========== Errors encountered retriving IDs, ending upload process ===========");
             return results;
+        }
+
+        _debugInfo.AddDebugMessage("===== Beginning Attendances Uploads =====");
 
         await UploadAttendances(raidEntries.AttendanceEntries, results);
         if (results.AttendanceError != null)
+        {
+            _debugInfo.AddDebugMessage("=========== Errors encountered uploading attendances, ending upload process ===========");
             return results;
+        }
 
         await UploadDkpSpendings(raidEntries.DkpEntries, results);
+
+        _debugInfo.AddDebugMessage("=========== Completed Upload Process =========== ");
 
         return results;
     }
@@ -45,6 +59,8 @@ public sealed class RaidUploader : IRaidUpload
         {
             if (attendance.Players.Count > 1)
             {
+                _debugInfo.AddDebugMessage($"----- Beginning upload process of {attendance}.");
+
                 try
                 {
                     await _dkpServer.UploadAttendance(attendance);
@@ -57,10 +73,19 @@ public sealed class RaidUploader : IRaidUpload
                         Error = ex
                     };
                     results.AttendanceError = error;
+
+                    _debugInfo.AddDebugMessage($"Error encountered when uploading {attendance}: {ex}");
+
                     return;
                 }
             }
+            else
+            {
+                _debugInfo.AddDebugMessage($"Attendance {attendance} has no players in attendance.  Not uploading.");
+            }
         }
+
+        _debugInfo.AddDebugMessage("----- Completed uploading raid attendances.");
     }
 
     private async Task UploadDkpSpendings(IEnumerable<DkpEntry> dkpEntries, RaidUploadResults results)
@@ -69,6 +94,7 @@ public sealed class RaidUploader : IRaidUpload
         {
             try
             {
+                _debugInfo.AddDebugMessage($"----- Beginning upload process of: {dkpEntry.ToLogString()}.");
                 await _dkpServer.UploadDkpSpent(dkpEntry);
             }
             catch (Exception ex)
@@ -79,9 +105,14 @@ public sealed class RaidUploader : IRaidUpload
                     Error = ex
                 };
                 results.DkpFailure = error;
+
+                _debugInfo.AddDebugMessage($"Error encountered when uploading {dkpEntry.ToLogString()}: {ex}");
+
                 return;
             }
         }
+
+        _debugInfo.AddDebugMessage("----- Completed uploading DKSPENT calls.");
     }
 }
 

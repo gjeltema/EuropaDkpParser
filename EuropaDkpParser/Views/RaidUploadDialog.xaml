@@ -109,8 +109,13 @@
             </ListView>
         </Grid>
 
-        <ProgressBar Grid.Row="2" IsIndeterminate="True" Visibility="{Binding ShowProgress, Converter={StaticResource BoolToVisibilityConverter}}" 
-                     Width="130" Height="30" HorizontalAlignment="Left"/>
+        <Grid Grid.Row="2">
+            <ProgressBar IsIndeterminate="True" Visibility="{Binding ShowProgress, Converter={StaticResource BoolToVisibilityConverter}}" 
+                         Width="130" Height="30" HorizontalAlignment="Left"/>
+
+            <CheckBox Content="{StaticResource EnableDebugUploadInfo}" IsChecked="{Binding OutputDebugInfo}" Margin="5,0,0,5"
+                      Visibility="{Binding ShowProgress, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+        </Grid>
 
         <Grid Grid.Row="3" HorizontalAlignment="Right">
             <Grid.ColumnDefinitions>

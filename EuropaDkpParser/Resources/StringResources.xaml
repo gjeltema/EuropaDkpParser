@@ -199,6 +199,9 @@
     <system:String x:Key="RemovePlayerText">Remove the selected player from all attendance calls</system:String>
     <system:String x:Key="RemovePlayerButton">Remove Player</system:String>
     <system:String x:Key="UploadSelectedAttendances">Upload Only Selected Attendances</system:String>
+    <system:String x:Key="DebugFileGenerationErrorMessage">There was an error creating the debug info file: </system:String>
+    <system:String x:Key="DebugFileGenerationError">Error Creating File</system:String>
+    <system:String x:Key="EnableDebugUploadInfo">Output Debug information from upload</system:String>
     
     <!-- PossibleLinkdeadErrorDialog -->
     <system:String x:Key="AttendancesAndJoinsLabelText">All Attendance Calls and Leave/Join Raid</system:String>
