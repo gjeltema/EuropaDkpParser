@@ -20,7 +20,7 @@ public static class Constants
     public const string ConversationFileNamePrefix = "ConversationOutput-";
     public const string Crashed = ":::CRASHED:::";
     public const string Dashes = "---------------------------";
-    public const string DkpSpent = "DKPSPENT";
+    public const string DkpSpent = "SPENT";  // Used to be DKPSPENT, but was changed to SPENT due to typos by users
     public const string DoubleDash = "--";
     public const string EndLootedDashes = ".--";
     public const string EqLogSearchPattern = "*eqlog*.txt";

@@ -23,6 +23,16 @@ public sealed class DkpServer : IDkpServer
         _settings = settings;
     }
 
+    static DkpServer()
+    {
+        LocalHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+        // Leaving these here in case the DKP server ends up needing these later.
+        //LocalHttpClient.DefaultRequestHeaders.Accept.ParseAdd("application/xml");
+        //LocalHttpClient.DefaultRequestHeaders.AcceptEncoding.ParseAdd("gzip, deflate, br");
+        //LocalHttpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en");
+    }
+
     public async Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
     {
         foreach (string playerName in playerNames)
@@ -101,9 +111,9 @@ public sealed class DkpServer : IDkpServer
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=search&in=charname&for={characterName}";
         using HttpResponseMessage response = await LocalHttpClient.GetAsync(uri);
 
-        response.EnsureSuccessStatusCode();
-
         string responseText = await response.Content.ReadAsStringAsync();
+
+        response.EnsureSuccessStatusCode();
 
         XElement root = XDocument.Parse(responseText).Root;
         int characterId = (int)root.Descendants("id").FirstOrDefault();
@@ -217,7 +227,7 @@ public sealed class DkpServer : IDkpServer
 
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadAsStringAsync();
+        return text;
     }
 }
 
