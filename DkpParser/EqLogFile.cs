@@ -6,11 +6,14 @@ namespace DkpParser;
 
 using System.Diagnostics;
 
-[DebuggerDisplay("{DebugDisplay,nq")]
+[DebuggerDisplay("{DebugDisplay,nq}")]
 public sealed class EqLogFile
 {
     public IList<EqLogEntry> LogEntries { get; } = [];
 
+    /// <summary>
+    /// The file name of this log file.
+    /// </summary>
     public string LogFile { get; init; }
 
     private string DebugDisplay

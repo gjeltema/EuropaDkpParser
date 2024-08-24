@@ -17,6 +17,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _apiUrl;
     private string _apiWriteToken;
     private string _eqDirectory;
+    private bool _includeTellsInRawLog;
     private bool _isDebugOptionsEnabled;
     private string _logFileMatchPattern;
     private string _outputDirectory;
@@ -51,6 +52,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
         ShowAfkReview = _settings.ShowAfkReview;
         UseAdvancedDialog = _settings.UseAdvancedDialog;
+        IncludeTellsInRawLog = _settings.IncludeTellsInRawLog;
 
         SetAllCharacterLogFiles();
     }
@@ -87,6 +89,12 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
             if (string.IsNullOrWhiteSpace(OutputDirectory))
                 OutputDirectory = EqDirectory;
         }
+    }
+
+    public bool IncludeTellsInRawLog
+    {
+        get => _includeTellsInRawLog;
+        set => SetProperty(ref _includeTellsInRawLog, value);
     }
 
     public bool IsDebugOptionsEnabled
@@ -155,6 +163,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.ShowAfkReview = ShowAfkReview;
         _settings.LogFileMatchPattern = LogFileMatchPattern;
         _settings.UseAdvancedDialog = UseAdvancedDialog;
+        _settings.IncludeTellsInRawLog = IncludeTellsInRawLog;
         _settings.SaveSettings();
     }
 
@@ -250,6 +259,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string ApiWriteToken { get; set; }
 
     string EqDirectory { get; set; }
+
+    bool IncludeTellsInRawLog { get; set; }
 
     bool IsDebugOptionsEnabled { get; set; }
 

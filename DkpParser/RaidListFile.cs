@@ -11,26 +11,36 @@ using System.IO;
 [DebuggerDisplay("{DebugDisplay}")]
 public sealed class RaidListFile
 {
-    public RaidListFile(string fileName)
+    private RaidListFile(string fullFilePath, string fileName, DateTime fileDateTime)
     {
+        FullFilePath = fullFilePath;
         FileName = fileName;
+        FileDateTime = fileDateTime;
+
         CharacterNames = [];
-
-        FileInfo raidListFileInfo = new(fileName);
-        fileName = raidListFileInfo.Name;
-
-        // RaidTick-2024-03-22_09-47-32.txt
-        string raidListFileTimeStamp = fileName[Constants.RaidListFileNameStart.Length..^4];
-        FileDateTime = DateTime.ParseExact(raidListFileTimeStamp, Constants.RaidListFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 
-    public List<PlayerCharacter> CharacterNames { get; private set; }
+    public ICollection<PlayerCharacter> CharacterNames { get; }
 
     public DateTime FileDateTime { get; }
 
-    public string FileName { get; private set; }
+    public string FileName { get; }
+
+    public string FullFilePath { get; }
 
     private string DebugDisplay
         => $"{FileDateTime:HH:mm:ss} {CharacterNames.Count}";
+
+    public static RaidListFile CreateRaidListFile(string fullFilePath)
+    {
+        FileInfo raidListFileInfo = new(fullFilePath);
+        string fileName = raidListFileInfo.Name;
+
+        // RaidTick-2024-03-22_09-47-32.txt
+        string raidListFileTimeStamp = fileName[Constants.RaidListFileNameStart.Length..^4];
+        DateTime fileDateTime = DateTime.ParseExact(raidListFileTimeStamp, Constants.RaidListFileNameTimeFormat, CultureInfo.InvariantCulture);
+
+        return new RaidListFile(fullFilePath, fileName, fileDateTime);
+    }
 }
 

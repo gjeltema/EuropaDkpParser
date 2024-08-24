@@ -24,6 +24,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string EnableDebugOptionsSection = "ENABLE_DEBUG";
     private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
+    private const string IncludeTellsInRawLogSection = "INCLUDE_TELLS_IN_RAW_LOG";
     private const string LogMatchPatternSection = "LOG_MATCH_PATTERN";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string SectionEnding = "_END";
@@ -67,6 +68,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public int GeneratedLogFilesAgeToArchiveInDays { get; set; }
 
     public string GeneratedLogFilesArchiveDirectory { get; set; }
+
+    public bool IncludeTellsInRawLog { get; set; }
 
     public bool IsApiConfigured
         => !string.IsNullOrEmpty(ApiUrl) && !string.IsNullOrEmpty(ApiReadToken) && !string.IsNullOrEmpty(ApiWriteToken);
@@ -112,6 +115,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
         LogFileMatchPattern = GetStringValue(fileContents, LogMatchPatternSection, DefaultMatchPattern);
         UseAdvancedDialog = GetBoolValue(fileContents, UseAdvancedDialogSection);
+        IncludeTellsInRawLog = GetBoolValue(fileContents, IncludeTellsInRawLogSection);
     }
 
     public void SaveSettings()
@@ -137,7 +141,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid),
             CreateFileEntry(ShowAfkReviewSection, ShowAfkReview),
             CreateFileEntry(LogMatchPatternSection, LogFileMatchPattern),
-            CreateFileEntry(UseAdvancedDialogSection, UseAdvancedDialog)
+            CreateFileEntry(UseAdvancedDialogSection, UseAdvancedDialog),
+            CreateFileEntry(IncludeTellsInRawLogSection, IncludeTellsInRawLog)
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -193,6 +198,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         if (split.Length > 1)
             return split[1].Equals("TRUE", StringComparison.OrdinalIgnoreCase);
 
+        // Keeping this around for legacy settings files, when all settings were full sections, even simple bools.
         index++;
         string settingValue = fileContents[index];
         if (settingValue == key + SectionEnding)
@@ -338,6 +344,8 @@ public interface IDkpParserSettings
     int GeneratedLogFilesAgeToArchiveInDays { get; set; }
 
     string GeneratedLogFilesArchiveDirectory { get; set; }
+
+    bool IncludeTellsInRawLog { get; set; }
 
     bool IsApiConfigured { get; }
 

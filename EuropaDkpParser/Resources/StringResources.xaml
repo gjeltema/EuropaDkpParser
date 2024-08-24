@@ -105,7 +105,8 @@
     <system:String x:Key="ApiWriteTokenLabel">API Write Token:</system:String>
     <system:String x:Key="ShowAfkReviewLabel">Show AFK Review Dialog</system:String>
     <system:String x:Key="LogMatchPatternLabel">Log File Name Search Pattern</system:String>
-    <system:String x:Key="UseAdvancedDialog">Use Advanced Dialog</system:String>
+    <system:String x:Key="UseAdvancedDialogLabel">Use Advanced Dialog</system:String>
+    <system:String x:Key="IncludeTellsInRawLogLabel">Include /tells in Raw Log</system:String>
 
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>
@@ -125,8 +126,8 @@
     <system:String x:Key="OutputDirectory">Output Directory</system:String>
     <system:String x:Key="GenerateLogFile">Generate Log File</system:String>
     <system:String x:Key="OutputFile">Output File</system:String>
-    <system:String x:Key="RawDump">Raw Log</system:String>
-    <system:String x:Key="RawDumpToolTip">Gets ALL the log entries from the log files for the specified time period.</system:String>
+    <system:String x:Key="RawDump">Raw Raid Log</system:String>
+    <system:String x:Key="RawDumpToolTip">Gets ALL the log entries from the log files for the specified time period except /tells, as well as the Raid Tick files, and zips them up. (Can configure to also get /tells in Settings).</system:String>
     <system:String x:Key="ParseConversation">Parse conversation with:</system:String>
     <system:String x:Key="StartConversationParse">Get Convo</system:String>
     <system:String x:Key="NoConversationFoundTitle">No conversation found.</system:String>

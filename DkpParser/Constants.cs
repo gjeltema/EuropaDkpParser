@@ -50,7 +50,7 @@ public static class Constants
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
     public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TellsTheRaid = " tells the raid, ";
-    public const string TellsYou = "tells you";
+    public const string TellsYou = " tells you, '";
     public const string TimePickerDisplayDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TooLongDelimiter = "::::";
     public const string Undo = "UNDO";
@@ -58,7 +58,7 @@ public static class Constants
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";
     public const string YouTellRaid = "You tell your raid, '";
-    public const string YouTold = "You told";
+    public const string YouTold = "] You told ";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(2);
     public static readonly int LogDateTimeLength = LogDateTimeFormat.Length;
     public static readonly CultureInfo UsCulture = new("en-US");

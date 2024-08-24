@@ -11,25 +11,35 @@ using System.IO;
 [DebuggerDisplay("{DebugDisplay}")]
 public sealed class RaidDumpFile
 {
-    public RaidDumpFile(string fileName)
+    private RaidDumpFile(string fullFilePath, string fileName, DateTime fileDateTime)
     {
+        FullFilePath = fullFilePath;
         FileName = fileName;
+        FileDateTime = fileDateTime;
+
         Characters = [];
-
-        FileInfo dumpFileInfo = new(fileName);
-        fileName = dumpFileInfo.Name;
-
-        // RaidRoster-20240312-161830.txt
-        string dumpFileTimeStamp = fileName[Constants.RaidDumpFileNameStart.Length..^4];
-        FileDateTime = DateTime.ParseExact(dumpFileTimeStamp, Constants.RaidDumpFileNameTimeFormat, CultureInfo.InvariantCulture);
     }
 
-    public ICollection<PlayerCharacter> Characters { get; private set; }
+    public ICollection<PlayerCharacter> Characters { get; }
 
     public DateTime FileDateTime { get; }
 
-    public string FileName { get; private set; }
+    public string FileName { get; }
+
+    public string FullFilePath { get; }
 
     private string DebugDisplay
         => $"{FileDateTime:HH:mm:ss} {Characters.Count}";
+
+    public static RaidDumpFile CreateRaidDumpFile(string fullFilePath)
+    {
+        FileInfo dumpFileInfo = new(fullFilePath);
+        string fileName = dumpFileInfo.Name;
+
+        // RaidRoster-20240312-161830.txt
+        string dumpFileTimeStamp = fileName[Constants.RaidDumpFileNameStart.Length..^4];
+        DateTime fileDateTime = DateTime.ParseExact(dumpFileTimeStamp, Constants.RaidDumpFileNameTimeFormat, CultureInfo.InvariantCulture);
+
+        return new RaidDumpFile(fullFilePath, fileName, fileDateTime);
+    }
 }

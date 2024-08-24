@@ -26,27 +26,27 @@ public sealed class FullEqLogParser : EqLogParserBase, IFullEqLogParser
 
         SetEntryParser(findStartParser);
     }
+}
 
-    private sealed class LogEverythingEntryParser : IParseEntry
+public sealed class LogEverythingEntryParser : IParseEntry
+{
+    private readonly EqLogFile _logFile;
+
+    public LogEverythingEntryParser(EqLogFile logFile)
     {
-        private readonly EqLogFile _logFile;
+        _logFile = logFile;
+    }
 
-        public LogEverythingEntryParser(EqLogFile logFile)
+    public void ParseEntry(string logLine, DateTime entryTimeStamp)
+    {
+        EqLogEntry logEntry = new()
         {
-            _logFile = logFile;
-        }
+            EntryType = LogEntryType.Unknown,
+            LogLine = logLine,
+            Timestamp = entryTimeStamp
+        };
 
-        public void ParseEntry(string logLine, DateTime entryTimeStamp)
-        {
-            EqLogEntry logEntry = new()
-            {
-                EntryType = LogEntryType.Unknown,
-                LogLine = logLine,
-                Timestamp = entryTimeStamp
-            };
-
-            _logFile.LogEntries.Add(logEntry);
-        }
+        _logFile.LogEntries.Add(logEntry);
     }
 }
 

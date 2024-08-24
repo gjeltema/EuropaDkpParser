@@ -50,7 +50,7 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
             foreach (string person in _peopleConversingWith)
             {
                 if (logLine.Contains($"{Constants.YouTold} {person}, '", StringComparison.OrdinalIgnoreCase)
-                    || logLine.Contains($"{person} {Constants.TellsYou}, '", StringComparison.OrdinalIgnoreCase))
+                    || logLine.Contains($"] {person} {Constants.TellsYou}", StringComparison.OrdinalIgnoreCase))
                 {
                     EqLogEntry logEntry = new()
                     {

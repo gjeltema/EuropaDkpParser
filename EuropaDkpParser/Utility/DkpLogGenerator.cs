@@ -5,6 +5,7 @@
 namespace EuropaDkpParser.Utility;
 
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Windows;
 using DkpParser;
@@ -39,18 +40,60 @@ internal sealed class DkpLogGenerator
 
     public async Task GetRawLogFilesParseAsync(DateTime startTime, DateTime endTime, string outputPath)
     {
-        IFullEqLogParser fullLogParser = new FullEqLogParser(_settings);
+        IFullRaidLogsParser fullLogParser = new FullRaidLogsParser(_settings);
         ICollection<EqLogFile> logFiles = await Task.Run(() => fullLogParser.GetEqLogFiles(startTime, endTime));
 
-        string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string fullLogOutputFullPath = Path.Combine(outputPath, fullLogOutputFile);
+        if (logFiles.Count == 0)
+        {
+            string errorMessage = $"No log entries were found between {startTime} and {endTime}.  Ending parse.";
+            MessageBox.Show(errorMessage, "No Log Entries Found", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
 
-        foreach (EqLogFile logFile in logFiles)
+        string directoryName = $"RawLog-{DateTime.Now:yyyyMMdd-HHmmss}";
+        string directoryForFiles = Path.Combine(outputPath, directoryName);
+        string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string fullLogOutputFullPath = Path.Combine(directoryForFiles, fullLogOutputFile);
+
+        if (!await TryCreateDirectory(directoryForFiles))
+            return;
+
+        foreach (EqLogFile logFile in logFiles.OrderBy(x => x.LogEntries[0].Timestamp))
         {
             await CreateFile(fullLogOutputFullPath, logFile.GetAllLogLines());
         }
 
-        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(fullLogOutputFullPath);
+        RaidParticipationFilesParser listFilesParser = new(_settings);
+
+        IEnumerable<RaidDumpFile> raidDumpFiles = listFilesParser.GetRelevantRaidDumpFiles(startTime, endTime);
+        foreach (RaidDumpFile raidDumpFile in raidDumpFiles)
+        {
+            if (!await TryCopyFile(raidDumpFile.FullFilePath, Path.Combine(directoryForFiles, raidDumpFile.FileName)))
+            {
+                await DeleteDirectory(directoryForFiles);
+            }
+        }
+
+        IEnumerable<RaidListFile> raidListFiles = listFilesParser.GetRelevantRaidListFiles(startTime, endTime);
+        foreach (RaidListFile raidListFile in raidListFiles)
+        {
+            if (!await TryCopyFile(raidListFile.FullFilePath, Path.Combine(directoryForFiles, raidListFile.FileName)))
+            {
+                await DeleteDirectory(directoryForFiles);
+            }
+        }
+
+        string zipFullFilePath = Path.Combine(outputPath, directoryName + ".zip");
+
+        if (!await TryCreateZip(directoryForFiles, zipFullFilePath))
+        {
+            await DeleteDirectory(directoryForFiles);
+            return;
+        }
+
+        await DeleteDirectory(directoryForFiles);
+
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(zipFullFilePath);
         completedDialog.ShowDialog();
     }
 
@@ -63,6 +106,12 @@ internal sealed class DkpLogGenerator
 
         if (raidEntries == null)
             return;
+
+        if (raidEntries.AttendanceEntries.Count == 0)
+        {
+            MessageBox.Show($"No log entries were found between {sessionSettings.StartTime} and {sessionSettings.EndTime}.  Ending parse.", "No Entries Found", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
 
         if (sessionSettings.IsRawAnalyzerResultsChecked)
         {
@@ -171,6 +220,16 @@ internal sealed class DkpLogGenerator
         return true;
     }
 
+    private async Task DeleteDirectory(string directoryName)
+    {
+        try
+        {
+            await Task.Run(() => Directory.Delete(directoryName, true));
+        }
+        catch
+        { }
+    }
+
     private string GetDkpSpentEntries(RaidEntries raidEntries)
     {
         string entries = string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries());
@@ -268,6 +327,51 @@ internal sealed class DkpLogGenerator
         {
             MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
+        }
+    }
+
+    private async Task<bool> TryCopyFile(string sourceFilePath, string destinationFilePath)
+    {
+        try
+        {
+            await Task.Run(() => File.Copy(sourceFilePath, destinationFilePath));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            string errorMessage = $"Failed to copy file from {sourceFilePath} to {destinationFilePath}: {ex}";
+            MessageBox.Show(errorMessage, "Failed to Copy File", MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+    }
+
+    private async Task<bool> TryCreateDirectory(string directoryName)
+    {
+        try
+        {
+            await Task.Run(() => Directory.CreateDirectory(directoryName));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            string errorMessage = $"Failed to create directory at {directoryName}: {ex}";
+            MessageBox.Show(errorMessage, "Failed to Create Directory", MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+    }
+
+    private async Task<bool> TryCreateZip(string sourceDirectory, string zipFullFilePath)
+    {
+        try
+        {
+            await Task.Run(() => ZipFile.CreateFromDirectory(sourceDirectory, zipFullFilePath));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            string errorMessage = $"Failed to create zip {zipFullFilePath} using {sourceDirectory}: {ex}";
+            MessageBox.Show(errorMessage, "Failed to Create Zip", MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
         }
     }
 
