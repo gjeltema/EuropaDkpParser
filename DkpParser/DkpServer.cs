@@ -116,6 +116,15 @@ public sealed class DkpServer : IDkpServer
         return dkpContent.ToString();
     }
 
+    private int GetCharacterIdFromResponse(string response)
+    {
+        XElement root = XDocument.Parse(response).Root;
+        XElement directNode = root.Descendants("direct").FirstOrDefault();
+        XElement characterIdNode = directNode.Descendants("id").FirstOrDefault();
+        int characterId = (int)characterIdNode;
+        return characterId;
+    }
+
     private async Task<int> GetCharacterIdFromServer(string characterName)
     {
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=search&in=charname&for={characterName}";
@@ -132,8 +141,7 @@ public sealed class DkpServer : IDkpServer
 
         response.EnsureSuccessStatusCode();
 
-        XElement root = XDocument.Parse(responseText).Root;
-        int characterId = (int)root.Descendants("id").FirstOrDefault();
+        int characterId = GetCharacterIdFromResponse(responseText);
 
         _debugInfo.AddDebugMessage($"Extracted character ID for {characterName} is {characterId}");
 
