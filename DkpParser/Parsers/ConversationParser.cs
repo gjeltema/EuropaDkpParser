@@ -31,13 +31,18 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
 
     private sealed class ConversationEntryParser : IParseEntry
     {
+        private readonly ICollection<string> _conversationSearchStrings = [];
         private readonly EqLogFile _logFile;
-        private readonly ICollection<string> _peopleConversingWith;
 
         public ConversationEntryParser(EqLogFile logFile, ICollection<string> peopleConversingWith)
         {
             _logFile = logFile;
-            _peopleConversingWith = peopleConversingWith;
+
+            foreach (string person in peopleConversingWith)
+            {
+                _conversationSearchStrings.Add($"{Constants.YouTold}{person}, '");
+                _conversationSearchStrings.Add($"] {person}{Constants.TellsYou}");
+            }
         }
 
         public void ParseEntry(string logLine, DateTime entryTimeStamp)
@@ -47,10 +52,9 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
 
             // [Fri Mar 01 21:49:34 2024] Klawse tells you, 'need key'
             // [Fri Mar 01 21:55:29 2024] You told Klawse, 'I cant do anything with the raid window.'
-            foreach (string person in _peopleConversingWith)
+            foreach (string searchTerm in _conversationSearchStrings)
             {
-                if (logLine.Contains($"{Constants.YouTold} {person}, '", StringComparison.OrdinalIgnoreCase)
-                    || logLine.Contains($"] {person} {Constants.TellsYou}", StringComparison.OrdinalIgnoreCase))
+                if (logLine.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 {
                     EqLogEntry logEntry = new()
                     {
