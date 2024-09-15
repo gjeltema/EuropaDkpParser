@@ -5,7 +5,7 @@
 namespace DkpParser.Parsers;
 
 /// <summary>
-/// Main entry parser for EQ Log files, looking for all log entries of interest.
+/// Main entry parser for EQ Log files for DKP entry.
 /// </summary>
 internal sealed class PrimaryEntryParser : IParseEntry
 {
@@ -43,41 +43,37 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
     private void AddDelimiterEntry(string logLine, DateTime entryTimeStamp)
     {
-        if (!logLine.Contains(Constants.YouTellRaid) && !logLine.Contains(Constants.TellsTheRaid))
-            return;
-
-        EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
-        _logFile.LogEntries.Add(logEntry);
-        CheckForTwoColonError(logEntry, logLine);
-
         if (logLine.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase))
         {
-            logEntry.EntryType = LogEntryType.DkpSpent;
-        }
-        else if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
-        {
-            // Only accept raid attendance calls from yourself into /rs.
-            if (!logLine.Contains(Constants.YouTellRaid))
+            if (!IsValidDkpspentChannel(logLine))
                 return;
 
-            // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
-            if (logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase))
-            {
-                logEntry.EntryType = LogEntryType.Kill;
-                _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
-                _setParser.SetEntryParser(_populationListingStartParser);
-            }
-            // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
-            else
-            {
-                logEntry.EntryType = LogEntryType.Attendance;
-                _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
-                _setParser.SetEntryParser(_populationListingStartParser);
-            }
+            EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
+            logEntry.EntryType = LogEntryType.DkpSpent;
         }
-        else if (logLine.Contains(Constants.Crashed))
+        else if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
         {
-            logEntry.EntryType = LogEntryType.Crashed;
+            EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
+
+            if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
+            {
+                // Only accept raid attendance calls from yourself into /rs.
+                if (!logLine.Contains(Constants.RaidYou))
+                    return;
+
+                _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
+                _setParser.SetEntryParser(_populationListingStartParser);
+
+                // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
+                // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
+                logEntry.EntryType = logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase)
+                    ? LogEntryType.Kill
+                    : LogEntryType.Attendance;
+            }
+            else if (logLine.Contains(Constants.Crashed))
+            {
+                logEntry.EntryType = LogEntryType.Crashed;
+            }
         }
     }
 
@@ -118,6 +114,24 @@ internal sealed class PrimaryEntryParser : IParseEntry
         }
     }
 
+    private EqLogEntry CreateAndAddLogEntry(string logLine, DateTime entryTimeStamp)
+    {
+        EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
+        _logFile.LogEntries.Add(logEntry);
+        CheckForTwoColonError(logEntry, logLine);
+        return logEntry;
+    }
+
     private EqLogEntry CreateLogEntry(string logLine, DateTime entryTimeStamp)
         => new() { LogLine = logLine, Timestamp = entryTimeStamp };
+
+    private bool IsValidDkpspentChannel(string logLine)
+        => logLine.Contains(Constants.RaidYou)
+            || logLine.Contains(Constants.RaidOther)
+            || logLine.Contains(Constants.GuildYou)
+            || logLine.Contains(Constants.GuildOther)
+            || logLine.Contains(Constants.OocYou)
+            || logLine.Contains(Constants.OocOther)
+            || logLine.Contains(Constants.AuctionYou)
+            || logLine.Contains(Constants.AuctionOther);
 }
