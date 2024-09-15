@@ -21,6 +21,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string DefaultMatchPattern = "*eqlog*.txt";
     private const int DefaultWindowLocation = 200;
     private const char Delimiter = '=';
+    private const string DkpspentAucEnableSection = "DKPSPENT_AUC_ENABLE";
+    private const string DkpspentGuildEnableSection = "DKPSPENT_GU_ENABLE";
+    private const string DkpspentOocEnableSection = "DKPSPENT_OOC_ENABLE";
     private const string EnableDebugOptionsSection = "ENABLE_DEBUG";
     private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
@@ -52,6 +55,12 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public bool ArchiveAllEqLogFiles { get; set; }
 
     public ICollection<string> BossMobs { get; private set; } = [];
+
+    public bool DkpspentAucEnabled { get; set; }
+
+    public bool DkpspentGuEnabled { get; set; }
+
+    public bool DkpspentOocEnabled { get; set; }
 
     public bool EnableDebugOptions { get; set; }
 
@@ -89,7 +98,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public bool ShowAfkReview { get; set; }
 
     public bool UseAdvancedDialog { get; set; }
-
+    
     public void LoadSettings()
     {
         RaidValue = new RaidValues(_raidValuesFileName);
@@ -116,6 +125,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
         LogFileMatchPattern = GetStringValue(fileContents, LogMatchPatternSection, DefaultMatchPattern);
         UseAdvancedDialog = GetBoolValue(fileContents, UseAdvancedDialogSection);
         IncludeTellsInRawLog = GetBoolValue(fileContents, IncludeTellsInRawLogSection);
+        DkpspentAucEnabled = GetBoolValue(fileContents, DkpspentAucEnableSection, true);
+        DkpspentGuEnabled = GetBoolValue(fileContents, DkpspentGuildEnableSection, true);
+        DkpspentOocEnabled = GetBoolValue(fileContents, DkpspentOocEnableSection, true);
     }
 
     public void SaveSettings()
@@ -142,7 +154,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(ShowAfkReviewSection, ShowAfkReview),
             CreateFileEntry(LogMatchPatternSection, LogFileMatchPattern),
             CreateFileEntry(UseAdvancedDialogSection, UseAdvancedDialog),
-            CreateFileEntry(IncludeTellsInRawLogSection, IncludeTellsInRawLog)
+            CreateFileEntry(IncludeTellsInRawLogSection, IncludeTellsInRawLog),
+            CreateFileEntry(DkpspentAucEnableSection, DkpspentAucEnabled),
+            CreateFileEntry(DkpspentGuildEnableSection, DkpspentGuEnabled),
+            CreateFileEntry(DkpspentOocEnableSection, DkpspentOocEnabled)
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -328,6 +343,12 @@ public interface IDkpParserSettings
     string ApiWriteToken { get; set; }
 
     bool ArchiveAllEqLogFiles { get; set; }
+
+    bool DkpspentAucEnabled { get; set; }
+
+    bool DkpspentGuEnabled { get; set; }
+
+    bool DkpspentOocEnabled { get; set; }
 
     bool EnableDebugOptions { get; set; }
 

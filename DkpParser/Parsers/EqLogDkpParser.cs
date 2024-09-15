@@ -19,7 +19,7 @@ internal sealed class EqLogDkpParser : EqLogParserBase, IEqLogParser
 
     protected override void InitializeEntryParsers(EqLogFile logFile, DateTime startTime, DateTime endTime)
     {
-        _primaryEntryParser = new PrimaryEntryParser(this, logFile);
+        _primaryEntryParser = new PrimaryEntryParser(this, _settings, logFile);
         SetEntryParser(new FindStartTimeEntryParser(this, startTime, _primaryEntryParser));
     }
 }

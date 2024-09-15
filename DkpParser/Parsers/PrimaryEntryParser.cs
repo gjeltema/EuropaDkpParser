@@ -11,12 +11,14 @@ internal sealed class PrimaryEntryParser : IParseEntry
 {
     private readonly EqLogFile _logFile;
     private readonly ISetEntryParser _setParser;
+    private readonly IDkpParserSettings _settings;
     private IParseEntry _populationListingParser;
     private IPopulationListingStartEntryParser _populationListingStartParser;
 
-    internal PrimaryEntryParser(ISetEntryParser setParser, EqLogFile logFile)
+    internal PrimaryEntryParser(ISetEntryParser setParser, IDkpParserSettings settings, EqLogFile logFile)
     {
         _setParser = setParser;
+        _settings = settings;
         _logFile = logFile;
 
         _populationListingParser = new PopulationListingEntryParser(setParser, logFile, this);
@@ -126,12 +128,8 @@ internal sealed class PrimaryEntryParser : IParseEntry
         => new() { LogLine = logLine, Timestamp = entryTimeStamp };
 
     private bool IsValidDkpspentChannel(string logLine)
-        => logLine.Contains(Constants.RaidYou)
-            || logLine.Contains(Constants.RaidOther)
-            || logLine.Contains(Constants.GuildYou)
-            || logLine.Contains(Constants.GuildOther)
-            || logLine.Contains(Constants.OocYou)
-            || logLine.Contains(Constants.OocOther)
-            || logLine.Contains(Constants.AuctionYou)
-            || logLine.Contains(Constants.AuctionOther);
+        => logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther)
+            || (_settings.DkpspentGuEnabled && (logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.GuildOther)))
+            || (_settings.DkpspentOocEnabled && (logLine.Contains(Constants.OocYou) || logLine.Contains(Constants.OocOther)))
+            || (_settings.DkpspentAucEnabled && (logLine.Contains(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)));
 }

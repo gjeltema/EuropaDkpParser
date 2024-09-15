@@ -107,6 +107,9 @@
     <system:String x:Key="LogMatchPatternLabel">Log File Name Search Pattern</system:String>
     <system:String x:Key="UseAdvancedDialogLabel">Use Advanced Dialog</system:String>
     <system:String x:Key="IncludeTellsInRawLogLabel">Include /tells in Raw Log</system:String>
+    <system:String x:Key="DkpspentAucEnable">Check /auc for SPENT calls</system:String>
+    <system:String x:Key="DkpspentGuEnable">Check /gu for SPENT calls</system:String>
+    <system:String x:Key="DkpspentOocEnable">Check /ooc for SPENT calls</system:String>
 
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>

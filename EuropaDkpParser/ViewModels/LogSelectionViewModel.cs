@@ -16,6 +16,9 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _apiReadToken;
     private string _apiUrl;
     private string _apiWriteToken;
+    private bool _dkpspentAucEnable;
+    private bool _dkpspentGuEnable;
+    private bool _dkpspentOocEnable;
     private string _eqDirectory;
     private bool _includeTellsInRawLog;
     private bool _isDebugOptionsEnabled;
@@ -54,6 +57,10 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         UseAdvancedDialog = _settings.UseAdvancedDialog;
         IncludeTellsInRawLog = _settings.IncludeTellsInRawLog;
 
+        DkpspentAucEnable = _settings.DkpspentAucEnabled;
+        DkpspentGuEnable = _settings.DkpspentGuEnabled;
+        DkpspentOocEnable = _settings.DkpspentOocEnabled;
+
         SetAllCharacterLogFiles();
     }
 
@@ -77,6 +84,24 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     {
         get => _apiWriteToken;
         set => SetProperty(ref _apiWriteToken, value);
+    }
+
+    public bool DkpspentAucEnable
+    {
+        get => _dkpspentAucEnable;
+        set => SetProperty(ref _dkpspentAucEnable, value);
+    }
+    
+    public bool DkpspentGuEnable
+    {
+        get => _dkpspentGuEnable;
+        set => SetProperty(ref _dkpspentGuEnable, value);
+    }
+    
+    public bool DkpspentOocEnable
+    {
+        get => _dkpspentOocEnable;
+        set => SetProperty(ref _dkpspentOocEnable, value);
     }
 
     public string EqDirectory
@@ -164,6 +189,9 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.LogFileMatchPattern = LogFileMatchPattern;
         _settings.UseAdvancedDialog = UseAdvancedDialog;
         _settings.IncludeTellsInRawLog = IncludeTellsInRawLog;
+        _settings.DkpspentAucEnabled = DkpspentAucEnable;
+        _settings.DkpspentGuEnabled = DkpspentGuEnable;
+        _settings.DkpspentOocEnabled = DkpspentOocEnable;
         _settings.SaveSettings();
     }
 
@@ -257,6 +285,12 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string ApiUrl { get; set; }
 
     string ApiWriteToken { get; set; }
+
+    bool DkpspentAucEnable { get; set; }
+
+    bool DkpspentGuEnable { get; set; }
+
+    bool DkpspentOocEnable { get; set; }
 
     string EqDirectory { get; set; }
 
