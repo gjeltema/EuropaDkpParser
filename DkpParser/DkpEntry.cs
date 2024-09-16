@@ -9,11 +9,13 @@ using System.Diagnostics;
 [DebuggerDisplay("{PlayerName,nq}, {Item,nq} {DkpSpent,nq}")]
 public sealed class DkpEntry
 {
-    public const string You = "You";
+    private const string You = "You";
 
     public AttendanceEntry AssociatedAttendanceCall { get; set; }
 
     public string Auctioneer { get; set; }
+
+    public EqChannel Channel { get; set; }
 
     public int DkpSpent { get; set; }
 
@@ -29,14 +31,31 @@ public sealed class DkpEntry
 
     public string ToLogString()
     {
-        // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
-        // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
-
-        string timestampText = Timestamp.ToEqLogTimestamp();
+        // Remove backticks so that the output doesnt screw up displays that use markdown, such as Discord
         string itemName = Item.Replace('`', '\'');
+        string message = $"{Constants.AttendanceDelimiter}{itemName}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}";
+
+        if (Channel == EqChannel.Raid)
+            return Auctioneer == You
+                ? EqLogLine.YouTellRaid(Timestamp, message)
+                : EqLogLine.OtherTellsRaid(Timestamp, Auctioneer, message);
+        if (Channel == EqChannel.Guild)
+            return Auctioneer == You
+                ? EqLogLine.YouTellGuild(Timestamp, message)
+                : EqLogLine.OtherTellsGuild(Timestamp, Auctioneer, message);
+        else if (Channel == EqChannel.Ooc)
+            return Auctioneer == You
+                ? EqLogLine.YouTellOoc(Timestamp, message)
+                : EqLogLine.OtherTellsOoc(Timestamp, Auctioneer, message);
+        else if (Channel == EqChannel.Auction)
+            return Auctioneer == You
+                ? EqLogLine.YouTellAuction(Timestamp, message)
+                : EqLogLine.OtherTellsAuction(Timestamp, Auctioneer, message);
+
+        // Default if nothing else matches for some reason
         return Auctioneer == You
-            ? $"{timestampText} You tell your raid, '{Constants.AttendanceDelimiter}{itemName}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'"
-            : $"{timestampText} {Auctioneer} tells the raid,  '{Constants.AttendanceDelimiter}{itemName}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}'";
+            ? EqLogLine.YouTellRaid(Timestamp, message)
+            : EqLogLine.OtherTellsRaid(Timestamp, Auctioneer, message);
     }
 
     public override string ToString()

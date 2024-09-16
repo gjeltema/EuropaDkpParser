@@ -35,7 +35,7 @@ public sealed class FullRaidLogsParser : EqLogParserBase, IFullRaidLogsParser
 
         public void ParseEntry(string logLine, DateTime entryTimeStamp)
         {
-            if (logLine.Contains(Constants.YouTold) || logLine.Contains(Constants.TellsYou))
+            if (logLine.Contains(Constants.YouToldSearch) || logLine.Contains(Constants.TellsYou))
                 return;
 
             EqLogEntry logEntry = new()

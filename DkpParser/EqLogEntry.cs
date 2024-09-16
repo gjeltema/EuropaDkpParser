@@ -9,6 +9,8 @@ using System.Diagnostics;
 [DebuggerDisplay("{DebugDisplay,nq}")]
 public sealed class EqLogEntry
 {
+    public EqChannel Channel { get; set; } = EqChannel.None;
+
     public LogEntryType EntryType { get; set; } = LogEntryType.Unknown;
 
     public PossibleError ErrorType { get; set; } = PossibleError.None;
@@ -24,15 +26,4 @@ public sealed class EqLogEntry
 
     private string DebugDisplay
         => $"{EntryType} {LogLine.Substring(Constants.LogDateTimeLength + 1, 16)}...";
-}
-
-[DebuggerDisplay("{DebugDisplay,nq}")]
-public sealed class LeanEqLogEntry
-{
-    public string LogLine { get; set; }
-
-    public DateTime Timestamp { get; set; }
-
-    private string DebugDisplay
-        => $"{LogLine.Substring(Constants.LogDateTimeLength + 1, 16)}...";
 }

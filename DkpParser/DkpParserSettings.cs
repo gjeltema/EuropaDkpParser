@@ -98,7 +98,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public bool ShowAfkReview { get; set; }
 
     public bool UseAdvancedDialog { get; set; }
-    
+
     public void LoadSettings()
     {
         RaidValue = new RaidValues(_raidValuesFileName);

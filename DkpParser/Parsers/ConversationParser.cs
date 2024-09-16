@@ -40,14 +40,14 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
 
             foreach (string person in peopleConversingWith)
             {
-                _conversationSearchStrings.Add($"{Constants.YouTold}{person}, '");
+                _conversationSearchStrings.Add($"{Constants.YouToldSearch}{person}, '");
                 _conversationSearchStrings.Add($"] {person}{Constants.TellsYou}");
             }
         }
 
         public void ParseEntry(string logLine, DateTime entryTimeStamp)
         {
-            if (!logLine.Contains(Constants.YouTold) && !logLine.Contains(Constants.TellsYou))
+            if (!logLine.Contains(Constants.YouToldSearch) && !logLine.Contains(Constants.TellsYou))
                 return;
 
             // [Fri Mar 01 21:49:34 2024] Klawse tells you, 'need key'

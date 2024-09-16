@@ -91,13 +91,13 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         get => _dkpspentAucEnable;
         set => SetProperty(ref _dkpspentAucEnable, value);
     }
-    
+
     public bool DkpspentGuEnable
     {
         get => _dkpspentGuEnable;
         set => SetProperty(ref _dkpspentGuEnable, value);
     }
-    
+
     public bool DkpspentOocEnable
     {
         get => _dkpspentOocEnable;

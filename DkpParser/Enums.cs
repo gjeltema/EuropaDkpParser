@@ -10,6 +10,19 @@ public enum AttendanceCallType : byte
     Kill
 }
 
+public enum EqChannel : byte
+{
+    None = 0,
+    Raid,
+    Guild,
+    Ooc,
+    Auction,
+    Shout,
+    Say,
+    Tell,
+    Custom
+}
+
 public enum LogEntryType : byte
 {
     Unknown = 0,

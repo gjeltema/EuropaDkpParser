@@ -47,11 +47,13 @@ internal sealed class PrimaryEntryParser : IParseEntry
     {
         if (logLine.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase))
         {
-            if (!IsValidDkpspentChannel(logLine))
+            EqChannel channel = GetValidDkpChannel(logLine);
+            if (channel == EqChannel.None)
                 return;
 
             EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
             logEntry.EntryType = LogEntryType.DkpSpent;
+            logEntry.Channel = channel;
         }
         else if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
         {
@@ -127,9 +129,17 @@ internal sealed class PrimaryEntryParser : IParseEntry
     private EqLogEntry CreateLogEntry(string logLine, DateTime entryTimeStamp)
         => new() { LogLine = logLine, Timestamp = entryTimeStamp };
 
-    private bool IsValidDkpspentChannel(string logLine)
-        => logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther)
-            || (_settings.DkpspentGuEnabled && (logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.GuildOther)))
-            || (_settings.DkpspentOocEnabled && (logLine.Contains(Constants.OocYou) || logLine.Contains(Constants.OocOther)))
-            || (_settings.DkpspentAucEnabled && (logLine.Contains(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)));
+    private EqChannel GetValidDkpChannel(string logLine)
+    {
+        if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
+            return EqChannel.Raid;
+        else if (_settings.DkpspentGuEnabled && (logLine.Contains(Constants.GuildYouSearch) || logLine.Contains(Constants.GuildOther)))
+            return EqChannel.Guild;
+        else if (_settings.DkpspentOocEnabled && (logLine.Contains(Constants.OocYouSearch) || logLine.Contains(Constants.OocOther)))
+            return EqChannel.Ooc;
+        else if (_settings.DkpspentAucEnabled && (logLine.Contains(Constants.AuctionYouSearch) || logLine.Contains(Constants.AuctionOther)))
+            return EqChannel.Auction;
+
+        return EqChannel.None;
+    }
 }

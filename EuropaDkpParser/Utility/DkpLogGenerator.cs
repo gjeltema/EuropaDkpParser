@@ -4,6 +4,7 @@
 
 namespace EuropaDkpParser.Utility;
 
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -260,10 +261,10 @@ internal sealed class DkpLogGenerator
 
         string rawAnalyzerOutputFile = $"DEBUG_RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
-        await CreateFile(rawAnalyzerOutputFullPath, raidEntries.GetAllEntries());
+        await CreateFile(rawAnalyzerOutputFullPath, [$"Parser elapsed time: {raidEntries.ParseTime}", $"Analyzer elapsed time: {raidEntries.AnalysisTime}", .. raidEntries.GetAllEntries()]);
     }
 
-    private async Task OutputRawParseResults(LogParseResults results, DkpLogGenerationSessionSettings sessionSettings)
+    private async Task OutputRawParseResults(LogParseResults results, DkpLogGenerationSessionSettings sessionSettings, TimeSpan parserTimeElapsed)
     {
         string directory = sessionSettings.OutputPath;
 
@@ -271,7 +272,7 @@ internal sealed class DkpLogGenerator
         string rawParseOutputFullPath = Path.Combine(directory, rawParseOutputFile);
         foreach (EqLogFile logFile in results.EqLogFiles)
         {
-            await CreateFile(rawParseOutputFullPath, logFile.GetAllLogLines());
+            await CreateFile(rawParseOutputFullPath, [$"Parser elapsed time: {parserTimeElapsed}", .. logFile.GetAllLogLines()]);
         }
     }
 
@@ -280,15 +281,29 @@ internal sealed class DkpLogGenerator
         try
         {
             IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
+
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
             LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(sessionSettings.StartTime, sessionSettings.EndTime));
+            timer.Stop();
+            TimeSpan parserTimeElapsed = timer.Elapsed;
 
             if (sessionSettings.IsRawParseResultsChecked)
             {
-                await OutputRawParseResults(results, sessionSettings);
+                await OutputRawParseResults(results, sessionSettings, parserTimeElapsed);
             }
 
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
-            return await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+
+            timer.Reset();
+            timer.Start();
+            RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
+            timer.Stop();
+            TimeSpan analyzerTimeElapsed = timer.Elapsed;
+
+            raidEntries.ParseTime = parserTimeElapsed;
+            raidEntries.AnalysisTime = analyzerTimeElapsed;
+            return raidEntries;
         }
         catch (EuropaDkpParserException e)
         {

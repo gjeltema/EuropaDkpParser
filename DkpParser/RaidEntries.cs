@@ -13,9 +13,13 @@ public sealed class RaidEntries
 
     public ICollection<string> AnalysisErrors { get; } = new List<string>();
 
+    public TimeSpan AnalysisTime { get; set; } = TimeSpan.Zero;
+
     public ICollection<AttendanceEntry> AttendanceEntries { get; set; } = new List<AttendanceEntry>();
 
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
+
+    public TimeSpan ParseTime { get; set; } = TimeSpan.Zero;
 
     public ICollection<PlayerJoinRaidEntry> PlayerJoinCalls { get; set; } = new List<PlayerJoinRaidEntry>();
 
@@ -67,7 +71,7 @@ public sealed class RaidEntries
             yield return attEntry.ToString();
             foreach (PlayerCharacter player in attEntry.Players)
             {
-                yield return player.ToLogString();
+                yield return player.ToDisplayString();
             }
         }
 

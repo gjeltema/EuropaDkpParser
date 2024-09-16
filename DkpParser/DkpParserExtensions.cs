@@ -9,9 +9,6 @@ public static class DkpParserExtensions
     public static bool IsWithinTwoSecondsOf(this DateTime endTimestamp, DateTime timeStampInPast)
         => endTimestamp >= timeStampInPast && endTimestamp - timeStampInPast <= Constants.DurationOfSearch;
 
-    public static string ToEqLogTimestamp(this DateTime timeStamp)
-        => timeStamp.ToString(Constants.LogDateTimeFormat, Constants.UsCulture);
-
     public static string ToUsTimestamp(this DateTime timeStamp, string format)
         => timeStamp.ToString(format, Constants.UsCulture);
 }

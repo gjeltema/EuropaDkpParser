@@ -95,7 +95,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(FactionStandingTerm));
         if (settings.AllTells)
         {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouTold));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouToldSearch));
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.TellsYou));
         }
         if (settings.Channel)
@@ -173,7 +173,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 
         public bool TryParseEntry(string logLine, DateTime entryTimeStamp, out EqLogEntry eqLogEntry)
         {
-            if (!logLine.Contains(Constants.YouTold) && !logLine.Contains(Constants.TellsYou))
+            if (!logLine.Contains(Constants.YouToldSearch) && !logLine.Contains(Constants.TellsYou))
             {
                 eqLogEntry = null;
                 return false;
@@ -183,7 +183,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             // [Fri Mar 01 21:55:29 2024] You told Klawse, 'I cant do anything with the raid window.'
             foreach (string person in _peopleConversingWith)
             {
-                if (logLine.Contains($"{Constants.YouTold}{person}, '", StringComparison.OrdinalIgnoreCase)
+                if (logLine.Contains($"{Constants.YouToldSearch}{person}, '", StringComparison.OrdinalIgnoreCase)
                     || logLine.Contains($"] {person}{Constants.TellsYou}", StringComparison.OrdinalIgnoreCase))
                 {
                     eqLogEntry = new()

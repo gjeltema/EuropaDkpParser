@@ -57,35 +57,35 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
             // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
             // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
-            string logLine = _sanitizer.SanitizeDelimiterString(entry.LogLine);
+            ReadOnlySpan<char> logLine = _sanitizer.SanitizeDelimiterString(entry.LogLine).AsSpan(Constants.LogDateTimeLength + 1);
 
-            string[] dkpLineParts = logLine.Split(Constants.AttendanceDelimiter);
-            if (dkpLineParts.Length < 3)
+            int indexOfFirstDelimiter = logLine.IndexOf(Constants.AttendanceDelimiter);
+            ReadOnlySpan<char> auctioneerSection = logLine[0..indexOfFirstDelimiter];
+            int indexOfSpace = auctioneerSection.IndexOf(' ');
+            if (indexOfSpace < 1)
             {
                 _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
                 return null;
             }
+            string auctioneer = auctioneerSection[..indexOfSpace].ToString();
 
-            string itemName = dkpLineParts[1];
-            if (string.IsNullOrWhiteSpace(itemName))
-            {
-                _raidEntries.AnalysisErrors.Add($"Unable to extract item name from DkpEntry: {entry.LogLine}");
-                return null;
-            }
-
-            string[] playerParts = dkpLineParts[2].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (playerParts.Length < 1)
+            int startOfItemSectionIndex = indexOfFirstDelimiter + Constants.AttendanceDelimiter.Length;
+            int indexOfSecondDelimiter = logLine[startOfItemSectionIndex..].IndexOf(Constants.AttendanceDelimiter);
+            if (indexOfSecondDelimiter < 1)
             {
                 _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
                 return null;
             }
+            string itemName = logLine[startOfItemSectionIndex..][..indexOfSecondDelimiter].ToString();
 
-            string playerName = playerParts[0];
-            if (string.IsNullOrWhiteSpace(playerName))
+            ReadOnlySpan<char> playerSection = logLine[(startOfItemSectionIndex + indexOfSecondDelimiter + Constants.AttendanceDelimiter.Length)..].Trim();
+            indexOfSpace = playerSection.IndexOf(' ');
+            if (indexOfSpace < 1)
             {
-                _raidEntries.AnalysisErrors.Add($"Unable to extract player name from DkpEntry: {entry.LogLine}");
+                _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
                 return null;
             }
+            string playerName = playerSection[..indexOfSpace].ToString();
 
             DkpEntry dkpEntry = new()
             {
@@ -93,9 +93,11 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
                 Item = itemName.Trim(),
                 Timestamp = entry.Timestamp,
                 RawLogLine = entry.LogLine,
+                Auctioneer = auctioneer,
+                Channel = entry.Channel
             };
 
-            if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
+            if (logLine.IndexOf(Constants.Undo) > 0 || logLine.IndexOf(Constants.Remove) > 0)
             {
                 DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
                 if (toBeRemoved != null)
@@ -105,9 +107,9 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
                 return null;
             }
 
+            string endSection = playerSection[playerName.Length..].ToString();
+            GetDkpAmount(endSection, dkpEntry);
             CheckDkpPlayerName(dkpEntry);
-            GetDkpAmount(dkpLineParts[2], dkpEntry);
-            GetAuctioneerName(dkpLineParts[0], dkpEntry);
 
             return dkpEntry;
         }
@@ -129,23 +131,24 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
     private void GetAuctioneerName(string initialLogLine, DkpEntry dkpEntry)
     {
-        int indexOfBracket = initialLogLine.IndexOf(']');
-        int indexOfTell = initialLogLine.IndexOf(" tell");
-        if (indexOfBracket < 1 || indexOfTell < 1)
+        ReadOnlySpan<char> lineWithoutTimestamp = initialLogLine.AsSpan()[(Constants.LogDateTimeLength + 1)..];
+        if (lineWithoutTimestamp.Length == 0)
         {
             _raidEntries.AnalysisErrors.Add($"Unable to extract auctioneer name from DkpEntry: {initialLogLine}");
             dkpEntry.Auctioneer = string.Empty;
             return;
         }
 
-        string auctioneerName = initialLogLine[(indexOfBracket + 1)..indexOfTell];
-        if (string.IsNullOrWhiteSpace(auctioneerName))
+        int indexOfSpace = lineWithoutTimestamp.IndexOf(' ');
+        if (indexOfSpace == 0)
         {
             _raidEntries.AnalysisErrors.Add($"Unable to extract auctioneer name from DkpEntry: {initialLogLine}");
+            dkpEntry.Auctioneer = string.Empty;
             return;
         }
 
-        dkpEntry.Auctioneer = auctioneerName.Trim();
+        string auctioneerName = lineWithoutTimestamp[0..indexOfSpace].ToString();
+        dkpEntry.Auctioneer = auctioneerName;
     }
 
     private string GetDigits(string endText)

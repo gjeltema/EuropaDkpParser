@@ -17,8 +17,9 @@ public sealed class FileOutputGenerator : IOutputGenerator
             {
                 dateStamp = raid.FirstAttendanceCall.Timestamp.AddMinutes(-10);
             }
-            string dateStampText = dateStamp.ToEqLogTimestamp();
-            outputContents.Add($"{dateStampText} =========================== {raid.RaidZone} ===========================");
+
+            string message = EqLogLine.LogMessage(dateStamp, $"=========================== {raid.RaidZone} ===========================");
+            outputContents.Add(message);
 
             IEnumerable<AttendanceEntry> attendanceCalls = raidEntries.AttendanceEntries
                 .Where(x => raid.StartTime <= x.Timestamp && x.Timestamp <= raid.EndTime)
@@ -51,21 +52,21 @@ public sealed class FileOutputGenerator : IOutputGenerator
     [Tue Mar 19 21:35:23 2024] [ANONYMOUS] Luciania  <Europa>
     [Tue Mar 19 21:35:23 2024] There are 51 players in Plane of Sky.
         */
-        string dateStampText = call.Timestamp.ToEqLogTimestamp();
-        string header = call.AttendanceCallType == AttendanceCallType.Time
-            ? $"You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}'"
-            : $"You tell your raid, '{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}'";
 
-        yield return $"{dateStampText} {header}";
-        yield return $"{dateStampText} {Constants.PlayersOnEverquest}";
-        yield return $"{dateStampText} {Constants.Dashes}";
+        string header = call.AttendanceCallType == AttendanceCallType.Time
+            ? $"{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}"
+            : $"{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}";
+
+        yield return EqLogLine.LogMessage(call.Timestamp, header);
+        yield return EqLogLine.LogMessage(call.Timestamp, Constants.PlayersOnEverquest);
+        yield return EqLogLine.LogMessage(call.Timestamp, Constants.Dashes);
 
         foreach (PlayerCharacter player in call.Players.OrderBy(x => x.PlayerName))
         {
-            yield return $"{dateStampText} {player.ToLogString()}";
+            yield return EqLogLine.CharacterListing(call.Timestamp, player.PlayerName, player.Race, player.Level, player.ClassName, player.IsAnonymous);
         }
 
-        yield return $"{dateStampText} There are {call.Players.Count} players in {call.ZoneName}.";
+        yield return EqLogLine.ZonePlayers(call.Timestamp, call.Players.Count, call.ZoneName);
     }
 
     private void CreateDkpEntries(RaidEntries raidEntries, List<string> outputContents, RaidInfo raid)
