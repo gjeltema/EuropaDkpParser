@@ -27,17 +27,20 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
     public void ParseEntry(string logLine, DateTime entryTimeStamp)
     {
+        ReadOnlySpan<char> logLineSpan = logLine.AsSpan()[(Constants.LogDateTimeLength + 1)..];
+
         // Check for just '::' first as it's a fast check.  Do more in depth parsing of the line if this is present.
-        if (logLine.Contains(Constants.PossibleErrorDelimiter))
+        if (logLineSpan.IndexOf(Constants.PossibleErrorDelimiter) > 0)
         {
             AddDelimiterEntry(logLine, entryTimeStamp);
         }
-        else if (logLine.EndsWith(Constants.EndLootedDashes) && logLine.Contains(Constants.LootedA))
+        else if (logLineSpan.EndsWith(Constants.EndLootedDashes))
         {
-            AddLootedEntry(logLine, entryTimeStamp);
+            if (logLine.Contains(Constants.LootedA))
+                AddLootedEntry(logLine, entryTimeStamp);
         }
         // Check for just 'raid.' first as it's a fast check. Do more in depth parsing of the line if this is present.
-        else if (logLine.EndsWith(Constants.Raid))
+        else if (logLineSpan.EndsWith(Constants.Raid))
         {
             AddRaidJoinLeaveEntry(logLine, entryTimeStamp);
         }
@@ -55,14 +58,14 @@ internal sealed class PrimaryEntryParser : IParseEntry
             logEntry.EntryType = LogEntryType.DkpSpent;
             logEntry.Channel = channel;
         }
-        else if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
+        else if (logLine.Contains(Constants.RaidYouSearch) || logLine.Contains(Constants.RaidOther))
         {
             EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
 
             if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
             {
                 // Only accept raid attendance calls from yourself into /rs.
-                if (!logLine.Contains(Constants.RaidYou))
+                if (!logLine.Contains(Constants.RaidYouSearch))
                     return;
 
                 _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
@@ -110,19 +113,10 @@ internal sealed class PrimaryEntryParser : IParseEntry
         }
     }
 
-    private void CheckForTwoColonError(EqLogEntry logEntry, string logLine)
-    {
-        if (!logLine.Contains(Constants.AttendanceDelimiter))
-        {
-            logEntry.ErrorType = PossibleError.TwoColons;
-        }
-    }
-
     private EqLogEntry CreateAndAddLogEntry(string logLine, DateTime entryTimeStamp)
     {
         EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
         _logFile.LogEntries.Add(logEntry);
-        CheckForTwoColonError(logEntry, logLine);
         return logEntry;
     }
 
@@ -131,7 +125,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
     private EqChannel GetValidDkpChannel(string logLine)
     {
-        if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
+        if (logLine.Contains(Constants.RaidYouSearch) || logLine.Contains(Constants.RaidOther))
             return EqChannel.Raid;
         else if (_settings.DkpspentGuEnabled && (logLine.Contains(Constants.GuildYouSearch) || logLine.Contains(Constants.GuildOther)))
             return EqChannel.Guild;

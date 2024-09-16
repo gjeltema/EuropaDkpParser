@@ -41,7 +41,6 @@ public enum LogEntryType : byte
 public enum PossibleError : byte
 {
     None = 0,
-    TwoColons,
     ZeroDkp,
     DkpSpentPlayerNameTypo,
     DkpDuplicateEntry,

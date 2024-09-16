@@ -66,6 +66,7 @@ public static class Constants
     public const string RaidOther = " tells the raid, ";
     // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
     public const string RaidYou = "You tell your raid, '";
+    public const string RaidYouSearch = $"] {RaidYou}";
     public const string Remove = "REMOVE";
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
     public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";
