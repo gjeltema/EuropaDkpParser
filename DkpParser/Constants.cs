@@ -9,6 +9,8 @@ using System.Globalization;
 public static class Constants
 {
     public const string Afk = " AFK ";
+    public const string AfkEnd = $"{AttendanceDelimiter}AFKEND{AttendanceDelimiter}";
+    public const string AfkStart = $"{AttendanceDelimiter}AFK{AttendanceDelimiter}";
     public const string AnonWithBrackets = "[ANONYMOUS]";
     /// <summary>
     /// Used in the file-archiving functionality.
@@ -23,7 +25,7 @@ public static class Constants
     public const string AuctionYouSearch = $"] {AuctionYou}";
     public const string CommunicationFileNamePrefix = "CommunicationOutput-";
     public const string ConversationFileNamePrefix = "ConversationOutput-";
-    public const string Crashed = ":::CRASHED:::";
+    public const string Crashed = $"{AttendanceDelimiter}CRASHED{AttendanceDelimiter}";
     public const string Dashes = "---------------------------";
     public const string DkpSpent = "SPENT";  // Used to be DKPSPENT, but was changed to SPENT due to typos by users
     public const string DoubleDash = "--";

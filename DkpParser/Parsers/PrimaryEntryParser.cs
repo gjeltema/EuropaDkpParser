@@ -77,9 +77,17 @@ internal sealed class PrimaryEntryParser : IParseEntry
                     ? LogEntryType.Kill
                     : LogEntryType.Attendance;
             }
-            else if (logLine.Contains(Constants.Crashed))
+            else if (logLine.Contains(Constants.Crashed, StringComparison.OrdinalIgnoreCase))
             {
                 logEntry.EntryType = LogEntryType.Crashed;
+            }
+            else if (logLine.Contains(Constants.AfkStart, StringComparison.OrdinalIgnoreCase))
+            {
+                logEntry.EntryType = LogEntryType.AfkStart;
+            }
+            else if (logLine.Contains(Constants.AfkEnd, StringComparison.OrdinalIgnoreCase))
+            {
+                logEntry.EntryType = LogEntryType.AfkEnd;
             }
         }
     }

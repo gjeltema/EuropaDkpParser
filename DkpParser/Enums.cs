@@ -34,8 +34,10 @@ public enum LogEntryType : byte
     PlayerLooted,
     Conversation,
     JoinedRaid,
-    LeftRaid, 
-    Crashed
+    LeftRaid,
+    Crashed,
+    AfkStart,
+    AfkEnd
 }
 
 public enum PossibleError : byte
