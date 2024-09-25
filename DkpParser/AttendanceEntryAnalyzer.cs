@@ -8,7 +8,8 @@ using System.Diagnostics;
 
 internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 {
-    private static readonly TimeSpan thirtyMinutes = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan fifteenMinutes = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan tenMinutes = TimeSpan.FromMinutes(10);
     private readonly List<CharacterAttend> _charactersAttending = [];
     private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly IDkpParserSettings _settings;
@@ -116,22 +117,22 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void CreateAfkEntries(List<AfkEntryInfo> afkCharacterEntries)
     {
-        foreach (AfkEntryInfo afkEntry in afkCharacterEntries.Where(x => x.EntryType == LogEntryType.AfkStart))
+        foreach (AfkEntryInfo afkStartEntry in afkCharacterEntries.Where(x => x.EntryType == LogEntryType.AfkStart))
         {
             AfkEntryInfo endEntry = afkCharacterEntries
                 .Where(x => x.EntryType == LogEntryType.AfkEnd)
-                .Where(x => afkEntry.Timestamp < x.Timestamp)
-                .Where(x => x.Character.CharacterName == afkEntry.Character.CharacterName)
+                .Where(x => afkStartEntry.Timestamp < x.Timestamp)
+                .Where(x => x.Character.CharacterName == afkStartEntry.Character.CharacterName)
                 .FirstOrDefault();
 
             DateTime endTime = endEntry?.Timestamp ?? DateTime.MaxValue;
 
             AfkEntry afk = new()
             {
-                Character = afkEntry.Character,
-                StartTime = afkEntry.Timestamp,
+                Character = afkStartEntry.Character,
+                StartTime = afkStartEntry.Timestamp,
                 EndTime = endTime,
-                LogLine = afkEntry.LogLine
+                LogLine = afkStartEntry.LogLine
             };
 
             _raidEntries.AfkEntries.Add(afk);
@@ -385,47 +386,40 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         foreach (EqLogFile logFile in logParseResults.EqLogFiles)
         {
-            foreach (EqLogEntry logEntry in logFile.LogEntries.Where(x => x.EntryType == LogEntryType.Crashed))
+            foreach (EqLogEntry crashedLogEntry in logFile.LogEntries.Where(x => x.EntryType == LogEntryType.Crashed))
             {
                 try
                 {
-                    logEntry.Visited = true;
+                    // Add character to any log entries within 10 minutes prior to the :::CRASHED::: message
+                    // (or up to 15 minutes prior if a "Player has left the raid" is found in that time period)
+                    crashedLogEntry.Visited = true;
 
-                    PlayerCharacter crashedCharacter = ExtractCrashedCharacter(logEntry);
+                    PlayerCharacter crashedCharacter = ExtractCrashedCharacter(crashedLogEntry);
                     if (crashedCharacter == null)
-                        continue;
-
-                    CharacterJoinRaidEntry previousLeaveEntry = _raidEntries.CharacterJoinCalls
-                        .Where(x => x.EntryType == LogEntryType.LeftRaid && x.CharacterName == crashedCharacter.CharacterName && x.Timestamp < logEntry.Timestamp)
-                        .MaxBy(x => x.Timestamp);
-
-                    if (previousLeaveEntry == null)
                     {
-                        _raidEntries.AnalysisErrors.Add($"Unable to find previous 'left raid' entry for CRASHED entry: {logEntry.LogLine}");
+                        _raidEntries.AnalysisErrors.Add($"Unable to extract character name when analyzing a CRASHED call: {crashedLogEntry.LogLine}");
                         continue;
                     }
 
-                    DateTime startTimestamp = previousLeaveEntry.Timestamp;
-                    bool isMoreThan30Minutes = (logEntry.Timestamp - previousLeaveEntry.Timestamp) > thirtyMinutes;
-                    if (isMoreThan30Minutes)
+                    DateTime startTimestamp = crashedLogEntry.Timestamp - tenMinutes;
+
+                    // Get previous "Player has left the raid" entry
+                    CharacterJoinRaidEntry previousLeaveEntry = _raidEntries.CharacterJoinCalls
+                        .Where(x => x.EntryType == LogEntryType.LeftRaid && x.CharacterName == crashedCharacter.CharacterName && x.Timestamp < crashedLogEntry.Timestamp)
+                        .MaxBy(x => x.Timestamp);
+
+                    if (previousLeaveEntry != null)
                     {
-                        AttendanceEntry previousTimeAttendance = _raidEntries.AttendanceEntries
-                            .Where(x => x.AttendanceCallType == AttendanceCallType.Time
-                                            && x.Timestamp < logEntry.Timestamp
-                                            && (logEntry.Timestamp - x.Timestamp) < thirtyMinutes)
-                            .MaxBy(x => x.Timestamp);
-
-                        if (previousTimeAttendance == null)
+                        // If the last "Player has left the raid" entry is less than 15 minutes in the past, use that timestamp
+                        bool isLessThan15Minutes = (crashedLogEntry.Timestamp - previousLeaveEntry.Timestamp) < fifteenMinutes;
+                        if (isLessThan15Minutes)
                         {
-                            _raidEntries.AnalysisErrors.Add($"Unable to find previous time attendance for CRASHED entry: {logEntry.LogLine}");
-                            continue;
+                            startTimestamp = previousLeaveEntry.Timestamp;
                         }
-
-                        startTimestamp = previousTimeAttendance.Timestamp;
                     }
 
                     IEnumerable<AttendanceEntry> missingFromAttendanceEnties = _raidEntries.AttendanceEntries
-                        .Where(x => startTimestamp <= x.Timestamp && x.Timestamp < logEntry.Timestamp);
+                        .Where(x => startTimestamp <= x.Timestamp && x.Timestamp < crashedLogEntry.Timestamp);
 
                     foreach (AttendanceEntry entry in missingFromAttendanceEnties)
                     {
@@ -434,8 +428,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 }
                 catch (Exception ex)
                 {
-                    EuropaDkpParserException eex = new("An unexpected error occurred when analyzing a CRASHED call.", logEntry.LogLine, ex);
-                    throw eex;
+                    _raidEntries.AnalysisErrors.Add($"An unexpected error occurred when analyzing a CRASHED call: {crashedLogEntry.LogLine}{Environment.NewLine}    {ex}");
                 }
             }
         }
