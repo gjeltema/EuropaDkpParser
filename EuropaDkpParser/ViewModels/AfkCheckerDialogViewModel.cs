@@ -77,7 +77,7 @@ internal sealed class AfkCheckerDialogViewModel : DialogViewModelBase, IAfkCheck
 
         while (!reviewPlayer)
         {
-            _currentPlayer = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => !_playersReviewed.Contains(x));
+            _currentPlayer = _raidEntries.AllCharactersInRaid.FirstOrDefault(x => !_playersReviewed.Contains(x));
             if (_currentPlayer == null)
             {
                 CloseOk();
@@ -90,15 +90,15 @@ internal sealed class AfkCheckerDialogViewModel : DialogViewModelBase, IAfkCheck
 
             foreach (AttendanceEntry attendance in _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp))
             {
-                PlayerCharacter player = attendance.Players.FirstOrDefault(x => x.PlayerName == _currentPlayer.PlayerName);
+                PlayerCharacter player = attendance.Characters.FirstOrDefault(x => x.CharacterName == _currentPlayer.CharacterName);
                 if (player != null)
                 {
                     PlayerAttendanceEntry playerAttendance = new()
                     {
                         Attendance = attendance,
-                        PlayerName = _currentPlayer.PlayerName,
+                        PlayerName = _currentPlayer.CharacterName,
                         Timestamp = attendance.Timestamp,
-                        IsAfk = attendance.AfkPlayers.Any(x => x.PlayerName == _currentPlayer.PlayerName)
+                        IsAfk = attendance.AfkPlayers.Any(x => x.CharacterName == _currentPlayer.CharacterName)
                     };
 
                     attendances.Add(playerAttendance);
@@ -108,7 +108,7 @@ internal sealed class AfkCheckerDialogViewModel : DialogViewModelBase, IAfkCheck
             if (attendances.Count(x => x.IsAfk) > (_raidEntries.AttendanceEntries.Count / 3.0))
             {
                 reviewPlayer = true;
-                PlayerName = _currentPlayer.PlayerName;
+                PlayerName = _currentPlayer.CharacterName;
                 Attendances.Clear();
                 Attendances.AddRange(attendances);
             }
@@ -122,12 +122,12 @@ internal sealed class AfkCheckerDialogViewModel : DialogViewModelBase, IAfkCheck
 
     private void RemovePlayer()
     {
-        PlayerCharacter player = SelectedPlayerAttendanceEntry.Attendance.Players.FirstOrDefault(x => x.PlayerName == SelectedPlayerAttendanceEntry.PlayerName);
+        PlayerCharacter player = SelectedPlayerAttendanceEntry.Attendance.Characters.FirstOrDefault(x => x.CharacterName == SelectedPlayerAttendanceEntry.PlayerName);
         if (player == null)
             return;
 
-        SelectedPlayerAttendanceEntry.Attendance.Players.Remove(player);
-        RemovedPlayerText = $"Removed {player.PlayerName} from {SelectedPlayerAttendanceEntry.Attendance.CallName}";
+        SelectedPlayerAttendanceEntry.Attendance.Characters.Remove(player);
+        RemovedPlayerText = $"Removed {player.CharacterName} from {SelectedPlayerAttendanceEntry.Attendance.CallName}";
     }
 }
 

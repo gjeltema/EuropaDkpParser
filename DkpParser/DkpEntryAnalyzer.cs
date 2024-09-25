@@ -40,7 +40,7 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
                 return;
         }
 
-        if (!_raidEntries.AllPlayersInRaid.Any(x => x.PlayerName.Equals(dkpEntry.PlayerName, StringComparison.OrdinalIgnoreCase)))
+        if (!_raidEntries.AllCharactersInRaid.Any(x => x.CharacterName.Equals(dkpEntry.PlayerName, StringComparison.OrdinalIgnoreCase)))
         {
             dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
             return;

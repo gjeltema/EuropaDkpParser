@@ -9,7 +9,9 @@ using System.Diagnostics;
 [DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllPlayersInRaid.Count}")]
 public sealed class RaidEntries
 {
-    public ICollection<PlayerCharacter> AllPlayersInRaid { get; set; } = new HashSet<PlayerCharacter>();
+    public ICollection<AfkEntry> AfkEntries { get; } = new List<AfkEntry>();
+
+    public ICollection<PlayerCharacter> AllCharactersInRaid { get; set; } = new HashSet<PlayerCharacter>();
 
     public ICollection<string> AnalysisErrors { get; } = new List<string>();
 
@@ -17,11 +19,11 @@ public sealed class RaidEntries
 
     public ICollection<AttendanceEntry> AttendanceEntries { get; set; } = new List<AttendanceEntry>();
 
+    public ICollection<CharacterJoinRaidEntry> CharacterJoinCalls { get; set; } = new List<CharacterJoinRaidEntry>();
+
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
 
     public TimeSpan ParseTime { get; set; } = TimeSpan.Zero;
-
-    public ICollection<PlayerJoinRaidEntry> PlayerJoinCalls { get; set; } = new List<PlayerJoinRaidEntry>();
 
     public ICollection<PlayerLooted> PlayerLootedEntries { get; set; }
 
@@ -35,14 +37,14 @@ public sealed class RaidEntries
 
     public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)
     {
-        PlayerCharacter currentChar = AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerCharacter.PlayerName);
+        PlayerCharacter currentChar = AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == playerCharacter.CharacterName);
         if (currentChar != null)
         {
             currentChar.Merge(playerCharacter);
         }
         else
         {
-            AllPlayersInRaid.Add(playerCharacter);
+            AllCharactersInRaid.Add(playerCharacter);
         }
     }
 
@@ -69,7 +71,7 @@ public sealed class RaidEntries
         foreach (AttendanceEntry attEntry in AttendanceEntries)
         {
             yield return attEntry.ToString();
-            foreach (PlayerCharacter player in attEntry.Players)
+            foreach (PlayerCharacter player in attEntry.Characters)
             {
                 yield return player.ToDisplayString();
             }
@@ -90,14 +92,20 @@ public sealed class RaidEntries
         yield return "";
 
         yield return "-------------------- All Players Found In Raid -------------------";
-        foreach (PlayerCharacter playerInRaid in AllPlayersInRaid.OrderBy(x => x.PlayerName))
+        foreach (PlayerCharacter playerInRaid in AllCharactersInRaid.OrderBy(x => x.CharacterName))
             yield return playerInRaid.ToDisplayString();
 
         yield return "";
 
         yield return "-------------------- Players Joined or Left Raid -------------------";
-        foreach (PlayerJoinRaidEntry playerJoinedRaid in PlayerJoinCalls.OrderBy(x => x.Timestamp))
+        foreach (CharacterJoinRaidEntry playerJoinedRaid in CharacterJoinCalls.OrderBy(x => x.Timestamp))
             yield return playerJoinedRaid.ToDisplayString();
+
+        yield return "";
+
+        yield return "-------------------- Players Declared AFK -------------------";
+        foreach (AfkEntry afkEntry in AfkEntries.OrderBy(x => x.StartTime))
+            yield return afkEntry.ToDisplayString();
 
         yield return "";
 

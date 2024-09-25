@@ -16,19 +16,19 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
 
     public int Level { get; set; }
 
-    public string PlayerName { get; set; }
+    public string CharacterName { get; set; }
 
     public string Race { get; set; }
 
     private string DebugText
-        => IsAnonymous ? $"{PlayerName} ANON" : $"{PlayerName} {ClassName} {Level}";
+        => IsAnonymous ? $"{CharacterName} ANON" : $"{CharacterName} {ClassName} {Level}";
 
     public static bool Equals(PlayerCharacter a, PlayerCharacter b)
     {
         if (a is null || b is null)
             return false;
 
-        if (a.PlayerName != b.PlayerName)
+        if (a.CharacterName != b.CharacterName)
             return false;
 
         return true;
@@ -41,15 +41,15 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
         => Equals(this, obj as PlayerCharacter);
 
     public override int GetHashCode()
-        => PlayerName.GetHashCode();
+        => CharacterName.GetHashCode();
 
     public void Merge(PlayerCharacter other)
     {
         if (other is null)
             return;
 
-        if (string.IsNullOrEmpty(PlayerName))
-            PlayerName = other.PlayerName;
+        if (string.IsNullOrEmpty(CharacterName))
+            CharacterName = other.CharacterName;
 
         if (string.IsNullOrEmpty(ClassName))
             ClassName = other.ClassName;
@@ -63,8 +63,8 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
 
     public string ToDisplayString()
         => IsAnonymous
-        ? $"{PlayerName} {Constants.AnonWithBrackets}"
-        : $"{PlayerName} [{Level} {ClassName}] ({Race})";
+        ? $"{CharacterName} {Constants.AnonWithBrackets}"
+        : $"{CharacterName} [{Level} {ClassName}] ({Race})";
 
     public override string ToString()
         => ToDisplayString();

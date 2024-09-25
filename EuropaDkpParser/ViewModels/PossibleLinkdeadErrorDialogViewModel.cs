@@ -81,8 +81,8 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
 
     private void AddToAttendance()
     {
-        _currentEntry.AttendanceMissingFrom.Players.Add(_currentEntry.Player);
-        Attendees = _currentEntry.AttendanceMissingFrom.Players.Select(x => x.PlayerName).Order().ToList();
+        _currentEntry.AttendanceMissingFrom.Characters.Add(_currentEntry.Player);
+        Attendees = _currentEntry.AttendanceMissingFrom.Characters.Select(x => x.CharacterName).Order().ToList();
         PlayerAddedMessage = Strings.GetString("PlayerAddedMessage");
     }
 
@@ -104,7 +104,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         }
 
         AttendanceMissingFrom = _currentEntry.AttendanceMissingFrom.ToDisplayString();
-        PlayerName = _currentEntry.Player.PlayerName;
+        PlayerName = _currentEntry.Player.CharacterName;
 
         PopulateAttendancesAndJoins();
     }
@@ -113,8 +113,8 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
     {
         IOrderedEnumerable<AttendanceJoinDisplay> entries = _raidEntries.AttendanceEntries.Select(x => new AttendanceJoinDisplay(x))
             .Union(
-                _raidEntries.PlayerJoinCalls
-                .Where(x => x.PlayerName == _currentEntry.Player.PlayerName)
+                _raidEntries.CharacterJoinCalls
+                .Where(x => x.CharacterName == _currentEntry.Player.CharacterName)
                 .Select(x => new AttendanceJoinDisplay(x))
             )
             .OrderBy(x => x.Timestamp);
@@ -122,7 +122,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         AttendancesAndJoins = entries.ToList();
         SelectedAttendance = AttendancesAndJoins.FirstOrDefault(x => x.Timestamp == _currentEntry.AttendanceMissingFrom.Timestamp);
 
-        Attendees = _currentEntry.AttendanceMissingFrom.Players.Select(x => x.PlayerName).Order().ToList();
+        Attendees = _currentEntry.AttendanceMissingFrom.Characters.Select(x => x.CharacterName).Order().ToList();
     }
 
     private void SetNextButtonText()
@@ -140,10 +140,10 @@ public sealed class AttendanceJoinDisplay
         DisplayString = $"{entry.CallName}\t{entry.ZoneName}";
     }
 
-    public AttendanceJoinDisplay(PlayerJoinRaidEntry entry)
+    public AttendanceJoinDisplay(CharacterJoinRaidEntry entry)
     {
         Timestamp = entry.Timestamp;
-        DisplayString = $"**** {entry.PlayerName} has {(entry.EntryType == LogEntryType.JoinedRaid ? "JOINED" : "LEFT")} the raid ****";
+        DisplayString = $"**** {entry.CharacterName} has {(entry.EntryType == LogEntryType.JoinedRaid ? "JOINED" : "LEFT")} the raid ****";
     }
 
     public string DisplayString { get; set; }

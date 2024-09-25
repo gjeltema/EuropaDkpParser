@@ -70,7 +70,7 @@ public sealed class RaidParticipationFilesParser
 
             PlayerCharacter character = new()
             {
-                PlayerName = characterName,
+                CharacterName = characterName,
                 Level = level,
                 ClassName = className,
             };
@@ -104,7 +104,7 @@ Tester	37	Magician	2024-03-22_09-47-32
 
             PlayerCharacter character = new()
             {
-                PlayerName = characterName,
+                CharacterName = characterName,
                 Level = level,
                 ClassName = className,
             };

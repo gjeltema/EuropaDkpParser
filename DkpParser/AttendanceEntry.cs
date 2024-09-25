@@ -18,7 +18,7 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
     /// </summary>
     public string CallName { get; set; }
 
-    public ICollection<PlayerCharacter> Players { get; set; } = new HashSet<PlayerCharacter>();
+    public ICollection<PlayerCharacter> Characters { get; set; } = new HashSet<PlayerCharacter>();
 
     public PossibleError PossibleError { get; set; }
 
@@ -50,14 +50,14 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
         if (playerCharacter == null)
             return;
 
-        PlayerCharacter currentChar = Players.FirstOrDefault(x => x.PlayerName == playerCharacter.PlayerName);
+        PlayerCharacter currentChar = Characters.FirstOrDefault(x => x.CharacterName == playerCharacter.CharacterName);
         if (currentChar != null)
         {
             currentChar.Merge(playerCharacter);
         }
         else
         {
-            Players.Add(playerCharacter);
+            Characters.Add(playerCharacter);
         }
     }
 

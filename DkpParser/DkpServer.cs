@@ -72,8 +72,8 @@ public sealed class DkpServer : IDkpServer
 
     private string CraftAttendanceString(AttendanceEntry attendanceEntry)
     {
-        IEnumerable<int> memberIds = attendanceEntry.Players
-            .Select(x => x.PlayerName)
+        IEnumerable<int> memberIds = attendanceEntry.Characters
+            .Select(x => x.CharacterName)
             .Select(playerName => _playerIdCache[playerName]);
 
         int eventId = _eventIdCache[attendanceEntry.ZoneName];

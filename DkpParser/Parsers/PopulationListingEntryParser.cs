@@ -31,7 +31,7 @@ internal sealed class PopulationListingEntryParser : IParseEntry
             {
                 LogLine = logLine,
                 Timestamp = entryTimeStamp,
-                EntryType = LogEntryType.PlayerName
+                EntryType = LogEntryType.CharacterName
             };
             _logFile.LogEntries.Add(logEntry);
         }

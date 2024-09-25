@@ -25,7 +25,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
         {
             AttendanceCallType = newCallType,
             CallName = newRaidName,
-            Players = new HashSet<PlayerCharacter>(baseline.Players),
+            Characters = new HashSet<PlayerCharacter>(baseline.Characters),
             RawHeaderLogLine = "<Created Attendance Entry>",
             Timestamp = newAttendanceTimestamp,
             ZoneName = baseline.ZoneName
@@ -57,24 +57,24 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
         }
     }
 
-    private void AddPlayer(AttendanceEntry entry, PlayerJoinRaidEntry playerJoin)
+    private void AddPlayer(AttendanceEntry entry, CharacterJoinRaidEntry playerJoin)
     {
-        if (entry.Players.FirstOrDefault(x => x.PlayerName == playerJoin.PlayerName) == null)
+        if (entry.Characters.FirstOrDefault(x => x.CharacterName == playerJoin.CharacterName) == null)
         {
-            PlayerCharacter playerToAdd = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerJoin.PlayerName);
+            PlayerCharacter playerToAdd = _raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == playerJoin.CharacterName);
             if (playerToAdd != null)
             {
-                entry.Players.Add(playerToAdd);
+                entry.Characters.Add(playerToAdd);
             }
         }
     }
 
     private void ModifyPlayersMovingBackwards(DateTime baselineTimestamp, AttendanceEntry toBeModified, DateTime newAttendanceTimestamp)
     {
-        IList<PlayerJoinRaidEntry> playerJoinedList =
-                _raidEntries.PlayerJoinCalls.Where(x => newAttendanceTimestamp <= x.Timestamp && x.Timestamp < baselineTimestamp).Reverse().ToList();
+        IList<CharacterJoinRaidEntry> playerJoinedList =
+                _raidEntries.CharacterJoinCalls.Where(x => newAttendanceTimestamp <= x.Timestamp && x.Timestamp < baselineTimestamp).Reverse().ToList();
 
-        foreach (PlayerJoinRaidEntry playerJoin in playerJoinedList)
+        foreach (CharacterJoinRaidEntry playerJoin in playerJoinedList)
         {
             if (playerJoin.EntryType == LogEntryType.JoinedRaid)
             {
@@ -94,10 +94,10 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
 
     private void ModifyPlayersMovingForwards(DateTime baselineTimestamp, AttendanceEntry toBeModified, DateTime newAttendanceTimestamp)
     {
-        IEnumerable<PlayerJoinRaidEntry> playerJoinedEnumerable =
-                _raidEntries.PlayerJoinCalls.Where(x => baselineTimestamp <= x.Timestamp && x.Timestamp < newAttendanceTimestamp);
+        IEnumerable<CharacterJoinRaidEntry> playerJoinedEnumerable =
+                _raidEntries.CharacterJoinCalls.Where(x => baselineTimestamp <= x.Timestamp && x.Timestamp < newAttendanceTimestamp);
 
-        foreach (PlayerJoinRaidEntry playerJoin in playerJoinedEnumerable)
+        foreach (CharacterJoinRaidEntry playerJoin in playerJoinedEnumerable)
         {
             if (playerJoin.EntryType == LogEntryType.JoinedRaid)
             {
@@ -115,12 +115,12 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
         }
     }
 
-    private void RemovePlayer(AttendanceEntry entry, PlayerJoinRaidEntry playerJoin)
+    private void RemovePlayer(AttendanceEntry entry, CharacterJoinRaidEntry playerJoin)
     {
-        PlayerCharacter playerToRemove = entry.Players.FirstOrDefault(x => x.PlayerName == playerJoin.PlayerName);
+        PlayerCharacter playerToRemove = entry.Characters.FirstOrDefault(x => x.CharacterName == playerJoin.CharacterName);
         if (playerToRemove != null)
         {
-            entry.Players.Remove(playerToRemove);
+            entry.Characters.Remove(playerToRemove);
         }
     }
 }

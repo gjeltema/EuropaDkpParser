@@ -9,7 +9,7 @@ using System.Diagnostics;
 internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 {
     private static readonly TimeSpan thirtyMinutes = TimeSpan.FromMinutes(30);
-    private readonly List<PlayerAttend> _playersAttending = [];
+    private readonly List<CharacterAttend> _charactersAttending = [];
     private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly IDkpParserSettings _settings;
     private readonly List<ZoneNameInfo> _zones = [];
@@ -23,24 +23,25 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     public void AnalyzeAttendanceCalls(LogParseResults logParseResults, RaidEntries raidEntries)
     {
         _raidEntries = raidEntries;
-        PopulatePlayerAttends(logParseResults);
+        PopulateCharacterAttends(logParseResults);
         PopulateZoneNames(logParseResults);
 
         AnalyzeLogFilesAttendanceCalls(logParseResults);
         HandleCrashedEntries(logParseResults);
+        HandleAfkTags(logParseResults);
     }
 
-    private void AddPlayersFromPlayersAttending(EqLogEntry logEntry, AttendanceEntry call)
+    private void AddCharactersFromCharactersAttending(EqLogEntry logEntry, AttendanceEntry call)
     {
-        foreach (PlayerAttend player in _playersAttending.Where(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp)))
+        foreach (CharacterAttend character in _charactersAttending.Where(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp)))
         {
-            call.AddOrMergeInPlayerCharacter(new PlayerCharacter { PlayerName = player.PlayerName });
-            if (player.IsAfk)
+            call.AddOrMergeInPlayerCharacter(new PlayerCharacter { CharacterName = character.CharacterName });
+            if (character.IsAfk)
             {
-                PlayerCharacter afkPlayer = call.Players.FirstOrDefault(x => x.PlayerName == player.PlayerName);
-                if (afkPlayer != null)
+                PlayerCharacter afkCharacter = call.Characters.FirstOrDefault(x => x.CharacterName == character.CharacterName);
+                if (afkCharacter != null)
                 {
-                    call.AfkPlayers.Add(afkPlayer);
+                    call.AfkPlayers.Add(afkCharacter);
                 }
             }
         }
@@ -52,9 +53,9 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         if (raidDump == null)
             return;
 
-        foreach (PlayerCharacter player in raidDump.Characters)
+        foreach (PlayerCharacter character in raidDump.Characters)
         {
-            call.AddOrMergeInPlayerCharacter(player);
+            call.AddOrMergeInPlayerCharacter(character);
         }
     }
 
@@ -64,9 +65,9 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         if (raidList == null)
             return;
 
-        foreach (PlayerCharacter player in raidList.CharacterNames)
+        foreach (PlayerCharacter character in raidList.CharacterNames)
         {
-            call.AddOrMergeInPlayerCharacter(player);
+            call.AddOrMergeInPlayerCharacter(character);
         }
     }
 
@@ -95,13 +96,13 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
                     AddRaidListMembers(logParseResults, logEntry, call);
 
-                    AddPlayersFromPlayersAttending(logEntry, call);
+                    AddCharactersFromCharactersAttending(logEntry, call);
 
-                    UpdatePlayerInfo(call);
+                    UpdateCharacterInfo(call);
 
                     SetZoneName(logEntry, call);
 
-                    if (call.Players.Count > 1)
+                    if (call.Characters.Count > 1)
                         _raidEntries.AttendanceEntries.Add(call);
                 }
                 catch (Exception ex)
@@ -113,7 +114,61 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
     }
 
-    private PlayerAttend ExtractAttendingPlayer(EqLogEntry entry)
+    private void CreateAfkEntries(List<AfkEntryInfo> afkCharacterEntries)
+    {
+        foreach (AfkEntryInfo afkEntry in afkCharacterEntries.Where(x => x.EntryType == LogEntryType.AfkStart))
+        {
+            AfkEntryInfo endEntry = afkCharacterEntries
+                .Where(x => x.EntryType == LogEntryType.AfkEnd)
+                .Where(x => afkEntry.Timestamp < x.Timestamp)
+                .Where(x => x.Character.CharacterName == afkEntry.Character.CharacterName)
+                .FirstOrDefault();
+
+            DateTime endTime = endEntry?.Timestamp ?? DateTime.MaxValue;
+
+            AfkEntry afk = new()
+            {
+                Character = afkEntry.Character,
+                StartTime = afkEntry.Timestamp,
+                EndTime = endTime,
+                LogLine = afkEntry.LogLine
+            };
+
+            _raidEntries.AfkEntries.Add(afk);
+        }
+    }
+
+    private PlayerCharacter ExtractAfkStartOrEndCharacter(EqLogEntry logEntry)
+    {
+        // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::AFK:::'
+        // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::AFKEND:::'
+
+        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.AfkStart.Length + Constants.RaidOther.Length + 5)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get character name in {Constants.AfkStart} or {Constants.AfkEnd} entry: {logEntry.LogLine}");
+            return null;
+        }
+
+        string linePastTimestamp = logEntry.LogLine[(Constants.LogDateTimeLength + 1)..];
+        string[] parts = linePastTimestamp.Split(' ');
+        if (parts.Length < 4)
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get character name in {Constants.AfkStart} or {Constants.AfkEnd} entry: {logEntry.LogLine}");
+            return null;
+        }
+
+        string characterName = parts[0].Trim();
+        if (string.IsNullOrEmpty(characterName))
+        {
+            _raidEntries.AnalysisErrors.Add($"Unable get character name in {Constants.AfkStart} or {Constants.AfkEnd} entry: {logEntry.LogLine}");
+            return null;
+        }
+
+        PlayerCharacter character = _raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == characterName);
+        return character;
+    }
+
+    private CharacterAttend ExtractAttendingCharacter(EqLogEntry entry)
     {
         // [Sun Mar 17 21:27:54 2024]  AFK [50 Bard] Grindcore (Half Elf) <Europa>
         // [Tue Mar 19 20:30:56 2024]  AFK [ANONYMOUS] Ecliptor  <Europa>
@@ -128,9 +183,9 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         if (indexOfLastBracket < 0)
         {
             // Should not reach here.
-            Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayer)} that should not be reached. No ']'.  Logline: {entry.LogLine}");
-            _raidEntries.AnalysisErrors.Add($"Unable to extract attending player. No ']'.: {entry.LogLine}");
-            return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
+            Debug.Fail($"Reached a place in {nameof(ExtractAttendingCharacter)} that should not be reached. No ']'.  Logline: {entry.LogLine}");
+            _raidEntries.AnalysisErrors.Add($"Unable to extract attending character. No ']'.: {entry.LogLine}");
+            return new CharacterAttend { CharacterName = "UNKNOWN", Timestamp = entry.Timestamp };
         }
 
         int firstIndexOfEndMarker = logLineNoTimestamp.LastIndexOf('(');
@@ -140,60 +195,60 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             if (firstIndexOfEndMarker < 0)
             {
                 // Should not reach here.
-                Debug.Fail($"Reached a place in {nameof(ExtractAttendingPlayer)} that should not be reached. No '(' or '<'.  Logline: {entry.LogLine}");
-                _raidEntries.AnalysisErrors.Add($"Unable to extract attending player. No '(' or '<'.: {entry.LogLine}");
-                return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
+                Debug.Fail($"Reached a place in {nameof(ExtractAttendingCharacter)} that should not be reached. No '(' or '<'.  Logline: {entry.LogLine}");
+                _raidEntries.AnalysisErrors.Add($"Unable to extract attending character. No '(' or '<'.: {entry.LogLine}");
+                return new CharacterAttend { CharacterName = "UNKNOWN", Timestamp = entry.Timestamp };
             }
         }
 
-        string playerName = logLineNoTimestamp[(indexOfLastBracket + 1)..firstIndexOfEndMarker].Trim();
-        if (string.IsNullOrEmpty(playerName))
+        string characterName = logLineNoTimestamp[(indexOfLastBracket + 1)..firstIndexOfEndMarker].Trim();
+        if (string.IsNullOrEmpty(characterName))
         {
-            _raidEntries.AnalysisErrors.Add($"Unable to get player name from 'who' entry: {entry.LogLine}");
-            return new PlayerAttend { PlayerName = "UNKNOWN", Timestamp = entry.Timestamp };
+            _raidEntries.AnalysisErrors.Add($"Unable to get character name from 'who' entry: {entry.LogLine}");
+            return new CharacterAttend { CharacterName = "UNKNOWN", Timestamp = entry.Timestamp };
         }
 
-        PlayerCharacter character = new() { PlayerName = playerName };
+        PlayerCharacter character = new() { CharacterName = characterName };
 
         if (logLineNoTimestamp.Contains(Constants.AnonWithBrackets))
         {
             _raidEntries.AddOrMergeInPlayerCharacter(character);
-            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+            return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
         int indexOfLeadingClassBracket = logLineNoTimestamp.LastIndexOf('[');
         if (indexOfLeadingClassBracket < 0)
         {
             _raidEntries.AnalysisErrors.Add($"Unable to find leading '[' in 'who' entry: {entry.LogLine}");
-            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+            return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
         string classLevelString = logLineNoTimestamp[(indexOfLeadingClassBracket + 1)..indexOfLastBracket];
         if (string.IsNullOrWhiteSpace(classLevelString))
         {
             _raidEntries.AnalysisErrors.Add($"Unable to get class and level in 'who' entry: {entry.LogLine}");
-            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+            return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
         string[] classAndLevel = classLevelString.Split(' ');
         if (classAndLevel.Length < 2)
         {
             _raidEntries.AnalysisErrors.Add($"Unable to get class and level in 'who' entry: {entry.LogLine}");
-            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+            return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
         int indexOfLastParens = logLineNoTimestamp.LastIndexOf(')');
         if (indexOfLastParens < 0)
         {
             _raidEntries.AnalysisErrors.Add($"Unable to find trailing ')' in 'who' entry: {entry.LogLine}");
-            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+            return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
         string race = logLineNoTimestamp[(firstIndexOfEndMarker + 1)..indexOfLastParens];
         if (string.IsNullOrWhiteSpace(race))
         {
             _raidEntries.AnalysisErrors.Add($"Unable to get race in 'who' entry: {entry.LogLine}");
-            return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp };
+            return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
         character.ClassName = classAndLevel.Length > 2 ? string.Join(" ", classAndLevel[1], classAndLevel[2]) : classAndLevel[1];
@@ -202,16 +257,16 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         _raidEntries.AddOrMergeInPlayerCharacter(character);
 
         bool isAfk = logLineNoTimestamp.Contains(Constants.Afk);
-        return new PlayerAttend { PlayerName = playerName, Timestamp = entry.Timestamp, IsAfk = isAfk };
+        return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp, IsAfk = isAfk };
     }
 
-    private PlayerCharacter ExtractCrashedPlayer(EqLogEntry logEntry)
+    private PlayerCharacter ExtractCrashedCharacter(EqLogEntry logEntry)
     {
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::CRASHED:::'
 
         if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.Crashed.Length + Constants.RaidOther.Length + 5)
         {
-            _raidEntries.AnalysisErrors.Add($"Unable get player name in CRASHED entry: {logEntry.LogLine}");
+            _raidEntries.AnalysisErrors.Add($"Unable get character name in CRASHED entry: {logEntry.LogLine}");
             return null;
         }
 
@@ -219,18 +274,18 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         string[] parts = linePastTimestamp.Split(' ');
         if (parts.Length < 4)
         {
-            _raidEntries.AnalysisErrors.Add($"Unable get player name in CRASHED entry: {logEntry.LogLine}");
+            _raidEntries.AnalysisErrors.Add($"Unable get character name in CRASHED entry: {logEntry.LogLine}");
             return null;
         }
 
-        string playerName = parts[0].Trim();
-        if (string.IsNullOrEmpty(playerName))
+        string characterName = parts[0].Trim();
+        if (string.IsNullOrEmpty(characterName))
         {
-            _raidEntries.AnalysisErrors.Add($"Unable get player name in CRASHED entry: {logEntry.LogLine}");
+            _raidEntries.AnalysisErrors.Add($"Unable get character name in CRASHED entry: {logEntry.LogLine}");
             return null;
         }
 
-        PlayerCharacter character = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerName);
+        PlayerCharacter character = _raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == characterName);
         return character;
     }
 
@@ -263,6 +318,38 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return new() { ZoneName = zoneName, Timestamp = entry.Timestamp };
     }
 
+    private List<AfkEntryInfo> GetAfkDeclarationEntries(LogParseResults logParseResults)
+    {
+        List<AfkEntryInfo> afkCharacterEntries = [];
+
+        foreach (EqLogFile logFile in logParseResults.EqLogFiles)
+        {
+            foreach (EqLogEntry logEntry in logFile.LogEntries.Where(x => x.EntryType == LogEntryType.AfkStart || x.EntryType == LogEntryType.AfkEnd))
+            {
+                try
+                {
+                    logEntry.Visited = true;
+
+                    PlayerCharacter afkCharacter = ExtractAfkStartOrEndCharacter(logEntry);
+                    if (afkCharacter == null)
+                        continue;
+
+                    AfkEntryInfo characterAfkEntry = new() { Character = afkCharacter, EntryType = logEntry.EntryType, Timestamp = logEntry.Timestamp, LogLine = logEntry.LogLine };
+
+                    afkCharacterEntries.Add(characterAfkEntry);
+                }
+                catch (Exception ex)
+                {
+                    _raidEntries.AnalysisErrors.Add(
+                        $"An unexpected error occurred when analyzing an {Constants.AfkStart} or {Constants.AfkEnd} call: {logEntry.LogLine}{Environment.NewLine}    {ex}");
+                }
+            }
+        }
+
+        afkCharacterEntries = afkCharacterEntries.OrderBy(x => x.Timestamp).ToList();
+        return afkCharacterEntries;
+    }
+
     private AttendanceEntry GetAssociatedLogEntry(AttendanceEntry call)
     {
         AttendanceEntry lastOneFound = null;
@@ -278,6 +365,22 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return lastOneFound;
     }
 
+    private void HandleAfkTags(LogParseResults logParseResults)
+    {
+        List<AfkEntryInfo> afkCharacterEntries = GetAfkDeclarationEntries(logParseResults);
+
+        CreateAfkEntries(afkCharacterEntries);
+
+        foreach (AfkEntry afk in _raidEntries.AfkEntries)
+        {
+            IEnumerable<AttendanceEntry> relatedAttendances = _raidEntries.AttendanceEntries.Where(x => afk.StartTime <= x.Timestamp && x.Timestamp <= afk.EndTime);
+            foreach (AttendanceEntry attendance in relatedAttendances)
+            {
+                attendance.Characters.Remove(afk.Character);
+            }
+        }
+    }
+
     private void HandleCrashedEntries(LogParseResults logParseResults)
     {
         foreach (EqLogFile logFile in logParseResults.EqLogFiles)
@@ -288,12 +391,12 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 {
                     logEntry.Visited = true;
 
-                    PlayerCharacter crashedPlayer = ExtractCrashedPlayer(logEntry);
-                    if (crashedPlayer == null)
+                    PlayerCharacter crashedCharacter = ExtractCrashedCharacter(logEntry);
+                    if (crashedCharacter == null)
                         continue;
 
-                    PlayerJoinRaidEntry previousLeaveEntry = _raidEntries.PlayerJoinCalls
-                        .Where(x => x.EntryType == LogEntryType.LeftRaid && x.PlayerName == crashedPlayer.PlayerName && x.Timestamp < logEntry.Timestamp)
+                    CharacterJoinRaidEntry previousLeaveEntry = _raidEntries.CharacterJoinCalls
+                        .Where(x => x.EntryType == LogEntryType.LeftRaid && x.CharacterName == crashedCharacter.CharacterName && x.Timestamp < logEntry.Timestamp)
                         .MaxBy(x => x.Timestamp);
 
                     if (previousLeaveEntry == null)
@@ -326,7 +429,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
                     foreach (AttendanceEntry entry in missingFromAttendanceEnties)
                     {
-                        entry.AddOrMergeInPlayerCharacter(crashedPlayer);
+                        entry.AddOrMergeInPlayerCharacter(crashedCharacter);
                     }
                 }
                 catch (Exception ex)
@@ -356,15 +459,15 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return false;
     }
 
-    private void PopulatePlayerAttends(LogParseResults logParseResults)
+    private void PopulateCharacterAttends(LogParseResults logParseResults)
     {
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-            IEnumerable<PlayerAttend> players = log.LogEntries
-                .Where(x => x.EntryType == LogEntryType.PlayerName)
-                .Select(ExtractAttendingPlayer);
+            IEnumerable<CharacterAttend> characters = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.CharacterName)
+                .Select(ExtractAttendingCharacter);
 
-            _playersAttending.AddRange(players);
+            _charactersAttending.AddRange(characters);
         }
     }
 
@@ -435,34 +538,49 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
     }
 
-    private void UpdatePlayerInfo(AttendanceEntry call)
+    private void UpdateCharacterInfo(AttendanceEntry call)
     {
-        foreach (PlayerCharacter player in call.Players)
+        foreach (PlayerCharacter characterInCall in call.Characters)
         {
-            PlayerCharacter character = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == player.PlayerName);
-            if (character != null)
+            PlayerCharacter characterInRaid = _raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == characterInCall.CharacterName);
+            if (characterInRaid != null)
             {
-                player.Merge(character);
+                characterInCall.Merge(characterInRaid);
             }
             else // Shouldnt reach here
             {
-                Debug.Fail($"No PlayerCharacter found in {nameof(UpdatePlayerInfo)}. Playername: {player.PlayerName}");
-                _raidEntries.AnalysisErrors.Add($"No player character found in AllPlayers collection to update player info: {player.PlayerName}");
+                Debug.Fail($"No PlayerCharacter found in {nameof(UpdateCharacterInfo)}. Character Name: {characterInCall.CharacterName}");
+                _raidEntries.AnalysisErrors.Add($"No character found in AllCharacters collection to update character info: {characterInCall.CharacterName}");
             }
         }
     }
 
-    [DebuggerDisplay("{DebugText}")]
-    private sealed class PlayerAttend
+    [DebuggerDisplay("{DebugDisplay}")]
+    private sealed class AfkEntryInfo
     {
-        public bool IsAfk { get; init; }
+        public PlayerCharacter Character { get; init; }
 
-        public string PlayerName { get; init; }
+        public LogEntryType EntryType { get; init; }
+
+        public string LogLine { get; init; }
 
         public DateTime Timestamp { get; init; }
 
         private string DebugText
-            => $"{PlayerName} {Timestamp:HHmmss}";
+        => $"{Character.CharacterName} {EntryType} {Timestamp:HH:mm:ss}";
+    }
+
+    [DebuggerDisplay("{DebugText}")]
+    private sealed class CharacterAttend
+    {
+        public string CharacterName { get; init; }
+
+        public bool IsAfk { get; init; }
+
+        public DateTime Timestamp { get; init; }
+
+        private string DebugText
+            => $"{CharacterName} {Timestamp:HHmmss}";
     }
 
     [DebuggerDisplay("{DebugText}")]

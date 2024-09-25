@@ -3,15 +3,17 @@
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
+
 public static class EqLogLine
 {
     public static string CharacterListing(DateTime timeStamp, string characterName, string characterRace, int level, string className, bool isAnonymous)
     {
         string race = string.IsNullOrEmpty(characterRace) ? "Unknown" : characterRace;
 
+        // Two spaces before the guild name are intentional when anonymous, it's how the game does it
         return isAnonymous
-            ? $"{Constants.AnonWithBrackets} {characterName}  <Europa>"
-            : $"[{level} {className}] {characterName} ({race}) <Europa>";
+            ? $"{ToEqlogTimestamp(timeStamp)} {Constants.AnonWithBrackets} {characterName}  <Europa>"
+            : $"{ToEqlogTimestamp(timeStamp)} [{level} {className}] {characterName} ({race}) <Europa>";
     }
 
     public static string LogMessage(DateTime timestamp, string message)

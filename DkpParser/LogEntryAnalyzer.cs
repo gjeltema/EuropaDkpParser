@@ -117,11 +117,11 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         // For each player in the raid, find any attendances they're missing from.
         List<AttendanceEntry> orderedAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
-        foreach (PlayerCharacter player in _raidEntries.AllPlayersInRaid)
+        foreach (PlayerCharacter player in _raidEntries.AllCharactersInRaid)
         {
             // If they are present in the Time attendance before and after, then put them up for review.
             // Dont bother with the first and last attendance calls of the raid - too many false positives.
-            IEnumerable<AttendanceEntry> attendancesMissingFrom = _raidEntries.AttendanceEntries.Where(x => !x.Players.Contains(player));
+            IEnumerable<AttendanceEntry> attendancesMissingFrom = _raidEntries.AttendanceEntries.Where(x => !x.Characters.Contains(player));
             foreach (AttendanceEntry attendance in attendancesMissingFrom)
             {
                 try
@@ -140,8 +140,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     if (nextAttendance == null)
                         continue;
 
-                    bool playerInPreviousAttendance = previousAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
-                    bool playerInNextAttendance = nextAttendance.Players.Any(x => x.PlayerName == player.PlayerName);
+                    bool playerInPreviousAttendance = previousAttendance.Characters.Any(x => x.CharacterName == player.CharacterName);
+                    bool playerInNextAttendance = nextAttendance.Characters.Any(x => x.CharacterName == player.CharacterName);
 
                     if (playerInPreviousAttendance && playerInNextAttendance)
                     {
@@ -157,9 +157,9 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
             // Check in between a Joined and Left call to see if the player is missing from any of the attendances in between.  Limit the time between
             // Joined and Left calls to 20 minutes.
-            List<PlayerJoinRaidEntry> playerJoinedCalls = _raidEntries.PlayerJoinCalls.Where(x => x.PlayerName == player.PlayerName).OrderBy(x => x.Timestamp).ToList();
-            PlayerJoinRaidEntry lastJoined = null;
-            foreach (PlayerJoinRaidEntry playerJoinCall in playerJoinedCalls)
+            List<CharacterJoinRaidEntry> playerJoinedCalls = _raidEntries.CharacterJoinCalls.Where(x => x.CharacterName == player.CharacterName).OrderBy(x => x.Timestamp).ToList();
+            CharacterJoinRaidEntry lastJoined = null;
+            foreach (CharacterJoinRaidEntry playerJoinCall in playerJoinedCalls)
             {
                 if (playerJoinCall.EntryType == LogEntryType.JoinedRaid)
                 {
@@ -179,7 +179,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                             foreach (AttendanceEntry missingAttendance in missingAttendancesInBetween)
                             {
                                 PlayerPossibleLinkdead existingAttendance = _raidEntries.PossibleLinkdeads
-                                    .FirstOrDefault(x => x.Player.PlayerName == player.PlayerName && x.AttendanceMissingFrom == missingAttendance);
+                                    .FirstOrDefault(x => x.Player.CharacterName == player.CharacterName && x.AttendanceMissingFrom == missingAttendance);
                                 if (existingAttendance != null)
                                 {
                                     _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = missingAttendance });
@@ -239,7 +239,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         CheckPotentialLinkdeads();
     }
 
-    private PlayerJoinRaidEntry ExtractePlayerJoin(EqLogEntry entry)
+    private CharacterJoinRaidEntry ExtractePlayerJoin(EqLogEntry entry)
     {
         // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
         // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
@@ -286,9 +286,9 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             return null;
         }
 
-        return new PlayerJoinRaidEntry
+        return new CharacterJoinRaidEntry
         {
-            PlayerName = playerName.Trim(),
+            CharacterName = playerName.Trim(),
             Timestamp = entry.Timestamp,
             EntryType = entry.EntryType
         };
@@ -375,7 +375,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
             IEnumerable<PlayerLooted> playersLooted = log.LogEntries
-                .Where(x => x.EntryType == LogEntryType.PlayerLooted)
+                .Where(x => x.EntryType == LogEntryType.CharacterLooted)
                 .Select(ExtractPlayerLooted)
                 .Where(x => x != null);
 
@@ -406,10 +406,10 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void PopulateRaidJoin(LogParseResults logParseResults)
     {
-        List<PlayerJoinRaidEntry> joins = [];
+        List<CharacterJoinRaidEntry> joins = [];
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
-            IEnumerable<PlayerJoinRaidEntry> playersJoined = log.LogEntries
+            IEnumerable<CharacterJoinRaidEntry> playersJoined = log.LogEntries
                 .Where(x => x.EntryType == LogEntryType.JoinedRaid || x.EntryType == LogEntryType.LeftRaid)
                 .Select(ExtractePlayerJoin)
                 .Where(x => x != null);
@@ -417,7 +417,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             joins.AddRange(playersJoined);
         }
 
-        _raidEntries.PlayerJoinCalls = joins;
+        _raidEntries.CharacterJoinCalls = joins;
     }
 }
 
@@ -431,7 +431,7 @@ public sealed class PlayerPossibleLinkdead
     public PlayerCharacter Player { get; init; }
 
     private string DebugDisplay
-        => $"{Player.PlayerName} {AttendanceMissingFrom}";
+        => $"{Player.CharacterName} {AttendanceMissingFrom}";
 }
 
 public interface ILogEntryAnalyzer

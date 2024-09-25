@@ -23,8 +23,8 @@ public sealed class RaidUploader : IRaidUpload
 
         RaidUploadResults results = new();
 
-        IEnumerable<string> allPlayerNames = raidEntries.AllPlayersInRaid
-            .Select(x => x.PlayerName)
+        IEnumerable<string> allPlayerNames = raidEntries.AllCharactersInRaid
+            .Select(x => x.CharacterName)
             .Union(raidEntries.DkpEntries.Select(x => x.PlayerName));
 
         IEnumerable<string> zoneNames = raidEntries.AttendanceEntries.Select(x => x.ZoneName).Distinct();
@@ -57,7 +57,7 @@ public sealed class RaidUploader : IRaidUpload
     {
         foreach (AttendanceEntry attendance in attendanceEntries)
         {
-            if (attendance.Players.Count > 1)
+            if (attendance.Characters.Count > 1)
             {
                 _debugInfo.AddDebugMessage($"----- Beginning upload process of {attendance}.");
 

@@ -260,7 +260,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         RaidEntries entriesToUpload = new();
 
         entriesToUpload.AttendanceEntries = SelectedAttendances;
-        entriesToUpload.AllPlayersInRaid = _raidEntries.AllPlayersInRaid;
+        entriesToUpload.AllCharactersInRaid = _raidEntries.AllCharactersInRaid;
 
         return entriesToUpload;
     }
@@ -285,17 +285,17 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
     private void RemovePlayerFromAttendances(string playerName)
     {
-        PlayerCharacter playerChar = _raidEntries.AllPlayersInRaid.FirstOrDefault(x => x.PlayerName == playerName);
+        PlayerCharacter playerChar = _raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == playerName);
         if (playerChar == null)
             return;
 
-        IEnumerable<AttendanceEntry> attendancesToRemoveFrom = _raidEntries.AttendanceEntries.Where(x => x.Players.Contains(playerChar));
+        IEnumerable<AttendanceEntry> attendancesToRemoveFrom = _raidEntries.AttendanceEntries.Where(x => x.Characters.Contains(playerChar));
         foreach (AttendanceEntry attendance in attendancesToRemoveFrom)
         {
-            attendance.Players.Remove(playerChar);
+            attendance.Characters.Remove(playerChar);
         }
 
-        _raidEntries.AllPlayersInRaid.Remove(playerChar);
+        _raidEntries.AllCharactersInRaid.Remove(playerChar);
     }
 
     private void RemoveSelectedAttendance()

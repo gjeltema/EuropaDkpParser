@@ -46,16 +46,16 @@ public sealed class BonusDkpAnalyzer : IBonusDkpAnalyzer
             Timestamp = lastTimestamp.AddMinutes(10),
         };
 
-        foreach (PlayerCharacter player in raidEntries.AllPlayersInRaid)
+        foreach (PlayerCharacter player in raidEntries.AllCharactersInRaid)
         {
-            int numberOfAttendances = raidEntries.AttendanceEntries.Count(x => x.Players.Contains(player));
+            int numberOfAttendances = raidEntries.AttendanceEntries.Count(x => x.Characters.Contains(player));
             if (numberOfAttendances >= numberOfRaidsToGetBonus)
             {
                 bonusEntry.AddOrMergeInPlayerCharacter(player);
             }
         }
 
-        if (bonusEntry.Players.Count > 1)
+        if (bonusEntry.Characters.Count > 1)
         {
             raidEntries.AttendanceEntries.Add(bonusEntry);
         }

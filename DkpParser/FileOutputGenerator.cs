@@ -61,12 +61,12 @@ public sealed class FileOutputGenerator : IOutputGenerator
         yield return EqLogLine.LogMessage(call.Timestamp, Constants.PlayersOnEverquest);
         yield return EqLogLine.LogMessage(call.Timestamp, Constants.Dashes);
 
-        foreach (PlayerCharacter player in call.Players.OrderBy(x => x.PlayerName))
+        foreach (PlayerCharacter player in call.Characters.OrderBy(x => x.CharacterName))
         {
-            yield return EqLogLine.CharacterListing(call.Timestamp, player.PlayerName, player.Race, player.Level, player.ClassName, player.IsAnonymous);
+            yield return EqLogLine.CharacterListing(call.Timestamp, player.CharacterName, player.Race, player.Level, player.ClassName, player.IsAnonymous);
         }
 
-        yield return EqLogLine.ZonePlayers(call.Timestamp, call.Players.Count, call.ZoneName);
+        yield return EqLogLine.ZonePlayers(call.Timestamp, call.Characters.Count, call.ZoneName);
     }
 
     private void CreateDkpEntries(RaidEntries raidEntries, List<string> outputContents, RaidInfo raid)

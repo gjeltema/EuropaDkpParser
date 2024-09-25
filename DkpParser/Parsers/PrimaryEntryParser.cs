@@ -95,7 +95,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
     private void AddLootedEntry(string logLine, DateTime entryTimeStamp)
     {
         EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
-        logEntry.EntryType = LogEntryType.PlayerLooted;
+        logEntry.EntryType = LogEntryType.CharacterLooted;
         _logFile.LogEntries.Add(logEntry);
     }
 
