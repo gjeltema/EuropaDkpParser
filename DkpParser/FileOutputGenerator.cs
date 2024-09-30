@@ -57,7 +57,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
             ? $"{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}"
             : $"{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}";
 
-        yield return EqLogLine.LogMessage(call.Timestamp, header);
+        yield return EqLogLine.YouTellRaid(call.Timestamp, header);
         yield return EqLogLine.LogMessage(call.Timestamp, Constants.PlayersOnEverquest);
         yield return EqLogLine.LogMessage(call.Timestamp, Constants.Dashes);
 

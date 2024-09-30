@@ -17,7 +17,7 @@ public static class EqLogLine
     }
 
     public static string LogMessage(DateTime timestamp, string message)
-        => $"{ToEqlogTimestamp(timestamp)} {message}'";
+        => $"{ToEqlogTimestamp(timestamp)} {message}";
 
     public static string OtherTellsAuction(DateTime timestamp, string characterName, string message)
         => $"{ToEqlogTimestamp(timestamp)} {characterName}{Constants.AuctionOther}{message}'";
@@ -31,7 +31,7 @@ public static class EqLogLine
     // Adding a space and ' here after Constants.RaidOther.  Currently the game has a bug where it has 2 spaces afterwards.
     // Keeping the constant with one space in case they ever fix it.  If they do ever fix it, need to remove this space.
     /// <summary>
-    /// [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
+    /// [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  ':::Belt of the Pine::: huggin 3 DKPSPENT'
     /// </summary>
     public static string OtherTellsRaid(DateTime timestamp, string characterName, string message)
         => $"{ToEqlogTimestamp(timestamp)} {characterName}{Constants.RaidOther} '{message}'";

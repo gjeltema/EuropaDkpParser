@@ -333,6 +333,9 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
     private IEnumerable<UploadErrorDisplay> SetDisplayedErrorMessages(RaidUploadResults uploadResults)
     {
+        if (uploadResults.NoRaidAttendancesFoundError)
+            yield return new UploadErrorDisplay { NoAttendances = true };
+
         if (uploadResults.EventIdCallFailure != null)
             yield return new UploadErrorDisplay { EventIdCallFailure = uploadResults.EventIdCallFailure };
 
@@ -374,11 +377,15 @@ public sealed class UploadErrorDisplay
 
     public CharacterIdFailure FailedCharacterIdRetrieval { get; init; }
 
+    public bool NoAttendances { get; init; }
+
     public Exception UnexpectedError { get; init; }
 
     public override sealed string ToString()
     {
-        if (EventIdCallFailure != null)
+        if (NoAttendances)
+            return $"No attendances were found, not attempting to perform upload.";
+        else if (EventIdCallFailure != null)
             return $"Failed to get listing of all event IDs from DKP server: {EventIdCallFailure.Message}";
         else if (FailedCharacterIdRetrieval != null)
             return $"Failed to get character ID for {PlayerDelimiter}{FailedCharacterIdRetrieval.PlayerName}{PlayerDelimiter}, likely character does not exist on DKP server";

@@ -23,6 +23,12 @@ public sealed class RaidUploader : IRaidUpload
 
         RaidUploadResults results = new();
 
+        if (raidEntries.AttendanceEntries.Count == 0)
+        {
+            results.NoRaidAttendancesFoundError = true;
+            return results;
+        }
+
         IEnumerable<string> allPlayerNames = raidEntries.AllCharactersInRaid
             .Select(x => x.CharacterName)
             .Union(raidEntries.DkpEntries.Select(x => x.PlayerName));
@@ -130,6 +136,8 @@ public sealed class RaidUploadResults
 
     public bool HasInitializationError
         => EventIdCallFailure != null || FailedCharacterIdRetrievals.Count > 0 || EventIdNotFoundErrors.Count > 0;
+
+    public bool NoRaidAttendancesFoundError { get; set; }
 }
 
 [DebuggerDisplay("{Attendance}")]
