@@ -181,9 +181,10 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 
             // [Fri Mar 01 21:49:34 2024] Klawse tells you, 'need key'
             // [Fri Mar 01 21:55:29 2024] You told Klawse, 'I cant do anything with the raid window.'
+            // [Thu Oct 24 00:02:39 2024] You told Shaper '[queued], You're in WC.  If you come to EC, I can tag you.'
             foreach (string person in _peopleConversingWith)
             {
-                if (logLine.Contains($"{Constants.YouToldSearch}{person}, '", StringComparison.OrdinalIgnoreCase)
+                if (logLine.Contains($"{Constants.YouToldSearch}{person}", StringComparison.OrdinalIgnoreCase)
                     || logLine.Contains($"] {person}{Constants.TellsYou}", StringComparison.OrdinalIgnoreCase))
                 {
                     eqLogEntry = new()

@@ -38,9 +38,12 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
         {
             _logFile = logFile;
 
+            // [Fri Mar 01 21:49:34 2024] Klawse tells you, 'need key'
+            // [Fri Mar 01 21:55:29 2024] You told Klawse, 'I cant do anything with the raid window.'
+            // [Thu Oct 24 00:02:39 2024] You told Shaper '[queued], You're in WC.  If you come to EC, I can tag you.'
             foreach (string person in peopleConversingWith)
             {
-                _conversationSearchStrings.Add($"{Constants.YouToldSearch}{person}, '");
+                _conversationSearchStrings.Add($"{Constants.YouToldSearch}{person}");
                 _conversationSearchStrings.Add($"] {person}{Constants.TellsYou}");
             }
         }
@@ -52,6 +55,7 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
 
             // [Fri Mar 01 21:49:34 2024] Klawse tells you, 'need key'
             // [Fri Mar 01 21:55:29 2024] You told Klawse, 'I cant do anything with the raid window.'
+            // [Thu Oct 24 00:02:39 2024] You told Shaper '[queued], You're in WC.  If you come to EC, I can tag you.'
             foreach (string searchTerm in _conversationSearchStrings)
             {
                 if (logLine.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
