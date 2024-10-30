@@ -25,6 +25,7 @@ internal sealed class PopulationListingEntryParser : IParseEntry
         // [Sun Jun 09 19:59:39 2024] [50 Paladin] Trident (Half Elf) <Europa>
         // [Sun Jun 09 19:59:39 2024] [50 Magician] Cemtex (Dark Elf) <Europa> LFG
         // [Sun Jun 09 19:59:39 2024] [ANONYMOUS] Cyberjam  <Europa>
+        // [Mon Oct 28 21:32:54 2024]  AFK [55 Blackguard] Ilsidor (Human) <Europa>
         if (logLine.Contains(Constants.EuropaGuildTag))
         {
             EqLogEntry logEntry = new()
@@ -36,7 +37,9 @@ internal sealed class PopulationListingEntryParser : IParseEntry
             _logFile.LogEntries.Add(logEntry);
         }
         // [Sun Jun 09 19:59:39 2024] There are 25 players in Everfrost Peaks.
-        else if (logLine.Contains(Constants.WhoZonePrefixPlural) && logLine.Contains(Constants.PlayersIn))
+        // [Mon Oct 28 20:12:20 2024] There is 1 player in Frontier Mountains.
+        else if ((logLine.Contains(Constants.WhoZonePrefixPlural) && logLine.Contains(Constants.PlayersIn))
+            || (logLine.Contains(Constants.WhoZonePrefixSingle) && logLine.Contains(Constants.PlayerIn)))
         {
             EqLogEntry logEntry = new()
             {

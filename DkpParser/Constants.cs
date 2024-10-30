@@ -54,10 +54,11 @@ public static class Constants
     // [Tue Mar 19 20:13:26 2024] You say out of character, 'Attempting to Mezz ----> an azarack <----'
     public const string OocYouSearch = $"] {OocYou}";
     /// <summary>
-    /// Entry for noting the number of players and zone.  Assuming for a raid call, it will always be plural.  If there is one player returned, it will say "... player in...".<br/>
+    /// Entry for noting the number of players and zone.  If there is one player returned, it will say "... player in...".<br/>
     /// [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
     /// </summary>
     public const string PlayersIn = " players in ";
+    public const string PlayerIn = " player in ";
     public const string PlayersOnEverquest = "Players on EverQuest:";
     public const string PossibleErrorDelimiter = "::";
     public const string Raid = "raid.";

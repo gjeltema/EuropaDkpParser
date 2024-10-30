@@ -279,7 +279,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             if (logLineWithoutTimestamp.Contains("[ANONYMOUS]")
                 || (logLineWithoutTimestamp.Contains('(') && logLineWithoutTimestamp.Contains(')') && logLineWithoutTimestamp.Contains('[') && logLineWithoutTimestamp.Contains(']'))
                 || logLineWithoutTimestamp.Contains(Constants.Dashes)
-                || (logLineWithoutTimestamp.Contains(Constants.WhoZonePrefixPlural) || logLineWithoutTimestamp.Contains(Constants.WhoZonePrefixSingle)) && (logLineWithoutTimestamp.Contains(Constants.PlayersIn) || logLineWithoutTimestamp.Contains(" player in "))
+                || (logLineWithoutTimestamp.Contains(Constants.WhoZonePrefixPlural) || logLineWithoutTimestamp.Contains(Constants.WhoZonePrefixSingle)) && (logLineWithoutTimestamp.Contains(Constants.PlayersIn) || logLineWithoutTimestamp.Contains(Constants.PlayerIn))
                 || logLineWithoutTimestamp.Contains("There are no players in "))
             {
                 eqLogEntry = new()
