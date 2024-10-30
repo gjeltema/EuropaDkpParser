@@ -2,11 +2,12 @@
 // DkpServer.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Uploading;
 
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
+using DkpParser;
 
 public sealed class DkpServer : IDkpServer
 {
@@ -51,7 +52,7 @@ public sealed class DkpServer : IDkpServer
         _debugInfo.AddDebugMessage("------- Completed retrieval of IDs -------");
     }
 
-    public async Task UploadAttendance(AttendanceEntry attendanceEntry)
+    public async Task UploadAttendance(AttendanceUploadInfo attendanceEntry)
     {
         string postBody = CraftAttendanceString(attendanceEntry);
         string response = await UploadMessage("add_raid", postBody);
@@ -64,13 +65,13 @@ public sealed class DkpServer : IDkpServer
         _raidIdCache[attendanceEntry.CallName] = raidId;
     }
 
-    public async Task UploadDkpSpent(DkpEntry dkpEntry)
+    public async Task UploadDkpSpent(DkpUploadInfo dkpEntry)
     {
         string postBody = CraftDkpString(dkpEntry);
         await UploadMessage("add_item", postBody);
     }
 
-    private string CraftAttendanceString(AttendanceEntry attendanceEntry)
+    private string CraftAttendanceString(AttendanceUploadInfo attendanceEntry)
     {
         IEnumerable<int> memberIds = attendanceEntry.Characters
             .Select(x => x.CharacterName)
@@ -93,9 +94,9 @@ public sealed class DkpServer : IDkpServer
         return attendanceContent.ToString();
     }
 
-    private string CraftDkpString(DkpEntry dkpEntry)
+    private string CraftDkpString(DkpUploadInfo dkpEntry)
     {
-        int characterId = _playerIdCache[dkpEntry.PlayerName];
+        int characterId = _playerIdCache[dkpEntry.CharacterName];
         AttendanceEntry associatedEntry = dkpEntry.AssociatedAttendanceCall;
         int raidId = _raidIdCache.Last().Value;
         if (associatedEntry != null && !string.IsNullOrEmpty(associatedEntry.CallName))
@@ -160,7 +161,7 @@ public sealed class DkpServer : IDkpServer
         {
             CharacterIdFailure fail = new()
             {
-                PlayerName = playerName,
+                CharacterName = playerName,
                 Error = ex
             };
             results.FailedCharacterIdRetrievals.Add(fail);
@@ -231,7 +232,7 @@ public sealed class DkpServer : IDkpServer
 
             response.EnsureSuccessStatusCode();
 
-            XDocument doc = XDocument.Parse(responseText);
+            var doc = XDocument.Parse(responseText);
             return doc;
         }
         catch (Exception ex)
@@ -280,7 +281,7 @@ public interface IDkpServer
 {
     Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
 
-    Task UploadAttendance(AttendanceEntry attendanceEntry);
+    Task UploadAttendance(AttendanceUploadInfo attendanceEntry);
 
-    Task UploadDkpSpent(DkpEntry dkpEntry);
+    Task UploadDkpSpent(DkpUploadInfo dkpEntry);
 }

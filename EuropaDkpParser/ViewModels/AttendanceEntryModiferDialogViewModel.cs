@@ -179,7 +179,7 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
             return;
 
         SelectedAttendanceEntry = null;
-        _raidEntries.AttendanceEntries.Remove(selected);
+        _raidEntries.RemoveAttendance(selected);
         AllAttendances.Remove(selected);
     }
 
@@ -209,16 +209,6 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         AttendanceEntry entryToUpdate = SelectedAttendanceEntry;
         SelectedAttendanceEntry = null;
         entryToUpdate.ZoneName = SelectedZoneName;
-        string zoneAlias = _settings.RaidValue.GetZoneRaidAlias(entryToUpdate.ZoneName);
-
-        RaidInfo raidInfo = _raidEntries.Raids.FirstOrDefault(x => x.RaidZone == zoneAlias);
-        if (raidInfo == null)
-        {
-            RaidInfo newRaidInfo = new() { RaidZone = entryToUpdate.ZoneName };
-            _raidEntries.Raids.Add(newRaidInfo);
-        }
-
-        _raidEntries.UpdateRaids(_settings.RaidValue.GetZoneRaidAlias);
 
         UpdateEntryDisplay(entryToUpdate);
         SelectedAttendanceEntry = entryToUpdate;

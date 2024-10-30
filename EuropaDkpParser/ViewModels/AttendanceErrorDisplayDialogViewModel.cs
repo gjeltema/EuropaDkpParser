@@ -251,7 +251,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     private void RemoveDuplicateErrorEntry()
     {
-        _raidEntries.RemoveAttendance(SelectedErrorEntry, _settings.RaidValue.GetZoneRaidAlias);
+        _raidEntries.RemoveAttendance(SelectedErrorEntry);
 
         ErrorAttendances = _raidEntries.AttendanceEntries
             .Where(x => x.CallName.Equals(_currentEntry.CallName, StringComparison.OrdinalIgnoreCase))
@@ -310,17 +310,6 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     private void UpdateZoneName()
     {
         _currentEntry.ZoneName = SelectedZoneName;
-        string zoneAlias = _settings.RaidValue.GetZoneRaidAlias(_currentEntry.ZoneName);
-
-        RaidInfo raidInfo = _raidEntries.Raids.FirstOrDefault(x => x.RaidZone == zoneAlias);
-        if (raidInfo == null)
-        {
-            RaidInfo newRaidInfo = new() { RaidZone = _currentEntry.ZoneName };
-            _raidEntries.Raids.Add(newRaidInfo);
-        }
-
-        _raidEntries.UpdateRaids(_settings.RaidValue.GetZoneRaidAlias);
-
         ErrorAttendances = [_currentEntry];
     }
 }

@@ -9,14 +9,13 @@ using System.IO;
 using System.Windows;
 using DkpParser;
 using DkpParser.Parsers;
+using DkpParser.Uploading;
 using EuropaDkpParser.Resources;
-using EuropaDkpParser.Utility;
 using Prism.Commands;
 
 internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUploadDialogViewModel
 {
     private readonly IDialogFactory _dialogFactory;
-    private readonly ParsedFileGenerator _parsedFileGenerator;
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<UploadErrorDisplay> _errorMessages;
@@ -165,16 +164,20 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             StatusMessage = Strings.GetString("UploadingStatus");
             ShowProgress = true;
 
-            RaidEntries entriesToUpload = _raidEntries;
+            UploadRaidInfo raidsToUpload;
             if (UploadSelectedAttendances)
             {
                 UploadSelectedAttendances = false;
-                entriesToUpload = GetSelectedAttendancesToUpload();
+                raidsToUpload = UploadRaidInfo.Create(SelectedAttendances, _raidEntries.AllCharactersInRaid.Select(x => x.CharacterName));
+            }
+            else
+            {
+                raidsToUpload = UploadRaidInfo.Create(_raidEntries, _settings.RaidValue.GetZoneRaidAlias);
             }
 
             IUploadDebugInfo debugInfo = OutputDebugInfo ? new UploadDebugInfo() : new NullUploadDebugInfo();
             RaidUploader server = new(_settings, debugInfo);
-            RaidUploadResults uploadResults = await server.UploadRaid(entriesToUpload);
+            RaidUploadResults uploadResults = await server.UploadRaid(raidsToUpload);
 
             ErrorMessages = SetDisplayedErrorMessages(uploadResults).ToList();
             ShowErrorMessages = ErrorMessages.Count > 0;
@@ -255,48 +258,10 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         return [header, .. logEntries, Environment.NewLine];
     }
 
-    private RaidEntries GetSelectedAttendancesToUpload()
-    {
-        RaidEntries entriesToUpload = new();
-
-        entriesToUpload.AttendanceEntries = SelectedAttendances;
-        entriesToUpload.AllCharactersInRaid = _raidEntries.AllCharactersInRaid;
-
-        return entriesToUpload;
-    }
-
     private void RefreshCommands()
     {
         BeginUploadCommand.RaiseCanExecuteChanged();
         RemoveSelectedPlayerCommand.RaiseCanExecuteChanged();
-    }
-
-    private ICollection<DkpEntry> RemovePlayerDkpspentEntries(string playerName)
-    {
-        ICollection<DkpEntry> dkpSpentsToRemove = _raidEntries.DkpEntries.Where(x => x.PlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)).ToList();
-        foreach (DkpEntry dkpToRemove in dkpSpentsToRemove)
-        {
-            _raidEntries.DkpEntries.Remove(dkpToRemove);
-            _raidEntries.RemovedDkpEntries.Add(dkpToRemove);
-        }
-
-        return dkpSpentsToRemove;
-    }
-
-    private void RemovePlayerFromAttendances(string playerName)
-    {
-        PlayerCharacter playerChar = _raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == playerName);
-        if (playerChar == null)
-            return;
-
-        IEnumerable<AttendanceEntry> attendancesToRemoveFrom = _raidEntries.AttendanceEntries.Where(x => x.Characters.Contains(playerChar));
-        foreach (AttendanceEntry attendance in attendancesToRemoveFrom)
-        {
-            attendance.Characters.Remove(playerChar);
-        }
-
-        _raidEntries.AllCharactersInRaid.Remove(playerChar);
-        _raidEntries.RemovedPlayerCharacters.Add(playerChar);
     }
 
     private void RemoveSelectedAttendance()
@@ -315,22 +280,20 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         if (SelectedError == null || SelectedError.FailedCharacterIdRetrieval == null)
             return;
 
-        string playerName = SelectedError.FailedCharacterIdRetrieval.PlayerName;
+        string characterName = SelectedError.FailedCharacterIdRetrieval.CharacterName;
 
-        RemovePlayerFromAttendances(playerName);
-
-        ICollection<DkpEntry> dkpSpentEntriesRemoved = RemovePlayerDkpspentEntries(playerName);
+        ICollection<DkpEntry> dkpSpentEntriesRemoved = _raidEntries.RemoveCharacter(characterName);
 
         ICollection<string> bidLogEntries = await GetAllBiddingLogEntriesForDkpspentCalls(dkpSpentEntriesRemoved);
 
         IEnumerable<string> displayLines;
         if (bidLogEntries.Count == 0)
         {
-            displayLines = [$"{playerName} was removed from all attendances.", "No DKPSPENT entries were found for this player."];
+            displayLines = [$"{characterName} was removed from all attendances.", "No DKPSPENT entries were found for this player."];
         }
         else
         {
-            displayLines = [$"{playerName} was removed from all attendances, and had at least one item awarded in a SPENT call."
+            displayLines = [$"{characterName} was removed from all attendances, and had at least one item awarded in a SPENT call."
                 , "The following log entries were found relating to items this player was awarded:"
                 , ..bidLogEntries];
         }
@@ -397,13 +360,13 @@ public sealed class UploadErrorDisplay
         else if (EventIdCallFailure != null)
             return $"Failed to get listing of all event IDs from DKP server: {EventIdCallFailure.Message}";
         else if (FailedCharacterIdRetrieval != null)
-            return $"Failed to get character ID for {PlayerDelimiter}{FailedCharacterIdRetrieval.PlayerName}{PlayerDelimiter}, likely character does not exist on DKP server";
+            return $"Failed to get character ID for {PlayerDelimiter}{FailedCharacterIdRetrieval.CharacterName}{PlayerDelimiter}, likely character does not exist on DKP server";
         else if (EventIdNotFound != null)
             return GetEventIdFailureMessage(EventIdNotFound);
         else if (AttendanceError != null)
             return $"Failed to upload attendance call {AttendanceError.Attendance.CallName}: {AttendanceError.Error.Message}";
         else if (DkpFailure != null)
-            return $"Failed to upload DKP spend call for {DkpFailure.Dkp.PlayerName} for item {DkpFailure.Dkp.Item}: {DkpFailure.Error.Message}";
+            return $"Failed to upload DKP spend call for {DkpFailure.Dkp.CharacterName} for item {DkpFailure.Dkp.Item}: {DkpFailure.Error.Message}";
         else if (UnexpectedError != null)
             return $"Unexpected error encountered when uploading: {UnexpectedError}";
         else

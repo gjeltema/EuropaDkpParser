@@ -6,7 +6,7 @@ namespace DkpParser;
 
 using System.Diagnostics;
 
-[DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllPlayersInRaid.Count}")]
+[DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllCharactersInRaid.Count}")]
 public sealed class RaidEntries
 {
     public ICollection<AfkEntry> AfkEntries { get; } = new List<AfkEntry>();
@@ -29,8 +29,6 @@ public sealed class RaidEntries
 
     public ICollection<PlayerPossibleLinkdead> PossibleLinkdeads { get; } = new List<PlayerPossibleLinkdead>();
 
-    public IList<RaidInfo> Raids { get; } = new List<RaidInfo>();
-
     public ICollection<DkpEntry> RemovedDkpEntries { get; set; } = new List<DkpEntry>();
 
     public ICollection<PlayerCharacter> RemovedPlayerCharacters { get; } = new HashSet<PlayerCharacter>();
@@ -50,9 +48,11 @@ public sealed class RaidEntries
         }
     }
 
-    public IEnumerable<string> GetAllDkpspentEntries()
+    public IEnumerable<string> GetAllDkpspentEntries(Func<string, string> getZoneRaidAlias)
     {
-        foreach (RaidInfo raid in Raids)
+        ICollection<RaidInfo> raids = GetRaidInfo(getZoneRaidAlias);
+
+        foreach (RaidInfo raid in raids)
         {
             yield return $"================= {raid.RaidZone} =================";
 
@@ -128,53 +128,40 @@ public sealed class RaidEntries
             yield return dkpEntry.ToLogString();
     }
 
-    public void RemoveAttendance(AttendanceEntry toBeRemoved, Func<string, string> getZoneRaidAlias)
+    public ICollection<RaidInfo> GetRaidInfo(Func<string, string> getZoneRaidAlias)
     {
-        List<PlayerPossibleLinkdead> possibleLinkdeadsToRemove = PossibleLinkdeads.Where(x => x.AttendanceMissingFrom == toBeRemoved).ToList();
-        foreach (PlayerPossibleLinkdead possibleLinkdead in possibleLinkdeadsToRemove)
-        {
-            PossibleLinkdeads.Remove(possibleLinkdead);
-        }
+        List<RaidInfo> raidInfo = [];
 
-        AttendanceEntries.Remove(toBeRemoved);
+        IEnumerable<string> zoneNames = AttendanceEntries
+            .Select(x => getZoneRaidAlias(x.ZoneName))
+            .Distinct();
 
-        UpdateRaids(getZoneRaidAlias);
-    }
-
-    public void UpdateRaids(Func<string, string> getZoneRaidAlias)
-    {
-        List<RaidInfo> raidsToBeRemoved = [];
-        foreach (RaidInfo raidInfo in Raids)
+        foreach (string zoneName in zoneNames)
         {
             IOrderedEnumerable<AttendanceEntry> attendancesForRaid = AttendanceEntries
-                .Where(x => getZoneRaidAlias(x.ZoneName) == raidInfo.RaidZone)
+                .Where(x => getZoneRaidAlias(x.ZoneName) == zoneName)
                 .OrderBy(x => x.Timestamp);
 
-            if (!attendancesForRaid.Any())
+            RaidInfo newRaidInfo = new()
             {
-                raidsToBeRemoved.Add(raidInfo);
-                continue;
-            }
+                RaidZone = zoneName,
+                FirstAttendanceCall = attendancesForRaid.First(),
+                LastAttendanceCall = attendancesForRaid.Last()
+            };
 
-            raidInfo.FirstAttendanceCall = attendancesForRaid.First();
-            raidInfo.LastAttendanceCall = attendancesForRaid.Last();
-        }
-
-        foreach (RaidInfo raidInfo in raidsToBeRemoved)
-        {
-            Raids.Remove(raidInfo);
+            raidInfo.Add(newRaidInfo);
         }
 
         DateTime startTime = DateTime.MinValue;
         DateTime endTime = DateTime.MaxValue;
-        for (int i = 0; i < Raids.Count; i++)
+        for (int i = 0; i < raidInfo.Count; i++)
         {
-            RaidInfo currentRaidInfo = Raids[i];
+            RaidInfo currentRaidInfo = raidInfo[i];
             currentRaidInfo.StartTime = startTime;
 
-            if (i + 1 < Raids.Count)
+            if (i + 1 < raidInfo.Count)
             {
-                RaidInfo nextRaid = Raids[i + 1];
+                RaidInfo nextRaid = raidInfo[i + 1];
                 currentRaidInfo.EndTime = nextRaid.FirstAttendanceCall.Timestamp.AddSeconds(-2);
                 startTime = nextRaid.FirstAttendanceCall.Timestamp;
             }
@@ -184,24 +171,48 @@ public sealed class RaidEntries
             }
         }
 
-        AssociateDkpEntriesWithAttendance();
+        return raidInfo;
     }
 
-    private void AssociateDkpEntriesWithAttendance()
+    public void RemoveAttendance(AttendanceEntry toBeRemoved)
     {
-        foreach (DkpEntry dkpEntry in DkpEntries)
+        List<PlayerPossibleLinkdead> possibleLinkdeadsToRemove = PossibleLinkdeads.Where(x => x.AttendanceMissingFrom == toBeRemoved).ToList();
+        foreach (PlayerPossibleLinkdead possibleLinkdead in possibleLinkdeadsToRemove)
         {
-            RaidInfo associatedRaid = Raids
-                .FirstOrDefault(x => x.StartTime <= dkpEntry.Timestamp && dkpEntry.Timestamp <= x.EndTime);
-
-            if (associatedRaid == null)
-            {
-                string analysisError = $"Unable to find any associated attendance entry for DKPSPENT call: {dkpEntry.RawLogLine}";
-                AnalysisErrors.Add(analysisError);
-                continue;
-            }
-
-            dkpEntry.AssociatedAttendanceCall = associatedRaid.LastAttendanceCall;
+            PossibleLinkdeads.Remove(possibleLinkdead);
         }
+
+        AttendanceEntries.Remove(toBeRemoved);
+    }
+
+    public ICollection<DkpEntry> RemoveCharacter(string characterName)
+    {
+        ICollection<DkpEntry> dkpSpentsToRemove = DkpEntries.Where(x => x.PlayerName.Equals(characterName, StringComparison.OrdinalIgnoreCase)).ToList();
+        foreach (DkpEntry dkpToRemove in dkpSpentsToRemove)
+        {
+            DkpEntries.Remove(dkpToRemove);
+            RemovedDkpEntries.Add(dkpToRemove);
+        }
+
+        PlayerCharacter playerChar = AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == characterName);
+        if (playerChar == null)
+            return dkpSpentsToRemove;
+
+        ICollection<PlayerPossibleLinkdead> possibleLinkdeadsToRemove = PossibleLinkdeads.Where(x => x.Player == playerChar).ToList();
+        foreach (PlayerPossibleLinkdead ldChar in possibleLinkdeadsToRemove)
+        {
+            PossibleLinkdeads.Remove(ldChar);
+        }
+
+        IEnumerable<AttendanceEntry> attendancesToRemoveFrom = AttendanceEntries.Where(x => x.Characters.Contains(playerChar));
+        foreach (AttendanceEntry attendance in attendancesToRemoveFrom)
+        {
+            attendance.Characters.Remove(playerChar);
+        }
+
+        AllCharactersInRaid.Remove(playerChar);
+        RemovedPlayerCharacters.Add(playerChar);
+
+        return dkpSpentsToRemove;
     }
 }

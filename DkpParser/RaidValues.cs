@@ -6,6 +6,7 @@ namespace DkpParser;
 
 using System.Diagnostics;
 using System.IO;
+using DkpParser.Uploading;
 
 public sealed class RaidValues : IRaidValues
 {
@@ -34,7 +35,7 @@ public sealed class RaidValues : IRaidValues
 
     public ICollection<string> AllValidRaidZoneNames { get; private set; }
 
-    public int GetDkpValueForRaid(AttendanceEntry attendanceEntry)
+    public int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry)
     {
         int dkpValue = attendanceEntry.AttendanceCallType == AttendanceCallType.Time
             ? GetTimeBasedValue(attendanceEntry.ZoneName)
@@ -229,7 +230,7 @@ public interface IRaidValues
 
     ICollection<string> AllValidRaidZoneNames { get; }
 
-    int GetDkpValueForRaid(AttendanceEntry attendanceEntry);
+    int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry);
 
     string GetZoneRaidAlias(string zoneName);
 

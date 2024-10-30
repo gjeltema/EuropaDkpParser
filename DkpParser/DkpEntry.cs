@@ -59,5 +59,5 @@ public sealed class DkpEntry
     }
 
     public override string ToString()
-        => $"{Timestamp:HH:mm:ss} {PlayerName}\t{Item}  {DkpSpent}";
+        => $"{Timestamp:HH:mm:ss} {PlayerName}  {Item}  {DkpSpent} DKP";
 }

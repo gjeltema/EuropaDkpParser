@@ -6,11 +6,11 @@ namespace DkpParser;
 
 public sealed class FileOutputGenerator : IOutputGenerator
 {
-    public ICollection<string> GenerateOutput(RaidEntries raidEntries)
+    public ICollection<string> GenerateOutput(RaidEntries raidEntries, IEnumerable<RaidInfo> raids)
     {
         List<string> outputContents = [];
 
-        foreach (RaidInfo raid in raidEntries.Raids)
+        foreach (RaidInfo raid in raids)
         {
             DateTime dateStamp = raid.StartTime;
             if (dateStamp == DateTime.MinValue)
@@ -78,5 +78,5 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
 public interface IOutputGenerator
 {
-    ICollection<string> GenerateOutput(RaidEntries raidEntries);
+    ICollection<string> GenerateOutput(RaidEntries raidEntries, IEnumerable<RaidInfo> raids);
 }

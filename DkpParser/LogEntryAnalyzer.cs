@@ -29,27 +29,9 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         AddUnvisitedEntries(logParseResults);
 
-        AddRaidInfoEntries();
         ErrorPostAnalysis();
 
         return _raidEntries;
-    }
-
-    private void AddRaidInfoEntries()
-    {
-        IEnumerable<string> zoneNames = _raidEntries.AttendanceEntries
-            .OrderBy(x => x.Timestamp)
-            .Select(x => GetZoneRaidAlias(x.ZoneName))
-            .Where(x => !string.IsNullOrEmpty(x))
-            .Distinct();
-
-        foreach (string zoneName in zoneNames)
-        {
-            RaidInfo raidInfo = new() { RaidZone = zoneName };
-            _raidEntries.Raids.Add(raidInfo);
-        }
-
-        _raidEntries.UpdateRaids(GetZoneRaidAlias);
     }
 
     private void AddUnvisitedEntries(LogParseResults logParseResults)

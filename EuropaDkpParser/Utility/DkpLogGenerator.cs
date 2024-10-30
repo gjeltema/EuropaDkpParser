@@ -158,8 +158,9 @@ internal sealed class DkpLogGenerator
         if (finalSummaryDialog.ShowDialog() == false)
             return;
 
+        ICollection<RaidInfo> raidInfo = raidEntries.GetRaidInfo(_settings.RaidValue.GetZoneRaidAlias);
         IOutputGenerator generator = new FileOutputGenerator();
-        ICollection<string> fileContents = generator.GenerateOutput(raidEntries);
+        ICollection<string> fileContents = generator.GenerateOutput(raidEntries, raidInfo);
         bool success = await CreateFile(sessionSettings.GeneratedFile, fileContents);
         if (!success)
             return;
@@ -234,7 +235,7 @@ internal sealed class DkpLogGenerator
     private string GetSummaryDisplay(RaidEntries raidEntries)
     {
         StringBuilder summaryDisplay = new();
-        summaryDisplay.Append(string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries()));
+        summaryDisplay.Append(string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries(_settings.RaidValue.GetZoneRaidAlias)));
 
         if (raidEntries.RemovedPlayerCharacters.Count > 0)
         {

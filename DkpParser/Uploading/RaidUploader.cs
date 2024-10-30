@@ -2,9 +2,10 @@
 // RaidUploader.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser;
+namespace DkpParser.Uploading;
 
 using System.Diagnostics;
+using DkpParser;
 
 public sealed class RaidUploader : IRaidUpload
 {
@@ -17,25 +18,21 @@ public sealed class RaidUploader : IRaidUpload
         _debugInfo = debugInfo;
     }
 
-    public async Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries)
+    public async Task<RaidUploadResults> UploadRaid(UploadRaidInfo uploadRaidInfo)
     {
         _debugInfo.AddDebugMessage("=========== Beginning Upload Process ===========");
 
         RaidUploadResults results = new();
 
-        if (raidEntries.AttendanceEntries.Count == 0)
+        if (uploadRaidInfo.AttendanceInfo.Count == 0)
         {
             results.NoRaidAttendancesFoundError = true;
             return results;
         }
 
-        IEnumerable<string> allPlayerNames = raidEntries.AllCharactersInRaid
-            .Select(x => x.CharacterName)
-            .Union(raidEntries.DkpEntries.Select(x => x.PlayerName));
+        IEnumerable<string> zoneNames = uploadRaidInfo.AttendanceInfo.Select(x => x.ZoneName).Distinct();
 
-        IEnumerable<string> zoneNames = raidEntries.AttendanceEntries.Select(x => x.ZoneName).Distinct();
-
-        await _dkpServer.InitializeIdentifiers(allPlayerNames, zoneNames, results);
+        await _dkpServer.InitializeIdentifiers(uploadRaidInfo.CharacterNames, zoneNames, results);
 
         if (results.HasInitializationError)
         {
@@ -45,23 +42,23 @@ public sealed class RaidUploader : IRaidUpload
 
         _debugInfo.AddDebugMessage("===== Beginning Attendances Uploads =====");
 
-        await UploadAttendances(raidEntries.AttendanceEntries, results);
+        await UploadAttendances(uploadRaidInfo.AttendanceInfo, results);
         if (results.AttendanceError != null)
         {
             _debugInfo.AddDebugMessage("=========== Errors encountered uploading attendances, ending upload process ===========");
             return results;
         }
 
-        await UploadDkpSpendings(raidEntries.DkpEntries, results);
+        await UploadDkpSpendings(uploadRaidInfo.DkpInfo, results);
 
         _debugInfo.AddDebugMessage("=========== Completed Upload Process =========== ");
 
         return results;
     }
 
-    private async Task UploadAttendances(IEnumerable<AttendanceEntry> attendanceEntries, RaidUploadResults results)
+    private async Task UploadAttendances(IEnumerable<AttendanceUploadInfo> attendanceEntries, RaidUploadResults results)
     {
-        foreach (AttendanceEntry attendance in attendanceEntries)
+        foreach (AttendanceUploadInfo attendance in attendanceEntries)
         {
             if (attendance.Characters.Count > 1)
             {
@@ -94,13 +91,13 @@ public sealed class RaidUploader : IRaidUpload
         _debugInfo.AddDebugMessage("----- Completed uploading raid attendances.");
     }
 
-    private async Task UploadDkpSpendings(IEnumerable<DkpEntry> dkpEntries, RaidUploadResults results)
+    private async Task UploadDkpSpendings(IEnumerable<DkpUploadInfo> dkpEntries, RaidUploadResults results)
     {
-        foreach (DkpEntry dkpEntry in dkpEntries)
+        foreach (DkpUploadInfo dkpEntry in dkpEntries)
         {
             try
             {
-                _debugInfo.AddDebugMessage($"----- Beginning upload process of: {dkpEntry.ToLogString()}.");
+                _debugInfo.AddDebugMessage($"----- Beginning upload process of: {dkpEntry}.");
                 await _dkpServer.UploadDkpSpent(dkpEntry);
             }
             catch (Exception ex)
@@ -112,7 +109,7 @@ public sealed class RaidUploader : IRaidUpload
                 };
                 results.DkpFailure = error;
 
-                _debugInfo.AddDebugMessage($"Error encountered when uploading {dkpEntry.ToLogString()}: {ex}");
+                _debugInfo.AddDebugMessage($"Error encountered when uploading {dkpEntry}: {ex}");
 
                 return;
             }
@@ -143,7 +140,7 @@ public sealed class RaidUploadResults
 [DebuggerDisplay("{Attendance}")]
 public sealed class AttendanceUploadFailure
 {
-    public AttendanceEntry Attendance { get; set; }
+    public AttendanceUploadInfo Attendance { get; set; }
 
     public Exception Error { get; set; }
 }
@@ -151,7 +148,7 @@ public sealed class AttendanceUploadFailure
 [DebuggerDisplay("{Dkp}")]
 public sealed class DkpUploadFailure
 {
-    public DkpEntry Dkp { get; set; }
+    public DkpUploadInfo Dkp { get; set; }
 
     public Exception Error { get; set; }
 }
@@ -159,9 +156,9 @@ public sealed class DkpUploadFailure
 [DebuggerDisplay("{PlayerName}")]
 public sealed class CharacterIdFailure
 {
-    public Exception Error { get; set; }
+    public string CharacterName { get; set; }
 
-    public string PlayerName { get; set; }
+    public Exception Error { get; set; }
 }
 
 [DebuggerDisplay("{DebuggerDisplay}")]
@@ -188,5 +185,5 @@ public sealed class EventIdNotFoundFailure
 
 public interface IRaidUpload
 {
-    Task<RaidUploadResults> UploadRaid(RaidEntries raidEntries);
+    Task<RaidUploadResults> UploadRaid(UploadRaidInfo uploadRaidInfo);
 }
