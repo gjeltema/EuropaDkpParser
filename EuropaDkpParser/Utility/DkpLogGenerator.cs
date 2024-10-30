@@ -171,7 +171,7 @@ internal sealed class DkpLogGenerator
         }
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(sessionSettings.GeneratedFile);
-        completedDialog.DkpSpentEntries = GetDkpSpentEntries(raidEntries);
+        completedDialog.SummaryDisplay = GetSummaryDisplay(raidEntries);
         completedDialog.ShowDialog();
     }
 
@@ -193,7 +193,7 @@ internal sealed class DkpLogGenerator
         }
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel("No file generated, uploaded existing generated file");
-        completedDialog.DkpSpentEntries = GetDkpSpentEntries(raidEntries);
+        completedDialog.SummaryDisplay = GetSummaryDisplay(raidEntries);
         completedDialog.ShowDialog();
     }
 
@@ -231,19 +231,26 @@ internal sealed class DkpLogGenerator
         { }
     }
 
-    private string GetDkpSpentEntries(RaidEntries raidEntries)
+    private string GetSummaryDisplay(RaidEntries raidEntries)
     {
-        string entries = string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries());
+        StringBuilder summaryDisplay = new();
+        summaryDisplay.Append(string.Join(Environment.NewLine, raidEntries.GetAllDkpspentEntries()));
+
+        if (raidEntries.RemovedPlayerCharacters.Count > 0)
+        {
+            summaryDisplay.AppendLine();
+            summaryDisplay.AppendLine("-------------- Characters Removed Due To No Player On DKP Server --------------");
+            summaryDisplay.AppendLine(string.Join(Environment.NewLine, raidEntries.RemovedPlayerCharacters));
+        }
 
         if (raidEntries.RemovedDkpEntries.Count > 0)
         {
-            entries += Environment.NewLine + Environment.NewLine;
-            entries += "-------------- DKPSPENT Entries Removed Due To No Player On DKP Server --------------";
-            entries += Environment.NewLine;
-            entries += string.Join(Environment.NewLine, raidEntries.RemovedDkpEntries);
+            summaryDisplay.AppendLine();
+            summaryDisplay.AppendLine("-------------- DKPSPENT Entries Removed Due To No Player On DKP Server --------------");
+            summaryDisplay.AppendLine(string.Join(Environment.NewLine, raidEntries.RemovedDkpEntries));
         }
 
-        return entries;
+        return summaryDisplay.ToString();
     }
 
     private async Task OutputAnalyzerErrorsToFile(RaidEntries raidEntries, DkpLogGenerationSessionSettings sessionSettings)

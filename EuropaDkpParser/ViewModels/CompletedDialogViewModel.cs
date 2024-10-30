@@ -27,14 +27,14 @@ internal sealed class CompletedDialogViewModel : DialogViewModelBase, ICompleted
 
     public string CompletionMessage { get; }
 
-    public string DkpSpentEntries { get; set; }
-
     public string LogFilePath { get; }
 
     public DelegateCommand OpenLogFileDirectoryCommand { get; }
 
     public bool ShowDkpSpentEntries
-        => !string.IsNullOrWhiteSpace(DkpSpentEntries);
+        => !string.IsNullOrWhiteSpace(SummaryDisplay);
+
+    public string SummaryDisplay { get; set; }
 
     private void OpenLogFileDirectory()
     {
@@ -47,11 +47,11 @@ public interface ICompletedDialogViewModel : IDialogViewModel
 {
     string CompletionMessage { get; }
 
-    string DkpSpentEntries { get; set; }
-
     string LogFilePath { get; }
 
     DelegateCommand OpenLogFileDirectoryCommand { get; }
 
     bool ShowDkpSpentEntries { get; }
+
+    string SummaryDisplay { get; set; }
 }

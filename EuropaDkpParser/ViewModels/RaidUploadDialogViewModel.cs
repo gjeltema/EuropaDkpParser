@@ -273,7 +273,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
     private ICollection<DkpEntry> RemovePlayerDkpspentEntries(string playerName)
     {
-        ICollection<DkpEntry> dkpSpentsToRemove = _raidEntries.DkpEntries.Where(x => x.PlayerName == playerName).ToList();
+        ICollection<DkpEntry> dkpSpentsToRemove = _raidEntries.DkpEntries.Where(x => x.PlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase)).ToList();
         foreach (DkpEntry dkpToRemove in dkpSpentsToRemove)
         {
             _raidEntries.DkpEntries.Remove(dkpToRemove);
@@ -296,6 +296,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         }
 
         _raidEntries.AllCharactersInRaid.Remove(playerChar);
+        _raidEntries.RemovedPlayerCharacters.Add(playerChar);
     }
 
     private void RemoveSelectedAttendance()
@@ -317,17 +318,25 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         string playerName = SelectedError.FailedCharacterIdRetrieval.PlayerName;
 
         RemovePlayerFromAttendances(playerName);
+
         ICollection<DkpEntry> dkpSpentEntriesRemoved = RemovePlayerDkpspentEntries(playerName);
 
-        if (dkpSpentEntriesRemoved.Count == 0)
-            return;
-
         ICollection<string> bidLogEntries = await GetAllBiddingLogEntriesForDkpspentCalls(dkpSpentEntriesRemoved);
+
+        IEnumerable<string> displayLines;
         if (bidLogEntries.Count == 0)
-            return;
+        {
+            displayLines = [$"{playerName} was removed from all attendances.", "No DKPSPENT entries were found for this player."];
+        }
+        else
+        {
+            displayLines = [$"{playerName} was removed from all attendances, and had at least one item awarded in a SPENT call."
+                , "The following log entries were found relating to items this player was awarded:"
+                , ..bidLogEntries];
+        }
 
         ISimpleMultilineDisplayDialogViewModel displayDialog = _dialogFactory.CreateSimpleMultilineDisplayDialogViewModel();
-        displayDialog.DisplayLines = string.Join(Environment.NewLine, bidLogEntries);
+        displayDialog.DisplayLines = string.Join(Environment.NewLine, displayLines);
         displayDialog.ShowDialog();
     }
 

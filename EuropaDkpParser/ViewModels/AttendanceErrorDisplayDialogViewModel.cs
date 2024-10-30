@@ -269,12 +269,13 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     private void SetSelectedBossName()
     {
+        string callName = _currentEntry.CallName.Replace("<", string.Empty);
         for (int i = 8; i > 0; i--)
         {
             if (_currentEntry.CallName.Length < i)
                 continue;
 
-            string startOfBossName = _currentEntry.CallName[..i];
+            string startOfBossName = callName[..i];
             string approvedBossName = ApprovedBossNames.FirstOrDefault(x => x.StartsWith(startOfBossName));
             if (approvedBossName != null)
             {

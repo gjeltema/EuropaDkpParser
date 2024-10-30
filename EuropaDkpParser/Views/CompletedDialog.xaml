@@ -28,7 +28,7 @@
 
             <Label Grid.Row="0" Content="{StaticResource DkpSpentCalls}" />
 
-            <TextBox Grid.Row="1" Text="{Binding DkpSpentEntries}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" IsReadOnly="True"/>
+            <TextBox Grid.Row="1" Text="{Binding SummaryDisplay}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" IsReadOnly="True"/>
         </Grid>
         
         <Grid Grid.Row="3" HorizontalAlignment="Right">

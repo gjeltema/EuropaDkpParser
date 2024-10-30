@@ -33,6 +33,8 @@ public sealed class RaidEntries
 
     public ICollection<DkpEntry> RemovedDkpEntries { get; set; } = new List<DkpEntry>();
 
+    public ICollection<PlayerCharacter> RemovedPlayerCharacters { get; } = new HashSet<PlayerCharacter>();
+
     public ICollection<EqLogEntry> UnvisitedEntries { get; set; } = new List<EqLogEntry>();
 
     public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)
