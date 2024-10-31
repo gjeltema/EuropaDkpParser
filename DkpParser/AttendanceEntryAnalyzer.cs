@@ -294,15 +294,24 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         entry.Visited = true;
 
+        bool isMultiplePlayers = true;
+
         // [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
         int indexOfPlayersIn = entry.LogLine.IndexOf(Constants.PlayersIn);
         if (indexOfPlayersIn < Constants.LogDateTimeLength + Constants.PlayersIn.Length)
         {
-            _raidEntries.AnalysisErrors.Add($"Unable get zone name: {entry.LogLine}");
-            return null;
+            indexOfPlayersIn = entry.LogLine.IndexOf(Constants.PlayerIn);
+            if (indexOfPlayersIn < Constants.LogDateTimeLength + Constants.PlayerIn.Length)
+            {
+                _raidEntries.AnalysisErrors.Add($"Unable get zone name: {entry.LogLine}");
+                return null;
+            }
+
+            isMultiplePlayers = false;
         }
 
-        int endIndexOfPlayersIn = indexOfPlayersIn + Constants.PlayersIn.Length;
+        int playersInLength = isMultiplePlayers ? Constants.PlayersIn.Length : Constants.PlayerIn.Length;
+        int endIndexOfPlayersIn = indexOfPlayersIn + playersInLength;
         if (endIndexOfPlayersIn + Constants.MinimumRaidNameLength > entry.LogLine.Length)
         {
             _raidEntries.AnalysisErrors.Add($"Unable get zone name: {entry.LogLine}");

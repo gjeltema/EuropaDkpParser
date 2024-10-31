@@ -104,7 +104,7 @@
 
                 <!-- Row 4 is filler -->
 
-                <Label Grid.Row="5" Content="{Binding UpdatePlayerNotLootedErrorMessage}" />
+                <Label Grid.Row="5" Content="{Binding ActionCompletedMessage}" />
             </Grid>
 
         </Grid>
@@ -230,7 +230,7 @@
 
             <Button Grid.Row="5" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110"  HorizontalAlignment="Right"/>
 
-            <Label Grid.Row="6" Content="{Binding UpdatePlayerNotLootedErrorMessage}" Margin="0,20,0,0" />
+            <Label Grid.Row="6" Content="{Binding ActionCompletedMessage}" Margin="0,20,0,0" />
         </Grid>
 
         <!-- Zero DKP Error -->
@@ -267,7 +267,85 @@
 
             <Button Grid.Row="5" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110" HorizontalAlignment="Right"/>
 
-            <Label Grid.Row="6" Content="{Binding UpdatePlayerNotLootedErrorMessage}" Margin="0,20,0,0" />
+            <Label Grid.Row="6" Content="{Binding ActionCompletedMessage}" Margin="0,20,0,0" />
+        </Grid>
+
+        <!-- Malformed DKP Error -->
+        <Grid Grid.Row="1" Visibility="{Binding IsMalformedDkpspentCall, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Content="{StaticResource MalformedDkpSpentErrorDescription}" Margin="5,0,0,10"/>
+            
+            <Label Grid.Row="1" Content="{StaticResource RawLogEntry}"/>
+
+            <TextBox Grid.Row="2" Text="{Binding RawLogLine, Mode=OneWay}" Margin="5,0,0,5" Height="26"/>
+
+            <Grid Grid.Row="3" Margin="0,4,4,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource PlayerName}"/>
+
+                <TextBox Grid.Column="1" Text="{Binding PlayerName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0" Padding="3,0,0,0"/>
+            </Grid>
+
+            <Grid Grid.Row="4" Margin="0,4,4,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource ItemName}"/>
+
+                <TextBox Grid.Column="1" Text="{Binding ItemName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0" Padding="3,0,0,0"/>
+            </Grid>
+
+            <Grid Grid.Row="5" Margin="0,4,4,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource DkpSpent}"/>
+
+                <TextBox Grid.Column="1" Text="{Binding DkpSpent, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0" Padding="3,0,0,0"/>
+            </Grid>
+
+            <Grid Grid.Row="6" Margin="0,4,4,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource Auctioneer}"/>
+
+                <TextBox Grid.Column="1" Text="{Binding Auctioneer, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0" Padding="3,0,0,0"/>
+            </Grid>
+
+            <Grid Grid.Row="7" Margin="0,4,4,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="{StaticResource Remove}" Command="{Binding RemoveDkpEntryCommand}" Margin="2,20,4,2" Width="110" HorizontalAlignment="Right"/>
+
+                <Button Grid.Column="1" Content="{StaticResource AddText}" Command="{Binding FixMalformedDkpEntryCommand}" Margin="2,20,4,2" Width="110" HorizontalAlignment="Right"/>
+            </Grid>
+
+            <Label Grid.Row="8" Content="{Binding ActionCompletedMessage}" Margin="0,20,0,0" />
         </Grid>
 
         <Grid Grid.Row="2" Margin="0,8,0,0">

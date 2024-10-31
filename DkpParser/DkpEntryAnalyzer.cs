@@ -26,6 +26,16 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             {
                 _raidEntries.DkpEntries.Add(dkpEntry);
             }
+
+            IEnumerable<DkpEntry> possibleDkpEntries = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.PossibleDkpSpent)
+                .Select(ProcessPossibleDkpspentCalls)
+                .Where(x => x != null);
+
+            foreach (DkpEntry possibleDkpEntry in possibleDkpEntries)
+            {
+                _raidEntries.DkpEntries.Add(possibleDkpEntry);
+            }
         }
     }
 
@@ -65,7 +75,13 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             if (indexOfSpace < 1)
             {
                 _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
-                return null;
+                return new DkpEntry
+                {
+                    Timestamp = entry.Timestamp,
+                    RawLogLine = entry.LogLine,
+                    Channel = entry.Channel,
+                    PossibleError = PossibleError.MalformedDkpSpentLine
+                };
             }
             string auctioneer = auctioneerSection[..indexOfSpace].ToString();
 
@@ -74,7 +90,14 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             if (indexOfSecondDelimiter < 1)
             {
                 _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
-                return null;
+                return new DkpEntry
+                {
+                    Timestamp = entry.Timestamp,
+                    RawLogLine = entry.LogLine,
+                    Channel = entry.Channel,
+                    Auctioneer = auctioneer,
+                    PossibleError = PossibleError.MalformedDkpSpentLine
+                };
             }
             string itemName = logLine[startOfItemSectionIndex..][..indexOfSecondDelimiter].ToString();
 
@@ -83,7 +106,14 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             if (indexOfSpace < 1)
             {
                 _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
-                return null;
+                return new DkpEntry
+                {
+                    Timestamp = entry.Timestamp,
+                    RawLogLine = entry.LogLine,
+                    Channel = entry.Channel,
+                    Auctioneer = auctioneer,
+                    PossibleError = PossibleError.MalformedDkpSpentLine
+                };
             }
             string playerName = playerSection[..indexOfSpace].ToString();
 
@@ -175,6 +205,39 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             dkpEntry.PossibleError = PossibleError.ZeroDkp;
         }
         dkpEntry.DkpSpent = dkpAmount;
+    }
+
+    private DkpEntry ProcessPossibleDkpspentCalls(EqLogEntry entry)
+    {
+        entry.Visited = true;
+
+        if (entry.LogLine.Length < Constants.LogDateTimeLength + 25)
+            return null;
+
+        string logLineNoTimestamp = entry.LogLine[Constants.LogDateTimeLength..];
+
+        string dkpValueText = GetDigits(logLineNoTimestamp);
+        if (!int.TryParse(dkpValueText, out int dkpValue))
+            return null;
+
+        bool hasSpent = logLineNoTimestamp.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase);
+        if (!hasSpent)
+            return null;
+
+        bool hasDkp = logLineNoTimestamp.Contains("DKP", StringComparison.OrdinalIgnoreCase);
+        if (!hasDkp)
+            return null;
+
+        DkpEntry dkpEntry = new()
+        {
+            Timestamp = entry.Timestamp,
+            RawLogLine = entry.LogLine,
+            Channel = entry.Channel,
+            DkpSpent = dkpValue,
+            PossibleError = PossibleError.MalformedDkpSpentLine
+        };
+
+        return dkpEntry;
     }
 }
 

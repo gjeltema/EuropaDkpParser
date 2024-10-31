@@ -70,6 +70,9 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
     public override int GetHashCode()
         => CallName.GetHashCode() ^ Timestamp.GetHashCode();
 
+    public string ToDebugString()
+        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}  {CallName}  {ZoneName} Possible Error: {PossibleError}; Raw Log: {RawHeaderLogLine}";
+
     public string ToDisplayString()
         => $"{Timestamp:HH:mm:ss} {CallName}\t{ZoneName}";
 

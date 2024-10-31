@@ -72,7 +72,7 @@ public sealed class RaidEntries
         yield return "-------------------- Attendance Entries -------------------";
         foreach (AttendanceEntry attEntry in AttendanceEntries)
         {
-            yield return attEntry.ToString();
+            yield return attEntry.ToDebugString();
             foreach (PlayerCharacter player in attEntry.Characters)
             {
                 yield return player.ToDisplayString();
@@ -83,7 +83,7 @@ public sealed class RaidEntries
 
         yield return "-------------------- DKP Entries -------------------";
         foreach (DkpEntry dkpEntry in DkpEntries)
-            yield return dkpEntry.ToString();
+            yield return dkpEntry.ToDebugString();
 
         yield return "";
 

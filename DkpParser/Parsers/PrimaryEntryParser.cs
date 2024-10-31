@@ -44,19 +44,17 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             AddRaidJoinLeaveEntry(logLine, entryTimeStamp);
         }
+        else if (logLineSpan.IndexOf(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase) > 0)
+        {
+            AddSpentCall(logLine, entryTimeStamp, false);
+        }
     }
 
     private void AddDelimiterEntry(string logLine, DateTime entryTimeStamp)
     {
         if (logLine.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase))
         {
-            EqChannel channel = GetValidDkpChannel(logLine);
-            if (channel == EqChannel.None)
-                return;
-
-            EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
-            logEntry.EntryType = LogEntryType.DkpSpent;
-            logEntry.Channel = channel;
+            AddSpentCall(logLine, entryTimeStamp);
         }
         else if (logLine.Contains(Constants.RaidYouSearch) || logLine.Contains(Constants.RaidOther))
         {
@@ -119,6 +117,17 @@ internal sealed class PrimaryEntryParser : IParseEntry
             _logFile.LogEntries.Add(logEntry);
             logEntry.EntryType = LogEntryType.LeftRaid;
         }
+    }
+
+    private void AddSpentCall(string logLine, DateTime entryTimeStamp, bool confirmed = true)
+    {
+        EqChannel channel = GetValidDkpChannel(logLine);
+        if (channel == EqChannel.None)
+            return;
+
+        EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
+        logEntry.EntryType = confirmed ? LogEntryType.DkpSpent : LogEntryType.PossibleDkpSpent;
+        logEntry.Channel = channel;
     }
 
     private EqLogEntry CreateAndAddLogEntry(string logLine, DateTime entryTimeStamp)

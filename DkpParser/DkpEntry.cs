@@ -13,21 +13,24 @@ public sealed class DkpEntry
 
     public AttendanceEntry AssociatedAttendanceCall { get; set; }
 
-    public string Auctioneer { get; set; }
+    public string Auctioneer { get; set; } = string.Empty;
 
     public EqChannel Channel { get; set; }
 
-    public int DkpSpent { get; set; }
+    public int DkpSpent { get; set; } = 0;
 
-    public string Item { get; set; }
+    public string Item { get; set; } = string.Empty;
 
-    public string PlayerName { get; set; }
+    public string PlayerName { get; set; } = string.Empty;
 
     public PossibleError PossibleError { get; set; } = PossibleError.None;
 
     public string RawLogLine { get; set; }
 
     public DateTime Timestamp { get; set; }
+
+    public string ToDebugString()
+        => $"Extracted info: {Timestamp:HH:mm:ss} {Channel} {PlayerName}  {Item}  {DkpSpent} DKP, Error:{PossibleError}; Raw log line: {RawLogLine}";
 
     public string ToLogString()
     {

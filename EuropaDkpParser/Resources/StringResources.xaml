@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v2.6.0.0b</system:String>
+    <system:String x:Key="Version">v2.5.10</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -46,6 +46,7 @@
     <system:String x:Key="MBs">MBs</system:String>
     <system:String x:Key="SetDir">Set Dir</system:String>
     <system:String x:Key="Move">Move</system:String>
+    <system:String x:Key="Auctioneer">Auctioneer</system:String>
     <system:String x:Key="AllAttendanceCalls">All Attendance Calls</system:String>
 
     <!-- DkpErrorDisplay -->
@@ -63,6 +64,8 @@
     <system:String x:Key="DuplicateDkpSpentCall">Possible duplicate DKPSPENT calls:</system:String>
     <system:String x:Key="DkpSpentError">DKP Spent Error</system:String>
     <system:String x:Key="DkpSpentErrorFormatText">DKP is not a number: {0}.</system:String>
+    <system:String x:Key="MalformedDkpSpentError">Malformed DKP SPENT call</system:String>
+    <system:String x:Key="MalformedDkpSpentErrorDescription">Manually enter the correct values and click Add, or click Remove to discard this entry.</system:String>
     <system:String x:Key="PlayerLootNotSelected">Player Loot Not Selected</system:String>
     <system:String x:Key="PlayerLootNotSelectedMessage">Must select a player loot message.</system:String>
     <system:String x:Key="PlayerNameError">Player Name Error</system:String>
@@ -73,6 +76,7 @@
     <system:String x:Key="RemovedPlayerNotLootedMessage">Player DKPSPENT entry was successfully removed.</system:String>
     <system:String x:Key="FixedPlayerTypoMessage">Player DKPSPENT entry was successfully updated.</system:String>
     <system:String x:Key="FixedZeroDkpMessage">Player DKPSPENT entry was successfully updated.</system:String>
+    <system:String x:Key="FixedMalformedDkpMessage">Malformed DKPSPENT entry was successfully updated.</system:String>
     
     <!-- AttendanceErrorDisplay -->
     <system:String x:Key="SetBoss">Set Boss</system:String>

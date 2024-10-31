@@ -13,6 +13,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
 {
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
+    private string _actionCompletedMessage;
+    private string _auctioneer;
     private DkpEntry _currentEntry;
     private string _dkpSpent;
     private ICollection<DkpEntry> _duplicateDkpspentEntries;
@@ -20,6 +22,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private bool _isDuplicateDkpSpentCallError;
     private bool _isFilterByItemChecked;
     private bool _isFilterByNameChecked;
+    private bool _isMalformedDkpspentCall;
     private bool _isNoPlayerLootedError;
     private bool _isPlayerNameTypoError;
     private bool _isZeroDkpError;
@@ -33,7 +36,6 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
     private PlayerLooted _selectedPlayerLooted;
     private string _selectedPlayerName;
     private string _timestamp;
-    private string _updatePlayerNotLootedErrorMessage;
 
     internal DkpErrorDisplayDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
@@ -60,11 +62,25 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         RemoveDuplicateSelectionCommand = new DelegateCommand(RemoveDuplicateDkpspentCall, () => IsDuplicateDkpSpentCallError && SelectedDuplicateDkpEntry != null)
             .ObservesProperty(() => IsDuplicateDkpSpentCallError).ObservesProperty(() => SelectedDuplicateDkpEntry);
         RemoveDkpEntryCommand = new DelegateCommand(RemoveDkpEntry);
+        FixMalformedDkpEntryCommand = new DelegateCommand(FixMalformedDkpEntry, () => !string.IsNullOrWhiteSpace(PlayerName) && !string.IsNullOrWhiteSpace(ItemName) && !string.IsNullOrWhiteSpace(DkpSpent))
+            .ObservesProperty(() => PlayerName).ObservesProperty(() => ItemName).ObservesProperty(() => DkpSpent);
 
         AdvanceToNextError();
     }
 
+    public string ActionCompletedMessage
+    {
+        get => _actionCompletedMessage;
+        set => SetProperty(ref _actionCompletedMessage, value);
+    }
+
     public ICollection<string> AllPlayers { get; }
+
+    public string Auctioneer
+    {
+        get => _auctioneer;
+        set => SetProperty(ref _auctioneer, value);
+    }
 
     public string DkpSpent
     {
@@ -83,6 +99,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         get => _errorMessageText;
         private set => SetProperty(ref _errorMessageText, value);
     }
+
+    public DelegateCommand FixMalformedDkpEntryCommand { get; }
 
     public DelegateCommand FixNoLootedMessageManualCommand { get; }
 
@@ -137,6 +155,12 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             IsFilterByItemChecked = false;
             PlayerLootedEntries = _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName == _currentEntry.PlayerName).OrderBy(x => x.Timestamp).ToList();
         }
+    }
+
+    public bool IsMalformedDkpspentCall
+    {
+        get => _isMalformedDkpspentCall;
+        private set => SetProperty(ref _isMalformedDkpspentCall, value);
     }
 
     public bool IsNoPlayerLootedError
@@ -223,16 +247,8 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         set => SetProperty(ref _timestamp, value);
     }
 
-    public string UpdatePlayerNotLootedErrorMessage
-    {
-        get => _updatePlayerNotLootedErrorMessage;
-        set => SetProperty(ref _updatePlayerNotLootedErrorMessage, value);
-    }
-
     private void AdvanceToNextError()
     {
-        UpdatePlayerNotLootedErrorMessage = string.Empty;
-
         // Clean up previous error entries
         if (DuplicateDkpspentEntries.Count > 0)
         {
@@ -241,6 +257,14 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
                 entry.PossibleError = PossibleError.None;
             }
         }
+
+        // If the user just clicks "Next" for a malformed error, then remove it.
+        if (_currentEntry?.PossibleError == PossibleError.MalformedDkpSpentLine)
+        {
+            RemoveDkpEntry();
+        }
+
+        ActionCompletedMessage = string.Empty;
 
 GOTO_NEXT_ENTRY:
 
@@ -264,23 +288,27 @@ GOTO_NEXT_ENTRY:
         Timestamp = _currentEntry.Timestamp.ToString("HH:mm:ss");
         RawLogLine = _currentEntry.RawLogLine;
 
+        IsNoPlayerLootedError = false;
+        IsPlayerNameTypoError = false;
+        IsDuplicateDkpSpentCallError = false;
+        IsZeroDkpError = false;
+        IsMalformedDkpspentCall = false;
+
         if (_currentEntry.PossibleError == PossibleError.PlayerLootedMessageNotFound)
         {
-            if (_raidEntries.PlayerLootedEntries.Count == 0)
-                goto GOTO_NEXT_ENTRY; // switch to a while loop if more than one error type may need skipping.
+            // Bypassing this error.  With many alts getting items, and raids moving rapidly to the next target where the attendance
+            // taker isnt around to see the "looted" messages, this is basically spam now without any actual value.
+            goto GOTO_NEXT_ENTRY;
 
-            IsNoPlayerLootedError = true;
-            IsPlayerNameTypoError = false;
-            IsDuplicateDkpSpentCallError = false;
-            IsZeroDkpError = false;
-            ErrorMessageText = Strings.GetString("PlayerLootedItemEntryNotFound");
+            //if (_raidEntries.PlayerLootedEntries.Count == 0)
+            //    goto GOTO_NEXT_ENTRY; // switch to a while loop if more than one error type may need skipping.
+
+            //IsNoPlayerLootedError = true;
+            //ErrorMessageText = Strings.GetString("PlayerLootedItemEntryNotFound");
         }
         else if (_currentEntry.PossibleError == PossibleError.DkpSpentPlayerNameTypo)
         {
-            IsNoPlayerLootedError = false;
             IsPlayerNameTypoError = true;
-            IsDuplicateDkpSpentCallError = false;
-            IsZeroDkpError = false;
             ErrorMessageText = Strings.GetString("PlayerNameTypo");
 
             for (int i = 8; i > 0; i--)
@@ -299,10 +327,7 @@ GOTO_NEXT_ENTRY:
         }
         else if (_currentEntry.PossibleError == PossibleError.DkpDuplicateEntry)
         {
-            IsNoPlayerLootedError = false;
-            IsPlayerNameTypoError = false;
             IsDuplicateDkpSpentCallError = true;
-            IsZeroDkpError = false;
 
             ErrorMessageText = Strings.GetString("DuplicateDkpSpentCall");
 
@@ -310,13 +335,39 @@ GOTO_NEXT_ENTRY:
         }
         else if (_currentEntry.PossibleError == PossibleError.ZeroDkp)
         {
-            IsNoPlayerLootedError = false;
-            IsPlayerNameTypoError = false;
-            IsDuplicateDkpSpentCallError = false;
             IsZeroDkpError = true;
 
             ErrorMessageText = Strings.GetString("ZeroDkpSpentCall");
         }
+        else if (_currentEntry.PossibleError == PossibleError.MalformedDkpSpentLine)
+        {
+            IsMalformedDkpspentCall = true;
+
+            Auctioneer = _currentEntry.Auctioneer;
+
+            ErrorMessageText = Strings.GetString("MalformedDkpSpentError");
+        }
+    }
+
+    private void FixMalformedDkpEntry()
+    {
+        if (string.IsNullOrEmpty(PlayerName) || string.IsNullOrEmpty(DkpSpent) || string.IsNullOrEmpty(ItemName))
+            return;
+
+        if (!int.TryParse(DkpSpent, out int parsedDkp))
+        {
+            MessageBox.Show(string.Format(Strings.GetString("DkpSpentErrorFormatText"), DkpSpent.ToString()), Strings.GetString("DkpSpentError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        _currentEntry.PlayerName = PlayerName;
+        _currentEntry.Item = ItemName;
+        _currentEntry.DkpSpent = parsedDkp;
+        _currentEntry.Auctioneer = Auctioneer;
+
+        _currentEntry.PossibleError = PossibleError.None;
+
+        ActionCompletedMessage = Strings.GetString("FixedMalformedDkpMessage");
     }
 
     private void FixNoLootedMessageManual()
@@ -330,7 +381,9 @@ GOTO_NEXT_ENTRY:
         _currentEntry.Item = ItemName;
         _currentEntry.DkpSpent = parsedDkp;
 
-        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedPlayerNotLootedMessage");
+        _currentEntry.PossibleError = PossibleError.None;
+
+        ActionCompletedMessage = Strings.GetString("FixedPlayerNotLootedMessage");
     }
 
     private void FixNoLootedMessageUsingSelection()
@@ -343,7 +396,9 @@ GOTO_NEXT_ENTRY:
         _currentEntry.PlayerName = _selectedPlayerLooted.PlayerName;
         _currentEntry.Item = _selectedPlayerLooted.ItemLooted;
 
-        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedPlayerNotLootedMessage");
+        _currentEntry.PossibleError = PossibleError.None;
+
+        ActionCompletedMessage = Strings.GetString("FixedPlayerNotLootedMessage");
     }
 
     private void FixPlayerTypoManual()
@@ -357,7 +412,9 @@ GOTO_NEXT_ENTRY:
 
         _currentEntry.PlayerName = PlayerName;
 
-        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedPlayerTypoMessage");
+        _currentEntry.PossibleError = PossibleError.None;
+
+        ActionCompletedMessage = Strings.GetString("FixedPlayerTypoMessage");
     }
 
     private void FixPlayerTypoUsingSelection()
@@ -365,7 +422,9 @@ GOTO_NEXT_ENTRY:
         _currentEntry.PlayerName = SelectedPlayerName;
         PlayerName = _currentEntry.PlayerName;
 
-        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedPlayerTypoMessage");
+        _currentEntry.PossibleError = PossibleError.None;
+
+        ActionCompletedMessage = Strings.GetString("FixedPlayerTypoMessage");
     }
 
     private void FixZeroDkpError()
@@ -375,16 +434,19 @@ GOTO_NEXT_ENTRY:
             MessageBox.Show(string.Format(Strings.GetString("DkpSpentErrorFormatText"), DkpSpent.ToString()), Strings.GetString("DkpSpentError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
+
         _currentEntry.DkpSpent = parsedDkp;
 
-        UpdatePlayerNotLootedErrorMessage = Strings.GetString("FixedZeroDkpMessage");
+        _currentEntry.PossibleError = PossibleError.None;
+
+        ActionCompletedMessage = Strings.GetString("FixedZeroDkpMessage");
     }
 
     private void RemoveDkpEntry()
     {
         _raidEntries.DkpEntries.Remove(_currentEntry);
 
-        UpdatePlayerNotLootedErrorMessage = Strings.GetString("RemovedPlayerNotLootedMessage");
+        ActionCompletedMessage = Strings.GetString("RemovedPlayerNotLootedMessage");
     }
 
     private void RemoveDuplicateDkpspentCall()
@@ -413,15 +475,19 @@ GOTO_NEXT_ENTRY:
 
 public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
 {
-    public string Timestamp { get; }
+    string ActionCompletedMessage { get; }
 
     ICollection<string> AllPlayers { get; }
+
+    string Auctioneer { get; set; }
 
     string DkpSpent { get; set; }
 
     ICollection<DkpEntry> DuplicateDkpspentEntries { get; }
 
     string ErrorMessageText { get; }
+
+    DelegateCommand FixMalformedDkpEntryCommand { get; }
 
     DelegateCommand FixNoLootedMessageManualCommand { get; }
 
@@ -438,6 +504,8 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
     bool IsFilterByItemChecked { get; set; }
 
     bool IsFilterByNameChecked { get; set; }
+
+    bool IsMalformedDkpspentCall { get; }
 
     bool IsNoPlayerLootedError { get; }
 
@@ -469,5 +537,5 @@ public interface IDkpErrorDisplayDialogViewModel : IDialogViewModel
 
     string SelectedPlayerName { get; set; }
 
-    string UpdatePlayerNotLootedErrorMessage { get; }
+    string Timestamp { get; }
 }
