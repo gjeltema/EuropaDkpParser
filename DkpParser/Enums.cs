@@ -55,3 +55,17 @@ public enum PossibleError : byte
     RaidNameTooShort,
     InvalidZoneName
 }
+
+public enum LiveAuctionMessageType : byte
+{
+    Start = 1,
+    End
+}
+
+public enum StatusMarker : byte
+{
+    Completed,
+    TenSeconds,
+    ThirtySeconds,
+    SixtySeconds
+}

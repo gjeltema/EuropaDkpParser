@@ -41,6 +41,20 @@ public abstract class EqLogParserBase : IEqLogParser
     public void SetEntryParser(IParseEntry parseEntry)
         => _currentEntryParser = parseEntry;
 
+    internal static bool TryExtractEqLogTimeStamp(string logLine, out DateTime result)
+    {
+        // [Wed Feb 21 16:34:07 2024] ...
+
+        if (logLine.Length < Constants.LogDateTimeLength)
+        {
+            result = DateTime.MinValue;
+            return false;
+        }
+
+        ReadOnlySpan<char> timeEntry = logLine.AsSpan()[0..Constants.LogDateTimeLength];
+        return DateTime.TryParseExact(timeEntry, Constants.LogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+    }
+
     protected ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime, IEnumerable<string> selectedLogFileNames)
     {
         List<EqLogFile> logFiles = [];
@@ -55,18 +69,4 @@ public abstract class EqLogParserBase : IEqLogParser
     }
 
     protected abstract void InitializeEntryParsers(EqLogFile logFile, DateTime startTime, DateTime endTime);
-
-    private static bool TryExtractEqLogTimeStamp(string logLine, out DateTime result)
-    {
-        // [Wed Feb 21 16:34:07 2024] ...
-
-        if (logLine.Length < Constants.LogDateTimeLength)
-        {
-            result = DateTime.MinValue;
-            return false;
-        }
-
-        ReadOnlySpan<char> timeEntry = logLine.AsSpan()[0..Constants.LogDateTimeLength];
-        return DateTime.TryParseExact(timeEntry, Constants.LogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
-    }
 }

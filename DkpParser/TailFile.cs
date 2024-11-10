@@ -35,7 +35,6 @@ internal sealed class TailFile : IMessageProvider
     public void StopMessages()
     {
         _continueProcessing = false;
-        Thread.Sleep(Timeout + 100);
         _fileReaderThread = null;
     }
 

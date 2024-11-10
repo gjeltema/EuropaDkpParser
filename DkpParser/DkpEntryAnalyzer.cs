@@ -9,12 +9,14 @@ using System.Text.RegularExpressions;
 internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 {
     private readonly Regex _findDigits = FindDigitsRegex();
-    private readonly DelimiterStringSanitizer _sanitizer = new();
+    private DkpSpentAnalyzer _dkpSpentAnalyzer;
     private RaidEntries _raidEntries;
 
     public void AnalyzeLootCalls(LogParseResults logParseResults, RaidEntries raidEntries)
     {
         _raidEntries = raidEntries;
+        _dkpSpentAnalyzer = new DkpSpentAnalyzer(_raidEntries.AnalysisErrors.Add);
+
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
             IEnumerable<DkpEntry> dkpEntries = log.LogEntries
@@ -56,7 +58,8 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             return;
         }
 
-        dkpEntry.PossibleError = PossibleError.PlayerLootedMessageNotFound;
+        // Commented out - too many false positives, almost no real positives.
+        //dkpEntry.PossibleError = PossibleError.PlayerLootedMessageNotFound;
     }
 
     private DkpEntry ExtractDkpSpentInfo(EqLogEntry entry)
@@ -65,69 +68,9 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         {
             entry.Visited = true;
 
-            // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
-            // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
-            ReadOnlySpan<char> logLine = _sanitizer.SanitizeDelimiterString(entry.LogLine).AsSpan(Constants.LogDateTimeLength + 1);
+            DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(entry.LogLine, entry.Channel, entry.Timestamp);
 
-            int indexOfFirstDelimiter = logLine.IndexOf(Constants.AttendanceDelimiter);
-            ReadOnlySpan<char> auctioneerSection = logLine[0..indexOfFirstDelimiter];
-            int indexOfSpace = auctioneerSection.IndexOf(' ');
-            if (indexOfSpace < 1)
-            {
-                _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
-                return new DkpEntry
-                {
-                    Timestamp = entry.Timestamp,
-                    RawLogLine = entry.LogLine,
-                    Channel = entry.Channel,
-                    PossibleError = PossibleError.MalformedDkpSpentLine
-                };
-            }
-            string auctioneer = auctioneerSection[..indexOfSpace].ToString();
-
-            int startOfItemSectionIndex = indexOfFirstDelimiter + Constants.AttendanceDelimiter.Length;
-            int indexOfSecondDelimiter = logLine[startOfItemSectionIndex..].IndexOf(Constants.AttendanceDelimiter);
-            if (indexOfSecondDelimiter < 1)
-            {
-                _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
-                return new DkpEntry
-                {
-                    Timestamp = entry.Timestamp,
-                    RawLogLine = entry.LogLine,
-                    Channel = entry.Channel,
-                    Auctioneer = auctioneer,
-                    PossibleError = PossibleError.MalformedDkpSpentLine
-                };
-            }
-            string itemName = logLine[startOfItemSectionIndex..][..indexOfSecondDelimiter].ToString();
-
-            ReadOnlySpan<char> playerSection = logLine[(startOfItemSectionIndex + indexOfSecondDelimiter + Constants.AttendanceDelimiter.Length)..].Trim();
-            indexOfSpace = playerSection.IndexOf(' ');
-            if (indexOfSpace < 1)
-            {
-                _raidEntries.AnalysisErrors.Add($"Unable to extract pieces from DkpEntry: {entry.LogLine}");
-                return new DkpEntry
-                {
-                    Timestamp = entry.Timestamp,
-                    RawLogLine = entry.LogLine,
-                    Channel = entry.Channel,
-                    Auctioneer = auctioneer,
-                    PossibleError = PossibleError.MalformedDkpSpentLine
-                };
-            }
-            string playerName = playerSection[..indexOfSpace].ToString();
-
-            DkpEntry dkpEntry = new()
-            {
-                PlayerName = playerName.Trim(),
-                Item = itemName.Trim(),
-                Timestamp = entry.Timestamp,
-                RawLogLine = entry.LogLine,
-                Auctioneer = auctioneer,
-                Channel = entry.Channel
-            };
-
-            if (logLine.IndexOf(Constants.Undo) > 0 || logLine.IndexOf(Constants.Remove) > 0)
+            if (entry.LogLine.IndexOf(Constants.Undo) > 0 || entry.LogLine.IndexOf(Constants.Remove) > 0)
             {
                 DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
                 if (toBeRemoved != null)
@@ -137,8 +80,6 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
                 return null;
             }
 
-            string endSection = playerSection[playerName.Length..].ToString();
-            GetDkpAmount(endSection, dkpEntry);
             CheckDkpPlayerName(dkpEntry);
 
             return dkpEntry;
@@ -159,52 +100,10 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         return associatedEntry;
     }
 
-    private void GetAuctioneerName(string initialLogLine, DkpEntry dkpEntry)
-    {
-        ReadOnlySpan<char> lineWithoutTimestamp = initialLogLine.AsSpan()[(Constants.LogDateTimeLength + 1)..];
-        if (lineWithoutTimestamp.Length == 0)
-        {
-            _raidEntries.AnalysisErrors.Add($"Unable to extract auctioneer name from DkpEntry: {initialLogLine}");
-            dkpEntry.Auctioneer = string.Empty;
-            return;
-        }
-
-        int indexOfSpace = lineWithoutTimestamp.IndexOf(' ');
-        if (indexOfSpace == 0)
-        {
-            _raidEntries.AnalysisErrors.Add($"Unable to extract auctioneer name from DkpEntry: {initialLogLine}");
-            dkpEntry.Auctioneer = string.Empty;
-            return;
-        }
-
-        string auctioneerName = lineWithoutTimestamp[0..indexOfSpace].ToString();
-        dkpEntry.Auctioneer = auctioneerName;
-    }
-
     private string GetDigits(string endText)
     {
         Match m = _findDigits.Match(endText);
         return m.Value;
-    }
-
-    private void GetDkpAmount(string endText, DkpEntry dkpEntry)
-    {
-        // Get digits, since it must be assumed that the auctioneer will add extraneous characters such as '-' and 'alt'.
-        string dkpNumber = GetDigits(endText);
-        if (string.IsNullOrWhiteSpace(dkpNumber))
-        {
-            _raidEntries.AnalysisErrors.Add($"Unable to extract DKP amount from DkpEntry: {dkpEntry.RawLogLine}");
-            dkpEntry.DkpSpent = 0;
-            dkpEntry.PossibleError = PossibleError.ZeroDkp;
-            return;
-        }
-
-        int.TryParse(dkpNumber, out int dkpAmount);
-        if (dkpAmount == 0)
-        {
-            dkpEntry.PossibleError = PossibleError.ZeroDkp;
-        }
-        dkpEntry.DkpSpent = dkpAmount;
     }
 
     private DkpEntry ProcessPossibleDkpspentCalls(EqLogEntry entry)
