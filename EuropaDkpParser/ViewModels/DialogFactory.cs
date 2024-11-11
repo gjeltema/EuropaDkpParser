@@ -45,9 +45,6 @@ internal sealed class DialogFactory : IDialogFactory
     public IGeneralEqLogParserDialogViewModel CreateGeneralEqParserDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings)
         => new GeneralEqLogParserDialogViewModel(_viewFactory, dialogFactory, settings);
 
-    public ILiveLogTrackingViewModel CreateLiveLogTrackingViewModel(IDkpParserSettings settings)
-        => new LiveLogTrackingViewModel(_viewFactory, settings);
-
     public IParserDialogViewModel CreateParserDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
         => new ParserDialogViewModel(settings, dialogFactory, _viewFactory);
 
@@ -85,8 +82,6 @@ public interface IDialogFactory
     IFinalSummaryDialogViewModel CreateFinalSummaryDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings, RaidEntries raidEntries, bool canUploadToServer);
 
     IGeneralEqLogParserDialogViewModel CreateGeneralEqParserDialogViewModel(IDialogFactory dialogFactory, IDkpParserSettings settings);
-
-    ILiveLogTrackingViewModel CreateLiveLogTrackingViewModel(IDkpParserSettings settings);
 
     IParserDialogViewModel CreateParserDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory);
 

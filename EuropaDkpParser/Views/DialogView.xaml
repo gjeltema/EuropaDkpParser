@@ -62,9 +62,6 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:SimpleMultilineDisplayDialogViewModel}">
                     <dialogsView:SimpleMultilineDisplayDialog />
                 </DataTemplate>
-                <DataTemplate DataType="{x:Type dialogsViewModel:LiveLogTrackingViewModel}">
-                    <dialogsView:LiveLogTrackingView />
-                </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>
     </ContentPresenter>

@@ -265,7 +265,7 @@
     <system:String x:Key="CurrentBids">Current Bids</system:String>
     <system:String x:Key="RemoveBid">Remove Bid</system:String>
     <system:String x:Key="CurrentHighBids">Current High Bids</system:String>
-    <system:String x:Key="MessageToPostToChat">Message To Post To Chat</system:String>
+    <system:String x:Key="MessageToPostToChat">Status Message To Post To Chat</system:String>
     <system:String x:Key="SpentCallsToPostToChat">SPENT Calls To Post To Chat</system:String>
     <system:String x:Key="LogFileToMonitor">Log File To Monitor</system:String>
     <system:String x:Key="SetFile">Set File</system:String>

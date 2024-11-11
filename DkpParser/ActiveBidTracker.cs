@@ -25,7 +25,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     //** To DO
     // Handle REMOVE calls
     // Error reporting
-    // Make dialog into a full window
 
     public ActiveBidTracker(IDkpParserSettings settings)
     {

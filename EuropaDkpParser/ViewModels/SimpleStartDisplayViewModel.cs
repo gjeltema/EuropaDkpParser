@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows;
 using DkpParser;
 using EuropaDkpParser.Utility;
+using EuropaDkpParser.Views;
 using Microsoft.Win32;
 using Prism.Commands;
 
@@ -63,8 +64,9 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private void OpenBiddingTrackerDialog()
     {
-        ILiveLogTrackingViewModel biddingDialog = _dialogFactory.CreateLiveLogTrackingViewModel(_settings);
-        biddingDialog.ShowDialog();
+        ILiveLogTrackingViewModel biddingDialogVM = new LiveLogTrackingViewModel(_settings);
+        Window biddingWindow = new LiveLogTrackingView(biddingDialogVM);
+        biddingWindow.Show();
     }
 
     private void OpenDkpParserDialog()

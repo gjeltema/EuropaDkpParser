@@ -8,12 +8,11 @@ using System.IO;
 using System.Windows.Threading;
 using DkpParser;
 using DkpParser.LiveTracking;
-using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
 using Microsoft.Win32;
 using Prism.Commands;
 
-internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTrackingViewModel
+internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTrackingViewModel
 {
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly IDkpParserSettings _settings;
@@ -33,12 +32,9 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
     private LiveSpentCall _selectedSpentMessageToPaste;
     private ICollection<LiveSpentCall> _spentMessagesToPaste;
 
-    public LiveLogTrackingViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings)
-        : base(viewFactory)
+    public LiveLogTrackingViewModel(IDkpParserSettings settings)
     {
         _settings = settings;
-
-        Title = Strings.GetString("LiveLogTrackingDialogTitleText");
 
         _activeBidTracker = new(settings);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
@@ -281,7 +277,7 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
     }
 }
 
-public interface ILiveLogTrackingViewModel : IDialogViewModel
+public interface ILiveLogTrackingViewModel : IEuropaViewModel
 {
     ICollection<LiveAuctionInfo> ActiveAuctions { get; }
 

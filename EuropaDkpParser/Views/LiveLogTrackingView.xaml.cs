@@ -1,28 +1,20 @@
-﻿namespace EuropaDkpParser.Views
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Data;
-    using System.Windows.Documents;
-    using System.Windows.Input;
-    using System.Windows.Media;
-    using System.Windows.Media.Imaging;
-    using System.Windows.Navigation;
-    using System.Windows.Shapes;
+﻿// -----------------------------------------------------------------------
+// LiveLogTrackingView.xaml.cs Copyright 2024 Craig Gjeltema
+// -----------------------------------------------------------------------
 
-    /// <summary>
-    /// Interaction logic for LiveLogTrackingView.xaml
-    /// </summary>
-    public partial class LiveLogTrackingView : UserControl
+namespace EuropaDkpParser.Views
+{
+    using System.Windows;
+    using EuropaDkpParser.ViewModels;
+
+    public partial class LiveLogTrackingView : Window
     {
-        public LiveLogTrackingView()
+        public LiveLogTrackingView(ILiveLogTrackingViewModel liveLogTrackingViewModel)
         {
             InitializeComponent();
+
+            Owner = Application.Current.MainWindow;
+            DataContext = liveLogTrackingViewModel;
         }
     }
 }
