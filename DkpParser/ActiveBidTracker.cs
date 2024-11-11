@@ -14,6 +14,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly ActiveAuctionEndAnalyzer _auctionEndAnalyzer;
     private readonly ActiveAuctionStartAnalyzer _auctionStartAnalyzer;
     private readonly ChannelAnalyzer _channelAnalyzer;
+    private readonly ItemLinkValues _itemLinkValues;
     private readonly IMessageProvider _messageProvider;
     private readonly IDkpParserSettings _settings;
     private ImmutableList<LiveAuctionInfo> _activeAuctions;
@@ -22,10 +23,9 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private ImmutableList<LiveSpentCall> _spentCalls;
 
     //** To DO
-    // Get item links
-    //      Ability to specify item number, and save it
     // Handle REMOVE calls
     // Error reporting
+    // Make dialog into a full window
 
     public ActiveBidTracker(IDkpParserSettings settings)
     {
@@ -36,6 +36,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _auctionStartAnalyzer = new();
         _auctionEndAnalyzer = new(ProcessErrorMessage);
         _activeBiddingAnalyzer = new();
+        _itemLinkValues = settings.ItemLinkIds;
+
         _activeAuctions = [];
         _spentCalls = [];
         _completedAuctions = [];
@@ -53,7 +55,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     public bool Updated { get; set; }
 
-    //** Change to have item link
     public ICollection<LiveBidInfo> GetHighBids(LiveAuctionInfo auction)
     {
         if (auction == null)
@@ -77,7 +78,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "60s",
         };
 
-    public ICollection<LiveSpentCall> GetSpentMessagesForCurrentHighBids(LiveAuctionInfo auction)
+    public ICollection<LiveSpentCall> GetSpentInfoForCurrentHighBids(LiveAuctionInfo auction)
     {
         if (auction == null)
             return [];
@@ -96,6 +97,16 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 Winner = x.CharacterName
             })
             .ToList();
+    }
+
+    public string GetSpentMessageWithLink(LiveSpentCall spentCall)
+    {
+        if (spentCall == null)
+            return string.Empty;
+
+        string channel = GetChannelShortcut(spentCall.Channel);
+        string itemLink = _itemLinkValues.GetItemLink(spentCall.ItemName);
+        return $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {spentCall.Winner} {spentCall.DkpSpent} {Constants.DkpSpent}";
     }
 
     public StatusMarker GetStatusMarkerFromSelectionString(string statusString)
@@ -117,7 +128,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         IEnumerable<LiveBidInfo> highBids = GetHighBids(auction);
         string highBiddersString = string.Join(',', highBids.Select(x => $"{x.CharacterName} {x.BidAmount}"));
         string statusString = GetStatusString(statusMarker);
-        return $"{channel} {Constants.AttendanceDelimiter}{auction.ItemName}{Constants.AttendanceDelimiter} {highBiddersString} {statusString}";
+        string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
+        return $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {highBiddersString} {statusString}";
     }
 
     public void ReactivateCompletedAuction(CompletedAuction auction)
@@ -288,7 +300,9 @@ public interface IActiveBidTracker
 
     string GetNextStatusMarkerForSelection(string currentMarker);
 
-    ICollection<LiveSpentCall> GetSpentMessagesForCurrentHighBids(LiveAuctionInfo auction);
+    ICollection<LiveSpentCall> GetSpentInfoForCurrentHighBids(LiveAuctionInfo auction);
+
+    string GetSpentMessageWithLink(LiveSpentCall spentCall);
 
     StatusMarker GetStatusMarkerFromSelectionString(string statusString);
 

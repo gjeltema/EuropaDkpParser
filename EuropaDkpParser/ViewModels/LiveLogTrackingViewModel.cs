@@ -26,6 +26,7 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
     private string _currentStatusMarker;
     private string _filePath;
     private ICollection<LiveBidInfo> _highBids;
+    private string _itemLinkIdToAdd;
     private LiveAuctionInfo _selectedActiveAuction;
     private LiveBidInfo _selectedBid;
     private CompletedAuction _selectedCompletedAuction;
@@ -49,6 +50,7 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
         SelectFileToTailCommand = new DelegateCommand(SelectFileToTail);
         SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted);
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
+        AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
     }
@@ -58,6 +60,8 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
         get => _activeAuctions;
         private set => SetProperty(ref _activeAuctions, value);
     }
+
+    public DelegateCommand AddItemLinkIdCommand { get; }
 
     public string AuctionStatusMessageToPaste
     {
@@ -101,6 +105,12 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
         private set => SetProperty(ref _highBids, value);
     }
 
+    public string ItemLinkIdToAdd
+    {
+        get => _itemLinkIdToAdd;
+        set => SetProperty(ref _itemLinkIdToAdd, value);
+    }
+
     public DelegateCommand ReactivateCompletedAuctionCommand { get; }
 
     public DelegateCommand RemoveBidCommand { get; }
@@ -139,6 +149,17 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
         private set => SetProperty(ref _spentMessagesToPaste, value);
     }
 
+    private void AddItemLinkId()
+    {
+        if (string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
+            return;
+
+        if (SelectedActiveAuction == null)
+            return;
+
+        _settings.ItemLinkIds.AddItemId(SelectedActiveAuction.ItemName, ItemLinkIdToAdd);
+    }
+
     private void CheckAndUpdateDisplay()
     {
         if (!_activeBidTracker.Updated)
@@ -156,10 +177,10 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
         if (selectedSpentCall == null)
             return;
 
-        string messageWithLink = selectedSpentCall.ToMessageWithLink();
-        bool success = Clip.Copy(messageWithLink);
+        string spentCallWithLink = _activeBidTracker.GetSpentMessageWithLink(selectedSpentCall);
+        bool success = Clip.Copy(spentCallWithLink);
         if (!success)
-            Clip.Copy(messageWithLink);
+            Clip.Copy(spentCallWithLink);
     }
 
     private void CopySelectedStatusMessageToClipboard()
@@ -255,7 +276,7 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
         CurrentBids = new List<LiveBidInfo>(_activeBidTracker.Bids.Where(x => x.ParentAuctionId == SelectedActiveAuction.Id).OrderByDescending(x => x.Timestamp));
         HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction));
 
-        SpentMessagesToPaste = _activeBidTracker.GetSpentMessagesForCurrentHighBids(SelectedActiveAuction);
+        SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(SelectedActiveAuction);
         SetStatusMessage();
     }
 }
@@ -263,6 +284,8 @@ internal sealed class LiveLogTrackingViewModel : DialogViewModelBase, ILiveLogTr
 public interface ILiveLogTrackingViewModel : IDialogViewModel
 {
     ICollection<LiveAuctionInfo> ActiveAuctions { get; }
+
+    DelegateCommand AddItemLinkIdCommand { get; }
 
     string AuctionStatusMessageToPaste { get; set; }
 
@@ -281,6 +304,8 @@ public interface ILiveLogTrackingViewModel : IDialogViewModel
     string FilePath { get; set; }
 
     ICollection<LiveBidInfo> HighBids { get; }
+
+    string ItemLinkIdToAdd { get; set; }
 
     DelegateCommand ReactivateCompletedAuctionCommand { get; }
 

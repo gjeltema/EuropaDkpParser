@@ -35,13 +35,15 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
     private const string UseAdvancedDialogSection = "USE_ADVANCED_DIALOG";
     private const string WindowLocationSection = "WINDOW_LOCATION";
+    private readonly string _itemLinkValuesFileName;
     private readonly string _raidValuesFileName;
     private readonly string _settingsFilePath;
 
-    public DkpParserSettings(string settingsFilePath, string raidValuesFileName)
+    public DkpParserSettings(string settingsFilePath, string raidValuesFileName, string itemLinkValuesFileName)
     {
         _settingsFilePath = settingsFilePath;
         _raidValuesFileName = raidValuesFileName;
+        _itemLinkValuesFileName = itemLinkValuesFileName;
     }
 
     public bool AddBonusDkpRaid { get; set; }
@@ -83,6 +85,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public bool IsApiConfigured
         => !string.IsNullOrEmpty(ApiUrl) && !string.IsNullOrEmpty(ApiReadToken) && !string.IsNullOrEmpty(ApiWriteToken);
 
+    public ItemLinkValues ItemLinkIds { get; private set; }
+
     public string LogFileMatchPattern { get; set; }
 
     public int MainWindowX { get; set; } = DefaultWindowLocation;
@@ -99,10 +103,13 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool UseAdvancedDialog { get; set; }
 
-    public void LoadSettings()
+    public void LoadAllSettings()
     {
         RaidValue = new RaidValues(_raidValuesFileName);
         RaidValue.LoadSettings();
+
+        ItemLinkIds = new(_itemLinkValuesFileName);
+        ItemLinkIds.LoadValues();
 
         if (!File.Exists(_settingsFilePath))
         {
@@ -164,7 +171,11 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         AddCollection(settingsFileContent, EqLogFilesToArchive, ArchiveSelectedFilesToArchiveSection);
 
-        File.WriteAllLines(_settingsFilePath, settingsFileContent);
+        try
+        {
+            File.WriteAllLines(_settingsFilePath, settingsFileContent);
+        }
+        catch { }
     }
 
     private static int GetStartingIndex(string[] fileContents, string configurationSectionName)
@@ -370,6 +381,8 @@ public interface IDkpParserSettings
 
     bool IsApiConfigured { get; }
 
+    ItemLinkValues ItemLinkIds { get; }
+
     string LogFileMatchPattern { get; set; }
 
     int MainWindowX { get; set; }
@@ -386,7 +399,7 @@ public interface IDkpParserSettings
 
     bool UseAdvancedDialog { get; set; }
 
-    void LoadSettings();
+    void LoadAllSettings();
 
     void SaveSettings();
 }

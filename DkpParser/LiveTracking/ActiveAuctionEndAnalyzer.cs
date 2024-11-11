@@ -63,8 +63,4 @@ public sealed class LiveSpentCall
 
     public override string ToString()
         => $"{Channel} {Constants.AttendanceDelimiter}{ItemName}{Constants.AttendanceDelimiter} {Winner} {DkpSpent} {Constants.DkpSpent}";
-
-    //** Need to implement link
-    public string ToMessageWithLink()
-        => $"{Channel} {Constants.AttendanceDelimiter}{ItemName}{Constants.AttendanceDelimiter} {Winner} {DkpSpent} {Constants.DkpSpent}";
 }

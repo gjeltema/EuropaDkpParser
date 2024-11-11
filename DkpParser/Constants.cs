@@ -42,11 +42,6 @@ public static class Constants
     public const string GuildYou = "You say to your guild, '";
     // [Wed Mar 13 20:32:16 2024] You say to your guild, 'Yes, a number of us are LFG at the book for a raid invite.'
     public const string GuildYouSearch = $"] {GuildYou}";
-    /// <summary>
-    /// First argument: item ID number<br/>
-    /// Second argument: item name
-    /// </summary>
-    public const string ItemLinkFormat = "\u0012{0}: {1}\u0012";
     public const string JoinedRaid = " joined the raid.";
     public const string KillCall = "KILL";
     public const string LeftRaid = " has left the raid.";

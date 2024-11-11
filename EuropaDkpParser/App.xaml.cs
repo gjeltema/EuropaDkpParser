@@ -13,6 +13,7 @@ using EuropaDkpParser.Views;
 
 public partial class App : Application
 {
+    private const string ItemLinkIdsFilePath = "ItemLinkIDs.txt";
     private const string RaidValuesFilePath = "RaidValues.txt";
     private const string SettingsFilePath = "Settings.txt";
     private IDkpParserSettings _settings;
@@ -40,8 +41,8 @@ public partial class App : Application
             return;
         }
 
-        _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath);
-        _settings.LoadSettings();
+        _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath);
+        _settings.LoadAllSettings();
 
         var shellViewModel = new ShellViewModel(_settings, new DialogFactory(new DialogViewFactory()));
         _shellView = new ShellView(shellViewModel);
