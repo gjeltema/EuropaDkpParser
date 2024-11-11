@@ -7,27 +7,24 @@ namespace DkpParser;
 using System.IO;
 using System.Threading;
 
-internal sealed class TailFile : IMessageProvider
+public sealed class TailFile : IMessageProvider
 {
     private const int Timeout = 500;
-    private readonly Action<string> _errorMessage;
-    private readonly Action<string> _lineHandler;
     private volatile bool _continueProcessing = true;
+    private Action<string> _errorMessage;
     private string _filePath;
     private Thread _fileReaderThread;
+    private Action<string> _lineHandler;
 
-    public TailFile(Action<string> lineHandler, Action<string> errorMessage)
-    {
-        _lineHandler = lineHandler;
-        _errorMessage = errorMessage;
-    }
-
-    public void StartMessages(string filePath)
+    public void StartMessages(string filePath, Action<string> lineHandler, Action<string> errorMessage)
     {
         if (string.IsNullOrWhiteSpace(filePath))
             return;
 
         StopMessages();
+
+        _lineHandler = lineHandler;
+        _errorMessage = errorMessage;
 
         _filePath = filePath;
         _continueProcessing = true;
@@ -89,7 +86,7 @@ internal sealed class TailFile : IMessageProvider
 
 public interface IMessageProvider
 {
-    void StartMessages(string filePath);
+    void StartMessages(string filePath, Action<string> lineHandler, Action<string> errorMessage);
 
     void StopMessages();
 }

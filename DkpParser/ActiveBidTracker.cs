@@ -23,15 +23,14 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private ImmutableList<LiveSpentCall> _spentCalls;
 
     //** To DO
-    // Handle REMOVE calls
     // Error reporting
 
-    public ActiveBidTracker(IDkpParserSettings settings)
+    public ActiveBidTracker(IDkpParserSettings settings, IMessageProvider messageProvider)
     {
         _settings = settings;
 
         _channelAnalyzer = new(settings);
-        _messageProvider = new TailFile(ProcessMessage, ProcessErrorMessage);
+        _messageProvider = messageProvider;
         _auctionStartAnalyzer = new();
         _auctionEndAnalyzer = new(ProcessErrorMessage);
         _activeBiddingAnalyzer = new();
@@ -171,7 +170,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     public void StartTracking(string fileName)
     {
-        _messageProvider.StartMessages(fileName);
+        _messageProvider.StartMessages(fileName, ProcessMessage, ProcessErrorMessage);
     }
 
     public void StopTracking()
@@ -199,6 +198,21 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "60s",
         };
 
+    private void ProcessAuctionStart(ICollection<LiveAuctionInfo> auctionStarts)
+    {
+        foreach (LiveAuctionInfo newAuction in auctionStarts)
+        {
+            LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x == newAuction);
+            if (existingAuction != null)
+            {
+                existingAuction.TotalNumberOfItems = Math.Max(existingAuction.TotalNumberOfItems, newAuction.TotalNumberOfItems);
+                continue;
+            }
+
+            _activeAuctions = _activeAuctions.Add(newAuction);
+        }
+    }
+
     private void ProcessErrorMessage(string message)
     {
     }
@@ -217,17 +231,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(logLineNoTimestamp, channel, timestamp);
         if (auctionStarts.Count > 0)
         {
-            foreach (LiveAuctionInfo newAuction in auctionStarts)
-            {
-                LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x == newAuction);
-                if (existingAuction != null)
-                {
-                    existingAuction.TotalNumberOfItems = Math.Max(existingAuction.TotalNumberOfItems, newAuction.TotalNumberOfItems);
-                    continue;
-                }
-
-                _activeAuctions = _activeAuctions.Add(newAuction);
-            }
+            ProcessAuctionStart(auctionStarts);
 
             Updated = true;
             return;
@@ -236,27 +240,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(logLineNoTimestamp, channel, timestamp);
         if (spentCall != null)
         {
-            LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x.ItemName == spentCall.ItemName);
-            if (existingAuction != null)
-            {
-                spentCall.AuctionStart = existingAuction;
-                _spentCalls = _spentCalls.Add(spentCall);
-
-                ICollection<LiveSpentCall> spentCalls = _spentCalls.Where(x => x.AuctionStart.Id == existingAuction.Id).ToList();
-
-                if (spentCalls.Count == existingAuction.TotalNumberOfItems)
-                {
-                    _activeAuctions = _activeAuctions.Remove(existingAuction);
-                    _completedAuctions = _completedAuctions.Add(new CompletedAuction
-                    {
-                        AuctionStart = existingAuction,
-                        ItemName = spentCall.ItemName,
-                        SpentCalls = spentCalls
-                    });
-                }
-            }
-
-            Updated = true;
+            Updated = ProcessSpentCall(spentCall);
             return;
         }
 
@@ -268,6 +252,45 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             Updated = true;
             return;
         }
+    }
+
+    private bool ProcessSpentCall(LiveSpentCall spentCall)
+    {
+        if (spentCall.IsRemoveCall)
+        {
+            LiveSpentCall existingSpentCall = _spentCalls.FirstOrDefault(x => x.Winner == spentCall.Winner && x.ItemName == spentCall.ItemName && x.DkpSpent == spentCall.DkpSpent);
+            if (existingSpentCall != null)
+            {
+                _spentCalls.Remove(existingSpentCall);
+                return true;
+            }
+
+            return false;
+        }
+
+        LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x.ItemName == spentCall.ItemName);
+        if (existingAuction != null)
+        {
+            spentCall.AuctionStart = existingAuction;
+            _spentCalls = _spentCalls.Add(spentCall);
+
+            ICollection<LiveSpentCall> spentCalls = _spentCalls.Where(x => x.AuctionStart.Id == existingAuction.Id).ToList();
+
+            if (spentCalls.Count == existingAuction.TotalNumberOfItems)
+            {
+                _activeAuctions = _activeAuctions.Remove(existingAuction);
+                _completedAuctions = _completedAuctions.Add(new CompletedAuction
+                {
+                    AuctionStart = existingAuction,
+                    ItemName = spentCall.ItemName,
+                    SpentCalls = spentCalls
+                });
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
 

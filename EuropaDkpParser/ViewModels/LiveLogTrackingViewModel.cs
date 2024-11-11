@@ -36,7 +36,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     {
         _settings = settings;
 
-        _activeBidTracker = new(settings);
+        _activeBidTracker = new(settings, new TailFile());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
         CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard);

@@ -36,7 +36,8 @@ internal sealed class ActiveAuctionEndAnalyzer
             Auctioneer = dkpEntry.Auctioneer,
             ItemName = dkpEntry.Item,
             DkpSpent = dkpEntry.DkpSpent,
-            Winner = dkpEntry.PlayerName
+            Winner = dkpEntry.PlayerName,
+            IsRemoveCall = logLine.Contains(" " + Constants.Remove)
         };
     }
 }
@@ -44,19 +45,21 @@ internal sealed class ActiveAuctionEndAnalyzer
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class LiveSpentCall
 {
-    public string Auctioneer { get; set; }
+    public string Auctioneer { get; init; }
 
     public LiveAuctionInfo AuctionStart { get; set; }
 
-    public EqChannel Channel { get; set; }
+    public EqChannel Channel { get; init; }
 
-    public int DkpSpent { get; set; }
+    public int DkpSpent { get; init; }
 
-    public string ItemName { get; set; }
+    public bool IsRemoveCall { get; init; }
 
-    public DateTime Timestamp { get; set; }
+    public string ItemName { get; init; }
 
-    public string Winner { get; set; }
+    public DateTime Timestamp { get; init; }
+
+    public string Winner { get; init; }
 
     private string DebugText
         => $"{Timestamp:HH:mm} {ItemName} {Winner} {DkpSpent}";
