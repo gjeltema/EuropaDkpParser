@@ -24,6 +24,11 @@ internal sealed class TailFile : IMessageProvider
 
     public void StartMessages(string filePath)
     {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return;
+
+        StopMessages();
+
         _filePath = filePath;
         _continueProcessing = true;
 

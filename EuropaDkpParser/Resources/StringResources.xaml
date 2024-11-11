@@ -121,6 +121,7 @@
     <system:String x:Key="StartTime">Start Time</system:String>
     <system:String x:Key="EndTime">End Time</system:String>
     <system:String x:Key="FileArchive">Archive Files</system:String>
+    <system:String x:Key="TrackBids">Track Bids</system:String>
     <system:String x:Key="ResetTime">Reset Time</system:String>
     <system:String x:Key="Settings">Settings</system:String>
     <system:String x:Key="StartTimeError">Start Time error</system:String>
@@ -259,11 +260,11 @@
     <system:String x:Key="ActiveAuctions">Active Auctions</system:String>
     <system:String x:Key="SetAuctionToCompleted">Finish Auction</system:String>
     <system:String x:Key="CompletedAuctions">Completed Auctions</system:String>
-    <system:String x:Key="ReactivateCompletedAuction">Reactive Auction</system:String>
+    <system:String x:Key="ReactivateCompletedAuction">Reactivate Auction</system:String>
     <system:String x:Key="CurrentBids">Current Bids</system:String>
     <system:String x:Key="RemoveBid">Remove Bid</system:String>
     <system:String x:Key="CurrentHighBids">Current High Bids</system:String>
-    <system:String x:Key="MessagesToPostToChat">Messages To Post To Chat</system:String>
+    <system:String x:Key="MessageToPostToChat">Message To Post To Chat</system:String>
     <system:String x:Key="SpentCallsToPostToChat">SPENT Calls To Post To Chat</system:String>
     <system:String x:Key="LogFileToMonitor">Log File To Monitor</system:String>
     <system:String x:Key="SetFile">Set File</system:String>

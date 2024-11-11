@@ -183,6 +183,9 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
 
     public static bool Equals(LiveAuctionInfo a, LiveAuctionInfo b)
     {
+        if (a is null && b is null)
+            return true;
+
         if (a is null || b is null)
             return false;
 

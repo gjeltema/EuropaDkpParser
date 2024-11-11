@@ -15,14 +15,14 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" Margin="0,0,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- Active/Complete Auctions listings-->
-            <Grid Grid.Column="0">
+            <Grid Grid.Column="0" Margin="0,0,5,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
@@ -52,7 +52,7 @@
                         </ListView.ItemContainerStyle>
                     </ListView>
 
-                    <Button Grid.Row="2" Content="{StaticResource SetAuctionToCompleted}" Command="{Binding SetActiveAuctionToCompletedCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
+                    <Button Grid.Row="2" Content="{StaticResource SetAuctionToCompleted}" Command="{Binding SetActiveAuctionToCompletedCommand}" HorizontalAlignment="Right" Width="120" Height="30"/>
                 </Grid>
 
                 <!-- Completed Listings -->
@@ -63,7 +63,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Content="{Binding CompletedAuctions}" />
+                    <Label Grid.Row="0" Content="{StaticResource CompletedAuctions}" />
 
                     <ListView Grid.Row="1" ItemsSource="{Binding CompletedAuctions}" SelectedItem="{Binding SelectedCompletedAuction}" Margin="0,0,0,5">
                         <ListView.ItemContainerStyle>
@@ -79,45 +79,44 @@
                         </ListView.ItemContainerStyle>
                     </ListView>
 
-                    <Button Grid.Row="2" Content="{StaticResource ReactivateCompletedAuction}" Command="{Binding ReactivateCompletedAuctionCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
+                    <Button Grid.Row="2" Content="{StaticResource ReactivateCompletedAuction}" Command="{Binding ReactivateCompletedAuctionCommand}" HorizontalAlignment="Right" Width="120" Height="30"/>
                 </Grid>
             </Grid>
 
             <!-- Bids list and output -->
-            <Grid Grid.Column="1">
+            <Grid Grid.Column="1" Margin="5,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <!-- Current Bids -->
                 <Grid Grid.Row="0">
-                    <Grid Grid.Row="0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                        <Label Grid.Row="0" Content="{Binding CurrentBids}" />
+                    <Label Grid.Row="0" Content="{StaticResource CurrentBids}" />
 
-                        <ListView Grid.Row="1" ItemsSource="{Binding CurrentBids}" SelectedItem="{Binding SelectedBid}" Margin="0,0,0,5">
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="{x:Type ListViewItem}">
-                                    <Setter Property="ToolTip">
-                                        <Setter.Value>
-                                            <UniformGrid Columns="1">
-                                                <TextBlock Text="{Binding RawHeaderLogLine}"/>
-                                            </UniformGrid>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                        </ListView>
+                    <ListView Grid.Row="1" ItemsSource="{Binding CurrentBids}" SelectedItem="{Binding SelectedBid}" Margin="0,0,0,5">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListViewItem}">
+                                <Setter Property="ToolTip">
+                                    <Setter.Value>
+                                        <UniformGrid Columns="1">
+                                            <TextBlock Text="{Binding RawHeaderLogLine}"/>
+                                        </UniformGrid>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
 
-                        <Button Grid.Row="2" Content="{StaticResource RemoveBid}" Command="{Binding RemoveBidCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
-                    </Grid>
+                    <Button Grid.Row="2" Content="{StaticResource RemoveBid}" Command="{Binding RemoveBidCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
                 </Grid>
 
                 <!-- High Bids -->
@@ -129,8 +128,7 @@
 
                     <Label Grid.Row="0" Content="{StaticResource CurrentHighBids}" />
 
-                    <TextBox Grid.Row="1" Text="{Binding HighBids}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" IsReadOnly="True"/>
-
+                    <ListView Grid.Row="1" ItemsSource="{Binding HighBids}" SelectedItem="{Binding SelectedBid}" Margin="0,0,0,5"/>
                 </Grid>
 
                 <!-- Bids to copy-paste -->
@@ -140,17 +138,20 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Content="{StaticResource MessagesToPostToChat}" />
+                    <Label Grid.Row="0" Content="{StaticResource MessageToPostToChat}" />
 
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <TextBox Grid.Column="0" Text="{Binding AuctionStatusMessageToPaste}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" IsReadOnly="True"/>
 
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding AuctionStatusMarkers}" SelectedValue="{Binding SelectedAuctionStatusMarker}" IsEditable="False" VerticalContentAlignment="Center" Margin="0,0,4,0"/>
+                        <Button Grid.Column="1" Content="{Binding CurrentStatusMarker}" Command="{Binding CycleToNextStatusMarkerCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" Width="50" Height="30" Margin="4,0,0,0"/>
+
+                        <Button Grid.Column="2" Content="{StaticResource CopyText}" Command="{Binding CopySelectedStatusMessageToClipboardCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" Width="85" Height="30" Margin="4,0,0,0"/>
                     </Grid>
                     
                 </Grid>
@@ -170,13 +171,15 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <ListView Grid.Column="0" ItemsSource="{Binding SpentMessagesToPaste}" SelectedItem="{Binding SelectedSpentMessageToPaste}" Margin="0,0,0,5"/>
+                        <ListView Grid.Column="0" ItemsSource="{Binding SpentMessagesToPaste}" SelectedItem="{Binding SelectedSpentMessageToPaste}" Margin="0,0,5,0"/>
 
                         <Button Grid.Column="1" Content="{StaticResource CopyText}" Command="{Binding CopySelectedSpentCallToClipboardCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" Width="85" Height="30"/>
                     </Grid>
 
                 </Grid>
             </Grid>
+            
+            <!-- End of Row 0 -->
         </Grid>
 
         <!-- File path -->
@@ -189,9 +192,9 @@
 
             <Label Grid.Column="0" Content="{StaticResource LogFileToMonitor}"/>
 
-            <TextBox Grid.Column="1" Text="{Binding FilePath}" Margin="0,0,10,0"/>
+            <TextBox Grid.Column="1" Text="{Binding FilePath}" Margin="0,0,5,0"/>
 
-            <Button Grid.Column="2" Content="{StaticResource SetFile}" Command="{Binding SelectFileToTailCommand}" Height="25" Width="60"/>
+            <Button Grid.Column="2" Content="{StaticResource SetFile}" Command="{Binding SelectFileToTailCommand}" Height="30" Width="85"/>
         </Grid>
 
         <!-- Buttons -->

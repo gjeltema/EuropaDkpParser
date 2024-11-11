@@ -9,17 +9,18 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <StackPanel Orientation="Vertical" Margin="0,40,0,0">
-            <Button Content="{StaticResource OpenDkpParser}" Command="{Binding OpenDkpParserCommand}" Width="150" Height="50"  Margin="0,0,0,20"/>
-            <Button Content="{StaticResource OpenOtherParser}" Command="{Binding OpenOtherParserCommand}"  Width="150" Height="50" Margin="0,0,0,20"/>
-            <Button Content="{StaticResource Settings}" Command="{Binding OpenSettingsCommand}" Width="150" Height="50"  Margin="0,0,0,20"/>
-            <Button Content="{StaticResource FileArchive}" Command="{Binding OpenArchiveFilesCommand}" Width="150" Height="50"  Margin="0,0,0,20"/>
-            <Button Content="{StaticResource UploadGeneratedLog}" Command="{Binding UploadGeneratedLogCommand}" Width="150" Height="50"  Margin="0,0,0,20" 
+        <StackPanel Orientation="Vertical" Margin="0,15,0,0">
+            <Button Content="{StaticResource OpenDkpParser}" Command="{Binding OpenDkpParserCommand}" Width="150" Height="50"  Margin="0,0,0,15"/>
+            <Button Content="{StaticResource OpenOtherParser}" Command="{Binding OpenOtherParserCommand}"  Width="150" Height="50" Margin="0,0,0,15"/>
+            <Button Content="{StaticResource Settings}" Command="{Binding OpenSettingsCommand}" Width="150" Height="50"  Margin="0,0,0,15"/>
+            <Button Content="{StaticResource FileArchive}" Command="{Binding OpenArchiveFilesCommand}" Width="150" Height="50"  Margin="0,0,0,15"/>
+            <Button Content="{StaticResource UploadGeneratedLog}" Command="{Binding UploadGeneratedLogCommand}" Width="150" Height="50"  Margin="0,0,0,15" 
                     Visibility="{Binding AbleToUpload, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Button.ToolTip>
                     <TextBlock Text="{StaticResource UploadGeneratedLogTooltip}"/>
                 </Button.ToolTip>
             </Button>
+            <Button Content="{StaticResource TrackBids}" Command="{Binding OpenBiddingTrackerDialogCommand}" Width="150" Height="50"  Margin="0,0,0,0"/>
         </StackPanel>
     </Grid>
 </UserControl>

@@ -28,6 +28,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         OpenDkpParserCommand = new DelegateCommand(OpenDkpParserDialog);
         UploadGeneratedLogCommand = new DelegateCommand(UploadGeneratedLog);
         OpenOtherParserCommand = new DelegateCommand(OpenOtherParserDialog);
+        OpenBiddingTrackerDialogCommand = new DelegateCommand(OpenBiddingTrackerDialog);
 
         _logGenerator = new DkpLogGenerator(settings, dialogFactory);
         AbleToUpload = _settings.IsApiConfigured;
@@ -40,6 +41,8 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     }
 
     public DelegateCommand OpenArchiveFilesCommand { get; }
+
+    public DelegateCommand OpenBiddingTrackerDialogCommand { get; }
 
     public DelegateCommand OpenDkpParserCommand { get; }
 
@@ -56,6 +59,12 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
             return;
 
         fileArchiveDialog.UpdateSettings(_settings);
+    }
+
+    private void OpenBiddingTrackerDialog()
+    {
+        ILiveLogTrackingViewModel biddingDialog = _dialogFactory.CreateLiveLogTrackingViewModel(_settings);
+        biddingDialog.ShowDialog();
     }
 
     private void OpenDkpParserDialog()
@@ -110,6 +119,8 @@ public interface ISimpleStartDisplayViewModel : IEuropaViewModel
     bool AbleToUpload { get; set; }
 
     DelegateCommand OpenArchiveFilesCommand { get; }
+
+    DelegateCommand OpenBiddingTrackerDialogCommand { get; }
 
     DelegateCommand OpenDkpParserCommand { get; }
 
