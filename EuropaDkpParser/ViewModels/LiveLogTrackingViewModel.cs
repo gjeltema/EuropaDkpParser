@@ -39,14 +39,19 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         _activeBidTracker = new(settings, new TailFile());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
-        CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard);
-        CopySelectedStatusMessageToClipboardCommand = new DelegateCommand(CopySelectedStatusMessageToClipboard);
-        ReactivateCompletedAuctionCommand = new DelegateCommand(ReactivateCompletedAuction);
-        RemoveBidCommand = new DelegateCommand(RemoveBid);
+        CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
+            .ObservesProperty(() => SelectedSpentMessageToPaste);
+        CopySelectedStatusMessageToClipboardCommand = new DelegateCommand(CopySelectedStatusMessageToClipboard, () => AuctionStatusMessageToPaste != null)
+            .ObservesProperty(() => AuctionStatusMessageToPaste);
+        ReactivateCompletedAuctionCommand = new DelegateCommand(ReactivateCompletedAuction, () => SelectedCompletedAuction != null)
+            .ObservesProperty(() => SelectedCompletedAuction);
+        RemoveBidCommand = new DelegateCommand(RemoveBid, () => SelectedBid != null).ObservesProperty(() => SelectedBid);
         SelectFileToTailCommand = new DelegateCommand(SelectFileToTail);
-        SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted);
+        SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted, () => SelectedActiveAuction != null)
+            .ObservesProperty(() => SelectedActiveAuction);
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
-        AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId);
+        AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
+            .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
     }

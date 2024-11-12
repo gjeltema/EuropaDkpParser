@@ -160,15 +160,15 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
         Id = currentId++;
     }
 
-    public string Auctioneer { get; set; }
+    public string Auctioneer { get; init; }
 
-    public EqChannel Channel { get; set; }
+    public EqChannel Channel { get; init; }
 
     public int Id { get; }
 
-    public string ItemName { get; set; }
+    public string ItemName { get; init; }
 
-    public DateTime Timestamp { get; set; }
+    public DateTime Timestamp { get; init; }
 
     public int TotalNumberOfItems { get; set; }
 

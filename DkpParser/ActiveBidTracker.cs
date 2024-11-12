@@ -6,14 +6,17 @@ namespace DkpParser;
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using DkpParser.LiveTracking;
 
 public sealed class ActiveBidTracker : IActiveBidTracker
 {
+    private const string ErrorFileName = "Errors_LiveBidTracking.txt";
     private readonly ActiveBiddingAnalyzer _activeBiddingAnalyzer;
     private readonly ActiveAuctionEndAnalyzer _auctionEndAnalyzer;
     private readonly ActiveAuctionStartAnalyzer _auctionStartAnalyzer;
     private readonly ChannelAnalyzer _channelAnalyzer;
+    private readonly string _errorFileName;
     private readonly ItemLinkValues _itemLinkValues;
     private readonly IMessageProvider _messageProvider;
     private readonly IDkpParserSettings _settings;
@@ -21,9 +24,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private ImmutableList<LiveBidInfo> _bids;
     private ImmutableList<CompletedAuction> _completedAuctions;
     private ImmutableList<LiveSpentCall> _spentCalls;
-
-    //** To DO
-    // Error reporting
 
     public ActiveBidTracker(IDkpParserSettings settings, IMessageProvider messageProvider)
     {
@@ -40,6 +40,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _spentCalls = [];
         _completedAuctions = [];
         _bids = [];
+
+        _errorFileName = Path.Combine(settings.OutputDirectory, ErrorFileName);
     }
 
     public IEnumerable<LiveAuctionInfo> ActiveAuctions
@@ -215,6 +217,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     private void ProcessErrorMessage(string message)
     {
+        string messageToWrite = $"{DateTime.Now:HH:mm:ss} message";
+        Task.Run(() => WriteToErrorFile(messageToWrite));
     }
 
     private void ProcessMessage(string message)
@@ -222,35 +226,42 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (!message.TryExtractEqLogTimeStamp(out DateTime timestamp))
             return;
 
-        string logLineNoTimestamp = message[(Constants.LogDateTimeLength + 1)..];
-
-        EqChannel channel = _channelAnalyzer.GetValidDkpChannel(logLineNoTimestamp);
-        if (channel == EqChannel.None)
-            return;
-
-        ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(logLineNoTimestamp, channel, timestamp);
-        if (auctionStarts.Count > 0)
+        try
         {
-            ProcessAuctionStart(auctionStarts);
+            string logLineNoTimestamp = message[(Constants.LogDateTimeLength + 1)..];
 
-            Updated = true;
-            return;
+            EqChannel channel = _channelAnalyzer.GetValidDkpChannel(logLineNoTimestamp);
+            if (channel == EqChannel.None)
+                return;
+
+            ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(logLineNoTimestamp, channel, timestamp);
+            if (auctionStarts.Count > 0)
+            {
+                ProcessAuctionStart(auctionStarts);
+
+                Updated = true;
+                return;
+            }
+
+            LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(logLineNoTimestamp, channel, timestamp);
+            if (spentCall != null)
+            {
+                Updated = ProcessSpentCall(spentCall);
+                return;
+            }
+
+            LiveBidInfo bid = _activeBiddingAnalyzer.GetBidInformation(logLineNoTimestamp, channel, timestamp, _activeAuctions);
+            if (bid != null)
+            {
+                _bids = _bids.Add(bid);
+
+                Updated = true;
+                return;
+            }
         }
-
-        LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(logLineNoTimestamp, channel, timestamp);
-        if (spentCall != null)
+        catch (Exception ex)
         {
-            Updated = ProcessSpentCall(spentCall);
-            return;
-        }
-
-        LiveBidInfo bid = _activeBiddingAnalyzer.GetBidInformation(logLineNoTimestamp, channel, timestamp, _activeAuctions);
-        if (bid != null)
-        {
-            _bids = _bids.Add(bid);
-
-            Updated = true;
-            return;
+            ProcessErrorMessage($"Error processing message: {ex}");
         }
     }
 
@@ -291,6 +302,15 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         }
 
         return false;
+    }
+
+    private void WriteToErrorFile(string message)
+    {
+        try
+        {
+            File.AppendAllLines(_errorFileName, [message]);
+        }
+        catch { }
     }
 }
 

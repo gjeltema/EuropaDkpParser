@@ -18,10 +18,15 @@ internal sealed partial class ActiveBiddingAnalyzer
         string bidderName = logLine[0..indexOfFirstSpace];
 
         LiveAuctionInfo relatedAuction = activeAuctions.FirstOrDefault(x => logLine.Contains(x.ItemName));
+        if (relatedAuction == null)
+            return null;
+
         if (bidderName.Equals(relatedAuction.Auctioneer))
             return null;
 
-        //** How to differentiate between a bid and a status statement if someone else picks up as Auctioneer?
+        // Only way to differentiate between a status call and an actual bid at this point
+        if (logLine.Contains("60s") || logLine.Contains("30s") || logLine.Contains("10s"))
+            return null;
 
         string itemName = relatedAuction.ItemName;
         if (itemName == null)

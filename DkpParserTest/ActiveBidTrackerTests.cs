@@ -42,6 +42,9 @@ internal sealed class ActiveBidTrackerTests
             ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction);
             Assert.That(highBids.Any(x => x.CharacterName == "Luciania"), Is.True);
             Assert.That(highBids.Any(x => x.CharacterName == "Undertree"), Is.True);
+
+            string statusMessage = _systemUnderTest.GetStatusMessage(auction, StatusMarker.SixtySeconds);
+            Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20,Luciania 15 60s"));
         });
 
         _messageProvider.SendMessage("[Fri Nov 01 23:13:40 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: Luciania 15 SPENT'");
@@ -59,6 +62,10 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(spentCalls.ItemName, Is.EqualTo("Robe of Primal Force"));
             Assert.That(spentCalls.SpentCalls.Any(x => x.Winner == "Luciania"), Is.True);
             Assert.That(spentCalls.SpentCalls.Any(x => x.Winner == "Undertree"), Is.True);
+
+            LiveSpentCall spentCallUndertree = spentCalls.SpentCalls.FirstOrDefault(x => x.Winner == "Undertree");
+            string spentMessage = _systemUnderTest.GetSpentMessageWithLink(spentCallUndertree);
+            Assert.That(spentMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 SPENT"));
         });
     }
 
@@ -193,6 +200,7 @@ internal sealed class ActiveBidTrackerTests
     private void InitializeSystemUnderTest()
     {
         ItemLinkValues itemLinkValues = new("");
+        itemLinkValues.AddItemId("Robe of Primal Force", "123456");
         SettingsMock settings = new(itemLinkValues);
         _messageProvider = new();
         _systemUnderTest = new ActiveBidTracker(settings, _messageProvider);
@@ -267,7 +275,7 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public int MainWindowY { get; set; }
 
-    public string OutputDirectory { get; set; }
+    public string OutputDirectory { get; set; } = "C:\\";
 
     public IRaidValues RaidValue { get; }
 

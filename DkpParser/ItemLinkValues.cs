@@ -56,7 +56,7 @@ public sealed class ItemLinkValues
         if (string.IsNullOrEmpty(itemLinkId))
             return itemName;
 
-        return $"\u0012{itemName}: {itemLinkId}\u0012";
+        return $"\u0012{itemLinkId}: {itemName}\u0012";
     }
 
     public void LoadValues()

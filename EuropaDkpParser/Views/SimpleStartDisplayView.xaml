@@ -8,19 +8,35 @@
              d:DataContext="{d:DesignInstance Type=viewmodels:SimpleStartDisplayViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <StackPanel Orientation="Vertical" Margin="0,15,0,0">
-            <Button Content="{StaticResource OpenDkpParser}" Command="{Binding OpenDkpParserCommand}" Width="150" Height="50"  Margin="0,0,0,15"/>
-            <Button Content="{StaticResource OpenOtherParser}" Command="{Binding OpenOtherParserCommand}"  Width="150" Height="50" Margin="0,0,0,15"/>
-            <Button Content="{StaticResource Settings}" Command="{Binding OpenSettingsCommand}" Width="150" Height="50"  Margin="0,0,0,15"/>
-            <Button Content="{StaticResource FileArchive}" Command="{Binding OpenArchiveFilesCommand}" Width="150" Height="50"  Margin="0,0,0,15"/>
-            <Button Content="{StaticResource UploadGeneratedLog}" Command="{Binding UploadGeneratedLogCommand}" Width="150" Height="50"  Margin="0,0,0,15" 
+    
+    <UserControl.Resources>
+        <Style x:Key="StarterButton" TargetType="Button">
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="Height" Value="70"/>
+            <Setter Property="Margin" Value="0,0,0,50"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid Margin="0,40,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Orientation="Vertical">
+            <Button Content="{StaticResource OpenDkpParser}" Command="{Binding OpenDkpParserCommand}" Style="{StaticResource StarterButton}"/>
+            <Button Content="{StaticResource UploadGeneratedLog}" Command="{Binding UploadGeneratedLogCommand}" Style="{StaticResource StarterButton}"
                     Visibility="{Binding AbleToUpload, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Button.ToolTip>
                     <TextBlock Text="{StaticResource UploadGeneratedLogTooltip}"/>
                 </Button.ToolTip>
             </Button>
-            <Button Content="{StaticResource TrackBids}" Command="{Binding OpenBiddingTrackerDialogCommand}" Width="150" Height="50"  Margin="0,0,0,0"/>
+            <Button Content="{StaticResource TrackBids}" Command="{Binding OpenBiddingTrackerDialogCommand}" Style="{StaticResource StarterButton}"/>
+        </StackPanel>
+        
+        <StackPanel Grid.Column="1" Orientation="Vertical">
+            <Button Content="{StaticResource OpenOtherParser}" Command="{Binding OpenOtherParserCommand}"  Style="{StaticResource StarterButton}"/>
+            <Button Content="{StaticResource FileArchive}" Command="{Binding OpenArchiveFilesCommand}" Style="{StaticResource StarterButton}"/>
+            <Button Content="{StaticResource Settings}" Command="{Binding OpenSettingsCommand}" Style="{StaticResource StarterButton}"/>
         </StackPanel>
     </Grid>
 </UserControl>
