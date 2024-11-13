@@ -8,7 +8,7 @@ using System.IO;
 
 public sealed class ItemLinkValues
 {
-    private const char Delimiter = '\t';
+    private const char Delimiter = '|';
     private readonly Dictionary<string, string> _itemLinkValues;
     private readonly string _itemLinkValuesFileName;
 
@@ -40,10 +40,7 @@ public sealed class ItemLinkValues
             }
         }
 
-        while (itemIdValue.Length < 6)
-        {
-            itemIdValue = "0" + itemIdValue;
-        }
+        itemIdValue = PadItemId(itemIdValue);
         _itemLinkValues[itemName] = itemIdValue;
     }
 
@@ -68,7 +65,7 @@ public sealed class ItemLinkValues
         foreach (string itemLine in fileContents)
         {
             string[] itemLineParts = itemLine.Split(Delimiter);
-            _itemLinkValues[itemLineParts[0]] = itemLineParts[1];
+            _itemLinkValues[itemLineParts[0]] = PadItemId(itemLineParts[1]);
         }
     }
 
@@ -79,5 +76,14 @@ public sealed class ItemLinkValues
             File.WriteAllLines(_itemLinkValuesFileName, _itemLinkValues.Select(x => $"{x.Key}{Delimiter}{x.Value}"));
         }
         catch { }
+    }
+
+    private string PadItemId(string itemId)
+    {
+        while (itemId.Length < 6)
+        {
+            itemId = "0" + itemId;
+        }
+        return itemId;
     }
 }

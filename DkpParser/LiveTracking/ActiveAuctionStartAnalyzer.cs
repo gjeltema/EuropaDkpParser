@@ -61,7 +61,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
 
             string itemsString = logLine[startIndex..endIndex];
 
-            string[] itemNames = itemsString.Split(',', StringSplitOptions.TrimEntries);
+            string[] itemNames = itemsString.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
             List<LiveAuctionInfo> auctions = new(itemNames.Length);
             foreach (string itemName in itemNames)

@@ -119,7 +119,11 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     public LiveAuctionInfo SelectedActiveAuction
     {
         get => _selectedActiveAuction;
-        set => SetProperty(ref _selectedActiveAuction, value);
+        set
+        {
+            SetProperty(ref _selectedActiveAuction, value);
+            UpdateActiveAuctionSelected();
+        }
     }
 
     public LiveBidInfo SelectedBid
@@ -150,6 +154,12 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         private set => SetProperty(ref _spentMessagesToPaste, value);
     }
 
+    public void Close()
+    {
+        _updateTimer.Stop();
+        _activeBidTracker.StopTracking();
+    }
+
     private void AddItemLinkId()
     {
         if (string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
@@ -158,7 +168,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         if (SelectedActiveAuction == null)
             return;
 
-        _settings.ItemLinkIds.AddItemId(SelectedActiveAuction.ItemName, ItemLinkIdToAdd);
+        _settings.ItemLinkIds.AddAndSaveItemId(SelectedActiveAuction.ItemName, ItemLinkIdToAdd);
     }
 
     private void CheckAndUpdateDisplay()
@@ -214,6 +224,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
         SelectedCompletedAuction = null;
         _activeBidTracker.ReactivateCompletedAuction(selectedAuction);
+        UpdateActiveAuctionSelected();
     }
 
     private void RemoveBid()
@@ -225,6 +236,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         SelectedBid = null;
 
         _activeBidTracker.RemoveBid(selectedBid);
+        UpdateActiveAuctionSelected();
     }
 
     private void SelectFileToTail()
@@ -260,6 +272,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         SelectedActiveAuction = null;
 
         _activeBidTracker.SetAuctionToCompleted(selectedAuction);
+        UpdateActiveAuctionSelected();
     }
 
     private void SetStatusMessage()
@@ -268,17 +281,31 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction, marker);
     }
 
+    private void UpdateActiveAuctionSelected()
+    {
+        if (SelectedActiveAuction != null)
+        {
+            CurrentBids = new List<LiveBidInfo>(_activeBidTracker.Bids.Where(x => x.ParentAuctionId == SelectedActiveAuction.Id).OrderByDescending(x => x.Timestamp));
+            HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction));
+            SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(SelectedActiveAuction);
+        }
+        else
+        {
+            CurrentBids = [];
+            HighBids = [];
+            SpentMessagesToPaste = [];
+        }
+
+        SetStatusMessage();
+    }
+
     private void UpdateDisplay()
     {
         _activeBidTracker.Updated = false;
 
         ActiveAuctions = new List<LiveAuctionInfo>(_activeBidTracker.ActiveAuctions);
         CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions);
-        CurrentBids = new List<LiveBidInfo>(_activeBidTracker.Bids.Where(x => x.ParentAuctionId == SelectedActiveAuction.Id).OrderByDescending(x => x.Timestamp));
-        HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction));
-
-        SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(SelectedActiveAuction);
-        SetStatusMessage();
+        UpdateActiveAuctionSelected();
     }
 }
 
@@ -325,4 +352,6 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     DelegateCommand SetActiveAuctionToCompletedCommand { get; }
 
     ICollection<LiveSpentCall> SpentMessagesToPaste { get; }
+
+    void Close();
 }

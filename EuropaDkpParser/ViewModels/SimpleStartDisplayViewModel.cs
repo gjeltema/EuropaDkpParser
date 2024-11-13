@@ -4,6 +4,7 @@
 
 namespace EuropaDkpParser.ViewModels;
 
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using DkpParser;
@@ -18,6 +19,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     private readonly DkpLogGenerator _logGenerator;
     private readonly IDkpParserSettings _settings;
     private bool _ableToUpload;
+    private ILiveLogTrackingViewModel _biddingDialogVM;
 
     internal SimpleStartDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
@@ -53,6 +55,9 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     public DelegateCommand UploadGeneratedLogCommand { get; }
 
+    private void HandleClosingBiddingWindow(object sender, CancelEventArgs e)
+        => _biddingDialogVM.Close();
+
     private void OpenArchiveFilesDialog()
     {
         IFileArchiveDialogViewModel fileArchiveDialog = _dialogFactory.CreateFileArchiveDialogViewModel(_settings);
@@ -64,8 +69,9 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private void OpenBiddingTrackerDialog()
     {
-        ILiveLogTrackingViewModel biddingDialogVM = new LiveLogTrackingViewModel(_settings);
-        Window biddingWindow = new LiveLogTrackingView(biddingDialogVM);
+        _biddingDialogVM = new LiveLogTrackingViewModel(_settings);
+        Window biddingWindow = new LiveLogTrackingView(_biddingDialogVM);
+        biddingWindow.Closing += HandleClosingBiddingWindow;
         biddingWindow.Show();
     }
 

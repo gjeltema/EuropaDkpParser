@@ -68,9 +68,11 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         {
             entry.Visited = true;
 
-            DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(entry.LogLine, entry.Channel, entry.Timestamp);
+            string logLineNoTimestamp = entry.LogLine[(Constants.LogDateTimeLength + 1)..];
 
-            if (entry.LogLine.IndexOf(Constants.Undo) > 0 || entry.LogLine.IndexOf(Constants.Remove) > 0)
+            DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLineNoTimestamp, entry.Channel, entry.Timestamp);
+
+            if (logLineNoTimestamp.IndexOf(Constants.Undo) > 0 || logLineNoTimestamp.IndexOf(Constants.Remove) > 0)
             {
                 DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
                 if (toBeRemoved != null)

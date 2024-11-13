@@ -323,6 +323,9 @@ public sealed class CompletedAuction
 
     public ICollection<LiveSpentCall> SpentCalls { get; set; }
 
+    public string Winners
+        => string.Join(Environment.NewLine, SpentCalls.Select(x => $"{x.Winner} {x.DkpSpent} DKP"));
+
     private string DebugText
         => $"{ItemName} {AuctionStart.Id}";
 

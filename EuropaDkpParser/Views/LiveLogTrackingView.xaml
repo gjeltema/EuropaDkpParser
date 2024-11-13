@@ -43,19 +43,7 @@
 
                     <Label Grid.Row="0" Content="{StaticResource ActiveAuctions}" />
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" Margin="0,0,0,5">
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="{x:Type ListViewItem}">
-                                <Setter Property="ToolTip">
-                                    <Setter.Value>
-                                        <UniformGrid Columns="1">
-                                            <TextBlock Text="{Binding RawHeaderLogLine}"/>
-                                        </UniformGrid>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                    </ListView>
+                    <ListView Grid.Row="1" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" Margin="0,0,0,5"/>
 
                     <Button Grid.Row="2" Content="{StaticResource SetAuctionToCompleted}" Command="{Binding SetActiveAuctionToCompletedCommand}" HorizontalAlignment="Right" Width="110" Height="30" Margin="0,0,0,5"/>
 
@@ -86,7 +74,7 @@
                                 <Setter Property="ToolTip">
                                     <Setter.Value>
                                         <UniformGrid Columns="1">
-                                            <TextBlock Text="{Binding RawHeaderLogLine}"/>
+                                            <TextBlock Text="{Binding Winners}"/>
                                         </UniformGrid>
                                     </Setter.Value>
                                 </Setter>
@@ -117,19 +105,7 @@
 
                     <Label Grid.Row="0" Content="{StaticResource CurrentBids}" />
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding CurrentBids}" SelectedItem="{Binding SelectedBid}" Margin="0,0,0,5">
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="{x:Type ListViewItem}">
-                                <Setter Property="ToolTip">
-                                    <Setter.Value>
-                                        <UniformGrid Columns="1">
-                                            <TextBlock Text="{Binding RawHeaderLogLine}"/>
-                                        </UniformGrid>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                    </ListView>
+                    <ListView Grid.Row="1" ItemsSource="{Binding CurrentBids}" SelectedItem="{Binding SelectedBid}" Margin="0,0,0,5"/>
 
                     <Button Grid.Row="2" Content="{StaticResource RemoveBid}" Command="{Binding RemoveBidCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
                 </Grid>
@@ -162,7 +138,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Grid.Column="0" Text="{Binding AuctionStatusMessageToPaste}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" IsReadOnly="True"/>
+                        <TextBox Grid.Column="0" Text="{Binding AuctionStatusMessageToPaste}" IsReadOnly="True"/>
 
                         <Button Grid.Column="1" Content="{Binding CurrentStatusMarker}" Command="{Binding CycleToNextStatusMarkerCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" Width="50" Height="30" Margin="4,0,0,0"/>
 
