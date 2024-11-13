@@ -34,6 +34,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
     private const string UseAdvancedDialogSection = "USE_ADVANCED_DIALOG";
+    private const string UseLightModeSection = "USE_LIGHT_MODE";
     private const string WindowLocationSection = "WINDOW_LOCATION";
     private readonly string _itemLinkValuesFileName;
     private readonly string _raidValuesFileName;
@@ -103,6 +104,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool UseAdvancedDialog { get; set; }
 
+    public bool UseLightMode { get; set; }
+
     public void LoadAllSettings()
     {
         RaidValue = new RaidValues(_raidValuesFileName);
@@ -135,6 +138,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         DkpspentAucEnabled = GetBoolValue(fileContents, DkpspentAucEnableSection, true);
         DkpspentGuEnabled = GetBoolValue(fileContents, DkpspentGuildEnableSection, true);
         DkpspentOocEnabled = GetBoolValue(fileContents, DkpspentOocEnableSection, true);
+        UseLightMode = GetBoolValue(fileContents, UseLightModeSection);
     }
 
     public void SaveSettings()
@@ -164,7 +168,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(IncludeTellsInRawLogSection, IncludeTellsInRawLog),
             CreateFileEntry(DkpspentAucEnableSection, DkpspentAucEnabled),
             CreateFileEntry(DkpspentGuildEnableSection, DkpspentGuEnabled),
-            CreateFileEntry(DkpspentOocEnableSection, DkpspentOocEnabled)
+            CreateFileEntry(DkpspentOocEnableSection, DkpspentOocEnabled),
+            CreateFileEntry(UseLightModeSection, UseLightMode)
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -398,6 +403,8 @@ public interface IDkpParserSettings
     bool ShowAfkReview { get; set; }
 
     bool UseAdvancedDialog { get; set; }
+
+    bool UseLightMode { get; set; }
 
     void LoadAllSettings();
 

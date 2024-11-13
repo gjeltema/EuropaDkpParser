@@ -285,6 +285,8 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool UseAdvancedDialog { get; set; }
 
+    public bool UseLightMode { get; set; }
+
     public void LoadAllSettings()
         => throw new NotImplementedException();
 

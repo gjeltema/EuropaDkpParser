@@ -28,6 +28,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _selectedLogFileToParse;
     private bool _showAfkReview;
     private bool _useAdvancedDialog;
+    private bool _useLightMode;
 
     internal LogSelectionViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings)
         : base(viewFactory)
@@ -53,6 +54,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         ApiReadToken = _settings.ApiReadToken;
         ApiWriteToken = _settings.ApiWriteToken;
 
+        UseLightMode = _settings.UseLightMode;
         ShowAfkReview = _settings.ShowAfkReview;
         UseAdvancedDialog = _settings.UseAdvancedDialog;
         IncludeTellsInRawLog = _settings.IncludeTellsInRawLog;
@@ -176,6 +178,12 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         set => SetProperty(ref _useAdvancedDialog, value);
     }
 
+    public bool UseLightMode
+    {
+        get => _useLightMode;
+        set => SetProperty(ref _useLightMode, value);
+    }
+
     public void UpdateSettings(IDkpParserSettings settings)
     {
         _settings.EqDirectory = EqDirectory;
@@ -192,6 +200,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.DkpspentAucEnabled = DkpspentAucEnable;
         _settings.DkpspentGuEnabled = DkpspentGuEnable;
         _settings.DkpspentOocEnabled = DkpspentOocEnable;
+        _settings.UseLightMode = UseLightMode;
         _settings.SaveSettings();
     }
 
@@ -317,6 +326,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     bool ShowAfkReview { get; set; }
 
     bool UseAdvancedDialog { get; set; }
+
+    bool UseLightMode { get; set; }
 
     void UpdateSettings(IDkpParserSettings settings);
 }

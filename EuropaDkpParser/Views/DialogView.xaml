@@ -12,7 +12,9 @@
         Title="{Binding Title}"
         mc:Ignorable="d" 
         Width="700" Height="570"
-        dialogsView:DialogResultBehavior.DialogResult="{Binding DialogResult}">
+        dialogsView:DialogResultBehavior.DialogResult="{Binding DialogResult}"
+        Background="{StaticResource DefaultBackgroundColor}"
+        Foreground="{StaticResource DefaultForegroundColor}">
 
     <ContentPresenter Margin="6,10,6,8" Content="{Binding}">
         <ContentPresenter.Resources>

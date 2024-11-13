@@ -44,6 +44,17 @@ public partial class App : Application
         _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath);
         _settings.LoadAllSettings();
 
+        if (_settings.UseLightMode)
+        {
+            Uri lightMode = new("Resources/GenericLight.xaml", UriKind.Relative);
+            Resources.MergedDictionaries.Add(new ResourceDictionary { Source = lightMode });
+        }
+        else
+        {
+            Uri darkMode = new("Resources/Generic.xaml", UriKind.Relative);
+            Resources.MergedDictionaries.Add(new ResourceDictionary { Source = darkMode });
+        }
+
         var shellViewModel = new ShellViewModel(_settings, new DialogFactory(new DialogViewFactory()));
         _shellView = new ShellView(shellViewModel);
         MainWindow = _shellView;

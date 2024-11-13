@@ -10,7 +10,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     
     <UserControl.Resources>
-        <Style x:Key="StarterButton" TargetType="Button">
+        <Style x:Key="StarterButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Width" Value="150"/>
             <Setter Property="Height" Value="70"/>
             <Setter Property="Margin" Value="0,0,0,50"/>
