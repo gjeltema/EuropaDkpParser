@@ -30,6 +30,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private ICollection<LiveBidInfo> _highBids;
     private string _itemLinkIdToAdd;
     private DispatcherTimer _killCallReminderTimer;
+    private DateTime _nextForcedUpdate = DateTime.MinValue;
     private bool _remindAttendances;
     private LiveAuctionInfo _selectedActiveAuction;
     private LiveBidInfo _selectedBid;
@@ -190,11 +191,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
     private void CheckAndUpdateDisplay()
     {
-        if (!_activeBidTracker.Updated)
-        {
-            //** Check for 5 seconds elapsed
+        if (!_activeBidTracker.Updated && DateTime.Now < _nextForcedUpdate)
             return;
-        }
 
         UpdateDisplay();
     }
@@ -405,6 +403,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions);
         UpdateActiveAuctionSelected();
         RemindForAttendanceOfBossKill(_activeBidTracker.GetBossKilledName());
+
+        _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }
 }
 

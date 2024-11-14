@@ -283,7 +283,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     {
         if (spentCall.IsRemoveCall)
         {
-            LiveSpentCall existingSpentCall = _spentCalls.FirstOrDefault(x => x.Winner == spentCall.Winner && x.ItemName == spentCall.ItemName && x.DkpSpent == spentCall.DkpSpent);
+            LiveSpentCall existingSpentCall = _spentCalls
+                .FirstOrDefault(x => x.Winner == spentCall.Winner && x.ItemName == spentCall.ItemName && x.DkpSpent == spentCall.DkpSpent);
             if (existingSpentCall != null)
             {
                 _spentCalls.Remove(existingSpentCall);
@@ -301,7 +302,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
             ICollection<LiveSpentCall> spentCalls = _spentCalls.Where(x => x.AuctionStart.Id == existingAuction.Id).ToList();
 
-            if (spentCalls.Count == existingAuction.TotalNumberOfItems)
+            if (spentCalls.Count >= existingAuction.TotalNumberOfItems)
             {
                 _activeAuctions = _activeAuctions.Remove(existingAuction);
                 _completedAuctions = _completedAuctions.Add(new CompletedAuction
