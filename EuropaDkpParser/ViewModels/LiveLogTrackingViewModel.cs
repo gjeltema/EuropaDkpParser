@@ -173,6 +173,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     {
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
+        _attendanceReminderTimer.Stop();
     }
 
     private void AddItemLinkId()
@@ -228,7 +229,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
     private TimeSpan GetAttendanceReminderInterval()
     {
-        return TimeSpan.FromMinutes(1); //** Temp
+        return TimeSpan.FromSeconds(20); //** Temp
         int minutes = DateTime.Now.Minute;
         if (minutes < 30)
             return TimeSpan.FromMinutes(30 - minutes);

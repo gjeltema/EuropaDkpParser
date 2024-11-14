@@ -11,7 +11,7 @@
         WindowStyle="ToolWindow"
         Title="{Binding Title}"
         mc:Ignorable="d" 
-        Width="700" Height="570"
+        Width="{Binding Width, Mode=TwoWay}" Height="{Binding Height, Mode=TwoWay}"
         dialogsView:DialogResultBehavior.DialogResult="{Binding DialogResult}"
         Background="{StaticResource DefaultBackgroundColor}"
         Foreground="{StaticResource DefaultForegroundColor}">
