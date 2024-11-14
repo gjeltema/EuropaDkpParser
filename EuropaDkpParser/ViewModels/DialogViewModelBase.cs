@@ -15,7 +15,10 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
     {
         ViewFactory = viewFactory;
         CloseOkCommand = new DelegateCommand(CloseOk, CloseOkCanExecute);
+        CloseCancelCommand = new DelegateCommand(CloseCancel);
     }
+
+    public DelegateCommand CloseCancelCommand { get; }
 
     public DelegateCommand CloseOkCommand { get; }
 
@@ -54,6 +57,8 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
 
 public interface IDialogViewModel : IEuropaViewModel
 {
+    DelegateCommand CloseCancelCommand { get; }
+
     DelegateCommand CloseOkCommand { get; }
 
     bool? DialogResult { get; set; }

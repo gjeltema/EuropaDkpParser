@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows.Threading;
 using DkpParser;
 using DkpParser.LiveTracking;
+using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
 using Microsoft.Win32;
 using Prism.Commands;
@@ -15,10 +16,12 @@ using Prism.Commands;
 internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTrackingViewModel
 {
     private readonly ActiveBidTracker _activeBidTracker;
+    private readonly IDialogFactory _dialogFactory;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromMilliseconds(500);
     private readonly DispatcherTimer _updateTimer;
     private ICollection<LiveAuctionInfo> _activeAuctions;
+    private DispatcherTimer _attendanceReminderTimer;
     private string _auctionStatusMessagesToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
     private ICollection<LiveBidInfo> _currentBids;
@@ -26,15 +29,17 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private string _filePath;
     private ICollection<LiveBidInfo> _highBids;
     private string _itemLinkIdToAdd;
+    private bool _remindAttendances;
     private LiveAuctionInfo _selectedActiveAuction;
     private LiveBidInfo _selectedBid;
     private CompletedAuction _selectedCompletedAuction;
     private LiveSpentCall _selectedSpentMessageToPaste;
     private ICollection<LiveSpentCall> _spentMessagesToPaste;
 
-    public LiveLogTrackingViewModel(IDkpParserSettings settings)
+    public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
         _settings = settings;
+        _dialogFactory = dialogFactory;
 
         _activeBidTracker = new(settings, new TailFile());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
@@ -113,6 +118,16 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     }
 
     public DelegateCommand ReactivateCompletedAuctionCommand { get; }
+
+    public bool RemindAttendances
+    {
+        get => _remindAttendances;
+        set
+        {
+            SetProperty(ref _remindAttendances, value);
+            SetReminderForAttendances();
+        }
+    }
 
     public DelegateCommand RemoveBidCommand { get; }
 
@@ -211,6 +226,26 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         SetStatusMessage();
     }
 
+    private TimeSpan GetAttendanceReminderInterval()
+    {
+        return TimeSpan.FromMinutes(1); //** Temp
+        int minutes = DateTime.Now.Minute;
+        if (minutes < 30)
+            return TimeSpan.FromMinutes(30 - minutes);
+        else
+            return TimeSpan.FromMinutes(60 - minutes);
+    }
+
+    private void HandleAttendanceReminderTimer(object sender, EventArgs e)
+    {
+        _attendanceReminderTimer.Stop();
+
+        TimeSpan interval = RemindAboutAttendance(Strings.GetString("TimeAttendanceReminderMessage"));
+
+        _attendanceReminderTimer.Interval = interval;
+        _attendanceReminderTimer.Start();
+    }
+
     private void HandleUpdate(object sender, EventArgs e)
     {
         CheckAndUpdateDisplay();
@@ -225,6 +260,21 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         SelectedCompletedAuction = null;
         _activeBidTracker.ReactivateCompletedAuction(selectedAuction);
         UpdateActiveAuctionSelected();
+    }
+
+    private TimeSpan RemindAboutAttendance(string reminderText)
+    {
+        IReminderDialogViewModel reminderDialogViewModel = _dialogFactory.CreateReminderDialogViewModel();
+        reminderDialogViewModel.ReminderText = reminderText;
+
+        if (reminderDialogViewModel.ShowDialog() == true)
+        {
+            return GetAttendanceReminderInterval();
+        }
+        else
+        {
+            return TimeSpan.FromMinutes(reminderDialogViewModel.ReminderInterval);
+        }
     }
 
     private void RemoveBid()
@@ -273,6 +323,20 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
         _activeBidTracker.SetAuctionToCompleted(selectedAuction);
         UpdateActiveAuctionSelected();
+    }
+
+    private void SetReminderForAttendances()
+    {
+        if (RemindAttendances)
+        {
+            TimeSpan interval = GetAttendanceReminderInterval();
+            _attendanceReminderTimer = new DispatcherTimer(interval, DispatcherPriority.Normal, HandleAttendanceReminderTimer, Dispatcher.CurrentDispatcher);
+        }
+        else
+        {
+            _attendanceReminderTimer?.Stop();
+            _attendanceReminderTimer = null;
+        }
     }
 
     private void SetStatusMessage()
@@ -336,6 +400,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     string ItemLinkIdToAdd { get; set; }
 
     DelegateCommand ReactivateCompletedAuctionCommand { get; }
+
+    bool RemindAttendances { get; set; }
 
     DelegateCommand RemoveBidCommand { get; }
 

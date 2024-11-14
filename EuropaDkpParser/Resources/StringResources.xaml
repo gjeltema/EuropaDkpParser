@@ -21,6 +21,7 @@
     <system:String x:Key="EditDkpspentDialogTitleText">Edit DKPSPENT Call</system:String>
     <system:String x:Key="DkpspentEntriesRemovedDialogTitleText">Bidding Calls For Removed DKPSPENT Calls</system:String>
     <system:String x:Key="LiveLogTrackingDialogTitleText">Live Log Tracking</system:String>
+    <system:String x:Key="ReminderDialogTitleText">Reminder</system:String>
 
     <system:String x:Key="YesButtonText">Yes</system:String>
     <system:String x:Key="NoButtonText">No</system:String>
@@ -49,6 +50,8 @@
     <system:String x:Key="CopyText">Copy</system:String>
     <system:String x:Key="Auctioneer">Auctioneer</system:String>
     <system:String x:Key="AllAttendanceCalls">All Attendance Calls</system:String>
+    <system:String x:Key="Minutes">minutes</system:String>
+    <system:String x:Key="Remind">Remind</system:String>
 
     <!-- DkpErrorDisplay -->
     <system:String x:Key="AllPlayerLootedEntries">All Player Looted Entries</system:String>
@@ -269,6 +272,11 @@
     <system:String x:Key="MessageToPostToChat">Status Message To Post To Chat</system:String>
     <system:String x:Key="SpentCallsToPostToChat">SPENT Calls To Post To Chat</system:String>
     <system:String x:Key="LogFileToMonitor">Log File To Monitor</system:String>
+    <system:String x:Key="RemindAttendances">Remind About Attendances</system:String>
     <system:String x:Key="SetFile">Set File</system:String>
+
+    <!-- ReminderDialog -->
+    <system:String x:Key="RemindInInterval">Remind me again in</system:String>
+    <system:String x:Key="TimeAttendanceReminderMessage">Periodic reminder to perform a Time Attendance call.</system:String>
 
 </ResourceDictionary>

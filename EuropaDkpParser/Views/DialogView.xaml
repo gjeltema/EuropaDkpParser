@@ -64,6 +64,9 @@
                 <DataTemplate DataType="{x:Type dialogsViewModel:SimpleMultilineDisplayDialogViewModel}">
                     <dialogsView:SimpleMultilineDisplayDialog />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type dialogsViewModel:ReminderDialogViewModel}">
+                    <dialogsView:ReminderDialog />
+                </DataTemplate>
             </ResourceDictionary>
         </ContentPresenter.Resources>
     </ContentPresenter>

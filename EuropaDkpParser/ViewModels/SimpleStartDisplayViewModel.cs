@@ -69,7 +69,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private void OpenBiddingTrackerDialog()
     {
-        _biddingDialogVM = new LiveLogTrackingViewModel(_settings);
+        _biddingDialogVM = new LiveLogTrackingViewModel(_settings, _dialogFactory);
         Window biddingWindow = new LiveLogTrackingView(_biddingDialogVM);
         biddingWindow.Closing += HandleClosingBiddingWindow;
         biddingWindow.Show();
