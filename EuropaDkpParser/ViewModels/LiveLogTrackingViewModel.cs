@@ -225,7 +225,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private void CycleToNextStatusMarker()
     {
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection(CurrentStatusMarker);
-        SetStatusMessage();
+        SetAuctionStatusMessage();
     }
 
     private TimeSpan GetAttendanceReminderInterval()
@@ -354,6 +354,12 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         UpdateActiveAuctionSelected();
     }
 
+    private void SetAuctionStatusMessage()
+    {
+        StatusMarker marker = _activeBidTracker.GetStatusMarkerFromSelectionString(CurrentStatusMarker);
+        AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction, marker);
+    }
+
     private void SetReminderForAttendances()
     {
         if (RemindAttendances)
@@ -372,12 +378,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         }
     }
 
-    private void SetStatusMessage()
-    {
-        StatusMarker marker = _activeBidTracker.GetStatusMarkerFromSelectionString(CurrentStatusMarker);
-        AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction, marker);
-    }
-
     private void UpdateActiveAuctionSelected()
     {
         if (SelectedActiveAuction != null)
@@ -394,18 +394,17 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
             SpentMessagesToPaste = [];
         }
 
-        SetStatusMessage();
+        SetAuctionStatusMessage();
     }
 
     private void UpdateDisplay()
     {
         _activeBidTracker.Updated = false;
 
-        ActiveAuctions = new List<LiveAuctionInfo>(_activeBidTracker.ActiveAuctions);
+        ActiveAuctions = new List<LiveAuctionInfo>(_activeBidTracker.ActiveAuctions.OrderByDescending(x => x.Timestamp));
         CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions);
         UpdateActiveAuctionSelected();
         RemindForAttendanceOfBossKill(_activeBidTracker.GetBossKilledName());
-
     }
 }
 

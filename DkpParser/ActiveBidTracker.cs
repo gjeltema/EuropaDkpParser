@@ -181,14 +181,10 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     }
 
     public void StartTracking(string fileName)
-    {
-        _messageProvider.StartMessages(fileName, ProcessMessage, ProcessErrorMessage);
-    }
+        => _messageProvider.StartMessages(fileName, ProcessMessage, ProcessErrorMessage);
 
     public void StopTracking()
-    {
-        _messageProvider.StopMessages();
-    }
+        => _messageProvider.StopMessages();
 
     private string GetChannelShortcut(EqChannel channel)
         => channel switch

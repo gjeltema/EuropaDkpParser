@@ -76,6 +76,7 @@ public static class Constants
     public const string RaidYou = "You tell your raid, '";
     public const string RaidYouSearch = $"] {RaidYou}";
     public const string Remove = "REMOVE";
+    public const string Rot = "ROT";
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
     public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TellsYou = " tells you, '";

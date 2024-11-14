@@ -66,6 +66,8 @@ internal sealed partial class DkpSpentAnalyzer
                 RawLogLine = logLine,
                 Channel = channel,
                 Auctioneer = auctioneer,
+                Item = itemName,
+                PlayerName = playerSection.TrimEnd('\'').Trim().ToString(),
                 PossibleError = PossibleError.MalformedDkpSpentLine
             };
         }

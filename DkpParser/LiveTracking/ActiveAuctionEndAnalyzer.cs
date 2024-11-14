@@ -20,7 +20,7 @@ internal sealed class ActiveAuctionEndAnalyzer
         if (!logLine.Contains(Constants.PossibleErrorDelimiter))
             return null;
 
-        bool isRot = logLine.Contains("ROT");
+        bool isRot = logLine.Contains(Constants.Rot);
         bool isSpent = logLine.Contains(Constants.DkpSpent);
         if (!isSpent && !isRot)
             return null;
