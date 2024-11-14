@@ -29,6 +29,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private string _filePath;
     private ICollection<LiveBidInfo> _highBids;
     private string _itemLinkIdToAdd;
+    private DispatcherTimer _killCallReminderTimer;
     private bool _remindAttendances;
     private LiveAuctionInfo _selectedActiveAuction;
     private LiveBidInfo _selectedBid;
@@ -240,10 +241,24 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     {
         _attendanceReminderTimer.Stop();
 
-        TimeSpan interval = RemindAboutAttendance(Strings.GetString("TimeAttendanceReminderMessage"));
+        bool continueToNextInterval = RemindAboutAttendance(Strings.GetString("TimeAttendanceReminderMessage"), out TimeSpan userSpecifiedInterval);
 
-        _attendanceReminderTimer.Interval = interval;
+        TimeSpan nextInterval = userSpecifiedInterval;
+        if (continueToNextInterval)
+        {
+            nextInterval = GetAttendanceReminderInterval();
+        }
+
+        _attendanceReminderTimer.Interval = nextInterval;
         _attendanceReminderTimer.Start();
+    }
+
+    private void HandleKillCallReminder(string bossName)
+    {
+        _killCallReminderTimer?.Stop();
+        _killCallReminderTimer = null;
+
+        RemindForAttendanceOfBossKill(bossName);
     }
 
     private void HandleUpdate(object sender, EventArgs e)
@@ -262,18 +277,32 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         UpdateActiveAuctionSelected();
     }
 
-    private TimeSpan RemindAboutAttendance(string reminderText)
+    private bool RemindAboutAttendance(string reminderText, out TimeSpan userSpecifiedInterval)
     {
         IReminderDialogViewModel reminderDialogViewModel = _dialogFactory.CreateReminderDialogViewModel();
         reminderDialogViewModel.ReminderText = reminderText;
 
-        if (reminderDialogViewModel.ShowDialog(220, 400) == true)
+        bool ok = reminderDialogViewModel.ShowDialog(220, 400) == true;
+        userSpecifiedInterval = ok ? TimeSpan.MinValue : TimeSpan.FromMinutes(reminderDialogViewModel.ReminderInterval);
+        return ok;
+    }
+
+    private void RemindForAttendanceOfBossKill(string bossName)
+    {
+        if (!RemindAttendances || string.IsNullOrEmpty(bossName))
+            return;
+
+        string statusMessageFormat = Strings.GetString("KillAttendanceReminderMessageFormat");
+        string statusMessage = string.Format(statusMessageFormat, bossName);
+        bool doneWithReminder = RemindAboutAttendance(statusMessage, out TimeSpan userSpecifiedInterval);
+        if (!doneWithReminder)
         {
-            return GetAttendanceReminderInterval();
-        }
-        else
-        {
-            return TimeSpan.FromMinutes(reminderDialogViewModel.ReminderInterval);
+            _killCallReminderTimer = new DispatcherTimer(
+                userSpecifiedInterval,
+                DispatcherPriority.Normal,
+                (s, e) => HandleKillCallReminder(bossName),
+                Dispatcher.CurrentDispatcher);
+            _killCallReminderTimer.Start();
         }
     }
 
@@ -330,7 +359,11 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         if (RemindAttendances)
         {
             TimeSpan interval = GetAttendanceReminderInterval();
-            _attendanceReminderTimer = new DispatcherTimer(interval, DispatcherPriority.Normal, HandleAttendanceReminderTimer, Dispatcher.CurrentDispatcher);
+            _attendanceReminderTimer = new DispatcherTimer(
+                interval,
+                DispatcherPriority.Normal,
+                HandleAttendanceReminderTimer,
+                Dispatcher.CurrentDispatcher);
         }
         else
         {
@@ -349,7 +382,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     {
         if (SelectedActiveAuction != null)
         {
-            CurrentBids = new List<LiveBidInfo>(_activeBidTracker.Bids.Where(x => x.ParentAuctionId == SelectedActiveAuction.Id).OrderByDescending(x => x.Timestamp));
+            CurrentBids = new List<LiveBidInfo>(_activeBidTracker.Bids
+                .Where(x => x.ParentAuctionId == SelectedActiveAuction.Id).OrderByDescending(x => x.Timestamp));
             HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction));
             SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(SelectedActiveAuction);
         }
@@ -370,6 +404,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         ActiveAuctions = new List<LiveAuctionInfo>(_activeBidTracker.ActiveAuctions);
         CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions);
         UpdateActiveAuctionSelected();
+        RemindForAttendanceOfBossKill(_activeBidTracker.GetBossKilledName());
+
     }
 }
 

@@ -113,6 +113,26 @@ internal sealed class ActiveBidTrackerTests
         });
     }
 
+    [TestCase("[Mon Oct 28 21:55:00 2024] Druzzil Ro tells the guild, 'Argentia of Europa> has killed Lord Nagafen in Nagafen's Lair!'", "Lord Nagafen")]
+    [TestCase("[Mon Oct 28 21:23:46 2024] Druzzil Ro tells the guild, 'Kadenn of Europa> has killed Innoruuk in Plane of Hate Instanced !'", "Innoruuk")]
+    [TestCase("[Mon Oct 28 21:40:59 2024] Druzzil Ro tells the guild, 'Noname of Europa> has killed King Tranix in Nagafen's Lair!'", "King Tranix")]
+    public void Tracker_WhenBossKillHappens_HasExpectedState(string logLine, string expectedBossName)
+    {
+        InitializeSystemUnderTest();
+        _systemUnderTest.StartTracking("");
+
+        Assert.That(_systemUnderTest.GetBossKilledName(), Is.Null);
+
+        _messageProvider.SendMessage(logLine);
+
+        string actualBossName = _systemUnderTest.GetBossKilledName();
+        Assert.Multiple(() =>
+        {
+            Assert.That(actualBossName, Is.EqualTo(expectedBossName));
+            Assert.That(_systemUnderTest.GetBossKilledName(), Is.Null);
+        });
+    }
+
     [TestCase()]
     public void Tracker_WhenNormalBidCycleTranspires_HasExpectedState()
     {

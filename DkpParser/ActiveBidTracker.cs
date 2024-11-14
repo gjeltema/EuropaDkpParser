@@ -13,6 +13,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 {
     private const string ErrorFileName = "Errors_LiveBidTracking.txt";
     private readonly ActiveBiddingAnalyzer _activeBiddingAnalyzer;
+    private readonly ActiveBossKillAnalyzer _activeBossKillAnalyzer;
     private readonly ActiveAuctionEndAnalyzer _auctionEndAnalyzer;
     private readonly ActiveAuctionStartAnalyzer _auctionStartAnalyzer;
     private readonly ChannelAnalyzer _channelAnalyzer;
@@ -22,6 +23,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly IDkpParserSettings _settings;
     private ImmutableList<LiveAuctionInfo> _activeAuctions;
     private ImmutableList<LiveBidInfo> _bids;
+    private string _bossKilledName;
     private ImmutableList<CompletedAuction> _completedAuctions;
     private ImmutableList<LiveSpentCall> _spentCalls;
 
@@ -34,6 +36,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _auctionStartAnalyzer = new();
         _auctionEndAnalyzer = new(ProcessErrorMessage);
         _activeBiddingAnalyzer = new();
+        _activeBossKillAnalyzer = new();
         _itemLinkValues = settings.ItemLinkIds;
 
         _activeAuctions = [];
@@ -54,6 +57,13 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         => _completedAuctions;
 
     public bool Updated { get; set; }
+
+    public string GetBossKilledName()
+    {
+        string bossName = _bossKilledName;
+        _bossKilledName = null;
+        return bossName;
+    }
 
     public ICollection<LiveBidInfo> GetHighBids(LiveAuctionInfo auction)
     {
@@ -217,7 +227,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     private void ProcessErrorMessage(string message)
     {
-        string messageToWrite = $"{DateTime.Now:HH:mm:ss} message";
+        string messageToWrite = $"{DateTime.Now:HH:mm:ss} {message}";
         Task.Run(() => WriteToErrorFile(messageToWrite));
     }
 
@@ -229,6 +239,14 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         try
         {
             string logLineNoTimestamp = message[(Constants.LogDateTimeLength + 1)..];
+
+            string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
+            if (bossKilledName != null)
+            {
+                _bossKilledName = bossKilledName;
+                Updated = true;
+                return;
+            }
 
             EqChannel channel = _channelAnalyzer.GetValidDkpChannel(logLineNoTimestamp);
             if (channel == EqChannel.None)
@@ -340,6 +358,8 @@ public interface IActiveBidTracker
     IEnumerable<LiveBidInfo> Bids { get; }
 
     IEnumerable<CompletedAuction> CompletedAuctions { get; }
+
+    string GetBossKilledName();
 
     ICollection<LiveBidInfo> GetHighBids(LiveAuctionInfo auction);
 
