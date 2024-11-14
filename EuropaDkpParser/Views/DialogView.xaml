@@ -10,8 +10,7 @@
         ShowInTaskbar="False"
         WindowStyle="ToolWindow"
         Title="{Binding Title}"
-        mc:Ignorable="d" 
-        Width="{Binding Width, Mode=TwoWay}" Height="{Binding Height, Mode=TwoWay}"
+        mc:Ignorable="d"         
         dialogsView:DialogResultBehavior.DialogResult="{Binding DialogResult}"
         Background="{StaticResource DefaultBackgroundColor}"
         Foreground="{StaticResource DefaultForegroundColor}">

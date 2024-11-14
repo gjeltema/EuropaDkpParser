@@ -18,9 +18,6 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
         ViewFactory = viewFactory;
         CloseOkCommand = new DelegateCommand(CloseOk, CloseOkCanExecute);
         CloseCancelCommand = new DelegateCommand(CloseCancel);
-
-        Width = 700;
-        Height = 500;
     }
 
     public DelegateCommand CloseCancelCommand { get; }
@@ -33,22 +30,10 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
         set => SetProperty(ref _dialogResult, value);
     }
 
-    public int Height
-    {
-        get => _height;
-        set => SetProperty(ref _height, value);
-    }
-
     public string Title
     {
         get => _title;
         set => SetProperty(ref _title, value);
-    }
-
-    public int Width
-    {
-        get => _width;
-        set => SetProperty(ref _width, value);
     }
 
     protected IDialogViewFactory ViewFactory { get; private set; }
@@ -60,14 +45,19 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
         => DialogResult = true;
 
     public virtual bool? ShowDialog()
-        => CreateAndShowDialog();
+        => CreateAndShowDialog(500, 700);
+
+    public bool? ShowDialog(int height, int width)
+        => CreateAndShowDialog(height, width);
 
     protected virtual bool CloseOkCanExecute()
         => true;
 
-    protected bool? CreateAndShowDialog()
+    protected bool? CreateAndShowDialog(int height, int width)
     {
         IDialogView view = ViewFactory.CreateDialogView(this);
+        view.Height = height;
+        view.Width = width;
         return view.ShowDialog();
     }
 }
@@ -80,15 +70,13 @@ public interface IDialogViewModel : IEuropaViewModel
 
     bool? DialogResult { get; set; }
 
-    int Height { get; set; }
-
     string Title { get; set; }
-
-    int Width { get; set; }
 
     void CloseCancel();
 
     void CloseOk();
 
     bool? ShowDialog();
+
+    bool? ShowDialog(int height, int width);
 }

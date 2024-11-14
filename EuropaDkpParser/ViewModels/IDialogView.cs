@@ -8,5 +8,9 @@ public interface IDialogView
 {
     bool? DialogResult { get; set; }
 
+    double Height { get; set; }
+
+    double Width { get; set; }
+
     bool? ShowDialog();
 }
