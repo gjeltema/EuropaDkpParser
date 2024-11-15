@@ -276,7 +276,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         IReminderDialogViewModel reminderDialogViewModel = _dialogFactory.CreateReminderDialogViewModel();
         reminderDialogViewModel.ReminderText = reminderText;
 
-        bool ok = reminderDialogViewModel.ShowDialog(220, 400) == true;
+        bool ok = reminderDialogViewModel.ShowDialog() == true;
         userSpecifiedInterval = ok ? TimeSpan.MinValue : TimeSpan.FromMinutes(reminderDialogViewModel.ReminderInterval);
         return ok;
     }

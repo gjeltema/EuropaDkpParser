@@ -30,6 +30,9 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
         : base(viewFactory)
     {
         Title = Strings.GetString("FileArchiveDialogTitleText");
+        Height = 570;
+        Width = 700;
+
         _settings = settings;
 
         OpenEqLogArchiveDirectoryCommand = new DelegateCommand(OpenEqLogArchiveDirectory);

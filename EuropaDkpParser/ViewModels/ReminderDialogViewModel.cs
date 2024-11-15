@@ -15,6 +15,8 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
         : base(viewFactory)
     {
         Title = Strings.GetString("ReminderDialogTitleText");
+        Height = 220;
+        Width = 400;
 
         ReminderInterval = 3;
     }

@@ -90,7 +90,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     private void OpenSettingsDialog()
     {
         ILogSelectionViewModel settingsDialog = _dialogFactory.CreateSettingsViewDialogViewModel(_settings);
-        if (settingsDialog.ShowDialog(600, 700) != true)
+        if (settingsDialog.ShowDialog() != true)
             return;
 
         settingsDialog.UpdateSettings(_settings);

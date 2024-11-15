@@ -34,6 +34,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         : base(viewFactory)
     {
         Title = Strings.GetString("SettingsDialogTitleText");
+        Height = 600;
+        Width = 700;
 
         _settings = settings;
 

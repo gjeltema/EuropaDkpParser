@@ -9,9 +9,7 @@ using Prism.Commands;
 internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewModel
 {
     private bool? _dialogResult;
-    private int _height;
     private string _title;
-    private int _width;
 
     protected DialogViewModelBase(IDialogViewFactory viewFactory)
     {
@@ -36,7 +34,11 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
         set => SetProperty(ref _title, value);
     }
 
+    protected int Height { get; set; } = 500;
+
     protected IDialogViewFactory ViewFactory { get; private set; }
+
+    protected int Width { get; set; } = 700;
 
     public void CloseCancel()
         => DialogResult = false;
@@ -45,19 +47,16 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
         => DialogResult = true;
 
     public virtual bool? ShowDialog()
-        => CreateAndShowDialog(500, 700);
-
-    public bool? ShowDialog(int height, int width)
-        => CreateAndShowDialog(height, width);
+        => CreateAndShowDialog();
 
     protected virtual bool CloseOkCanExecute()
         => true;
 
-    protected bool? CreateAndShowDialog(int height, int width)
+    protected bool? CreateAndShowDialog()
     {
         IDialogView view = ViewFactory.CreateDialogView(this);
-        view.Height = height;
-        view.Width = width;
+        view.Height = Height;
+        view.Width = Width;
         return view.ShowDialog();
     }
 }
@@ -77,6 +76,4 @@ public interface IDialogViewModel : IEuropaViewModel
     void CloseOk();
 
     bool? ShowDialog();
-
-    bool? ShowDialog(int height, int width);
 }
