@@ -72,6 +72,9 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
             DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLineNoTimestamp, entry.Channel, entry.Timestamp);
 
+            if (dkpEntry.PlayerName == Constants.Rot)
+                return null;
+
             if (logLineNoTimestamp.IndexOf(Constants.Undo) > 0 || logLineNoTimestamp.IndexOf(Constants.Remove) > 0)
             {
                 DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);

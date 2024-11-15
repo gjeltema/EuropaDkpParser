@@ -222,7 +222,7 @@ internal sealed class MainDisplayViewModel : EuropaViewModelBase, IMainDisplayVi
     private void OpenSettingsDialog()
     {
         ILogSelectionViewModel settingsDialog = _dialogFactory.CreateSettingsViewDialogViewModel(_settings);
-        if (settingsDialog.ShowDialog() != true)
+        if (settingsDialog.ShowDialog(600, 700) != true)
             return;
 
         settingsDialog.UpdateSettings(_settings);
