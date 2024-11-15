@@ -90,6 +90,10 @@ internal sealed class PrimaryEntryParser : IParseEntry
             {
                 logEntry.EntryType = LogEntryType.AfkEnd;
             }
+            else if (logLine.Contains(Constants.Transfer))
+            {
+                logEntry.EntryType = LogEntryType.Transfer;
+            }
         }
     }
 

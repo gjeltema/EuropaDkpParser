@@ -38,7 +38,8 @@ public enum LogEntryType : byte
     LeftRaid,
     Crashed,
     AfkStart,
-    AfkEnd
+    AfkEnd,
+    Transfer
 }
 
 public enum PossibleError : byte

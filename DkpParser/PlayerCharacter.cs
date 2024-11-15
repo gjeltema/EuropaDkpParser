@@ -9,14 +9,14 @@ using System.Diagnostics;
 [DebuggerDisplay("{DebugText}")]
 public sealed class PlayerCharacter : IComparable<PlayerCharacter>
 {
+    public string CharacterName { get; set; }
+
     public string ClassName { get; set; }
 
     public bool IsAnonymous
         => string.IsNullOrEmpty(ClassName);
 
     public int Level { get; set; }
-
-    public string CharacterName { get; set; }
 
     public string Race { get; set; }
 
@@ -28,7 +28,7 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
         if (a is null || b is null)
             return false;
 
-        if (a.CharacterName != b.CharacterName)
+        if (!a.CharacterName.Equals(b.CharacterName, StringComparison.OrdinalIgnoreCase))
             return false;
 
         return true;

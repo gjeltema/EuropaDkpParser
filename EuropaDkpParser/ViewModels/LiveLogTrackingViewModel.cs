@@ -204,9 +204,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
             return;
 
         string spentCallWithLink = _activeBidTracker.GetSpentMessageWithLink(selectedSpentCall);
-        bool success = Clip.Copy(spentCallWithLink);
-        if (!success)
-            Clip.Copy(spentCallWithLink);
+        Clip.Copy(spentCallWithLink);
     }
 
     private void CopySelectedStatusMessageToClipboard()
@@ -215,9 +213,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         if (selectedStatsuMessage == null)
             return;
 
-        bool success = Clip.Copy(selectedStatsuMessage);
-        if (!success)
-            Clip.Copy(selectedStatsuMessage);
+        Clip.Copy(selectedStatsuMessage);
     }
 
     private void CycleToNextStatusMarker()

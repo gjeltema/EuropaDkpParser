@@ -30,6 +30,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         AnalyzeLogFilesAttendanceCalls(logParseResults);
         HandleCrashedEntries(logParseResults);
         HandleAfkTags(logParseResults);
+        HandleTransfers(logParseResults);
     }
 
     private void AddCharactersFromCharactersAttending(EqLogEntry logEntry, AttendanceEntry call)
@@ -124,6 +125,9 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 .Where(x => afkStartEntry.Timestamp < x.Timestamp)
                 .Where(x => x.Character.CharacterName == afkStartEntry.Character.CharacterName)
                 .FirstOrDefault();
+
+            if (endEntry == null)
+                _raidEntries.AnalysisErrors.Add($"Did not find AFKEND entry for: {afkStartEntry.LogLine}");
 
             DateTime endTime = endEntry?.Timestamp ?? DateTime.MaxValue;
 
@@ -290,6 +294,36 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return character;
     }
 
+    private DkpTransfer ExtractTransfer(EqLogEntry logEntry)
+    {
+        logEntry.Visited = true;
+
+        // [Fri Nov 01 23:13:39 2024] You tell your raid, ':::Tookky:::Genos:::TRANSFER'
+        string correctedLogLine = _sanitizer.SanitizeDelimiterString(logEntry.LogLine);
+        string[] parts = correctedLogLine.Split(Constants.AttendanceDelimiter);
+        if (parts.Length < 4)
+            return null;
+
+        string fromCharacter = parts[1];
+        string toCharacter = parts[2];
+
+        PlayerCharacter fromPlayerCharacter = _raidEntries.AllCharactersInRaid
+            .FirstOrDefault(x => x.CharacterName.Equals(fromCharacter, StringComparison.OrdinalIgnoreCase));
+        if (fromPlayerCharacter == null)
+            return null;
+
+        PlayerCharacter toPlayerCharacter = _raidEntries.AllCharactersInRaid
+            .FirstOrDefault(x => x.CharacterName.Equals(toCharacter, StringComparison.OrdinalIgnoreCase));
+        if (toCharacter == null)
+            return null;
+
+        return new DkpTransfer
+        {
+            FromCharacter = fromPlayerCharacter,
+            ToCharacter = toPlayerCharacter
+        };
+    }
+
     private ZoneNameInfo ExtractZoneName(EqLogEntry entry)
     {
         entry.Visited = true;
@@ -383,7 +417,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
         foreach (AfkEntry afk in _raidEntries.AfkEntries)
         {
-            IEnumerable<AttendanceEntry> relatedAttendances = _raidEntries.AttendanceEntries.Where(x => afk.StartTime <= x.Timestamp && x.Timestamp <= afk.EndTime);
+            IEnumerable<AttendanceEntry> relatedAttendances = _raidEntries.AttendanceEntries.Where(x => afk.StartTime < x.Timestamp && x.Timestamp < afk.EndTime);
             foreach (AttendanceEntry attendance in relatedAttendances)
             {
                 attendance.Characters.Remove(afk.Character);
@@ -441,6 +475,22 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 }
             }
         }
+    }
+
+    private void HandleTransfers(LogParseResults logParseResults)
+    {
+        List<DkpTransfer> transfers = [];
+        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        {
+            IEnumerable<DkpTransfer> transfersToAdd = log.LogEntries
+                .Where(x => x.EntryType == LogEntryType.Transfer)
+                .Select(ExtractTransfer)
+                .Where(x => x != null);
+
+            transfers.AddRange(transfersToAdd);
+        }
+
+        _raidEntries.Transfers = transfers;
     }
 
     private bool IsRemoveCall(EqLogEntry logEntry, AttendanceEntry call, string logLine)

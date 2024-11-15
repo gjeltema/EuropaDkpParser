@@ -168,7 +168,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             if (UploadSelectedAttendances)
             {
                 UploadSelectedAttendances = false;
-                raidsToUpload = UploadRaidInfo.Create(SelectedAttendances, _raidEntries.AllCharactersInRaid.Select(x => x.CharacterName));
+                raidsToUpload = UploadRaidInfo.Create(SelectedAttendances, _raidEntries);
             }
             else
             {

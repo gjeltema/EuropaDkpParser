@@ -82,6 +82,7 @@ public static class Constants
     public const string TellsYou = " tells you, '";
     public const string TimePickerDisplayDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TooLongDelimiter = "::::";
+    public const string Transfer = "TRANSFER";
     public const string Undo = "UNDO";
     public const string UploadDebugInfoFileNamePrefix = "DEBUGUploadInfo-";
     public const string WhoZonePrefixPlural = "There are ";

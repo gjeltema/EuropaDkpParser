@@ -33,6 +33,8 @@ public sealed class RaidEntries
 
     public ICollection<PlayerCharacter> RemovedPlayerCharacters { get; } = new HashSet<PlayerCharacter>();
 
+    public ICollection<DkpTransfer> Transfers { get; set; } = new List<DkpTransfer>();
+
     public ICollection<EqLogEntry> UnvisitedEntries { get; set; } = new List<EqLogEntry>();
 
     public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)
@@ -108,6 +110,12 @@ public sealed class RaidEntries
         yield return "-------------------- Players Declared AFK -------------------";
         foreach (AfkEntry afkEntry in AfkEntries.OrderBy(x => x.StartTime))
             yield return afkEntry.ToDisplayString();
+
+        yield return "";
+
+        yield return "-------------------- DKP Transfers -------------------";
+        foreach (DkpTransfer transfer in Transfers)
+            yield return transfer.ToDisplayString();
 
         yield return "";
 

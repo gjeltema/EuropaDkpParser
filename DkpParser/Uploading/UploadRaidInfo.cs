@@ -23,23 +23,24 @@ public sealed class UploadRaidInfo
             CallName = x.CallName,
             ZoneName = x.ZoneName,
             AttendanceCallType = x.AttendanceCallType,
-            Characters = x.Characters,
+            Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
         }).ToList();
 
         ICollection<RaidInfo> raidInfo = raidEntries.GetRaidInfo(getZoneRaidAlias);
         ICollection<DkpUploadInfo> dkpUploadInfo = raidEntries.DkpEntries.Select(x => new DkpUploadInfo
         {
             Timestamp = x.Timestamp,
-            CharacterName = x.PlayerName,
+            CharacterName = ConvertTransfer(x.PlayerName, raidEntries.Transfers),
             Item = x.Item,
             DkpSpent = x.DkpSpent,
             AssociatedAttendanceCall = GetAssociatedAttendance(x, raidInfo)
         }).ToList();
 
-        ICollection<string> charactersToBeUploaded = raidEntries.AllCharactersInRaid
+        IEnumerable<string> allCharacterNames = raidEntries.AllCharactersInRaid
             .Select(x => x.CharacterName)
-            .Union(raidEntries.DkpEntries.Select(x => x.PlayerName))
-            .ToList();
+            .Union(raidEntries.DkpEntries.Select(x => x.PlayerName));
+
+        ICollection<string> charactersToBeUploaded = ConvertTransfers(allCharacterNames, raidEntries.Transfers);
 
         return new UploadRaidInfo
         {
@@ -49,21 +50,71 @@ public sealed class UploadRaidInfo
         };
     }
 
-    public static UploadRaidInfo Create(IEnumerable<AttendanceEntry> attendances,  IEnumerable<string> charactersToBeUploaded)
+    public static UploadRaidInfo Create(IEnumerable<AttendanceEntry> attendances, RaidEntries raidEntries)
     {
+        IEnumerable<PlayerCharacter> charactersToBeUploaded = ConvertTransfers(raidEntries.AllCharactersInRaid, raidEntries.Transfers);
+
         return new UploadRaidInfo
         {
-            AttendanceInfo = attendances.Select(x => new AttendanceUploadInfo 
-            { 
-                AttendanceCallType =  x.AttendanceCallType,
+            AttendanceInfo = attendances.Select(x => new AttendanceUploadInfo
+            {
+                AttendanceCallType = x.AttendanceCallType,
                 CallName = x.CallName,
-                Characters = x.Characters,
+                Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
                 Timestamp = x.Timestamp,
                 ZoneName = x.ZoneName,
             }).ToList(),
             DkpInfo = [],
-            CharacterNames = charactersToBeUploaded.ToList()
+            CharacterNames = charactersToBeUploaded.Select(x => x.CharacterName).ToList()
         };
+    }
+
+    private static string ConvertTransfer(string characterName, ICollection<DkpTransfer> transfers)
+    {
+        if (transfers.Count == 0)
+            return characterName;
+
+        DkpTransfer transferCharacter = transfers.FirstOrDefault(x => x.FromCharacter.CharacterName.Equals(characterName, StringComparison.OrdinalIgnoreCase));
+        return transferCharacter == null ? characterName : transferCharacter.ToCharacter.CharacterName;
+    }
+
+    private static PlayerCharacter ConvertTransfer(PlayerCharacter character, ICollection<DkpTransfer> transfers)
+    {
+        if (transfers.Count == 0)
+            return character;
+
+        DkpTransfer transferCharacter = transfers.FirstOrDefault(x => x.FromCharacter == character);
+        return transferCharacter == null ? character : transferCharacter.ToCharacter;
+    }
+
+    private static ICollection<string> ConvertTransfers(IEnumerable<string> characterNameList, ICollection<DkpTransfer> transfers)
+    {
+        if (transfers.Count == 0)
+            return characterNameList.ToList();
+
+        ICollection<string> newList = [];
+        foreach (string playerCharacterName in characterNameList)
+        {
+            string charToAdd = ConvertTransfer(playerCharacterName, transfers);
+            newList.Add(charToAdd);
+        }
+
+        return newList;
+    }
+
+    private static ICollection<PlayerCharacter> ConvertTransfers(IEnumerable<PlayerCharacter> characterList, ICollection<DkpTransfer> transfers)
+    {
+        if (transfers.Count == 0)
+            return characterList.ToList();
+
+        ICollection<PlayerCharacter> newList = [];
+        foreach (PlayerCharacter playerCharacter in characterList)
+        {
+            PlayerCharacter charToAdd = ConvertTransfer(playerCharacter, transfers);
+            newList.Add(charToAdd);
+        }
+
+        return newList;
     }
 
     private static AttendanceEntry GetAssociatedAttendance(DkpEntry dkpEntry, ICollection<RaidInfo> raidInfo)
