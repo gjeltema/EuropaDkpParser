@@ -53,7 +53,7 @@ internal sealed partial class DkpSpentAnalyzer
                 PossibleError = PossibleError.MalformedDkpSpentLine
             };
         }
-        string itemName = logLine[startOfItemSectionIndex..][..indexOfSecondDelimiter].ToString();
+        string itemName = logLine[startOfItemSectionIndex..][..indexOfSecondDelimiter].Trim();
 
         ReadOnlySpan<char> playerSection = logLine[(startOfItemSectionIndex + indexOfSecondDelimiter + Constants.AttendanceDelimiter.Length)..].Trim();
         indexOfSpace = playerSection.IndexOf(' ');
@@ -76,7 +76,7 @@ internal sealed partial class DkpSpentAnalyzer
         DkpEntry dkpEntry = new()
         {
             PlayerName = playerName.Trim(),
-            Item = itemName.Trim(),
+            Item = itemName,
             Timestamp = timestamp,
             RawLogLine = logLine,
             Auctioneer = auctioneer,

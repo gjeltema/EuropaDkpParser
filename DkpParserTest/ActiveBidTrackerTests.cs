@@ -15,6 +15,58 @@ internal sealed class ActiveBidTrackerTests
     private ActiveBidTracker _systemUnderTest;
 
     [TestCase()]
+    public void Tracker_WhenBidCycleWith2ItemsAndRotSpent_HasExpectedState()
+    {
+        InitializeSystemUnderTest();
+        _systemUnderTest.StartTracking("");
+        _messageProvider.SendMessage("[Fri Nov 01 20:58:08 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: BIDS OPEN X2'");
+        Assert.Multiple(() =>
+        {
+            Assert.That(_systemUnderTest.ActiveAuctions.Count(), Is.EqualTo(1));
+            LiveAuctionInfo auction = _systemUnderTest.ActiveAuctions.First();
+            Assert.That(auction.Channel, Is.EqualTo(EqChannel.Raid));
+            Assert.That(auction.Auctioneer, Is.EqualTo("Ghalone"));
+            Assert.That(auction.ItemName, Is.EqualTo("Robe of Primal Force"));
+            Assert.That(auction.TotalNumberOfItems, Is.EqualTo(2));
+        });
+
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:38 2024] Undertree tells the raid,  'Robe of Primal Force Undertree 20 DKP'");
+        Assert.Multiple(() =>
+        {
+            LiveAuctionInfo auction = _systemUnderTest.ActiveAuctions.First();
+            Assert.That(_systemUnderTest.Bids.Count(), Is.EqualTo(1));
+
+            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction);
+            Assert.That(highBids.Any(x => x.CharacterName == "Undertree"), Is.True);
+
+            string statusMessage = _systemUnderTest.GetStatusMessage(auction, StatusMarker.SixtySeconds);
+            Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 DKP 60s"));
+
+        });
+
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:41 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: Undertree 20 SPENT'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:40 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: ROT'");
+        Assert.Multiple(() =>
+        {
+            Assert.That(_systemUnderTest.ActiveAuctions, Is.Empty);
+            Assert.That(_systemUnderTest.Bids.Count(), Is.EqualTo(1));
+
+            IEnumerable<CompletedAuction> spents = _systemUnderTest.CompletedAuctions;
+            Assert.That(spents.Count(), Is.EqualTo(1));
+
+            CompletedAuction spentCalls = spents.First();
+            Assert.That(spentCalls.SpentCalls, Has.Count.EqualTo(2));
+            Assert.That(spentCalls.ItemName, Is.EqualTo("Robe of Primal Force"));
+            Assert.That(spentCalls.SpentCalls.Any(x => x.Winner == Constants.Rot), Is.True);
+            Assert.That(spentCalls.SpentCalls.Any(x => x.Winner == "Undertree"), Is.True);
+
+            LiveSpentCall spentCallUndertree = spentCalls.SpentCalls.FirstOrDefault(x => x.Winner == "Undertree");
+            string spentMessage = _systemUnderTest.GetSpentMessageWithLink(spentCallUndertree);
+            Assert.That(spentMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 SPENT"));
+        });
+    }
+
+    [TestCase()]
     public void Tracker_WhenBidCycleWith2ItemsTranspires_HasExpectedState()
     {
         InitializeSystemUnderTest();
@@ -44,7 +96,7 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(highBids.Any(x => x.CharacterName == "Undertree"), Is.True);
 
             string statusMessage = _systemUnderTest.GetStatusMessage(auction, StatusMarker.SixtySeconds);
-            Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20,Luciania 15 60s"));
+            Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 DKP,Luciania 15 DKP 60s"));
         });
 
         _messageProvider.SendMessage("[Fri Nov 01 23:13:40 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: Luciania 15 SPENT'");
