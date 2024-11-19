@@ -135,8 +135,11 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             return string.Empty;
 
         string channel = GetChannelShortcut(auction.Channel);
-        IEnumerable<LiveBidInfo> highBids = GetHighBids(auction);
-        string highBiddersString = string.Join(',', highBids.Select(x => $"{x.CharacterName} {x.BidAmount} DKP"));
+        ICollection<LiveBidInfo> highBids = GetHighBids(auction);
+        if(highBids.Count == 0)
+            return string.Empty;
+
+        string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterName} {x.BidAmount} DKP"));
         string statusString = GetStatusString(statusMarker);
         string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
         return $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {highBiddersString} {statusString}";

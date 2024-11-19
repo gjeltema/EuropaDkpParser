@@ -287,15 +287,15 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         ICollection<string> bidLogEntries = await GetAllBiddingLogEntriesForDkpspentCalls(dkpSpentEntriesRemoved);
 
         IEnumerable<string> displayLines;
-        if (bidLogEntries.Count == 0)
-        {
-            displayLines = [$"{characterName} was removed from all attendances.", "No DKPSPENT entries were found for this player."];
-        }
-        else
+        if (dkpSpentEntriesRemoved.Count > 0)
         {
             displayLines = [$"{characterName} was removed from all attendances, and had at least one item awarded in a SPENT call."
                 , "The following log entries were found relating to items this player was awarded:"
                 , ..bidLogEntries];
+        }
+        else
+        {
+            displayLines = [$"{characterName} was removed from all attendances.", "No DKPSPENT entries were found for this player."];
         }
 
         ISimpleMultilineDisplayDialogViewModel displayDialog = _dialogFactory.CreateSimpleMultilineDisplayDialogViewModel();

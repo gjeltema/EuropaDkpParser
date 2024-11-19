@@ -23,6 +23,9 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
         : base(viewFactory)
     {
         Title = Strings.GetString("LogParseSummaryDialogTitleText");
+
+        Height = 610;
+
         _dialogFactory = dialogFactory;
         _settings = settings;
         _raidEntries = raidEntries;
