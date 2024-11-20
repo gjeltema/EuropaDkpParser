@@ -61,6 +61,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
             .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
+
+        LogFileNames = [.. _settings.SelectedLogFiles];
     }
 
     public ICollection<LiveAuctionInfo> ActiveAuctions
@@ -104,7 +106,11 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     public string FilePath
     {
         get => _filePath;
-        set => SetProperty(ref _filePath, value);
+        set
+        {
+            if (SetProperty(ref _filePath, value))
+                StartTailingFile(value);
+        }
     }
 
     public ICollection<LiveBidInfo> HighBids
@@ -118,6 +124,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         get => _itemLinkIdToAdd;
         set => SetProperty(ref _itemLinkIdToAdd, value);
     }
+
+    public ICollection<string> LogFileNames { get; }
 
     public DelegateCommand ReactivateCompletedAuctionCommand { get; }
 
@@ -317,6 +325,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         OpenFileDialog fileDialog = new()
         {
             Title = "Select Log File to Monitor",
+            InitialDirectory = _settings.EqDirectory,
             DefaultDirectory = _settings.EqDirectory
         };
 
@@ -325,15 +334,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
         string logFile = fileDialog.FileName;
         FilePath = logFile;
-
-        if (string.IsNullOrWhiteSpace(logFile))
-            return;
-
-        if (!File.Exists(logFile))
-            return;
-
-        _activeBidTracker.StopTracking();
-        _activeBidTracker.StartTracking(logFile);
     }
 
     private void SetActiveAuctionToCompleted()
@@ -370,6 +370,18 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
             _attendanceReminderTimer?.Stop();
             _attendanceReminderTimer = null;
         }
+    }
+
+    private void StartTailingFile(string fileToTail)
+    {
+        if (string.IsNullOrWhiteSpace(fileToTail))
+            return;
+
+        if (!File.Exists(fileToTail))
+            return;
+
+        _activeBidTracker.StopTracking();
+        _activeBidTracker.StartTracking(fileToTail);
     }
 
     private void UpdateActiveAuctionSelected()
@@ -429,6 +441,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     ICollection<LiveBidInfo> HighBids { get; }
 
     string ItemLinkIdToAdd { get; set; }
+
+    ICollection<string> LogFileNames { get; }
 
     DelegateCommand ReactivateCompletedAuctionCommand { get; }
 
