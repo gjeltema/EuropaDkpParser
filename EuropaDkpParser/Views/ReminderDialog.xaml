@@ -11,14 +11,14 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Label Content="{Binding ReminderText}" Margin="10,10,0,0"/>
+        <Label Grid.Row="0" Content="{Binding ReminderText}" Margin="10,10,0,0"/>
         
-        <Grid Grid.Row="2" Margin="0,30,10,20">
+        <Grid Grid.Row="1" Margin="0,30,10,20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -34,7 +34,17 @@
                 IsCancel="True" Width="100" Height="30" HorizontalAlignment="Right" />
         </Grid>
 
-        <Button Grid.Row="3" Content="{StaticResource OkButtonText}" Command="{Binding CloseOkCommand}" Margin="0,0,10,10"
-            IsDefault="True" Width="100" Height="30" HorizontalAlignment="Right" />
+        <Grid Grid.Row="3" Margin="10,0,10,10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <ComboBox ItemsSource="{Binding TimeCalls}" SelectedItem="{Binding AttendanceName}" Margin="0,0,5,0" Height="30" Width="100" VerticalContentAlignment="Center"
+                          Visibility="{Binding IsTimeCall, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <Button Command="{Binding CopyAttendanceCallCommand}" Margin="5,0,5,0" Content="{StaticResource CopyAttendanceCall}" Width="120" Height="30"/>
+            </StackPanel>
+
+            <Button Content="{StaticResource OkButtonText}" Command="{Binding CloseOkCommand}" 
+                IsDefault="True" Width="100" Height="30" HorizontalAlignment="Right" />
+        </Grid>
+
     </Grid>
 </UserControl>

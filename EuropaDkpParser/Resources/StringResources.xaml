@@ -279,5 +279,6 @@
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>
     <system:String x:Key="TimeAttendanceReminderMessage">Periodic reminder to perform a Time Attendance call.</system:String>
     <system:String x:Key="KillAttendanceReminderMessageFormat">Reminder to perform a Kill Attendance call for: {0}.</system:String>
+    <system:String x:Key="CopyAttendanceCall">Copy Attendance</system:String>
 
 </ResourceDictionary>
