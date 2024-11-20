@@ -164,6 +164,8 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
 
     public EqChannel Channel { get; init; }
 
+    public bool HasNewBidsAdded { get; set; }
+
     public int Id { get; }
 
     public string ItemName { get; init; }

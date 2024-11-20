@@ -6,7 +6,7 @@ namespace EuropaDkpParser.ViewModels;
 
 using Prism.Mvvm;
 
-internal class EuropaViewModelBase : BindableBase, IEuropaViewModel
+public class EuropaViewModelBase : BindableBase, IEuropaViewModel
 {
 }
 

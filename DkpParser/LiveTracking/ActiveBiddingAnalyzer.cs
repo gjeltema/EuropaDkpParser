@@ -52,6 +52,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             string characterName = lineParts[0].Trim();
             if (characterName.Length >= MinimumCharacterNameLength)
             {
+                relatedAuction.HasNewBidsAdded = true;
                 return new LiveBidInfo
                 {
                     Timestamp = timestamp,
@@ -64,7 +65,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             }
         }
 
-
+        relatedAuction.HasNewBidsAdded = true;
         return new LiveBidInfo
         {
             Timestamp = timestamp,

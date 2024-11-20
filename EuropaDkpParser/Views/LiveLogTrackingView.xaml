@@ -46,7 +46,20 @@
 
                     <Label Grid.Row="0" Content="{StaticResource ActiveAuctions}" />
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" Margin="0,0,0,5"/>
+                    <ListView Grid.Row="1" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" Margin="0,0,0,5">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=Auctioneer}" Value="You">
+                                        <Setter Property="Foreground" Value="LightGreen"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=HasNewBidsAdded}" Value="True">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
 
                     <Button Grid.Row="2" Content="{StaticResource SetAuctionToCompleted}" Command="{Binding SetActiveAuctionToCompletedCommand}" HorizontalAlignment="Right" Width="110" Height="30" Margin="0,0,0,5"/>
 
