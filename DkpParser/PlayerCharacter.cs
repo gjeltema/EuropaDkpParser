@@ -64,7 +64,7 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
     public string ToDisplayString()
         => IsAnonymous
         ? $"{CharacterName} {Constants.AnonWithBrackets}"
-        : $"{CharacterName} [{Level} {ClassName}] ({Race})";
+        : $"{CharacterName} [{Level} {ClassName}] ({(string.IsNullOrEmpty(Race) ? "Uknown" : Race)})";
 
     public override string ToString()
         => ToDisplayString();

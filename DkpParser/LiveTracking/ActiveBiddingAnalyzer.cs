@@ -87,7 +87,7 @@ internal sealed partial class ActiveBiddingAnalyzer
 }
 
 [DebuggerDisplay("{DebugText,nq}")]
-public sealed class LiveBidInfo
+public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
 {
     public int BidAmount { get; init; }
 
@@ -103,6 +103,47 @@ public sealed class LiveBidInfo
 
     private string DebugText
         => $"{Timestamp:HH:mm:ss} {ParentAuctionId} {ItemName} {CharacterName} {BidAmount}";
+
+    public static bool operator ==(LiveBidInfo left, LiveBidInfo right)
+        => Equals(left, right);
+
+    public static bool operator !=(LiveBidInfo left, LiveBidInfo right)
+        => !Equals(left, right);
+
+    public static bool Equals(LiveBidInfo left, LiveBidInfo right)
+    {
+        if (left is null && right is null)
+            return true;
+
+        if (left is null || right is null)
+            return false;
+
+        if (ReferenceEquals(left, right))
+            return true;
+
+        if (left.ParentAuctionId != right.ParentAuctionId)
+            return false;
+
+        if (left.BidAmount != right.BidAmount)
+            return false;
+
+        if (left.ItemName != right.ItemName)
+            return false;
+
+        if (!left.CharacterName.Equals(right.CharacterName, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return true;
+    }
+
+    public override bool Equals(object other)
+        => Equals(this, other as LiveBidInfo);
+
+    public bool Equals(LiveBidInfo other)
+        => Equals(this, other);
+
+    public override int GetHashCode()
+        => ParentAuctionId.GetHashCode() ^ BidAmount.GetHashCode() ^ ItemName.GetHashCode() ^ CharacterName.ToUpper().GetHashCode();
 
     public override string ToString()
         => $"{Timestamp:HH:mm:ss} {ItemName} {CharacterName} {BidAmount}";

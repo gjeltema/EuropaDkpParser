@@ -10,7 +10,7 @@ using System.Threading;
 public sealed class TailFile : IMessageProvider
 {
     private const int Timeout = 500;
-    private volatile bool _continueProcessing = true;
+    private CancellationTokenSource _cancellationTokenSource;
     private Action<string> _errorMessage;
     private string _filePath;
     private Thread _fileReaderThread;
@@ -27,20 +27,22 @@ public sealed class TailFile : IMessageProvider
         _errorMessage = errorMessage;
 
         _filePath = filePath;
-        _continueProcessing = true;
 
-        _fileReaderThread = new(ReadFile);
+        _cancellationTokenSource = new CancellationTokenSource();
+        _fileReaderThread = new(() => ReadFile(_cancellationTokenSource.Token));
         _fileReaderThread.IsBackground = true;
         _fileReaderThread.Start();
     }
 
     public void StopMessages()
     {
-        _continueProcessing = false;
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
         _fileReaderThread = null;
     }
 
-    private void ReadFile()
+    private void ReadFile(CancellationToken cancelToken)
     {
         try
         {
@@ -49,9 +51,12 @@ public sealed class TailFile : IMessageProvider
 
             long lastOffset = reader.BaseStream.Length;
 
-            while (_continueProcessing)
+            while (!cancelToken.IsCancellationRequested)
             {
                 Thread.Sleep(Timeout);
+
+                if (cancelToken.IsCancellationRequested)
+                    break;
 
                 if (reader.BaseStream.Length == lastOffset)
                     continue;

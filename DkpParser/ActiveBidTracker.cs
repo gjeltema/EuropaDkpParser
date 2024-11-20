@@ -136,7 +136,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         string channel = GetChannelShortcut(auction.Channel);
         ICollection<LiveBidInfo> highBids = GetHighBids(auction);
-        if(highBids.Count == 0)
+        if (highBids.Count == 0)
             return string.Empty;
 
         string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterName} {x.BidAmount} DKP"));
@@ -270,6 +270,12 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             LiveBidInfo bid = _activeBiddingAnalyzer.GetBidInformation(logLineNoTimestamp, channel, timestamp, _activeAuctions);
             if (bid != null)
             {
+                LiveBidInfo possibleDuplicateBid = _bids.FirstOrDefault(x => x == bid);
+                if (possibleDuplicateBid != null)
+                {
+                    _bids.Remove(possibleDuplicateBid);
+                }
+
                 _bids = _bids.Add(bid);
 
                 Updated = true;
