@@ -18,7 +18,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly IDialogFactory _dialogFactory;
     private readonly IDkpParserSettings _settings;
-    private readonly TimeSpan _updateInterval = TimeSpan.FromMilliseconds(500);
+    private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
     private DispatcherTimer _attendanceReminderTimer;
@@ -35,8 +35,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private LiveAuctionDisplay _selectedActiveAuction;
     private LiveBidInfo _selectedBid;
     private CompletedAuction _selectedCompletedAuction;
-    private LiveSpentCall _selectedSpentMessageToPaste;
-    private ICollection<LiveSpentCall> _spentMessagesToPaste;
+    private SuggestedSpentCall _selectedSpentMessageToPaste;
+    private ICollection<SuggestedSpentCall> _spentMessagesToPaste;
 
     public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
     {
@@ -163,7 +163,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         set => SetProperty(ref _selectedCompletedAuction, value);
     }
 
-    public LiveSpentCall SelectedSpentMessageToPaste
+    public SuggestedSpentCall SelectedSpentMessageToPaste
     {
         get => _selectedSpentMessageToPaste;
         set => SetProperty(ref _selectedSpentMessageToPaste, value);
@@ -173,7 +173,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
     public DelegateCommand SetActiveAuctionToCompletedCommand { get; }
 
-    public ICollection<LiveSpentCall> SpentMessagesToPaste
+    public ICollection<SuggestedSpentCall> SpentMessagesToPaste
     {
         get => _spentMessagesToPaste;
         private set => SetProperty(ref _spentMessagesToPaste, value);
@@ -207,7 +207,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
     private void CopySelectedSpentCallToClipboard()
     {
-        LiveSpentCall selectedSpentCall = SelectedSpentMessageToPaste;
+        SuggestedSpentCall selectedSpentCall = SelectedSpentMessageToPaste;
         if (selectedSpentCall == null)
             return;
 
@@ -513,13 +513,13 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
 
     CompletedAuction SelectedCompletedAuction { get; set; }
 
-    LiveSpentCall SelectedSpentMessageToPaste { get; set; }
+    SuggestedSpentCall SelectedSpentMessageToPaste { get; set; }
 
     DelegateCommand SelectFileToTailCommand { get; }
 
     DelegateCommand SetActiveAuctionToCompletedCommand { get; }
 
-    ICollection<LiveSpentCall> SpentMessagesToPaste { get; }
+    ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; }
 
     void Close();
 }

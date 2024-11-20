@@ -88,7 +88,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "60s",
         };
 
-    public ICollection<LiveSpentCall> GetSpentInfoForCurrentHighBids(LiveAuctionInfo auction)
+    public ICollection<SuggestedSpentCall> GetSpentInfoForCurrentHighBids(LiveAuctionInfo auction)
     {
         if (auction == null)
             return [];
@@ -96,20 +96,18 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         IEnumerable<LiveBidInfo> highBids = GetHighBids(auction);
         string channel = GetChannelShortcut(auction.Channel);
         return highBids
-            .Select(x => new LiveSpentCall
+            .Select(x => new SuggestedSpentCall
             {
-                Timestamp = x.Timestamp,
-                Auctioneer = auction.Auctioneer,
-                AuctionStart = auction,
                 Channel = auction.Channel,
                 ItemName = x.ItemName,
                 DkpSpent = x.BidAmount,
-                Winner = x.CharacterName
+                Winner = x.CharacterName,
+                SpentCallSent = SpentCallExists(x)
             })
             .ToList();
     }
 
-    public string GetSpentMessageWithLink(LiveSpentCall spentCall)
+    public string GetSpentMessageWithLink(SuggestedSpentCall spentCall)
     {
         if (spentCall == null)
             return string.Empty;
@@ -328,6 +326,12 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         return false;
     }
 
+    private bool SpentCallExists(LiveBidInfo bid)
+        => _spentCalls.Any(x => x.AuctionStart.Id == bid.ParentAuctionId
+                && x.DkpSpent == bid.BidAmount
+                && x.ItemName == bid.ItemName
+                && x.Winner.Equals(bid.CharacterName, StringComparison.OrdinalIgnoreCase));
+
     private void WriteToErrorFile(string message)
     {
         try
@@ -357,6 +361,22 @@ public sealed class CompletedAuction
         => $"{AuctionStart.Timestamp:HH:mm} {ItemName}";
 }
 
+public sealed class SuggestedSpentCall
+{
+    public EqChannel Channel { get; init; }
+
+    public int DkpSpent { get; init; }
+
+    public string ItemName { get; init; }
+
+    public bool SpentCallSent { get; init; }
+
+    public string Winner { get; init; }
+
+    public override string ToString()
+        => $"{Channel} {Constants.AttendanceDelimiter}{ItemName}{Constants.AttendanceDelimiter} {Winner} {DkpSpent} {Constants.DkpSpent}";
+}
+
 public interface IActiveBidTracker
 {
     IEnumerable<LiveAuctionInfo> ActiveAuctions { get; }
@@ -371,9 +391,9 @@ public interface IActiveBidTracker
 
     string GetNextStatusMarkerForSelection(string currentMarker);
 
-    ICollection<LiveSpentCall> GetSpentInfoForCurrentHighBids(LiveAuctionInfo auction);
+    ICollection<SuggestedSpentCall> GetSpentInfoForCurrentHighBids(LiveAuctionInfo auction);
 
-    string GetSpentMessageWithLink(LiveSpentCall spentCall);
+    string GetSpentMessageWithLink(SuggestedSpentCall spentCall);
 
     StatusMarker GetStatusMarkerFromSelectionString(string statusString);
 

@@ -51,10 +51,10 @@
                             <Style TargetType="ListViewItem">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Path=Auctioneer}" Value="You">
-                                        <Setter Property="Foreground" Value="LightGreen"/>
+                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundOkBrush}"/>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding Path=HasNewBidsAdded}" Value="True">
-                                        <Setter Property="Foreground" Value="Red"/>
+                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -178,7 +178,17 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <ListView Grid.Column="0" ItemsSource="{Binding SpentMessagesToPaste}" SelectedItem="{Binding SelectedSpentMessageToPaste}" Margin="0,0,5,0"/>
+                        <ListView Grid.Column="0" ItemsSource="{Binding SpentMessagesToPaste}" SelectedItem="{Binding SelectedSpentMessageToPaste}" Margin="0,0,5,0">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=SpentCallSent}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundOkBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
 
                         <Button Grid.Column="1" Content="{StaticResource CopyText}" Command="{Binding CopySelectedSpentCallToClipboardCommand}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="85" Height="30"/>
                     </Grid>
@@ -204,14 +214,6 @@
             <Label Grid.Column="0" Content="{StaticResource LogFileToMonitor}" VerticalAlignment="Center"/>
 
             <ComboBox Grid.Column="1" ItemsSource="{Binding LogFileNames}" SelectedItem="{Binding FilePath}" Margin="5,0,20,0"/>
-            <!--<TextBox Grid.Column="1" Text="{Binding FilePath}" Margin="5,0,5,0"/>-->
-
-            <!--<Button Grid.Column="2" Content="{StaticResource SetFile}" Command="{Binding SelectFileToTailCommand}" Height="30" Width="85"/>-->
         </Grid>
-
-        <!-- Buttons -->
-        <!--<Grid Grid.Row="2">
-
-        </Grid>-->
     </Grid>
 </Window>
