@@ -21,7 +21,7 @@ public static class DkpParserExtensions
             return $"{AttendanceCallStart}{attendanceName}{Constants.AttendanceDelimiter}KILL{Constants.AttendanceDelimiter}";
     }
 
-    public static bool IsWithinTwoSecondsOf(this DateTime endTimestamp, DateTime timeStampInPast)
+    public static bool IsWithinDurationOfPopulationThreshold(this DateTime endTimestamp, DateTime timeStampInPast)
         => endTimestamp >= timeStampInPast && endTimestamp - timeStampInPast <= Constants.DurationOfSearch;
 
     public static string ToUsTimestamp(this DateTime timeStamp, string format)

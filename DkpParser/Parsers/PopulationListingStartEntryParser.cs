@@ -31,7 +31,7 @@ internal sealed class PopulationListingStartEntryParser : IPopulationListingStar
             _foundFirstLine = false;
         }
 
-        if (!entryTimeStamp.IsWithinTwoSecondsOf(_initiateStartOfParseTimeStamp))
+        if (!entryTimeStamp.IsWithinDurationOfPopulationThreshold(_initiateStartOfParseTimeStamp))
         {
             _setParser.SetEntryParser(_primaryEntryParser);
             _primaryEntryParser.ParseEntry(logLine, entryTimeStamp);

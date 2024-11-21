@@ -35,7 +35,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void AddCharactersFromCharactersAttending(EqLogEntry logEntry, AttendanceEntry call)
     {
-        foreach (CharacterAttend character in _charactersAttending.Where(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp)))
+        foreach (CharacterAttend character in _charactersAttending.Where(x => x.Timestamp.IsWithinDurationOfPopulationThreshold(logEntry.Timestamp)))
         {
             call.AddOrMergeInPlayerCharacter(new PlayerCharacter { CharacterName = character.CharacterName });
             if (character.IsAfk)
@@ -51,7 +51,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void AddRaidDumpMembers(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
     {
-        RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
+        RaidDumpFile raidDump = logParseResults.RaidDumpFiles.FirstOrDefault(x => x.FileDateTime.IsWithinDurationOfPopulationThreshold(logEntry.Timestamp));
         if (raidDump == null)
             return;
 
@@ -63,7 +63,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void AddRaidListMembers(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
     {
-        RaidListFile raidList = logParseResults.RaidListFiles.FirstOrDefault(x => x.FileDateTime.IsWithinTwoSecondsOf(logEntry.Timestamp));
+        RaidListFile raidList = logParseResults.RaidListFiles.FirstOrDefault(x => x.FileDateTime.IsWithinDurationOfPopulationThreshold(logEntry.Timestamp));
         if (raidList == null)
             return;
 
@@ -573,7 +573,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void SetZoneName(EqLogEntry logEntry, AttendanceEntry call)
     {
-        ZoneNameInfo zoneLogEntry = _zones.FirstOrDefault(x => x.Timestamp.IsWithinTwoSecondsOf(logEntry.Timestamp));
+        ZoneNameInfo zoneLogEntry = _zones.FirstOrDefault(x => x.Timestamp.IsWithinDurationOfPopulationThreshold(logEntry.Timestamp));
         if (zoneLogEntry != null)
         {
             call.ZoneName = zoneLogEntry.ZoneName;
