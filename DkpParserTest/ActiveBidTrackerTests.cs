@@ -61,7 +61,13 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(spentCalls.SpentCalls.Any(x => x.Winner == "Undertree"), Is.True);
 
             LiveSpentCall spentCallUndertree = spentCalls.SpentCalls.FirstOrDefault(x => x.Winner == "Undertree");
-            string spentMessage = _systemUnderTest.GetSpentMessageWithLink(spentCallUndertree);
+            string spentMessage = _systemUnderTest.GetSpentMessageWithLink(new SuggestedSpentCall
+            {
+                Winner = spentCallUndertree.Winner,
+                DkpSpent = spentCallUndertree.DkpSpent,
+                ItemName = spentCallUndertree.ItemName,
+                Channel = spentCallUndertree.Channel,
+            });
             Assert.That(spentMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 SPENT"));
         });
     }
@@ -96,7 +102,7 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(highBids.Any(x => x.CharacterName == "Undertree"), Is.True);
 
             string statusMessage = _systemUnderTest.GetStatusMessage(auction, StatusMarker.SixtySeconds);
-            Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 DKP,Luciania 15 DKP 60s"));
+            Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 DKP, Luciania 15 DKP 60s"));
         });
 
         _messageProvider.SendMessage("[Fri Nov 01 23:13:40 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: Luciania 15 SPENT'");
@@ -116,7 +122,13 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(spentCalls.SpentCalls.Any(x => x.Winner == "Undertree"), Is.True);
 
             LiveSpentCall spentCallUndertree = spentCalls.SpentCalls.FirstOrDefault(x => x.Winner == "Undertree");
-            string spentMessage = _systemUnderTest.GetSpentMessageWithLink(spentCallUndertree);
+            string spentMessage = _systemUnderTest.GetSpentMessageWithLink(new SuggestedSpentCall
+            {
+                Winner = spentCallUndertree.Winner,
+                DkpSpent = spentCallUndertree.DkpSpent,
+                ItemName = spentCallUndertree.ItemName,
+                Channel = spentCallUndertree.Channel,
+            });
             Assert.That(spentMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 SPENT"));
         });
     }

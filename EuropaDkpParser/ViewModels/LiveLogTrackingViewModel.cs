@@ -286,7 +286,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
         SelectedCompletedAuction = null;
         _activeBidTracker.ReactivateCompletedAuction(selectedAuction);
-        UpdateActiveAuctionSelected();
     }
 
     private void RemindForKillAttendance(string bossName)
@@ -350,7 +349,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         SelectedActiveAuction = null;
 
         _activeBidTracker.SetAuctionToCompleted(selectedAuction.Auction);
-        UpdateActiveAuctionSelected();
     }
 
     private void SetAuctionStatusMessage()
@@ -390,6 +388,9 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     }
 
     private void UpdateActiveAuctionSelected()
+        => UpdateActiveAuctionSelected(SelectedBid, SelectedSpentMessageToPaste);
+
+    private void UpdateActiveAuctionSelected(LiveBidInfo selectedCurrentBid, SuggestedSpentCall selectedSpent)
     {
         if (SelectedActiveAuction != null)
         {
@@ -397,8 +398,25 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
             CurrentBids = new List<LiveBidInfo>(_activeBidTracker.Bids
                 .Where(x => x.ParentAuctionId == SelectedActiveAuction.Id).OrderByDescending(x => x.Timestamp));
+            if (selectedCurrentBid != null)
+            {
+                LiveBidInfo matchingBid = CurrentBids.FirstOrDefault(x => x.ParentAuctionId == selectedCurrentBid.ParentAuctionId
+                    && x.ItemName == selectedCurrentBid.ItemName
+                    && x.BidAmount == selectedCurrentBid.BidAmount
+                    && x.CharacterName == selectedCurrentBid.CharacterName);
+                SelectedBid = matchingBid;
+            }
+
             HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction.Auction));
+
             SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(SelectedActiveAuction.Auction);
+            if (selectedSpent != null)
+            {
+                SuggestedSpentCall matchingSpent = SpentMessagesToPaste.FirstOrDefault(x => x.Winner == selectedSpent.Winner
+                    && x.ItemName == selectedSpent.ItemName
+                    && x.DkpSpent == selectedSpent.DkpSpent);
+                SelectedSpentMessageToPaste = matchingSpent;
+            }
         }
         else
         {
@@ -414,20 +432,32 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     {
         _activeBidTracker.Updated = false;
 
+        LiveBidInfo selectedBid = SelectedBid;
+        SuggestedSpentCall selectedSpent = SelectedSpentMessageToPaste;
         LiveAuctionDisplay selectedAuction = SelectedActiveAuction;
+
         ActiveAuctions = _activeBidTracker.ActiveAuctions
             .OrderByDescending(x => x.Timestamp)
-            .Select(x => new LiveAuctionDisplay(x)).ToList();
+            .Select(x => new LiveAuctionDisplay(x))
+            .ToList();
 
         if (selectedAuction != null)
         {
             LiveAuctionDisplay matchingAuction = ActiveAuctions.FirstOrDefault(x => x.Id == selectedAuction.Id);
-            if (matchingAuction != null)
-                SelectedActiveAuction = matchingAuction;
+            SelectedActiveAuction = matchingAuction;
         }
 
+        UpdateActiveAuctionSelected(selectedBid, selectedSpent);
+
+        CompletedAuction selectedCompleted = SelectedCompletedAuction;
         CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions);
-        UpdateActiveAuctionSelected();
+        if (selectedCompleted != null)
+        {
+            CompletedAuction matchingCompleted = CompletedAuctions.FirstOrDefault(x => x.AuctionStart.Id == selectedCompleted.AuctionStart.Id);
+            if (matchingCompleted != null)
+                SelectedCompletedAuction = matchingCompleted;
+        }
+
         RemindForKillAttendance(_activeBidTracker.GetBossKilledName());
 
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);

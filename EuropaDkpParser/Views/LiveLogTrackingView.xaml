@@ -135,7 +135,7 @@
 
                     <Label Grid.Row="0" Content="{StaticResource CurrentHighBids}" />
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding HighBids}" SelectedItem="{Binding SelectedBid}" Margin="0,0,0,5"/>
+                    <ListView Grid.Row="1" ItemsSource="{Binding HighBids}" Margin="0,0,0,5"/>
                 </Grid>
 
                 <!-- Bids to copy-paste -->
