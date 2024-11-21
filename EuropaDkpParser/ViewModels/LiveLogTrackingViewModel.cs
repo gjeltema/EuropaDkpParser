@@ -28,6 +28,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private string _currentStatusMarker;
     private string _filePath;
     private ICollection<LiveBidInfo> _highBids;
+    private bool _incrementRaidNameOnNextReminder = true;
     private string _itemLinkIdToAdd;
     private DispatcherTimer _killCallReminderTimer;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
@@ -239,21 +240,26 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
             return TimeSpan.FromMinutes(60 - minutes);
     }
 
+    private IReminderDialogViewModel GetReminderDialog(string reminderDisplayText, AttendanceCallType callType)
+    {
+        IReminderDialogViewModel reminderDialogViewModel = _dialogFactory.CreateReminderDialogViewModel();
+        reminderDialogViewModel.ReminderText = reminderDisplayText;
+        reminderDialogViewModel.AttendanceType = callType;
+
+        return reminderDialogViewModel;
+    }
+
     private void HandleAttendanceReminderTimer(object sender, EventArgs e)
     {
         _attendanceReminderTimer.Stop();
 
-        bool continueToNextInterval = RemindForAttendance(
-            Strings.GetString("TimeAttendanceReminderMessage"),
-            AttendanceCallType.Time,
-            "",
-            out TimeSpan userSpecifiedInterval);
+        IReminderDialogViewModel reminder = GetReminderDialog(Strings.GetString("TimeAttendanceReminderMessage"), AttendanceCallType.Time);
+        if (_incrementRaidNameOnNextReminder)
+            reminder.IncrementToNextTimeCall();
 
-        TimeSpan nextInterval = userSpecifiedInterval;
-        if (continueToNextInterval)
-        {
-            nextInterval = GetAttendanceReminderInterval();
-        }
+        bool ok = reminder.ShowDialog() == true;
+        TimeSpan nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);
+        _incrementRaidNameOnNextReminder = ok;
 
         _attendanceReminderTimer.Interval = nextInterval;
         _attendanceReminderTimer.Start();
@@ -283,18 +289,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         UpdateActiveAuctionSelected();
     }
 
-    private bool RemindForAttendance(string reminderDisplayText, AttendanceCallType callType, string attendanceName, out TimeSpan userSpecifiedInterval)
-    {
-        IReminderDialogViewModel reminderDialogViewModel = _dialogFactory.CreateReminderDialogViewModel();
-        reminderDialogViewModel.ReminderText = reminderDisplayText;
-        reminderDialogViewModel.AttendanceType = callType;
-        reminderDialogViewModel.AttendanceName = attendanceName;
-
-        bool ok = reminderDialogViewModel.ShowDialog() == true;
-        userSpecifiedInterval = ok ? TimeSpan.MinValue : TimeSpan.FromMinutes(reminderDialogViewModel.ReminderInterval);
-        return ok;
-    }
-
     private void RemindForKillAttendance(string bossName)
     {
         if (!RemindAttendances || string.IsNullOrEmpty(bossName))
@@ -302,9 +296,14 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
         string statusMessageFormat = Strings.GetString("KillAttendanceReminderMessageFormat");
         string statusMessage = string.Format(statusMessageFormat, bossName);
-        bool doneWithReminder = RemindForAttendance(statusMessage, AttendanceCallType.Kill, bossName, out TimeSpan userSpecifiedInterval);
+
+        IReminderDialogViewModel reminder = GetReminderDialog(statusMessage, AttendanceCallType.Kill);
+        reminder.AttendanceName = bossName;
+
+        bool doneWithReminder = reminder.ShowDialog() == true;
         if (!doneWithReminder)
         {
+            TimeSpan userSpecifiedInterval = TimeSpan.FromMinutes(reminder.ReminderInterval);
             _killCallReminderTimer = new DispatcherTimer(
                 userSpecifiedInterval,
                 DispatcherPriority.Normal,

@@ -11,9 +11,11 @@ using Prism.Commands;
 
 internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDialogViewModel
 {
+    private readonly List<string> _timeCalls;
+    private static int timeCallIndex = -1;
+    private string _attendanceName;
     private int _reminderInterval;
     private string _reminderText;
-    private string _selectedTimeMarker;
 
     public ReminderDialogViewModel(IDialogViewFactory viewFactory)
         : base(viewFactory)
@@ -26,21 +28,29 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
 
         CopyAttendanceCallCommand = new DelegateCommand(CopyAttendanceCall);
 
-        TimeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
+        _timeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
             , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call"];
 
-        AttendanceName = TimeCalls.First();
+        if (timeCallIndex > _timeCalls.Count || timeCallIndex < 0)
+            _attendanceName = _timeCalls.First();
+        else
+            _attendanceName = _timeCalls[timeCallIndex];
     }
 
     public string AttendanceName
     {
-        get => _selectedTimeMarker;
+        get => _attendanceName;
         set
         {
             if (string.IsNullOrWhiteSpace(value))
                 return;
 
-            SetProperty(ref _selectedTimeMarker, value);
+            if (SetProperty(ref _attendanceName, value))
+            {
+                int indexOfSelection = _timeCalls.IndexOf(value);
+                if (indexOfSelection > -1)
+                    timeCallIndex = indexOfSelection;
+            }
         }
     }
 
@@ -63,7 +73,18 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
         set => SetProperty(ref _reminderText, value);
     }
 
-    public ICollection<string> TimeCalls { get; }
+    public ICollection<string> TimeCalls
+        => _timeCalls;
+
+    public void IncrementToNextTimeCall()
+    {
+        if (timeCallIndex >= TimeCalls.Count - 1)
+            timeCallIndex = 0;
+        else
+            timeCallIndex++;
+
+        AttendanceName = _timeCalls[timeCallIndex];
+    }
 
     private void CopyAttendanceCall()
     {
@@ -87,4 +108,6 @@ public interface IReminderDialogViewModel : IDialogViewModel
     string ReminderText { get; set; }
 
     ICollection<string> TimeCalls { get; }
+
+    void IncrementToNextTimeCall();
 }
