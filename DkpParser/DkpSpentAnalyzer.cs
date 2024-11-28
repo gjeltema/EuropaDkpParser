@@ -67,7 +67,7 @@ internal sealed partial class DkpSpentAnalyzer
                 Channel = channel,
                 Auctioneer = auctioneer,
                 Item = itemName,
-                PlayerName = playerSection.TrimEnd('\'').Trim().ToString(),
+                PlayerName = ProcessName(playerSection.TrimEnd('\'').Trim().ToString()),
                 PossibleError = PossibleError.MalformedDkpSpentLine
             };
         }
@@ -75,7 +75,7 @@ internal sealed partial class DkpSpentAnalyzer
 
         DkpEntry dkpEntry = new()
         {
-            PlayerName = playerName.Trim(),
+            PlayerName = ProcessName(playerName),
             Item = itemName,
             Timestamp = timestamp,
             RawLogLine = logLine,
@@ -116,5 +116,14 @@ internal sealed partial class DkpSpentAnalyzer
             dkpEntry.PossibleError = PossibleError.ZeroDkp;
         }
         dkpEntry.DkpSpent = dkpAmount;
+    }
+
+    private string ProcessName(string rawName)
+    {
+        string trimmedName = rawName.Trim();
+        if (trimmedName == Constants.Rot)
+            return trimmedName;
+        else
+            return trimmedName.NormalizeName();
     }
 }

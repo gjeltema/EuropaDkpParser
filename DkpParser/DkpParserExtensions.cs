@@ -24,6 +24,16 @@ public static class DkpParserExtensions
     public static bool IsWithinDurationOfPopulationThreshold(this DateTime endTimestamp, DateTime timeStampInPast)
         => endTimestamp >= timeStampInPast && endTimestamp - timeStampInPast <= Constants.DurationOfSearch;
 
+    public static string NormalizeName(this string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return string.Empty;
+        else if (name.Length > 1)
+            return string.Concat(char.ToUpper(name[0]), name[1..].ToLower());
+        else
+            return name.ToUpper();
+    }
+
     public static string ToUsTimestamp(this DateTime timeStamp, string format)
         => timeStamp.ToString(format, Constants.UsCulture);
 

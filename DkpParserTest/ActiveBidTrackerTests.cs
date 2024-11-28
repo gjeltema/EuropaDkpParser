@@ -30,7 +30,7 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(auction.TotalNumberOfItems, Is.EqualTo(2));
         });
 
-        _messageProvider.SendMessage("[Fri Nov 01 23:13:38 2024] Undertree tells the raid,  'Robe of Primal Force Undertree 20 DKP'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:38 2024] Undertree tells the raid,  'Robe of Primal Force uNdertree 20 DKP'");
         Assert.Multiple(() =>
         {
             LiveAuctionInfo auction = _systemUnderTest.ActiveAuctions.First();
@@ -44,7 +44,7 @@ internal sealed class ActiveBidTrackerTests
 
         });
 
-        _messageProvider.SendMessage("[Fri Nov 01 23:13:41 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: Undertree 20 SPENT'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:41 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: uNdertree 20 SPENT'");
         _messageProvider.SendMessage("[Fri Nov 01 23:13:40 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: ROT'");
         Assert.Multiple(() =>
         {
@@ -88,10 +88,10 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(auction.TotalNumberOfItems, Is.EqualTo(2));
         });
 
-        _messageProvider.SendMessage("[Fri Nov 01 23:13:35 2024] Bootscootin tells the raid,  'Robe of Primal Force Krizzy 10 DKP'");
-        _messageProvider.SendMessage("[Fri Nov 01 23:13:36 2024] Luciania tells the raid,  'Robe of Primal Force Luciania 15 DKP'");
-        _messageProvider.SendMessage("[Fri Nov 01 23:13:37 2024] Lebuffer tells the raid,  'Robe of Primal Force Alistara 15 DKP'");
-        _messageProvider.SendMessage("[Fri Nov 01 23:13:38 2024] Undertree tells the raid,  'Robe of Primal Force Undertree 20 DKP'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:35 2024] Bootscootin tells the raid,  'Robe of Primal Force kRizzy 10 DKP'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:36 2024] Luciania tells the raid,  'Robe of Primal Force lUciania 15 DKP'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:37 2024] Lebuffer tells the raid,  'Robe of Primal Force aListara 15 DKP'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:38 2024] Undertree tells the raid,  'Robe of Primal Force uNdertree 20 DKP'");
         Assert.Multiple(() =>
         {
             LiveAuctionInfo auction = _systemUnderTest.ActiveAuctions.First();
@@ -105,8 +105,8 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 DKP, Luciania 15 DKP 60s"));
         });
 
-        _messageProvider.SendMessage("[Fri Nov 01 23:13:40 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: Luciania 15 SPENT'");
-        _messageProvider.SendMessage("[Fri Nov 01 23:13:41 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: Undertree 20 SPENT'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:40 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: lUciania 15 SPENT'");
+        _messageProvider.SendMessage("[Fri Nov 01 23:13:41 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: uNdertree 20 SPENT'");
         Assert.Multiple(() =>
         {
             Assert.That(_systemUnderTest.ActiveAuctions, Is.Empty);

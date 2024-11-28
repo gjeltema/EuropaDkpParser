@@ -41,8 +41,8 @@ internal sealed partial class ActiveBiddingAnalyzer
         lineAfterItem = lineAfterItem
             .Replace(dkpValue.ToString(), "")
             .Replace("DKP", "", StringComparison.OrdinalIgnoreCase)
-            .Replace("MAIN", "", StringComparison.OrdinalIgnoreCase)
-            .Replace("ALT", "", StringComparison.OrdinalIgnoreCase)
+            .Replace(" MAIN ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace(" ALT ", "", StringComparison.OrdinalIgnoreCase)
             .Replace("-", "")
             .Trim();
 
@@ -58,7 +58,7 @@ internal sealed partial class ActiveBiddingAnalyzer
                     Timestamp = timestamp,
                     Channel = channel,
                     ParentAuctionId = relatedAuction.Id,
-                    CharacterName = characterName,
+                    CharacterName = characterName.NormalizeName(),
                     ItemName = itemName,
                     BidAmount = dkpValue
                 };
