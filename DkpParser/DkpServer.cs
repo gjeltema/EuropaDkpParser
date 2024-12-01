@@ -2,12 +2,12 @@
 // DkpServer.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace DkpParser.Uploading;
+namespace DkpParser;
 
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
-using DkpParser;
+using DkpParser.Uploading;
 
 public sealed class DkpServer : IDkpServer
 {
