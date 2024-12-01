@@ -13,6 +13,7 @@ using EuropaDkpParser.Views;
 
 public partial class App : Application
 {
+    private const string DkpCharactersFilePath = "DkpServerCharacters.txt";
     private const string ItemLinkIdsFilePath = "ItemLinkIDs.txt";
     private const string RaidValuesFilePath = "RaidValues.txt";
     private const string SettingsFilePath = "Settings.txt";
@@ -41,7 +42,7 @@ public partial class App : Application
             return;
         }
 
-        _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath);
+        _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath, DkpCharactersFilePath);
         _settings.LoadAllSettings();
 
         if (_settings.UseLightMode)

@@ -1,10 +1,10 @@
 ﻿// -----------------------------------------------------------------------
-// UploadDebugInfo.cs Copyright 2024 Craig Gjeltema
+// ServerCommDebugInfo.cs Copyright 2024 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
 
-public sealed class UploadDebugInfo : IUploadDebugInfo
+public sealed class ServerCommDebugInfo : IServerCommDebugInfo
 {
     private readonly List<string> _messages = new(1000);
 
@@ -20,7 +20,7 @@ public sealed class UploadDebugInfo : IUploadDebugInfo
         => _messages;
 }
 
-public sealed class NullUploadDebugInfo : IUploadDebugInfo
+public sealed class NullServerCommDebugInfo : IServerCommDebugInfo
 {
     public void AddDebugMessage(string message)
     { }
@@ -29,7 +29,7 @@ public sealed class NullUploadDebugInfo : IUploadDebugInfo
         => [];
 }
 
-public interface IUploadDebugInfo
+public interface IServerCommDebugInfo
 {
     void AddDebugMessage(string message);
 

@@ -36,15 +36,17 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string UseAdvancedDialogSection = "USE_ADVANCED_DIALOG";
     private const string UseLightModeSection = "USE_LIGHT_MODE";
     private const string WindowLocationSection = "WINDOW_LOCATION";
+    private readonly string _dkpCharactersFileName;
     private readonly string _itemLinkValuesFileName;
     private readonly string _raidValuesFileName;
     private readonly string _settingsFilePath;
 
-    public DkpParserSettings(string settingsFilePath, string raidValuesFileName, string itemLinkValuesFileName)
+    public DkpParserSettings(string settingsFilePath, string raidValuesFileName, string itemLinkValuesFileName, string dkpCharactersFileName)
     {
         _settingsFilePath = settingsFilePath;
         _raidValuesFileName = raidValuesFileName;
         _itemLinkValuesFileName = itemLinkValuesFileName;
+        _dkpCharactersFileName = dkpCharactersFileName;
     }
 
     public bool AddBonusDkpRaid { get; set; }
@@ -58,6 +60,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public bool ArchiveAllEqLogFiles { get; set; }
 
     public ICollection<string> BossMobs { get; private set; } = [];
+
+    public DkpServerCharacters CharactersOnDkpServer { get; private set; }
 
     public bool DkpspentAucEnabled { get; set; }
 
@@ -114,6 +118,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
         ItemLinkIds = new(_itemLinkValuesFileName);
         ItemLinkIds.LoadValues();
 
+        CharactersOnDkpServer = new(_dkpCharactersFileName);
+        CharactersOnDkpServer.LoadValues();
+
         if (!File.Exists(_settingsFilePath))
         {
             SaveSettings();
@@ -143,7 +150,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public void SaveSettings()
     {
-        var settingsFileContent = new List<string>(8)
+        var settingsFileContent = new List<string>(50)
         {
             WindowLocationSection,
             MainWindowX.ToString(),
@@ -359,6 +366,8 @@ public interface IDkpParserSettings
     string ApiWriteToken { get; set; }
 
     bool ArchiveAllEqLogFiles { get; set; }
+
+    DkpServerCharacters CharactersOnDkpServer { get; }
 
     bool DkpspentAucEnabled { get; set; }
 

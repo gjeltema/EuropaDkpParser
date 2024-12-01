@@ -9,10 +9,10 @@ using DkpParser;
 
 public sealed class RaidUploader : IRaidUpload
 {
-    private readonly IUploadDebugInfo _debugInfo;
+    private readonly IServerCommDebugInfo _debugInfo;
     private readonly IDkpServer _dkpServer;
 
-    public RaidUploader(IDkpParserSettings settings, IUploadDebugInfo debugInfo)
+    public RaidUploader(IDkpParserSettings settings, IServerCommDebugInfo debugInfo)
     {
         _dkpServer = new DkpServer(settings, debugInfo);
         _debugInfo = debugInfo;
@@ -140,25 +140,25 @@ public sealed class RaidUploadResults
 [DebuggerDisplay("{Attendance}")]
 public sealed class AttendanceUploadFailure
 {
-    public AttendanceUploadInfo Attendance { get; set; }
+    public AttendanceUploadInfo Attendance { get; init; }
 
-    public Exception Error { get; set; }
+    public Exception Error { get; init; }
 }
 
 [DebuggerDisplay("{Dkp}")]
 public sealed class DkpUploadFailure
 {
-    public DkpUploadInfo Dkp { get; set; }
+    public DkpUploadInfo Dkp { get; init; }
 
-    public Exception Error { get; set; }
+    public Exception Error { get; init; }
 }
 
 [DebuggerDisplay("{PlayerName}")]
 public sealed class CharacterIdFailure
 {
-    public string CharacterName { get; set; }
+    public string CharacterName { get; init; }
 
-    public Exception Error { get; set; }
+    public Exception Error { get; init; }
 }
 
 [DebuggerDisplay("{DebuggerDisplay}")]

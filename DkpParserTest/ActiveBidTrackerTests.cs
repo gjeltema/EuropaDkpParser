@@ -325,6 +325,8 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool ArchiveAllEqLogFiles { get; set; }
 
+    public DkpServerCharacters CharactersOnDkpServer { get; }
+
     public bool DkpspentAucEnabled { get; set; }
 
     public bool DkpspentGuEnabled { get; set; }

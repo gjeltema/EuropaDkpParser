@@ -4,6 +4,7 @@
 
 namespace DkpParser;
 
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
@@ -13,14 +14,14 @@ public sealed class DkpServer : IDkpServer
 {
     private const string ServerTimeFormat = "yyyy-MM-dd HH:mm";
     private static readonly HttpClient LocalHttpClient = new();
-    private readonly IUploadDebugInfo _debugInfo;
+    private readonly IServerCommDebugInfo _debugInfo;
     private readonly Dictionary<string, int> _eventIdCache = [];
     private readonly MediaTypeHeaderValue _mediaHeader = new("application/xml");
     private readonly Dictionary<string, int> _playerIdCache = [];
     private readonly Dictionary<string, int> _raidIdCache = [];
     private readonly IDkpParserSettings _settings;
 
-    public DkpServer(IDkpParserSettings settings, IUploadDebugInfo debugInfo)
+    public DkpServer(IDkpParserSettings settings, IServerCommDebugInfo debugInfo)
     {
         _settings = settings;
         _debugInfo = debugInfo;
@@ -36,6 +37,28 @@ public sealed class DkpServer : IDkpServer
         //LocalHttpClient.DefaultRequestHeaders.Accept.ParseAdd("application/xml");
         //LocalHttpClient.DefaultRequestHeaders.AcceptEncoding.ParseAdd("gzip, deflate, br");
         //LocalHttpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en");
+    }
+
+    public async Task<ICollection<DkpUserCharacter>> GetUserCharacters(int userId)
+    {
+        try
+        {
+            string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=user_chars&userid={userId}";
+
+            XDocument responseDoc = await MakeGetCall(uri);
+
+            ICollection<DkpUserCharacter> userCharacters = GetUserCharactersFromResponse(responseDoc, userId);
+            if (userCharacters.Count == 0)
+                return null;
+
+            return userCharacters;
+        }
+        catch (Exception ex)
+        {
+            _debugInfo.AddDebugMessage($"Error encountered in user_char call: {ex}");
+        }
+
+        return null;
     }
 
     public async Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
@@ -117,9 +140,9 @@ public sealed class DkpServer : IDkpServer
         return dkpContent.ToString();
     }
 
-    private int GetCharacterIdFromResponse(string response)
+    private int GetCharacterIdFromResponse(XDocument responseDoc)
     {
-        XElement root = XDocument.Parse(response).Root;
+        XElement root = responseDoc.Root;
         XElement directNode = root.Descendants("direct").FirstOrDefault();
         XElement characterIdNode = directNode.Descendants("id").FirstOrDefault();
         int characterId = (int)characterIdNode;
@@ -130,19 +153,9 @@ public sealed class DkpServer : IDkpServer
     {
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=search&in=charname&for={characterName}";
 
-        _debugInfo.AddDebugMessage($"---- Calling search function for character name {characterName} with URL: {uri}");
+        XDocument responseDoc = await MakeGetCall(uri);
 
-        using HttpResponseMessage response = await LocalHttpClient.GetAsync(uri);
-
-        _debugInfo.AddDebugMessage($"Search response received.  Response object:{Environment.NewLine}{response}");
-
-        string responseText = await response.Content.ReadAsStringAsync();
-
-        _debugInfo.AddDebugMessage($"Character ID response text:{Environment.NewLine}{responseText}");
-
-        response.EnsureSuccessStatusCode();
-
-        int characterId = GetCharacterIdFromResponse(responseText);
+        int characterId = GetCharacterIdFromResponse(responseDoc);
 
         _debugInfo.AddDebugMessage($"Extracted character ID for {characterName} is {characterId}");
 
@@ -172,7 +185,7 @@ public sealed class DkpServer : IDkpServer
     private async Task GetEventIds(IEnumerable<string> zoneNames, RaidUploadResults results)
     {
         XDocument eventIdsDoc = await GetEventIdsFromServer(results);
-        if (results.EventIdCallFailure != null)
+        if (results.EventIdCallFailure != null || eventIdsDoc == null)
             return;
 
         foreach (string zoneName in zoneNames)
@@ -220,20 +233,8 @@ public sealed class DkpServer : IDkpServer
         {
             string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=events";
 
-            _debugInfo.AddDebugMessage($"---- Calling Events API function with URL: {uri}");
-
-            using HttpResponseMessage response = await LocalHttpClient.GetAsync(uri);
-
-            _debugInfo.AddDebugMessage($"Events response received.  Response object: {response}");
-
-            string responseText = await response.Content.ReadAsStringAsync();
-
-            _debugInfo.AddDebugMessage($"Events response text:{Environment.NewLine}{responseText}");
-
-            response.EnsureSuccessStatusCode();
-
-            var doc = XDocument.Parse(responseText);
-            return doc;
+            XDocument responseDoc = await MakeGetCall(uri);
+            return responseDoc;
         }
         catch (Exception ex)
         {
@@ -246,6 +247,48 @@ public sealed class DkpServer : IDkpServer
 
     private HttpContent GetPostContent(string postBody)
         => new StringContent(postBody);
+
+    private ICollection<DkpUserCharacter> GetUserCharactersFromResponse(XDocument response, int userId)
+    {
+        List<DkpUserCharacter> userChars = [];
+        IEnumerable<XElement> characterNodes = response.Descendants("char");
+        foreach (XElement characterNode in characterNodes)
+        {
+            int idValue = (int)characterNode.Element("id");
+            string characterName = (string)characterNode.Element("name");
+            string className = (string)characterNode.Element("classname");
+            int level = (int)characterNode.Descendants("level").FirstOrDefault();
+
+            userChars.Add(new DkpUserCharacter
+            {
+                UserId = userId,
+                CharacterId = idValue,
+                Name = characterName,
+                ClassName = className,
+                Level = level
+            });
+        }
+
+        return userChars;
+    }
+
+    private async Task<XDocument> MakeGetCall(string url)
+    {
+        _debugInfo.AddDebugMessage($"---- Making GET call with URL: {url}");
+
+        using HttpResponseMessage response = await LocalHttpClient.GetAsync(url);
+
+        _debugInfo.AddDebugMessage($"GET response received.  Response object: {response}");
+
+        string responseText = await response.Content.ReadAsStringAsync();
+
+        _debugInfo.AddDebugMessage($"GET response text:{Environment.NewLine}{responseText}");
+
+        response.EnsureSuccessStatusCode();
+
+        var doc = XDocument.Parse(responseText);
+        return doc;
+    }
 
     private string SanitizeString(string toBeSanitized)
     {
@@ -277,8 +320,27 @@ public sealed class DkpServer : IDkpServer
     }
 }
 
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class DkpUserCharacter
+{
+    public int CharacterId { get; init; }
+
+    public string ClassName { get; init; }
+
+    public int Level { get; init; }
+
+    public string Name { get; init; }
+
+    public int UserId { get; init; }
+
+    private string DebugText
+        => $"{UserId,-4} {Name} {Level} {ClassName}";
+}
+
 public interface IDkpServer
 {
+    Task<ICollection<DkpUserCharacter>> GetUserCharacters(int userId);
+
     Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
 
     Task UploadAttendance(AttendanceUploadInfo attendanceEntry);

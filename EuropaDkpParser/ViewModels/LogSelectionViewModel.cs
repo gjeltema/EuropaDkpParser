@@ -12,6 +12,7 @@ using Prism.Commands;
 
 internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelectionViewModel
 {
+    private readonly IDkpDataRetriever _dkpDataRetriever;
     private readonly IDkpParserSettings _settings;
     private string _apiReadToken;
     private string _apiUrl;
@@ -27,6 +28,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _selectedLogFileToAdd;
     private string _selectedLogFileToParse;
     private bool _showAfkReview;
+    private bool _showPogress;
     private bool _useAdvancedDialog;
     private bool _useLightMode;
 
@@ -39,12 +41,16 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
         _settings = settings;
 
+        _dkpDataRetriever = new DkpDataRetriever(settings);
+
         SelectEqDirectoryCommand = new DelegateCommand(SelectEqDirectory);
         SelectOutputDirectoryCommand = new DelegateCommand(SelectOutputDirectory);
         AddLogFileToListCommand = new DelegateCommand(AddLogFile, () => !string.IsNullOrWhiteSpace(SelectedLogFileToAdd))
             .ObservesProperty(() => SelectedLogFileToAdd);
         RemoveLogFileFromListCommand = new DelegateCommand(RemoveLogFileFromList, () => !string.IsNullOrWhiteSpace(SelectedLogFileToParse))
             .ObservesProperty(() => SelectedLogFileToParse);
+        RetrieveAndSaveDkpCharactersCommand = new DelegateCommand(RetrieveAndSaveDkpCharacters, () => !ShowProgress)
+            .ObservesProperty(() => ShowProgress);
 
         _eqDirectory = _settings.EqDirectory;
         OutputDirectory = _settings.OutputDirectory;
@@ -150,6 +156,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public DelegateCommand RemoveLogFileFromListCommand { get; }
 
+    public DelegateCommand RetrieveAndSaveDkpCharactersCommand { get; }
+
     public ICollection<string> SelectedCharacterLogFiles { get; private set; }
 
     public string SelectedLogFileToAdd
@@ -172,6 +180,12 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     {
         get => _showAfkReview;
         set => SetProperty(ref _showAfkReview, value);
+    }
+
+    public bool ShowProgress
+    {
+        get => _showPogress;
+        private set => SetProperty(ref _showPogress, value);
     }
 
     public bool UseAdvancedDialog
@@ -228,6 +242,26 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         SelectedCharacterLogFiles.Remove(SelectedLogFileToParse);
         SelectedCharacterLogFiles = new List<string>(SelectedCharacterLogFiles);
         RaisePropertyChanged(nameof(SelectedCharacterLogFiles));
+    }
+
+    private async void RetrieveAndSaveDkpCharacters()
+        => await RetrieveAndSaveDkpCharactersAsync();
+
+    private async Task RetrieveAndSaveDkpCharactersAsync()
+    {
+        if (ShowProgress)
+            return;
+
+        try
+        {
+            ShowProgress = true;
+            ICollection<DkpUserCharacter> dkpCharacters = await _dkpDataRetriever.GetUserCharacters();
+            _settings.CharactersOnDkpServer.SaveValues(dkpCharacters);
+        }
+        finally
+        {
+            ShowProgress = false;
+        }
     }
 
     private void SelectEqDirectory()
@@ -315,6 +349,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
 
     DelegateCommand RemoveLogFileFromListCommand { get; }
 
+    DelegateCommand RetrieveAndSaveDkpCharactersCommand { get; }
+
     ICollection<string> SelectedCharacterLogFiles { get; }
 
     string SelectedLogFileToAdd { get; set; }
@@ -326,6 +362,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     DelegateCommand SelectOutputDirectoryCommand { get; }
 
     bool ShowAfkReview { get; set; }
+
+    bool ShowProgress { get; }
 
     bool UseAdvancedDialog { get; set; }
 

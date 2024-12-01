@@ -175,7 +175,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
                 raidsToUpload = UploadRaidInfo.Create(_raidEntries, _settings.RaidValue.GetZoneRaidAlias);
             }
 
-            IUploadDebugInfo debugInfo = OutputDebugInfo ? new UploadDebugInfo() : new NullUploadDebugInfo();
+            IServerCommDebugInfo debugInfo = OutputDebugInfo ? new ServerCommDebugInfo() : new NullServerCommDebugInfo();
             RaidUploader server = new(_settings, debugInfo);
             RaidUploadResults uploadResults = await server.UploadRaid(raidsToUpload);
 
@@ -324,7 +324,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             yield return new UploadErrorDisplay { DkpFailure = uploadResults.DkpFailure };
     }
 
-    private async Task WriteDebugInfo(IUploadDebugInfo debugInfo)
+    private async Task WriteDebugInfo(IServerCommDebugInfo debugInfo)
     {
         if (!OutputDebugInfo)
             return;
