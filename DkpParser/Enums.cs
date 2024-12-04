@@ -54,7 +54,8 @@ public enum PossibleError : byte
     BossMobNameTypo,
     NoZoneName,
     RaidNameTooShort,
-    InvalidZoneName
+    InvalidZoneName,
+    MultipleCharactersFromOneAccount
 }
 
 public enum LiveAuctionMessageType : byte

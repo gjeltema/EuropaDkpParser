@@ -68,7 +68,7 @@
                     </ListView.ItemContainerStyle>
                 </ListView>
 
-                <!-- These 4 grids overlay each other, controlled by visibility. -->
+                <!-- These 5 grids overlay each other, controlled by visibility. -->
                 <Grid Grid.Row="2" Visibility="{Binding IsDuplicateError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,4,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -111,7 +111,6 @@
                         </Grid.ColumnDefinitions>
 
                         <ComboBox Grid.Column="0" ItemsSource="{Binding ZoneNames}" SelectedItem="{Binding SelectedZoneName}" IsEditable="False" VerticalContentAlignment="Center" Height="30" Margin="0,0,4,0" />
-                        <!--<TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>-->
                         <Button Grid.Column="1" Content="{StaticResource UpdateZone}" Command="{Binding UpdateZoneNameCommand}" Width="85" Height="30" />
                     </Grid>
                 </Grid>
@@ -139,7 +138,6 @@
                         </Grid.ColumnDefinitions>
 
                         <ComboBox Grid.Column="0" ItemsSource="{Binding ZoneNames}" SelectedItem="{Binding SelectedZoneName}" IsEditable="False" VerticalContentAlignment="Center" Height="30" Margin="0,0,4,0"/>
-                        <!--<TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>-->
                         <Button Grid.Column="1" Content="{StaticResource UpdateZone}" Command="{Binding UpdateZoneNameCommand}" Width="85" Height="30" />
                     </Grid>
                 </Grid>
@@ -167,9 +165,59 @@
                         </Grid.ColumnDefinitions>
 
                         <ComboBox Grid.Column="0" ItemsSource="{Binding ZoneNames}" SelectedItem="{Binding SelectedZoneName}" VerticalContentAlignment="Center" IsEditable="False" Height="30" Margin="0,0,4,0"/>
-                        <!--<TextBox Grid.Column="0" Text="{Binding ZoneNameText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,4,0"/>-->
                         <Button Grid.Column="1" Content="{StaticResource UpdateZone}" Command="{Binding UpdateZoneNameCommand}" Width="85" Height="30" />
                     </Grid>
+                </Grid>
+
+                <Grid Grid.Row="2" Visibility="{Binding IsMultipleCharsFromSameAccountError, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,2,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0" Text="{Binding FirstMultipleCharacter}" IsReadOnly="True" Margin="0,0,4,0"/>
+                        <Button Grid.Column="1" Content="{StaticResource Remove}" Command="{Binding RemoveFirstMultipleCharacterCommand}" Width="85" Height="30">
+                            <Button.ToolTip>
+                                <TextBlock Text="{StaticResource RemoveMultipleCharacterTooltip}"/>
+                            </Button.ToolTip>
+                        </Button>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0" Text="{Binding SecondMultipleCharacter}" IsReadOnly="True" Margin="0,0,4,0"/>
+                        <Button Grid.Column="1" Content="{StaticResource Remove}" Command="{Binding RemoveSecondMultipleCharacterCommand}" Width="85" Height="30">
+                            <Button.ToolTip>
+                                <TextBlock Text="{StaticResource RemoveMultipleCharacterTooltip}"/>
+                            </Button.ToolTip>
+                        </Button>
+                    </Grid>
+                    
+                    <Label Grid.Row="2" Content="{StaticResource AllCharactersInAccountText}" Margin="0,10,0,0"/>
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ListView Grid.Row="1" ItemsSource="{Binding AllCharactersInAccount}"/>
+                    </Grid>
+
+                    <Label Grid.Row="4" Content="{StaticResource CharacterRemovedFromAttendance}" Margin="0,0,0,0"
+                           Visibility="{Binding ShowCharacterRemovedFromAttendanceMessage, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </Grid>
 
             </Grid>

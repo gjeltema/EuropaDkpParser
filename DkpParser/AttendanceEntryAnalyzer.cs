@@ -4,6 +4,7 @@
 
 namespace DkpParser;
 
+using System.Collections.Generic;
 using System.Diagnostics;
 
 internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
@@ -30,6 +31,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         AnalyzeLogFilesAttendanceCalls(logParseResults);
         HandleCrashedEntries(logParseResults);
         HandleAfkTags(logParseResults);
+        IdentifyMultipleCharactersOnOneAccount();
         HandleTransfers(logParseResults);
     }
 
@@ -493,6 +495,20 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         _raidEntries.Transfers = transfers;
     }
 
+    private void IdentifyMultipleCharactersOnOneAccount()
+    {
+        List<MultipleCharsOnAttendanceError> multipleChars = [];
+        foreach (AttendanceEntry attendance in _raidEntries.AttendanceEntries)
+        {
+            IEnumerable<MutipleCharactersOnAccount> multipleCharacters = _settings.CharactersOnDkpServer.GetMultipleCharactersOnAccount(attendance.Characters);
+            IEnumerable<MultipleCharsOnAttendanceError> multipleCharsErrorsToAdd = multipleCharacters
+                .Select(x => new MultipleCharsOnAttendanceError { Attendance = attendance, MultipleCharsInAttendance = x });
+            multipleChars.AddRange(multipleCharsErrorsToAdd);
+        }
+
+        _raidEntries.MultipleCharsInAttendanceErrors = multipleChars;
+    }
+
     private bool IsRemoveCall(EqLogEntry logEntry, AttendanceEntry call, string logLine)
     {
         if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
@@ -645,6 +661,19 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         private string DebugText
             => $"{ZoneName} {Timestamp:HHmmss}";
     }
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class MultipleCharsOnAttendanceError
+{
+    public AttendanceEntry Attendance { get; init; }
+
+    public MutipleCharactersOnAccount MultipleCharsInAttendance { get; init; }
+
+    public bool Reviewed { get; set; }
+
+    private string DebugText
+        => $"{Attendance.CallName} {MultipleCharsInAttendance.FirstCharacter} {MultipleCharsInAttendance.SecondCharacter}";
 }
 
 public interface IAttendanceEntryAnalyzer

@@ -23,6 +23,8 @@ public sealed class RaidEntries
 
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
 
+    public ICollection<MultipleCharsOnAttendanceError> MultipleCharsInAttendanceErrors { get; set; } = new List<MultipleCharsOnAttendanceError>();
+
     public TimeSpan ParseTime { get; set; } = TimeSpan.Zero;
 
     public ICollection<PlayerLooted> PlayerLootedEntries { get; set; }
@@ -116,6 +118,13 @@ public sealed class RaidEntries
         yield return "-------------------- DKP Transfers -------------------";
         foreach (DkpTransfer transfer in Transfers)
             yield return transfer.ToDisplayString();
+
+        yield return "";
+
+        yield return "-------------------- Multiple Characers from same account in Attendance -------------------";
+        foreach (MultipleCharsOnAttendanceError multipleChars in MultipleCharsInAttendanceErrors)
+            yield return
+                $"{multipleChars.MultipleCharsInAttendance.FirstCharacter} and {multipleChars.MultipleCharsInAttendance.FirstCharacter} in {multipleChars.Attendance.ToDisplayString()}";
 
         yield return "";
 

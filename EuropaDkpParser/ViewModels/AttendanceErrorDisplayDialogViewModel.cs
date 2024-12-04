@@ -14,24 +14,30 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<AttendanceEntry> _allAttendances;
+    private ICollection<string> _allCharactersInAccount;
     private AttendanceEntry _currentEntry;
     private ICollection<AttendanceEntry> _errorAttendances;
     private string _errorLogEntry;
     private string _errorMessageText;
+    private string _firstMultipleCharacter;
     private bool _isBossMobTypoError;
     private bool _isDuplicateError;
+    private bool _isMultipleCharsFromSameAccountError;
     private bool _isNoZoneNameError;
     private bool _isRaidNameTooShortError;
     private string _nextButtonText;
     private string _raidNameText;
+    private string _secondMultipleCharacter;
     private string _selectedBossName;
     private AttendanceEntry _selectedErrorEntry;
     private string _selectedZoneName;
+    private bool _showCharacterRemovedFromAttendanceMessage;
 
     internal AttendanceErrorDisplayDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
     {
         Title = Strings.GetString("AttendanceErrorDisplayDialogTitleText");
+        Width = 780;
 
         _settings = settings;
         _raidEntries = raidEntries;
@@ -55,6 +61,8 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             .ObservesProperty(() => RaidNameText).ObservesProperty(() => SelectedErrorEntry);
         UpdateRaidNameCommand = new DelegateCommand(UpdateRaidName, () => !string.IsNullOrWhiteSpace(RaidNameText))
             .ObservesProperty(() => RaidNameText);
+        RemoveFirstMultipleCharacterCommand = new DelegateCommand(() => RemoveMultipleCharacter(FirstMultipleCharacter));
+        RemoveSecondMultipleCharacterCommand = new DelegateCommand(() => RemoveMultipleCharacter(SecondMultipleCharacter));
 
         AdvanceToNextError();
     }
@@ -63,6 +71,12 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         get => _allAttendances;
         set => SetProperty(ref _allAttendances, value);
+    }
+
+    public ICollection<string> AllCharactersInAccount
+    {
+        get => _allCharactersInAccount;
+        set => SetProperty(ref _allCharactersInAccount, value);
     }
 
     public ICollection<string> ApprovedBossNames { get; }
@@ -87,6 +101,12 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         set => SetProperty(ref _errorMessageText, value);
     }
 
+    public string FirstMultipleCharacter
+    {
+        get => _firstMultipleCharacter;
+        set => SetProperty(ref _firstMultipleCharacter, value);
+    }
+
     public bool IsBossMobTypoError
     {
         get => _isBossMobTypoError;
@@ -97,6 +117,12 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         get => _isDuplicateError;
         private set => SetProperty(ref _isDuplicateError, value);
+    }
+
+    public bool IsMultipleCharsFromSameAccountError
+    {
+        get => _isMultipleCharsFromSameAccountError;
+        private set => SetProperty(ref _isMultipleCharsFromSameAccountError, value);
     }
 
     public bool IsNoZoneNameError
@@ -127,6 +153,16 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
     public DelegateCommand RemoveDuplicateErrorEntryCommand { get; }
 
+    public DelegateCommand RemoveFirstMultipleCharacterCommand { get; }
+
+    public DelegateCommand RemoveSecondMultipleCharacterCommand { get; }
+
+    public string SecondMultipleCharacter
+    {
+        get => _secondMultipleCharacter;
+        set => SetProperty(ref _secondMultipleCharacter, value);
+    }
+
     public string SelectedBossName
     {
         get => _selectedBossName;
@@ -143,6 +179,12 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         get => _selectedZoneName;
         set => SetProperty(ref _selectedZoneName, value);
+    }
+
+    public bool ShowCharacterRemovedFromAttendanceMessage
+    {
+        get => _showCharacterRemovedFromAttendanceMessage;
+        private set => SetProperty(ref _showCharacterRemovedFromAttendanceMessage, value);
     }
 
     public DelegateCommand UpdateRaidNameCommand { get; }
@@ -165,13 +207,41 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         if (_currentEntry != null)
             _currentEntry.PossibleError = PossibleError.None;
 
+        ShowCharacterRemovedFromAttendanceMessage = false;
+        IsBossMobTypoError = false;
+        IsDuplicateError = false;
+        IsNoZoneNameError = false;
+        IsRaidNameTooShortError = false;
+        IsMultipleCharsFromSameAccountError = false;
+
         SetNextButtonText();
 
         // Initialize next error
         _currentEntry = _raidEntries.AttendanceEntries.FirstOrDefault(x => x.PossibleError != PossibleError.None);
         if (_currentEntry == null)
         {
-            CloseOk();
+            MultipleCharsOnAttendanceError multipleCharsError = _raidEntries.MultipleCharsInAttendanceErrors.FirstOrDefault(x => !x.Reviewed);
+            if (multipleCharsError == null)
+            {
+                CloseOk();
+            }
+            else
+            {
+                IsMultipleCharsFromSameAccountError = true;
+
+                multipleCharsError.Reviewed = true;
+
+                ErrorMessageText = Strings.GetString("MultipleCharsFromSameAccountError");
+                FirstMultipleCharacter = multipleCharsError.MultipleCharsInAttendance.FirstCharacter.Name;
+                SecondMultipleCharacter = multipleCharsError.MultipleCharsInAttendance.SecondCharacter.Name;
+                ErrorAttendances = [multipleCharsError.Attendance];
+                SelectedErrorEntry = multipleCharsError.Attendance;
+
+                IEnumerable<DkpUserCharacter> charsInAccount =
+                    _settings.CharactersOnDkpServer.GetAllRelatedCharacters(multipleCharsError.MultipleCharsInAttendance.FirstCharacter);
+                AllCharactersInAccount = charsInAccount.Select(x => x.Name).ToList();
+            }
+
             return;
         }
 
@@ -189,10 +259,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
         if (_currentEntry.PossibleError == PossibleError.DuplicateRaidEntry)
         {
-            IsBossMobTypoError = false;
             IsDuplicateError = true;
-            IsNoZoneNameError = false;
-            IsRaidNameTooShortError = false;
 
             ErrorMessageText = Strings.GetString("PossibleDupEntries");
             ErrorAttendances = _raidEntries.AttendanceEntries
@@ -202,9 +269,6 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         else if (_currentEntry.PossibleError == PossibleError.BossMobNameTypo)
         {
             IsBossMobTypoError = true;
-            IsDuplicateError = false;
-            IsNoZoneNameError = false;
-            IsRaidNameTooShortError = false;
 
             ErrorMessageText = Strings.GetString("PossibleBossTypo");
             ErrorAttendances = [_currentEntry];
@@ -213,27 +277,19 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         }
         else if (_currentEntry.PossibleError == PossibleError.NoZoneName || _currentEntry.PossibleError == PossibleError.InvalidZoneName)
         {
-            IsBossMobTypoError = false;
-            IsDuplicateError = false;
             IsNoZoneNameError = true;
-            IsRaidNameTooShortError = false;
 
             ErrorMessageText = _currentEntry.PossibleError == PossibleError.NoZoneName ? Strings.GetString("NoZoneNameErrorText") : Strings.GetString("InvalidZoneNameErrorText");
             ErrorAttendances = [_currentEntry];
         }
         else if (_currentEntry.PossibleError == PossibleError.RaidNameTooShort)
         {
-            IsDuplicateError = false;
-            IsNoZoneNameError = false;
-
             if (_currentEntry.AttendanceCallType == AttendanceCallType.Time)
             {
                 IsRaidNameTooShortError = true;
-                IsBossMobTypoError = false;
             }
             else
             {
-                IsRaidNameTooShortError = false;
                 IsBossMobTypoError = true;
                 SetSelectedBossName();
             }
@@ -259,6 +315,18 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
         SetNextButtonText();
+    }
+
+    private void RemoveMultipleCharacter(string characterToRemove)
+    {
+        PlayerCharacter attendanceCharToRemove =
+            SelectedErrorEntry.Characters.FirstOrDefault(x => x.CharacterName.Equals(characterToRemove, StringComparison.OrdinalIgnoreCase));
+
+        if (attendanceCharToRemove != null)
+        {
+            SelectedErrorEntry.Characters.Remove(attendanceCharToRemove);
+            ShowCharacterRemovedFromAttendanceMessage = true;
+        }
     }
 
     private void SetNextButtonText()
@@ -318,6 +386,8 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
 {
     ICollection<AttendanceEntry> AllAttendances { get; }
 
+    ICollection<string> AllCharactersInAccount { get; }
+
     ICollection<string> ApprovedBossNames { get; }
 
     DelegateCommand ChangeBossMobNameCommand { get; }
@@ -328,9 +398,13 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
 
     string ErrorMessageText { get; }
 
+    string FirstMultipleCharacter { get; set; }
+
     bool IsBossMobTypoError { get; }
 
     bool IsDuplicateError { get; }
+
+    bool IsMultipleCharsFromSameAccountError { get; }
 
     bool IsNoZoneNameError { get; }
 
@@ -344,11 +418,19 @@ public interface IAttendanceErrorDisplayDialogViewModel : IDialogViewModel
 
     DelegateCommand RemoveDuplicateErrorEntryCommand { get; }
 
+    DelegateCommand RemoveFirstMultipleCharacterCommand { get; }
+
+    DelegateCommand RemoveSecondMultipleCharacterCommand { get; }
+
+    string SecondMultipleCharacter { get; set; }
+
     string SelectedBossName { get; set; }
 
     AttendanceEntry SelectedErrorEntry { get; set; }
 
     string SelectedZoneName { get; set; }
+
+    bool ShowCharacterRemovedFromAttendanceMessage { get; }
 
     DelegateCommand UpdateRaidNameCommand { get; }
 
