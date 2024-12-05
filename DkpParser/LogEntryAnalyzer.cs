@@ -127,7 +127,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
                     if (playerInPreviousAttendance && playerInNextAttendance)
                     {
-                        _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = attendance });
+                        if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(player, attendance.Characters))
+                            _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = attendance });
                     }
                 }
                 catch (Exception ex)
@@ -139,39 +140,44 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
             // Check in between a Joined and Left call to see if the player is missing from any of the attendances in between.  Limit the time between
             // Joined and Left calls to 20 minutes.
-            List<CharacterJoinRaidEntry> playerJoinedCalls = _raidEntries.CharacterJoinCalls.Where(x => x.CharacterName == player.CharacterName).OrderBy(x => x.Timestamp).ToList();
-            CharacterJoinRaidEntry lastJoined = null;
-            foreach (CharacterJoinRaidEntry playerJoinCall in playerJoinedCalls)
+            IEnumerable<CharacterJoinRaidEntry> playerJoinedOrLeftCalls = _raidEntries.CharacterJoinCalls
+                .Where(x => x.CharacterName == player.CharacterName)
+                .OrderBy(x => x.Timestamp);
+
+            CharacterJoinRaidEntry lastLeft = null;
+            foreach (CharacterJoinRaidEntry playerJoinedOrLeft in playerJoinedOrLeftCalls)
             {
-                if (playerJoinCall.EntryType == LogEntryType.JoinedRaid)
+                if (playerJoinedOrLeft.EntryType == LogEntryType.LeftRaid)
                 {
-                    lastJoined = playerJoinCall;
+                    lastLeft = playerJoinedOrLeft;
                 }
-                else
+                else // Player Joined message
                 {
-                    if (lastJoined == null)
+                    if (lastLeft == null)
                         continue;
 
                     try
                     {
-                        if (playerJoinCall.Timestamp - lastJoined.Timestamp <= _joinedTimeLimit)
+                        if (playerJoinedOrLeft.Timestamp - lastLeft.Timestamp <= _joinedTimeLimit)
                         {
                             IEnumerable<AttendanceEntry> missingAttendancesInBetween = attendancesMissingFrom
-                                .Where(x => lastJoined.Timestamp <= x.Timestamp && x.Timestamp <= playerJoinCall.Timestamp);
+                                .Where(x => lastLeft.Timestamp <= x.Timestamp && x.Timestamp <= playerJoinedOrLeft.Timestamp);
                             foreach (AttendanceEntry missingAttendance in missingAttendancesInBetween)
                             {
-                                PlayerPossibleLinkdead existingAttendance = _raidEntries.PossibleLinkdeads
+                                // Check to see if a possible linkdead for this character in this attendance was already entered from the earlier foreach.
+                                PlayerPossibleLinkdead existingLinkdeadEntry = _raidEntries.PossibleLinkdeads
                                     .FirstOrDefault(x => x.Player.CharacterName == player.CharacterName && x.AttendanceMissingFrom == missingAttendance);
-                                if (existingAttendance != null)
+                                if (existingLinkdeadEntry == null)
                                 {
-                                    _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = missingAttendance });
+                                    if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(player, missingAttendance.Characters))
+                                        _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = missingAttendance });
                                 }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        string analysisError = $"Error when analyzing for potential linkdeads method (2): {playerJoinCall}{Environment.NewLine}{ex}";
+                        string analysisError = $"Error when analyzing for potential linkdeads method (2): {playerJoinedOrLeft}{Environment.NewLine}{ex}";
                         _raidEntries.AnalysisErrors.Add(analysisError);
                     }
                 }

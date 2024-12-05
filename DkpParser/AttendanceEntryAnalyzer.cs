@@ -9,8 +9,8 @@ using System.Diagnostics;
 
 internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 {
-    private static readonly TimeSpan fifteenMinutes = TimeSpan.FromMinutes(15);
-    private static readonly TimeSpan tenMinutes = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan crashedLeftRaidThresholdInMinutes = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan defaultCrashedThresholdInMinutes = TimeSpan.FromMinutes(10);
     private readonly List<CharacterAttend> _charactersAttending = [];
     private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly IDkpParserSettings _settings;
@@ -446,7 +446,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                         continue;
                     }
 
-                    DateTime startTimestamp = crashedLogEntry.Timestamp - tenMinutes;
+                    DateTime startTimestamp = crashedLogEntry.Timestamp - defaultCrashedThresholdInMinutes;
 
                     // Get previous "Player has left the raid" entry
                     CharacterJoinRaidEntry previousLeaveEntry = _raidEntries.CharacterJoinCalls
@@ -456,7 +456,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                     if (previousLeaveEntry != null)
                     {
                         // If the last "Player has left the raid" entry is less than 15 minutes in the past, use that timestamp
-                        bool isLessThan15Minutes = (crashedLogEntry.Timestamp - previousLeaveEntry.Timestamp) < fifteenMinutes;
+                        bool isLessThan15Minutes = (crashedLogEntry.Timestamp - previousLeaveEntry.Timestamp) < crashedLeftRaidThresholdInMinutes;
                         if (isLessThan15Minutes)
                         {
                             startTimestamp = previousLeaveEntry.Timestamp;
@@ -466,14 +466,15 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                     IEnumerable<AttendanceEntry> missingFromAttendanceEnties = _raidEntries.AttendanceEntries
                         .Where(x => startTimestamp <= x.Timestamp && x.Timestamp < crashedLogEntry.Timestamp);
 
-                    foreach (AttendanceEntry entry in missingFromAttendanceEnties)
+                    foreach (AttendanceEntry missingAttendance in missingFromAttendanceEnties)
                     {
-                        entry.AddOrMergeInPlayerCharacter(crashedCharacter);
+                        if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(crashedCharacter, missingAttendance.Characters))
+                            missingAttendance.AddOrMergeInPlayerCharacter(crashedCharacter);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _raidEntries.AnalysisErrors.Add($"An unexpected error occurred when analyzing a CRASHED call: {crashedLogEntry.LogLine}{Environment.NewLine}    {ex}");
+                    _raidEntries.AnalysisErrors.Add($"An unexpected error occurred when analyzing a CRASHED call: {crashedLogEntry.LogLine}{Environment.NewLine}  {ex}");
                 }
             }
         }

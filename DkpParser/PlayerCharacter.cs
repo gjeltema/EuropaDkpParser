@@ -9,7 +9,13 @@ using System.Diagnostics;
 [DebuggerDisplay("{DebugText}")]
 public sealed class PlayerCharacter : IComparable<PlayerCharacter>
 {
-    public string CharacterName { get; set; }
+    private string _characterName;
+
+    public string CharacterName
+    {
+        get => _characterName;
+        set => _characterName = value.NormalizeName();
+    }
 
     public string ClassName { get; set; }
 

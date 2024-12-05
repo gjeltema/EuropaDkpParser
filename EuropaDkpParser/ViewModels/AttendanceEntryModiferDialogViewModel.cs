@@ -27,6 +27,7 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         : base(viewFactory)
     {
         Title = Strings.GetString("AttendanceEntryModifierDialogTitleText");
+        Height = 620;
 
         _settings = settings;
         _raidEntries = raidEntries;

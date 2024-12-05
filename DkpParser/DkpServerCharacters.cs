@@ -61,6 +61,25 @@ public sealed class DkpServerCharacters
         return multipleChars;
     }
 
+    public bool IsRelatedCharacterInCollection(PlayerCharacter character, IEnumerable<PlayerCharacter> characters)
+    {
+        DkpUserCharacter dkpCharacter = _userCharacters.FirstOrDefault(x => x.Name.Equals(character.CharacterName, StringComparison.OrdinalIgnoreCase));
+        List<DkpUserCharacter> associatedCharacters = _userCharacters
+                .Where(x => x.UserId == dkpCharacter.UserId && x.Name != dkpCharacter.Name)
+                .ToList();
+
+        if (associatedCharacters.Count == 0)
+            return false;
+
+        foreach (PlayerCharacter characterInList in characters)
+        {
+            if (associatedCharacters.Any(x => x.Name.Equals(characterInList.CharacterName, StringComparison.OrdinalIgnoreCase)))
+                return true;
+        }
+
+        return false;
+    }
+
     public void LoadValues()
     {
         if (!File.Exists(_dkpCharactersFileName))

@@ -33,6 +33,9 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
 
     public static bool Equals(AttendanceEntry a, AttendanceEntry b)
     {
+        if (a is null && b is null)
+            return true;
+
         if (a is null || b is null)
             return false;
 
