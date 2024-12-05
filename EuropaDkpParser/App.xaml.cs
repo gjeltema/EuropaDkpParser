@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using DkpParser;
+using EuropaDkpParser.Utility;
 using EuropaDkpParser.ViewModels;
 using EuropaDkpParser.Views;
 
@@ -56,7 +57,10 @@ public partial class App : Application
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = darkMode });
         }
 
-        var shellViewModel = new ShellViewModel(_settings, new DialogFactory(new DialogViewFactory()));
+        DialogFactory dialogFactory = new(new DialogViewFactory());
+        MessageDialog.Initialize(dialogFactory);
+
+        var shellViewModel = new ShellViewModel(_settings, dialogFactory);
         _shellView = new ShellView(shellViewModel);
         MainWindow = _shellView;
         MainWindow.Show();

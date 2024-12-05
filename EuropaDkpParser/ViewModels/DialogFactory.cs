@@ -52,7 +52,7 @@ internal sealed class DialogFactory : IDialogFactory
         => new PossibleLinkdeadErrorDialogViewModel(_viewFactory, raidEntries);
 
     public IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, IDkpParserSettings settings)
-        => new RaidUploadDialogViewModel(_viewFactory, dialogFactory, raidEntries, settings);
+        => new RaidUploadDialogViewModel(_viewFactory, raidEntries, settings);
 
     public IReminderDialogViewModel CreateReminderDialogViewModel()
         => new ReminderDialogViewModel(_viewFactory);

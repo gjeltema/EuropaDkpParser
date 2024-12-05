@@ -10,13 +10,14 @@ using DkpParser;
 using DkpParser.LiveTracking;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
-using Microsoft.Win32;
 using Prism.Commands;
 
 internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTrackingViewModel
 {
+    private const int DkpDisplayFontSize = 16;
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly IDialogFactory _dialogFactory;
+    private readonly IDkpDataRetriever _dkpDataRetriever;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
@@ -44,6 +45,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         _settings = settings;
         _dialogFactory = dialogFactory;
 
+        _dkpDataRetriever = new DkpDataRetriever(settings);
         _activeBidTracker = new(settings, new TailFile());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
@@ -60,6 +62,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
         AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
             .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
+        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken) && _settings.CharactersOnDkpServer.DoesCharacterExistOnDkpServer(SelectedBid.CharacterName))
+            .ObservesProperty(() => SelectedBid);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
 
@@ -113,6 +117,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
                 StartTailingFile(value);
         }
     }
+
+    public DelegateCommand GetUserDkpCommand { get; }
 
     public ICollection<LiveBidInfo> HighBids
     {
@@ -249,6 +255,32 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         return reminderDialogViewModel;
     }
 
+    private async void GetUserDkp()
+        => await GetUserDkpAsync();
+
+    private async Task GetUserDkpAsync()
+    {
+        if (SelectedBid == null)
+            return;
+
+        DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(SelectedBid.CharacterName);
+        if (dkpCharacter == null)
+        {
+            MessageDialog.ShowDialog($"{dkpCharacter.Name} does not exist on DKP server.", "Unable To Retrieve DKP");
+            return;
+        }
+
+        int userDkp = await _dkpDataRetriever.GetUserDkp(dkpCharacter);
+        if (userDkp == int.MinValue)
+        {
+            MessageDialog.ShowDialog($"Unable to retrieve DKP for {dkpCharacter.Name}", "Unable To Retrieve DKP");
+        }
+        else
+        {
+            MessageDialog.ShowDialog($"{dkpCharacter.Name} has {userDkp} DKP", "DKP Amount", fontSize: DkpDisplayFontSize);
+        }
+    }
+
     private void HandleAttendanceReminderTimer(object sender, EventArgs e)
     {
         _attendanceReminderTimer.Stop();
@@ -326,18 +358,19 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
     private void SelectFileToTail()
     {
-        OpenFileDialog fileDialog = new()
-        {
-            Title = "Select Log File to Monitor",
-            InitialDirectory = _settings.EqDirectory,
-            DefaultDirectory = _settings.EqDirectory
-        };
+        // Switched to using configured files. Leaving this here for now in case I change my mind.
+        //OpenFileDialog fileDialog = new()
+        //{
+        //    Title = "Select Log File to Monitor",
+        //    InitialDirectory = _settings.EqDirectory,
+        //    DefaultDirectory = _settings.EqDirectory
+        //};
 
-        if (fileDialog.ShowDialog() != true)
-            return;
+        //if (fileDialog.ShowDialog() != true)
+        //    return;
 
-        string logFile = fileDialog.FileName;
-        FilePath = logFile;
+        //string logFile = fileDialog.FileName;
+        //FilePath = logFile;
     }
 
     private void SetActiveAuctionToCompleted()
@@ -523,6 +556,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     DelegateCommand CycleToNextStatusMarkerCommand { get; }
 
     string FilePath { get; set; }
+
+    DelegateCommand GetUserDkpCommand { get; }
 
     ICollection<LiveBidInfo> HighBids { get; }
 

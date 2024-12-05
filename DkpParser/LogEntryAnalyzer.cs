@@ -58,11 +58,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         dkpEntryAnalyzer.AnalyzeLootCalls(logParseResults, _raidEntries);
     }
 
-    private void CheckDkpSpentTypos()
-    {
-        //** Still debating on this.
-    }
-
     private void CheckDuplicateAttendanceEntries()
     {
         var grouped = from a in _raidEntries.AttendanceEntries
@@ -221,7 +216,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         CheckDuplicateAttendanceEntries();
         CheckRaidBossTypo();
-        CheckDkpSpentTypos();
         CheckDuplicateDkpEntries();
         CheckRaidNameErrors();
         CheckPotentialLinkdeads();

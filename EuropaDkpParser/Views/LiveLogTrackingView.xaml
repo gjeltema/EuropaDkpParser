@@ -133,7 +133,15 @@
                         </ListView.ItemContainerStyle>
                     </ListView>
 
-                    <Button Grid.Row="2" Content="{StaticResource RemoveBid}" Command="{Binding RemoveBidCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
+                    <Grid Grid.Row="2" HorizontalAlignment="Right">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" Content="{StaticResource GetUserDkp}" Command="{Binding GetUserDkpCommand}" Width="85" Height="30" Margin="0,0,10,0"/>
+                        <Button Grid.Column="1" Content="{StaticResource RemoveBid}" Command="{Binding RemoveBidCommand}" Width="85" Height="30"/>
+                    </Grid>
                 </Grid>
 
                 <!-- High Bids -->

@@ -64,6 +64,9 @@ public sealed class DkpServerCharacters
         return multipleChars;
     }
 
+    public DkpUserCharacter GetUserCharacter(string characterName)
+        => _userCharacters.FirstOrDefault(x => x.Name.Equals(characterName, StringComparison.OrdinalIgnoreCase));
+
     public bool IsRelatedCharacterInCollection(PlayerCharacter character, IEnumerable<PlayerCharacter> characters)
     {
         DkpUserCharacter dkpCharacter = _userCharacters.FirstOrDefault(x => x.Name.Equals(character.CharacterName, StringComparison.OrdinalIgnoreCase));

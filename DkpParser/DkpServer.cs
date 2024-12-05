@@ -61,6 +61,25 @@ public sealed class DkpServer : IDkpServer
         return null;
     }
 
+    public async Task<int> GetUserDkp(int userId)
+    {
+        string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=points&filter=user&filterid={userId}";
+
+        try
+        {
+            XDocument responseDoc = await MakeGetCall(uri);
+
+            int userDkp = GetUserDkpFromResponse(responseDoc);
+            return userDkp;
+        }
+        catch (Exception ex)
+        {
+            _debugInfo.AddDebugMessage($"Error encountered in Points call: {ex}");
+        }
+
+        return int.MinValue;
+    }
+
     public async Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
     {
         _debugInfo.AddDebugMessage("------- Starting retrieval of IDs -------");
@@ -272,6 +291,15 @@ public sealed class DkpServer : IDkpServer
         return userChars;
     }
 
+    private int GetUserDkpFromResponse(XDocument responseDoc)
+    {
+        XElement currentPointsElement = responseDoc.Root.Descendants("points_current_with_twink").FirstOrDefault();
+        if (currentPointsElement == null)
+            return int.MinValue;
+
+        return (int)currentPointsElement;
+    }
+
     private async Task<XDocument> MakeGetCall(string url)
     {
         _debugInfo.AddDebugMessage($"---- Making GET call with URL: {url}");
@@ -340,6 +368,8 @@ public sealed class DkpUserCharacter
 public interface IDkpServer
 {
     Task<ICollection<DkpUserCharacter>> GetUserCharacters(int userId);
+
+    Task<int> GetUserDkp(int userId);
 
     Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
 

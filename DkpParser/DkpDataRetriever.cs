@@ -36,9 +36,23 @@ public sealed class DkpDataRetriever : IDkpDataRetriever
 
         return allUserCharacters;
     }
+
+    public async Task<int> GetUserDkp(DkpUserCharacter userCharacter)
+    {
+        if (userCharacter == null || userCharacter.UserId < 2)
+            return int.MinValue;
+
+        return await _server.GetUserDkp(userCharacter.UserId);
+    }
 }
 
 public interface IDkpDataRetriever
 {
     Task<ICollection<DkpUserCharacter>> GetUserCharacters();
+
+    /// <summary>
+    /// Gets the DKP amount for the user account from the DKP server.</br>
+    /// If unable to retrieve the DKP amount, returns <see cref="int.MinValue"/>.
+    /// </summary>
+    Task<int> GetUserDkp(DkpUserCharacter userCharacter);
 }

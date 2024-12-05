@@ -11,11 +11,11 @@ using DkpParser;
 using DkpParser.Parsers;
 using DkpParser.Uploading;
 using EuropaDkpParser.Resources;
+using EuropaDkpParser.Utility;
 using Prism.Commands;
 
 internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUploadDialogViewModel
 {
-    private readonly IDialogFactory _dialogFactory;
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<UploadErrorDisplay> _errorMessages;
@@ -31,11 +31,10 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private bool _uploadInProgress = false;
     private bool _uploadSelectedAttendances;
 
-    public RaidUploadDialogViewModel(IDialogViewFactory viewFactory, IDialogFactory dialogFactory, RaidEntries raidEntries, IDkpParserSettings settings)
+    public RaidUploadDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries, IDkpParserSettings settings)
         : base(viewFactory)
     {
         Title = Strings.GetString("RaidUploadDialogTitleText");
-        _dialogFactory = dialogFactory;
         _raidEntries = raidEntries;
         _settings = settings;
 
@@ -298,9 +297,9 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             displayLines = [$"{characterName} was removed from all attendances.", "No DKPSPENT entries were found for this player."];
         }
 
-        ISimpleMultilineDisplayDialogViewModel displayDialog = _dialogFactory.CreateSimpleMultilineDisplayDialogViewModel();
-        displayDialog.DisplayLines = string.Join(Environment.NewLine, displayLines);
-        displayDialog.ShowDialog();
+        string message = string.Join(Environment.NewLine, displayLines);
+        string title = Strings.GetString("DkpspentEntriesRemovedDialogTitleText");
+        MessageDialog.ShowDialog(message, title, 500, 700);
     }
 
     private IEnumerable<UploadErrorDisplay> SetDisplayedErrorMessages(RaidUploadResults uploadResults)

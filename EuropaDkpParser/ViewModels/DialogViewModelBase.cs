@@ -28,17 +28,17 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
         set => SetProperty(ref _dialogResult, value);
     }
 
+    public int Height { get; set; } = 500;
+
     public string Title
     {
         get => _title;
         set => SetProperty(ref _title, value);
     }
 
-    protected int Height { get; set; } = 500;
+    public int Width { get; set; } = 700;
 
     protected IDialogViewFactory ViewFactory { get; private set; }
-
-    protected int Width { get; set; } = 700;
 
     public void CloseCancel()
         => DialogResult = false;
@@ -69,7 +69,11 @@ public interface IDialogViewModel : IEuropaViewModel
 
     bool? DialogResult { get; set; }
 
+    int Height { get; set; }
+
     string Title { get; set; }
+
+    int Width { get; set; }
 
     void CloseCancel();
 

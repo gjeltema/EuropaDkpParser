@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v2.6.0.4</system:String>
+    <system:String x:Key="Version">v2.7.0</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -280,6 +280,7 @@
     <system:String x:Key="LogFileToMonitor">Log File To Monitor</system:String>
     <system:String x:Key="RemindAttendances">Remind About Attendances</system:String>
     <system:String x:Key="SetFile">Set File</system:String>
+    <system:String x:Key="GetUserDkp">Get DKP</system:String>
 
     <!-- ReminderDialog -->
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>

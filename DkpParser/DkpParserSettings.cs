@@ -135,6 +135,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
         EnableDebugOptions = GetBoolValue(fileContents, EnableDebugOptionsSection);
         ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection);
+        if (string.IsNullOrWhiteSpace(ApiReadToken))
+            ApiReadToken = string.Empty;
         ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
         ApiUrl = GetStringValue(fileContents, ApiUrlSection);
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
