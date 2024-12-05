@@ -35,7 +35,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _messageProvider = messageProvider;
         _auctionStartAnalyzer = new();
         _auctionEndAnalyzer = new(ProcessErrorMessage);
-        _activeBiddingAnalyzer = new();
+        _activeBiddingAnalyzer = new(settings);
         _activeBossKillAnalyzer = new();
         _itemLinkValues = settings.ItemLinkIds;
 

@@ -18,6 +18,9 @@ public sealed class DkpServerCharacters
         _dkpCharactersFileName = dkpCharactersFileName;
     }
 
+    public bool DoesCharacterExistOnDkpServer(string characterName)
+        => _userCharacters.Count == 0 || _userCharacters.Any(x => x.Name == characterName);
+
     public IEnumerable<DkpUserCharacter> GetAllRelatedCharacters(DkpUserCharacter userCharacter)
         => _userCharacters.Where(x => x.UserId == userCharacter.UserId);
 

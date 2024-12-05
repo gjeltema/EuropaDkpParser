@@ -121,7 +121,17 @@
 
                     <Label Grid.Row="0" Content="{StaticResource CurrentBids}" />
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding CurrentBids}" SelectedItem="{Binding SelectedBid}" Margin="0,0,0,5"/>
+                    <ListView Grid.Row="1" ItemsSource="{Binding CurrentBids}" SelectedItem="{Binding SelectedBid}" Margin="0,0,0,5">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=CharacterNotOnDkpServer}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
 
                     <Button Grid.Row="2" Content="{StaticResource RemoveBid}" Command="{Binding RemoveBidCommand}" HorizontalAlignment="Right" Width="85" Height="30"/>
                 </Grid>

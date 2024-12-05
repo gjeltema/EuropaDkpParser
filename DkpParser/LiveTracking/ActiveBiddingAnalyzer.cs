@@ -11,11 +11,17 @@ internal sealed partial class ActiveBiddingAnalyzer
 {
     private const int MinimumCharacterNameLength = 4;
     private readonly Regex _findDigits = FindDigitsRegex();
+    private readonly IDkpParserSettings _settings;
+
+    public ActiveBiddingAnalyzer(IDkpParserSettings settings)
+    {
+        _settings = settings;
+    }
 
     public LiveBidInfo GetBidInformation(string logLine, EqChannel channel, DateTime timestamp, IEnumerable<LiveAuctionInfo> activeAuctions)
     {
         int indexOfFirstSpace = logLine.IndexOf(' ');
-        string bidderName = logLine[0..indexOfFirstSpace];
+        string bidderName = logLine[0..indexOfFirstSpace].NormalizeName();
 
         LiveAuctionInfo relatedAuction = activeAuctions.FirstOrDefault(x => logLine.Contains(x.ItemName));
         if (relatedAuction == null)
@@ -52,19 +58,11 @@ internal sealed partial class ActiveBiddingAnalyzer
             string characterName = lineParts[0].Trim();
             if (characterName.Length >= MinimumCharacterNameLength)
             {
-                relatedAuction.HasNewBidsAdded = true;
-                return new LiveBidInfo
-                {
-                    Timestamp = timestamp,
-                    Channel = channel,
-                    ParentAuctionId = relatedAuction.Id,
-                    CharacterName = characterName.NormalizeName(),
-                    ItemName = itemName,
-                    BidAmount = dkpValue
-                };
+                bidderName = characterName.NormalizeName();
             }
         }
 
+        bool isCharacterOnServer = _settings.CharactersOnDkpServer.DoesCharacterExistOnDkpServer(bidderName);
         relatedAuction.HasNewBidsAdded = true;
         return new LiveBidInfo
         {
@@ -73,7 +71,8 @@ internal sealed partial class ActiveBiddingAnalyzer
             ParentAuctionId = relatedAuction.Id,
             CharacterName = bidderName,
             ItemName = itemName,
-            BidAmount = dkpValue
+            BidAmount = dkpValue,
+            CharacterNotOnDkpServer = !isCharacterOnServer
         };
     }
 
@@ -95,6 +94,8 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
     public EqChannel Channel { get; init; }
 
     public string CharacterName { get; init; }
+
+    public bool CharacterNotOnDkpServer { get; init; }
 
     public string ItemName { get; init; }
 
@@ -147,5 +148,7 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
         => ParentAuctionId.GetHashCode() ^ BidAmount.GetHashCode() ^ ItemName.GetHashCode() ^ CharacterName.ToUpper().GetHashCode();
 
     public override string ToString()
-        => $"{Timestamp:HH:mm:ss} {ItemName} {CharacterName} {BidAmount}";
+        => CharacterNotOnDkpServer
+        ? $"{Timestamp:HH:mm:ss} {ItemName} {CharacterName} {BidAmount} NOT ON SERVER"
+        : $"{Timestamp:HH:mm:ss} {ItemName} {CharacterName} {BidAmount}";
 }
