@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
-    private readonly TimeSpan _joinedTimeLimit = TimeSpan.FromMinutes(20);
+    private static readonly TimeSpan JoinedTimeLimit = TimeSpan.FromMinutes(15);
     private readonly RaidEntries _raidEntries = new();
     private readonly IDkpParserSettings _settings;
 
@@ -96,45 +96,47 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         List<AttendanceEntry> orderedAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
         foreach (PlayerCharacter player in _raidEntries.AllCharactersInRaid)
         {
-            // If they are present in the Time attendance before and after, then put them up for review.
-            // Dont bother with the first and last attendance calls of the raid - too many false positives.
             IEnumerable<AttendanceEntry> attendancesMissingFrom = _raidEntries.AttendanceEntries.Where(x => !x.Characters.Contains(player));
-            foreach (AttendanceEntry attendance in attendancesMissingFrom)
-            {
-                try
-                {
-                    AttendanceEntry previousAttendance = orderedAttendances
-                        .Where(x => x.Timestamp < attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
-                        .LastOrDefault();
 
-                    if (previousAttendance == null)
-                        continue;
+            // Commenting out this check - this is checking if someone missed a call within an hour timeframe.  Too long, gives almost purely false positives.
+            //// If they are present in the Time attendance before and after, then put them up for review.
+            //// Dont bother with the first and last attendance calls of the raid - too many false positives.
+            //foreach (AttendanceEntry attendance in attendancesMissingFrom)
+            //{
+            //    try
+            //    {
+            //        AttendanceEntry previousAttendance = orderedAttendances
+            //            .Where(x => x.Timestamp < attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
+            //            .LastOrDefault();
 
-                    AttendanceEntry nextAttendance = orderedAttendances
-                        .Where(x => x.Timestamp > attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
-                        .FirstOrDefault();
+            //        if (previousAttendance == null)
+            //            continue;
 
-                    if (nextAttendance == null)
-                        continue;
+            //        AttendanceEntry nextAttendance = orderedAttendances
+            //            .Where(x => x.Timestamp > attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
+            //            .FirstOrDefault();
 
-                    bool playerInPreviousAttendance = previousAttendance.Characters.Any(x => x.CharacterName == player.CharacterName);
-                    bool playerInNextAttendance = nextAttendance.Characters.Any(x => x.CharacterName == player.CharacterName);
+            //        if (nextAttendance == null)
+            //            continue;
 
-                    if (playerInPreviousAttendance && playerInNextAttendance)
-                    {
-                        if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(player, attendance.Characters))
-                            _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = attendance });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    string analysisError = $"Error when analyzing for potential linkdeads method (1): {player}{Environment.NewLine}{ex}";
-                    _raidEntries.AnalysisErrors.Add(analysisError);
-                }
-            }
+            //        bool playerInPreviousAttendance = previousAttendance.Characters.Any(x => x.CharacterName == player.CharacterName);
+            //        bool playerInNextAttendance = nextAttendance.Characters.Any(x => x.CharacterName == player.CharacterName);
+
+            //        if (playerInPreviousAttendance && playerInNextAttendance)
+            //        {
+            //            if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(player, attendance.Characters))
+            //                _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = attendance });
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        string analysisError = $"Error when analyzing for potential linkdeads method (1): {player}{Environment.NewLine}{ex}";
+            //        _raidEntries.AnalysisErrors.Add(analysisError);
+            //    }
+            //}
 
             // Check in between a Joined and Left call to see if the player is missing from any of the attendances in between.  Limit the time between
-            // Joined and Left calls to 20 minutes.
+            // Joined and Left calls to 15 minutes.
             IEnumerable<CharacterJoinRaidEntry> playerJoinedOrLeftCalls = _raidEntries.CharacterJoinCalls
                 .Where(x => x.CharacterName == player.CharacterName)
                 .OrderBy(x => x.Timestamp);
@@ -153,7 +155,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
                     try
                     {
-                        if (playerJoinedOrLeft.Timestamp - lastLeft.Timestamp <= _joinedTimeLimit)
+                        if (playerJoinedOrLeft.Timestamp - lastLeft.Timestamp <= JoinedTimeLimit)
                         {
                             IEnumerable<AttendanceEntry> missingAttendancesInBetween = attendancesMissingFrom
                                 .Where(x => lastLeft.Timestamp <= x.Timestamp && x.Timestamp <= playerJoinedOrLeft.Timestamp);
