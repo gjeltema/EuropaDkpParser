@@ -24,6 +24,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         : base(viewFactory)
     {
         Title = Strings.GetString("PossibleLinkdeadErrorDialogTitleText");
+        Height = 650;
 
         _raidEntries = raidEntries;
 
