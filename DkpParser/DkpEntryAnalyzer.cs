@@ -62,12 +62,6 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             return;
         }
 
-        if (!_raidEntries.AllCharactersInRaid.Any(x => x.CharacterName.Equals(dkpEntry.PlayerName, StringComparison.OrdinalIgnoreCase)))
-        {
-            dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
-            return;
-        }
-
         // Commented out - too many false positives, almost no real positives.
         //dkpEntry.PossibleError = PossibleError.PlayerLootedMessageNotFound;
     }
