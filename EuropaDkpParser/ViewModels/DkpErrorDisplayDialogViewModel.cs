@@ -45,7 +45,11 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
         _settings = settings;
         _raidEntries = raidEntries;
 
-        AllPlayers = _raidEntries.AllCharactersInRaid.Select(x => x.CharacterName).Order().ToList();
+        AllPlayers = _raidEntries.AllCharactersInRaid
+            .Select(x => x.CharacterName)
+            .Union(_settings.CharactersOnDkpServer.AllUserCharacters.Select(x => x.Name))
+            .Order()
+            .ToList();
         PlayerLootedEntries = _raidEntries.PlayerLootedEntries.OrderBy(x => x.Timestamp).ToList();
         DuplicateDkpspentEntries = [];
 

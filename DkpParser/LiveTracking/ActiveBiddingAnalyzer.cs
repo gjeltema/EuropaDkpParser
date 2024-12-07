@@ -62,7 +62,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             }
         }
 
-        bool isCharacterOnServer = _settings.CharactersOnDkpServer.DoesCharacterExistOnDkpServer(bidderName);
+        bool characterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(bidderName);
         relatedAuction.HasNewBidsAdded = true;
         return new LiveBidInfo
         {
@@ -72,7 +72,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             CharacterName = bidderName,
             ItemName = itemName,
             BidAmount = dkpValue,
-            CharacterNotOnDkpServer = !isCharacterOnServer
+            CharacterNotOnDkpServer = characterNotOnDkpServer
         };
     }
 

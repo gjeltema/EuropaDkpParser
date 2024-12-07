@@ -62,7 +62,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
         AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
             .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
-        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken) && _settings.CharactersOnDkpServer.DoesCharacterExistOnDkpServer(SelectedBid.CharacterName))
+        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken) && _settings.CharactersOnDkpServer.CharacterConfirmedExistsOnDkpServer(SelectedBid.CharacterName))
             .ObservesProperty(() => SelectedBid);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");

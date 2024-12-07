@@ -13,16 +13,27 @@ public sealed class DkpServerCharacters
     private readonly string _dkpCharactersFileName;
     private ICollection<DkpUserCharacter> _userCharacters = [];
 
+    public IEnumerable<DkpUserCharacter> AllUserCharacters
+        => _userCharacters;
+
     public DkpServerCharacters(string dkpCharactersFileName)
     {
         _dkpCharactersFileName = dkpCharactersFileName;
     }
 
-    public bool DoesCharacterExistOnDkpServer(string characterName)
-        => _userCharacters.Count == 0 || _userCharacters.Any(x => x.Name == characterName);
+    public bool CharacterConfirmedExistsOnDkpServer(string characterName)
+        => _userCharacters.Count > 0 && _userCharacters.Any(x => x.Name == characterName);
+
+    public bool CharacterConfirmedNotOnDkpServer(string characterName)
+        => _userCharacters.Count > 0 && !_userCharacters.Any(x => x.Name == characterName);
 
     public IEnumerable<DkpUserCharacter> GetAllRelatedCharacters(DkpUserCharacter userCharacter)
-        => _userCharacters.Where(x => x.UserId == userCharacter.UserId);
+    {
+        if (_userCharacters.Count == 0)
+            return [];
+
+        return _userCharacters.Where(x => x.UserId == userCharacter.UserId);
+    }
 
     public IEnumerable<MutipleCharactersOnAccount> GetMultipleCharactersOnAccount(IEnumerable<PlayerCharacter> characters)
     {
