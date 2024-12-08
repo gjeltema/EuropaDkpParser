@@ -22,6 +22,7 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
     private bool _outputAnalyzerErrors;
     private bool _performingParse = false;
     private string _startTimeText;
+    private bool _startTimeSet = false;
 
     internal DkpParseDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IDialogViewFactory viewFactory)
         : base(viewFactory)
@@ -56,7 +57,7 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
         {
             if (SetProperty(ref _endTimeText, value))
             {
-                if (DateTime.TryParse(value, out DateTime endTime))
+                if (_startTimeSet && DateTime.TryParse(value, out DateTime endTime))
                 {
                     StartTimeText = endTime.AddHours(-6).ToString(Constants.TimePickerDisplayDateTimeFormat);
                 }
@@ -97,7 +98,11 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
     public string StartTimeText
     {
         get => _startTimeText;
-        set => SetProperty(ref _startTimeText, value);
+        set
+        {
+            SetProperty(ref _startTimeText, value);
+            _startTimeSet = true;
+        }
     }
 
     private async Task ExecuteParse(Func<DateTime, DateTime, Task> parseToExecute)

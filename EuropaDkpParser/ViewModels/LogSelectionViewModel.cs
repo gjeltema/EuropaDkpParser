@@ -122,7 +122,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
             SetProperty(ref _eqDirectory, value);
             SetAllCharacterLogFiles();
             if (string.IsNullOrWhiteSpace(OutputDirectory))
-                OutputDirectory = EqDirectory;
+                OutputDirectory = Path.Combine(value, "Generated");
         }
     }
 
@@ -204,7 +204,10 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     {
         _settings.EqDirectory = EqDirectory;
         _settings.SelectedLogFiles = SelectedCharacterLogFiles;
+
         _settings.OutputDirectory = OutputDirectory;
+        TryCreateDirectory(_settings.OutputDirectory);
+
         _settings.EnableDebugOptions = IsDebugOptionsEnabled;
         _settings.ApiUrl = ApiUrl;
         _settings.ApiReadToken = ApiReadToken;
@@ -218,6 +221,17 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.DkpspentOocEnabled = DkpspentOocEnable;
         _settings.UseLightMode = UseLightMode;
         _settings.SaveSettings();
+    }
+
+    private static void TryCreateDirectory(string directoryName)
+    {
+        try
+        {
+            Task.Run(() => Directory.CreateDirectory(directoryName));
+        }
+        catch
+        {
+        }
     }
 
     private void AddLogFile()

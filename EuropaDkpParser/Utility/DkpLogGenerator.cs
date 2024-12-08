@@ -56,9 +56,6 @@ internal sealed class DkpLogGenerator
         string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string fullLogOutputFullPath = Path.Combine(directoryForFiles, fullLogOutputFile);
 
-        if (!await TryCreateDirectory(directoryForFiles))
-            return;
-
         foreach (EqLogFile logFile in logFiles.OrderBy(x => x.LogEntries[0].Timestamp))
         {
             await CreateFile(fullLogOutputFullPath, logFile.GetAllLogLines());
@@ -364,21 +361,6 @@ internal sealed class DkpLogGenerator
         {
             string errorMessage = $"Failed to copy file from {sourceFilePath} to {destinationFilePath}: {ex}";
             MessageBox.Show(errorMessage, "Failed to Copy File", MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
-        }
-    }
-
-    private async Task<bool> TryCreateDirectory(string directoryName)
-    {
-        try
-        {
-            await Task.Run(() => Directory.CreateDirectory(directoryName));
-            return true;
-        }
-        catch (Exception ex)
-        {
-            string errorMessage = $"Failed to create directory at {directoryName}: {ex}";
-            MessageBox.Show(errorMessage, "Failed to Create Directory", MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }
     }
