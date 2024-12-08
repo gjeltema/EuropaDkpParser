@@ -31,7 +31,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             return null;
 
         // Only way to differentiate between a status call and an actual bid at this point
-        if (logLine.Contains("60s") || logLine.Contains("30s") || logLine.Contains("10s"))
+        if (logLine.Contains("60s") || logLine.Contains("30s") || logLine.Contains("10s") || logLine.Contains("COMPLETED"))
             return null;
 
         string itemName = relatedAuction.ItemName;

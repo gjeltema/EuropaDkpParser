@@ -155,9 +155,8 @@ internal sealed class DkpLogGenerator
         if (finalSummaryDialog.ShowDialog() == false)
             return;
 
-        ICollection<RaidInfo> raidInfo = raidEntries.GetRaidInfo(_settings.RaidValue.GetZoneRaidAlias);
         IOutputGenerator generator = new FileOutputGenerator();
-        ICollection<string> fileContents = generator.GenerateOutput(raidEntries, raidInfo);
+        IEnumerable<string> fileContents = generator.GenerateOutput(raidEntries, _settings.RaidValue.GetZoneRaidAlias);
         bool success = await CreateFile(sessionSettings.GeneratedFile, fileContents);
         if (!success)
             return;

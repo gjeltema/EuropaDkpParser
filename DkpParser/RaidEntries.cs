@@ -9,6 +9,8 @@ using System.Diagnostics;
 [DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllCharactersInRaid.Count}")]
 public sealed class RaidEntries
 {
+    private static readonly TimeSpan MaxTimeThresholdForKillCall = TimeSpan.FromMinutes(15);
+
     public ICollection<AfkEntry> AfkEntries { get; } = new List<AfkEntry>();
 
     public ICollection<PlayerCharacter> AllCharactersInRaid { get; set; } = new HashSet<PlayerCharacter>();
@@ -54,17 +56,23 @@ public sealed class RaidEntries
 
     public IEnumerable<string> GetAllDkpspentEntries(Func<string, string> getZoneRaidAlias)
     {
-        ICollection<RaidInfo> raids = GetRaidInfo(getZoneRaidAlias);
-
-        foreach (RaidInfo raid in raids)
+        string currentZoneName = string.Empty;
+        foreach (DkpEntry dkpEntry in DkpEntries)
         {
-            yield return $"================= {raid.RaidZone} =================";
+            AttendanceEntry associatedAttendance = GetAssociatedAttendance(dkpEntry);
+            string attendanceZone = getZoneRaidAlias(associatedAttendance.ZoneName);
+            if (attendanceZone != currentZoneName)
+            {
+                yield return "";
 
-            foreach (string dkpEntryText in GetDkpspentEntriesForRaid(raid))
-                yield return dkpEntryText;
+                currentZoneName = attendanceZone;
+                yield return $"================= {currentZoneName} =================";
+            }
 
-            yield return "";
+            yield return dkpEntry.ToLogString();
         }
+
+        yield return "";
     }
 
     public IEnumerable<string> GetAllEntries()
@@ -135,60 +143,52 @@ public sealed class RaidEntries
         yield return "";
     }
 
-    public IEnumerable<string> GetDkpspentEntriesForRaid(RaidInfo raid)
+    public AttendanceEntry GetAssociatedAttendance(DkpEntry dkpEntry)
     {
-        IEnumerable<DkpEntry> dkpEntries = DkpEntries
-                .Where(x => raid.StartTime <= x.Timestamp && x.Timestamp <= raid.EndTime)
-                .OrderBy(x => x.Timestamp);
+        if (AttendanceEntries == null || AttendanceEntries.Count == 0)
+            return null;
 
-        foreach (DkpEntry dkpEntry in dkpEntries)
-            yield return dkpEntry.ToLogString();
-    }
+        // Add 5 minutes to get any Kill calls that were made a bit after the actual kill time, after the item was already awarded.
+        DateTime referenceTime = dkpEntry.Timestamp.AddMinutes(5);
+        AttendanceEntry killCallPrior = AttendanceEntries
+            .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && x.Timestamp < referenceTime)
+            .MaxBy(x => x.Timestamp);
 
-    public ICollection<RaidInfo> GetRaidInfo(Func<string, string> getZoneRaidAlias)
-    {
-        List<RaidInfo> raidInfo = [];
-
-        IEnumerable<string> zoneNames = AttendanceEntries
-            .Select(x => getZoneRaidAlias(x.ZoneName))
-            .Distinct();
-
-        foreach (string zoneName in zoneNames)
+        if (killCallPrior != null)
         {
-            IOrderedEnumerable<AttendanceEntry> attendancesForRaid = AttendanceEntries
-                .Where(x => getZoneRaidAlias(x.ZoneName) == zoneName)
-                .OrderBy(x => x.Timestamp);
-
-            RaidInfo newRaidInfo = new()
+            TimeSpan timeDifference = referenceTime - killCallPrior.Timestamp;
+            if (timeDifference <= MaxTimeThresholdForKillCall)
             {
-                RaidZone = zoneName,
-                FirstAttendanceCall = attendancesForRaid.First(),
-                LastAttendanceCall = attendancesForRaid.Last()
-            };
-
-            raidInfo.Add(newRaidInfo);
-        }
-
-        DateTime startTime = DateTime.MinValue;
-        DateTime endTime = DateTime.MaxValue;
-        for (int i = 0; i < raidInfo.Count; i++)
-        {
-            RaidInfo currentRaidInfo = raidInfo[i];
-            currentRaidInfo.StartTime = startTime;
-
-            if (i + 1 < raidInfo.Count)
-            {
-                RaidInfo nextRaid = raidInfo[i + 1];
-                currentRaidInfo.EndTime = nextRaid.FirstAttendanceCall.Timestamp.AddSeconds(-2);
-                startTime = nextRaid.FirstAttendanceCall.Timestamp;
-            }
-            else
-            {
-                currentRaidInfo.EndTime = DateTime.MaxValue;
+                return killCallPrior;
             }
         }
 
-        return raidInfo;
+        AttendanceEntry firstTimeCallAfter = AttendanceEntries
+            .Where(x => x.AttendanceCallType == AttendanceCallType.Time && dkpEntry.Timestamp < x.Timestamp)
+            .MinBy(x => x.Timestamp);
+
+        if (firstTimeCallAfter != null)
+        {
+            AttendanceEntry lastTimeCallPrior = AttendanceEntries
+                .Where(x => x.AttendanceCallType == AttendanceCallType.Time && x.Timestamp < dkpEntry.Timestamp)
+                .MaxBy(x => x.Timestamp);
+
+            if (firstTimeCallAfter.ZoneName != lastTimeCallPrior.ZoneName)
+            {
+                AttendanceEntry firstKillCallAfter = AttendanceEntries
+                    .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && dkpEntry.Timestamp < x.Timestamp)
+                    .MinBy(x => x.Timestamp);
+
+                if (firstKillCallAfter.Timestamp < dkpEntry.Timestamp.AddMinutes(30) && lastTimeCallPrior.ZoneName == firstKillCallAfter.ZoneName)
+                {
+                    return firstKillCallAfter;
+                }
+            }
+
+            return firstTimeCallAfter;
+        }
+
+        return AttendanceEntries.Last();
     }
 
     public void RemoveAttendance(AttendanceEntry toBeRemoved)

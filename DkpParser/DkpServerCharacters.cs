@@ -13,13 +13,13 @@ public sealed class DkpServerCharacters
     private readonly string _dkpCharactersFileName;
     private ICollection<DkpUserCharacter> _userCharacters = [];
 
-    public IEnumerable<DkpUserCharacter> AllUserCharacters
-        => _userCharacters;
-
     public DkpServerCharacters(string dkpCharactersFileName)
     {
         _dkpCharactersFileName = dkpCharactersFileName;
     }
+
+    public IEnumerable<DkpUserCharacter> AllUserCharacters
+        => _userCharacters;
 
     public bool CharacterConfirmedExistsOnDkpServer(string characterName)
         => _userCharacters.Count > 0 && _userCharacters.Any(x => x.Name == characterName);

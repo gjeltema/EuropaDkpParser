@@ -26,14 +26,13 @@ public sealed class UploadRaidInfo
             Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
         }).ToList();
 
-        ICollection<RaidInfo> raidInfo = raidEntries.GetRaidInfo(getZoneRaidAlias);
         ICollection<DkpUploadInfo> dkpUploadInfo = raidEntries.DkpEntries.Select(x => new DkpUploadInfo
         {
             Timestamp = x.Timestamp,
             CharacterName = ConvertTransfer(x.PlayerName, raidEntries.Transfers),
             Item = x.Item,
             DkpSpent = x.DkpSpent,
-            AssociatedAttendanceCall = GetAssociatedAttendance(x, raidInfo)
+            AssociatedAttendanceCall = raidEntries.GetAssociatedAttendance(x)
         }).ToList();
 
         IEnumerable<string> allCharacterNames = raidEntries.AllCharactersInRaid
@@ -115,21 +114,5 @@ public sealed class UploadRaidInfo
         }
 
         return newList;
-    }
-
-    private static AttendanceEntry GetAssociatedAttendance(DkpEntry dkpEntry, ICollection<RaidInfo> raidInfo)
-    {
-        if (raidInfo == null || raidInfo.Count == 0)
-            return null;
-
-        RaidInfo associatedRaid = raidInfo
-            .FirstOrDefault(x => x.StartTime <= dkpEntry.Timestamp && dkpEntry.Timestamp <= x.EndTime);
-
-        if (associatedRaid == null)
-        {
-            return raidInfo.Last().LastAttendanceCall;
-        }
-
-        return associatedRaid.LastAttendanceCall;
     }
 }

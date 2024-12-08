@@ -6,41 +6,32 @@ namespace DkpParser;
 
 public sealed class FileOutputGenerator : IOutputGenerator
 {
-    public ICollection<string> GenerateOutput(RaidEntries raidEntries, IEnumerable<RaidInfo> raids)
+    public IEnumerable<string> GenerateOutput(RaidEntries raidEntries, Func<string, string> getZoneRaidAlias)
     {
-        List<string> outputContents = [];
+        var dkpEntries = raidEntries.DkpEntries.Select(x => new { AssociatedAttendance = raidEntries.GetAssociatedAttendance(x), Dkp = x }).ToList();
 
-        foreach (RaidInfo raid in raids)
+        string currentRaidZone = string.Empty;
+        foreach (AttendanceEntry attendance in raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp))
         {
-            DateTime dateStamp = raid.StartTime;
-            if (dateStamp == DateTime.MinValue)
+            string attendanceRaidZone = getZoneRaidAlias(attendance.ZoneName);
+            if (currentRaidZone != attendanceRaidZone)
             {
-                dateStamp = raid.FirstAttendanceCall.Timestamp.AddMinutes(-10);
+                currentRaidZone = attendanceRaidZone;
+                yield return Environment.NewLine;
+                yield return EqLogLine.LogMessage(attendance.Timestamp.AddSeconds(-5), $"=========================== {currentRaidZone} ===========================");
             }
 
-            string message = EqLogLine.LogMessage(dateStamp, $"=========================== {raid.RaidZone} ===========================");
-            outputContents.Add(message);
+            foreach (string attendanceLine in CreateAttendanceEntry(attendance))
+                yield return attendanceLine;
 
-            IEnumerable<AttendanceEntry> attendanceCalls = raidEntries.AttendanceEntries
-                .Where(x => raid.StartTime <= x.Timestamp && x.Timestamp <= raid.EndTime)
-                .OrderBy(x => x.Timestamp);
-
-            foreach (AttendanceEntry attendanceEntry in attendanceCalls)
+            foreach (var dkpEntryWithAttendance in dkpEntries.Where(x => x.AssociatedAttendance == attendance).OrderBy(x => x.Dkp.Timestamp))
             {
-                IEnumerable<string> attendanceEntryLines = CreateAttendanceEntry(attendanceEntry);
-                outputContents.AddRange(attendanceEntryLines);
+                yield return dkpEntryWithAttendance.Dkp.ToLogString();
             }
-
-            CreateDkpEntries(raidEntries, outputContents, raid);
-
-            outputContents.Add(Environment.NewLine);
-            outputContents.Add(Environment.NewLine);
         }
-
-        return outputContents;
     }
 
-    private IEnumerable<string> CreateAttendanceEntry(AttendanceEntry call)
+    private static IEnumerable<string> CreateAttendanceEntry(AttendanceEntry call)
     {
         /*
     [Tue Mar 19 21:35:36 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fourth Call:::'
@@ -68,15 +59,9 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
         yield return EqLogLine.ZonePlayers(call.Timestamp, call.Characters.Count, call.ZoneName);
     }
-
-    private void CreateDkpEntries(RaidEntries raidEntries, List<string> outputContents, RaidInfo raid)
-    {
-        IEnumerable<string> dkpEntriesText = raidEntries.GetDkpspentEntriesForRaid(raid);
-        outputContents.AddRange(dkpEntriesText);
-    }
 }
 
 public interface IOutputGenerator
 {
-    ICollection<string> GenerateOutput(RaidEntries raidEntries, IEnumerable<RaidInfo> raids);
+    IEnumerable<string> GenerateOutput(RaidEntries raidEntries, Func<string, string> getZoneRaidAlias);
 }

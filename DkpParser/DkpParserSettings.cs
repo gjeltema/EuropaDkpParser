@@ -139,6 +139,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
             ApiReadToken = "";
         ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
         ApiUrl = GetStringValue(fileContents, ApiUrlSection);
+        if (string.IsNullOrWhiteSpace(ApiUrl))
+            ApiUrl = "";
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
         ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
         LogFileMatchPattern = GetStringValue(fileContents, LogMatchPatternSection, DefaultMatchPattern);
