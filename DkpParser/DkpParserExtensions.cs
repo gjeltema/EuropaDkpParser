@@ -26,9 +26,11 @@ public static class DkpParserExtensions
 
     public static string NormalizeName(this string name)
     {
-        if (string.IsNullOrEmpty(name))
+        if (name == null)
             return string.Empty;
-        else if (name.Length > 1)
+
+        name = name.Trim();
+        if (name.Length > 1)
             return string.Concat(char.ToUpper(name[0]), name[1..].ToLower());
         else
             return name.ToUpper();

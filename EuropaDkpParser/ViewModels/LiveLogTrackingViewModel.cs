@@ -36,6 +36,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private bool _remindAttendances;
     private LiveAuctionDisplay _selectedActiveAuction;
     private LiveBidInfo _selectedBid;
+    private string _selectedBidCharacterName;
     private CompletedAuction _selectedCompletedAuction;
     private SuggestedSpentCall _selectedSpentMessageToPaste;
     private ICollection<SuggestedSpentCall> _spentMessagesToPaste;
@@ -64,6 +65,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
             .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
         GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken) && _settings.CharactersOnDkpServer.CharacterConfirmedExistsOnDkpServer(SelectedBid.CharacterName))
             .ObservesProperty(() => SelectedBid);
+        ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
+            .ObservesProperty(() => SelectedBid).ObservesProperty(() => SelectedBidCharacterName);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
 
@@ -83,6 +86,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         get => _auctionStatusMessagesToPaste;
         set => SetProperty(ref _auctionStatusMessagesToPaste, value);
     }
+
+    public DelegateCommand ChangeBidCharacterNameCommand { get; }
 
     public ICollection<CompletedAuction> CompletedAuctions
     {
@@ -161,7 +166,17 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     public LiveBidInfo SelectedBid
     {
         get => _selectedBid;
-        set => SetProperty(ref _selectedBid, value);
+        set
+        {
+            SetProperty(ref _selectedBid, value);
+            SelectedBidCharacterName = value?.CharacterName ?? string.Empty;
+        }
+    }
+
+    public string SelectedBidCharacterName
+    {
+        get => _selectedBidCharacterName;
+        set => SetProperty(ref _selectedBidCharacterName, value);
     }
 
     public CompletedAuction SelectedCompletedAuction
@@ -202,6 +217,25 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
             return;
 
         _settings.ItemLinkIds.AddAndSaveItemId(SelectedActiveAuction.ItemName, ItemLinkIdToAdd);
+    }
+
+    private void ChangeBidCharacterName()
+    {
+        if (SelectedBid == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(SelectedBidCharacterName))
+            return;
+
+        LiveBidInfo selectedBid = SelectedBid;
+        string selectedBidCharacterName = SelectedBidCharacterName;
+
+        SelectedBid = null;
+
+        selectedBid.CharacterName = selectedBidCharacterName.NormalizeName();
+        selectedBid.CharacterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(selectedBid.CharacterName);
+
+        UpdateBidsListing(selectedBid);
     }
 
     private void CheckAndUpdateDisplay()
@@ -429,16 +463,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         {
             SelectedActiveAuction.HasNewBidsAdded = false;
 
-            CurrentBids = new List<LiveBidInfo>(_activeBidTracker.Bids
-                .Where(x => x.ParentAuctionId == SelectedActiveAuction.Id).OrderByDescending(x => x.Timestamp));
-            if (selectedCurrentBid != null)
-            {
-                LiveBidInfo matchingBid = CurrentBids.FirstOrDefault(x => x.ParentAuctionId == selectedCurrentBid.ParentAuctionId
-                    && x.ItemName == selectedCurrentBid.ItemName
-                    && x.BidAmount == selectedCurrentBid.BidAmount
-                    && x.CharacterName == selectedCurrentBid.CharacterName);
-                SelectedBid = matchingBid;
-            }
+            UpdateBidsListing(selectedCurrentBid);
 
             HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction.Auction));
 
@@ -459,6 +484,22 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         }
 
         SetAuctionStatusMessage();
+    }
+
+    private void UpdateBidsListing(LiveBidInfo selectedCurrentBid)
+    {
+        CurrentBids = new List<LiveBidInfo>(_activeBidTracker.Bids
+            .Where(x => x.ParentAuctionId == SelectedActiveAuction.Id)
+            .OrderByDescending(x => x.Timestamp));
+
+        if (selectedCurrentBid != null)
+        {
+            LiveBidInfo matchingBid = CurrentBids.FirstOrDefault(x => x.ParentAuctionId == selectedCurrentBid.ParentAuctionId
+                && x.ItemName == selectedCurrentBid.ItemName
+                && x.BidAmount == selectedCurrentBid.BidAmount
+                && x.CharacterName == selectedCurrentBid.CharacterName);
+            SelectedBid = matchingBid;
+        }
     }
 
     private void UpdateDisplay()
@@ -543,6 +584,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
 
     string AuctionStatusMessageToPaste { get; set; }
 
+    DelegateCommand ChangeBidCharacterNameCommand { get; }
+
     ICollection<CompletedAuction> CompletedAuctions { get; }
 
     DelegateCommand CopySelectedSpentCallToClipboardCommand { get; }
@@ -574,6 +617,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     LiveAuctionDisplay SelectedActiveAuction { get; set; }
 
     LiveBidInfo SelectedBid { get; set; }
+
+    string SelectedBidCharacterName { get; set; }
 
     CompletedAuction SelectedCompletedAuction { get; set; }
 

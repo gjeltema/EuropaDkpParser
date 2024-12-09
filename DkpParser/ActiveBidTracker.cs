@@ -385,6 +385,8 @@ public interface IActiveBidTracker
 
     IEnumerable<CompletedAuction> CompletedAuctions { get; }
 
+    bool Updated { get; set; }
+
     string GetBossKilledName();
 
     ICollection<LiveBidInfo> GetHighBids(LiveAuctionInfo auction);

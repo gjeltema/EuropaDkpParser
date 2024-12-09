@@ -133,14 +133,19 @@
                         </ListView.ItemContainerStyle>
                     </ListView>
 
-                    <Grid Grid.Row="2" HorizontalAlignment="Right">
+                    <Grid Grid.Row="2" >
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Column="0" Content="{StaticResource GetUserDkp}" Command="{Binding GetUserDkpCommand}" Width="85" Height="30" Margin="0,0,10,0"/>
-                        <Button Grid.Column="1" Content="{StaticResource RemoveBid}" Command="{Binding RemoveBidCommand}" Width="85" Height="30"/>
+                        <TextBox Grid.Column="0" Text="{Binding SelectedBidCharacterName}" Margin="0,0,5,0"/>
+                        <Button Grid.Column="1" Content="{StaticResource ChangeName}" Command="{Binding ChangeBidCharacterNameCommand}" Width="85" Height="30" Margin="0,0,25,0"/>
+                        
+                        <Button Grid.Column="2" Content="{StaticResource GetUserDkp}" Command="{Binding GetUserDkpCommand}" Width="85" Height="30" Margin="0,0,5,0" HorizontalAlignment="Right"/>
+                        <Button Grid.Column="3" Content="{StaticResource RemoveBid}" Command="{Binding RemoveBidCommand}" Width="85" Height="30" HorizontalAlignment="Right"/>
                     </Grid>
                 </Grid>
 

@@ -281,6 +281,7 @@
     <system:String x:Key="RemindAttendances">Remind About Attendances</system:String>
     <system:String x:Key="SetFile">Set File</system:String>
     <system:String x:Key="GetUserDkp">Get DKP</system:String>
+    <system:String x:Key="ChangeName">Change Name</system:String>
 
     <!-- ReminderDialog -->
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>

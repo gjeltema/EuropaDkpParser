@@ -93,9 +93,9 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
 
     public EqChannel Channel { get; init; }
 
-    public string CharacterName { get; init; }
+    public string CharacterName { get; set; }
 
-    public bool CharacterNotOnDkpServer { get; init; }
+    public bool CharacterNotOnDkpServer { get; set; }
 
     public string ItemName { get; init; }
 
@@ -114,14 +114,11 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
 
     public static bool Equals(LiveBidInfo left, LiveBidInfo right)
     {
-        if (left is null && right is null)
+        if (ReferenceEquals(left, right))
             return true;
 
         if (left is null || right is null)
             return false;
-
-        if (ReferenceEquals(left, right))
-            return true;
 
         if (left.ParentAuctionId != right.ParentAuctionId)
             return false;
