@@ -51,6 +51,8 @@ public sealed class LiveSpentCall
 
     public EqChannel Channel { get; init; }
 
+    public string CharacterPlacingBid { get; set; }
+
     public int DkpSpent { get; init; }
 
     public bool IsRemoveCall { get; init; }

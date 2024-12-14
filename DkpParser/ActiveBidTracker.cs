@@ -101,7 +101,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 Channel = auction.Channel,
                 ItemName = x.ItemName,
                 DkpSpent = x.BidAmount,
-                Winner = x.CharacterName,
+                Winner = x.CharacterBeingBidFor,
                 SpentCallSent = SpentCallExists(x)
             })
             .ToList();
@@ -137,7 +137,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (highBids.Count == 0)
             return string.Empty;
 
-        string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterName} {x.BidAmount} DKP"));
+        string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterBeingBidFor} {x.BidAmount} DKP"));
         string statusString = GetStatusString(statusMarker);
         string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
         return $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {highBiddersString} {statusString}";
@@ -305,6 +305,10 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (existingAuction != null)
         {
             spentCall.AuctionStart = existingAuction;
+
+            LiveBidInfo bid = _bids.FirstOrDefault(x => x.CharacterBeingBidFor == spentCall.Winner);
+            spentCall.CharacterPlacingBid = bid?.CharacterPlacingBid ?? spentCall.Winner;
+
             _spentCalls = _spentCalls.Add(spentCall);
 
             ICollection<LiveSpentCall> spentCalls = _spentCalls.Where(x => x.AuctionStart.Id == existingAuction.Id).ToList();
@@ -330,7 +334,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         => _spentCalls.Any(x => x.AuctionStart.Id == bid.ParentAuctionId
                 && x.DkpSpent == bid.BidAmount
                 && x.ItemName == bid.ItemName
-                && x.Winner.Equals(bid.CharacterName, StringComparison.OrdinalIgnoreCase));
+                && x.Winner.Equals(bid.CharacterBeingBidFor, StringComparison.OrdinalIgnoreCase));
 
     private void WriteToErrorFile(string message)
     {
@@ -352,13 +356,21 @@ public sealed class CompletedAuction
     public ICollection<LiveSpentCall> SpentCalls { get; set; }
 
     public string Winners
-        => string.Join(Environment.NewLine, SpentCalls.Select(x => $"{x.Winner} {x.DkpSpent} DKP"));
+        => string.Join(Environment.NewLine, SpentCalls.Select(GetSpentInfo));
 
     private string DebugText
         => $"{ItemName} {AuctionStart.Id}";
 
     public override string ToString()
         => $"{AuctionStart.Timestamp:HH:mm} {ItemName}";
+
+    private string GetSpentInfo(LiveSpentCall spent)
+    {
+        if (spent.Winner == spent.CharacterPlacingBid)
+            return $"{spent.Winner} {spent.DkpSpent} DKP";
+        else
+            return $"{spent.Winner} ({spent.CharacterPlacingBid}) {spent.DkpSpent} DKP";
+    }
 }
 
 public sealed class SuggestedSpentCall

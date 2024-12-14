@@ -63,7 +63,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
         AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
             .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
-        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken) && _settings.CharactersOnDkpServer.CharacterConfirmedExistsOnDkpServer(SelectedBid.CharacterName))
+        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken) && _settings.CharactersOnDkpServer.CharacterConfirmedExistsOnDkpServer(SelectedBid.CharacterBeingBidFor))
             .ObservesProperty(() => SelectedBid);
         ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
             .ObservesProperty(() => SelectedBid).ObservesProperty(() => SelectedBidCharacterName);
@@ -169,7 +169,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         set
         {
             SetProperty(ref _selectedBid, value);
-            SelectedBidCharacterName = value?.CharacterName ?? string.Empty;
+            SelectedBidCharacterName = value?.CharacterBeingBidFor ?? string.Empty;
         }
     }
 
@@ -232,8 +232,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
         SelectedBid = null;
 
-        selectedBid.CharacterName = selectedBidCharacterName.NormalizeName();
-        selectedBid.CharacterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(selectedBid.CharacterName);
+        selectedBid.CharacterBeingBidFor = selectedBidCharacterName.NormalizeName();
+        selectedBid.CharacterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(selectedBid.CharacterBeingBidFor);
 
         UpdateBidsListing(selectedBid);
     }
@@ -297,7 +297,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         if (SelectedBid == null)
             return;
 
-        DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(SelectedBid.CharacterName);
+        DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(SelectedBid.CharacterBeingBidFor);
         if (dkpCharacter == null)
         {
             MessageDialog.ShowDialog($"{dkpCharacter.Name} does not exist on DKP server.", "Unable To Retrieve DKP");
@@ -497,7 +497,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
             LiveBidInfo matchingBid = CurrentBids.FirstOrDefault(x => x.ParentAuctionId == selectedCurrentBid.ParentAuctionId
                 && x.ItemName == selectedCurrentBid.ItemName
                 && x.BidAmount == selectedCurrentBid.BidAmount
-                && x.CharacterName == selectedCurrentBid.CharacterName);
+                && x.CharacterBeingBidFor == selectedCurrentBid.CharacterBeingBidFor);
             SelectedBid = matchingBid;
         }
     }

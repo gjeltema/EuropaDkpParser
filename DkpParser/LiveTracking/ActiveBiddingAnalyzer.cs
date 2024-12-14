@@ -27,9 +27,6 @@ internal sealed partial class ActiveBiddingAnalyzer
         if (relatedAuction == null)
             return null;
 
-        if (bidderName.Equals(relatedAuction.Auctioneer))
-            return null;
-
         // Only way to differentiate between a status call and an actual bid at this point
         if (logLine.Contains("60s") || logLine.Contains("30s") || logLine.Contains("10s") || logLine.Contains("COMPLETED"))
             return null;
@@ -52,24 +49,26 @@ internal sealed partial class ActiveBiddingAnalyzer
             .Replace("-", "")
             .Trim();
 
+        string characterBeingBidFor = bidderName;
         string[] lineParts = lineAfterItem.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (lineParts.Length > 0)
         {
             string characterName = lineParts[0].Trim();
             if (characterName.Length >= MinimumCharacterNameLength)
             {
-                bidderName = characterName.NormalizeName();
+                characterBeingBidFor = characterName.NormalizeName();
             }
         }
 
-        bool characterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(bidderName);
+        bool characterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(characterBeingBidFor);
         relatedAuction.HasNewBidsAdded = true;
         return new LiveBidInfo
         {
             Timestamp = timestamp,
             Channel = channel,
             ParentAuctionId = relatedAuction.Id,
-            CharacterName = bidderName,
+            CharacterBeingBidFor = characterBeingBidFor,
+            CharacterPlacingBid = bidderName,
             ItemName = itemName,
             BidAmount = dkpValue,
             CharacterNotOnDkpServer = characterNotOnDkpServer
@@ -93,9 +92,11 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
 
     public EqChannel Channel { get; init; }
 
-    public string CharacterName { get; set; }
+    public string CharacterBeingBidFor { get; set; }
 
     public bool CharacterNotOnDkpServer { get; set; }
+
+    public string CharacterPlacingBid { get; init; }
 
     public string ItemName { get; init; }
 
@@ -104,7 +105,7 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
     public DateTime Timestamp { get; init; }
 
     private string DebugText
-        => $"{Timestamp:HH:mm:ss} {ParentAuctionId} {ItemName} {CharacterName} {BidAmount}";
+        => $"{Timestamp:HH:mm:ss} {ParentAuctionId} {ItemName} {CharacterBeingBidFor} {BidAmount}";
 
     public static bool operator ==(LiveBidInfo left, LiveBidInfo right)
         => Equals(left, right);
@@ -129,7 +130,7 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
         if (left.ItemName != right.ItemName)
             return false;
 
-        if (!left.CharacterName.Equals(right.CharacterName, StringComparison.OrdinalIgnoreCase))
+        if (!left.CharacterBeingBidFor.Equals(right.CharacterBeingBidFor, StringComparison.OrdinalIgnoreCase))
             return false;
 
         return true;
@@ -142,10 +143,10 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
         => Equals(this, other);
 
     public override int GetHashCode()
-        => ParentAuctionId.GetHashCode() ^ BidAmount.GetHashCode() ^ ItemName.GetHashCode() ^ CharacterName.ToUpper().GetHashCode();
+        => ParentAuctionId.GetHashCode() ^ BidAmount.GetHashCode() ^ ItemName.GetHashCode() ^ CharacterBeingBidFor.ToUpper().GetHashCode();
 
     public override string ToString()
         => CharacterNotOnDkpServer
-        ? $"{Timestamp:HH:mm:ss} {ItemName} {CharacterName} {BidAmount} NOT ON SERVER"
-        : $"{Timestamp:HH:mm:ss} {ItemName} {CharacterName} {BidAmount}";
+        ? $"{Timestamp:HH:mm:ss} {ItemName} {CharacterBeingBidFor} {BidAmount} NOT ON SERVER"
+        : $"{Timestamp:HH:mm:ss} {ItemName} {CharacterBeingBidFor} {BidAmount}";
 }
