@@ -57,7 +57,7 @@ public sealed class RaidEntries
     public IEnumerable<string> GetAllDkpspentEntries(Func<string, string> getZoneRaidAlias)
     {
         string currentZoneName = string.Empty;
-        foreach (DkpEntry dkpEntry in DkpEntries)
+        foreach (DkpEntry dkpEntry in DkpEntries.OrderBy(x => x.Timestamp))
         {
             AttendanceEntry associatedAttendance = GetAssociatedAttendance(dkpEntry);
             string attendanceZone = getZoneRaidAlias(associatedAttendance.ZoneName);
