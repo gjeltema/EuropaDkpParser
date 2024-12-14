@@ -282,7 +282,7 @@ public sealed class DkpServer : IDkpServer
             {
                 UserId = userId,
                 CharacterId = idValue,
-                Name = characterName,
+                Name = characterName.NormalizeName(),
                 ClassName = className,
                 Level = level
             });
