@@ -289,6 +289,14 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         return reminderDialogViewModel;
     }
 
+    private DateTime GetSortingTimestamp(CompletedAuction completed)
+    {
+        if (completed.SpentCalls.Count > 0)
+            return completed.SpentCalls.Max(x => x.Timestamp);
+        else
+            return completed.AuctionStart.Timestamp;
+    }
+
     private async void GetUserDkp()
         => await GetUserDkpAsync();
 
@@ -524,7 +532,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         UpdateActiveAuctionSelected(selectedBid, selectedSpent);
 
         CompletedAuction selectedCompleted = SelectedCompletedAuction;
-        CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions.OrderByDescending(x => x.SpentCalls.MaxBy(x => x.Timestamp)));
+        CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions.OrderByDescending(GetSortingTimestamp));
         if (selectedCompleted != null)
         {
             CompletedAuction matchingCompleted = CompletedAuctions.FirstOrDefault(x => x.AuctionStart.Id == selectedCompleted.AuctionStart.Id);
