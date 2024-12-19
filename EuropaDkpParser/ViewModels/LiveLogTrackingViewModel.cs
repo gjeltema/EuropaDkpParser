@@ -524,7 +524,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         UpdateActiveAuctionSelected(selectedBid, selectedSpent);
 
         CompletedAuction selectedCompleted = SelectedCompletedAuction;
-        CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions);
+        CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions.OrderByDescending(x => x.SpentCalls.MaxBy(x => x.Timestamp)));
         if (selectedCompleted != null)
         {
             CompletedAuction matchingCompleted = CompletedAuctions.FirstOrDefault(x => x.AuctionStart.Id == selectedCompleted.AuctionStart.Id);

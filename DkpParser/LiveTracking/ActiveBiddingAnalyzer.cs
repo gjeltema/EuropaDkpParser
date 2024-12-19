@@ -46,6 +46,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             .Replace("DKP", "", StringComparison.OrdinalIgnoreCase)
             .Replace(" MAIN ", "", StringComparison.OrdinalIgnoreCase)
             .Replace(" ALT ", "", StringComparison.OrdinalIgnoreCase)
+            .Replace(":", "")
             .Replace("-", "")
             .Trim();
 
