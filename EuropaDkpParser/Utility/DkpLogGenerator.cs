@@ -25,20 +25,6 @@ internal sealed class DkpLogGenerator
         _dialogFactory = dialogFactory;
     }
 
-    public async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
-    {
-        try
-        {
-            await Task.Run(() => File.AppendAllLines(fileToWriteTo, fileContents));
-            return true;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.ToString(), Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
-        }
-    }
-
     public async Task GetRawLogFilesParseAsync(DateTime startTime, DateTime endTime, string outputPath)
     {
         IFullRaidLogsParser fullLogParser = new FullRaidLogsParser(_settings);
@@ -55,6 +41,9 @@ internal sealed class DkpLogGenerator
         string directoryForFiles = Path.Combine(outputPath, directoryName);
         string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string fullLogOutputFullPath = Path.Combine(directoryForFiles, fullLogOutputFile);
+
+        if (!await TryCreateDirectory(directoryForFiles))
+            return;
 
         foreach (EqLogFile logFile in logFiles.OrderBy(x => x.LogEntries[0].Timestamp))
         {
@@ -218,6 +207,20 @@ internal sealed class DkpLogGenerator
         return true;
     }
 
+    private async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
+    {
+        try
+        {
+            await Task.Run(() => File.AppendAllLines(fileToWriteTo, fileContents));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.ToString(), Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+    }
+
     private async Task DeleteDirectory(string directoryName)
     {
         try
@@ -360,6 +363,20 @@ internal sealed class DkpLogGenerator
         {
             string errorMessage = $"Failed to copy file from {sourceFilePath} to {destinationFilePath}: {ex}";
             MessageBox.Show(errorMessage, "Failed to Copy File", MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+    }
+
+    private async Task<bool> TryCreateDirectory(string directoryName)
+    {
+        try
+        {
+            await Task.Run(() => Directory.CreateDirectory(directoryName));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Unable to create directory at {directoryName}: " + ex.ToString(), "Unable to create directory", MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }
     }
