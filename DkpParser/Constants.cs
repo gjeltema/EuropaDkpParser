@@ -89,7 +89,7 @@ public static class Constants
     public const string WhoZonePrefixSingle = "There is ";
     public const string YouTold = "You told ";
     public const string YouToldSearch = $"] {YouTold}";
-    public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(6);
+    public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(10);
     public static readonly int LogDateTimeLength = LogDateTimeFormat.Length;
     public static readonly CultureInfo UsCulture = new("en-US");
 }

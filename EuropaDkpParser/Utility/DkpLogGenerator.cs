@@ -96,7 +96,12 @@ internal sealed class DkpLogGenerator
 
         if (raidEntries.AttendanceEntries.Count == 0)
         {
-            MessageBox.Show($"No log entries were found between {sessionSettings.StartTime} and {sessionSettings.EndTime}.  Ending parse.", "No Entries Found", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(
+                $"No attendance entries were found between {sessionSettings.StartTime} and {sessionSettings.EndTime}.  Ending parse.",
+                "No Attendances Found",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
             return;
         }
 

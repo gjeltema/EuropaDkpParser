@@ -9,7 +9,7 @@ using System.Diagnostics;
 [DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllCharactersInRaid.Count}")]
 public sealed class RaidEntries
 {
-    private static readonly TimeSpan MaxTimeThresholdForKillCall = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan MaxTimeThresholdForKillCall = TimeSpan.FromMinutes(20);
 
     public ICollection<AfkEntry> AfkEntries { get; } = new List<AfkEntry>();
 
@@ -148,8 +148,8 @@ public sealed class RaidEntries
         if (AttendanceEntries == null || AttendanceEntries.Count == 0)
             return null;
 
-        // Add 5 minutes to get any Kill calls that were made a bit after the actual kill time, after the item was already awarded.
-        DateTime referenceTime = dkpEntry.Timestamp.AddMinutes(5);
+        // Add 10 minutes to get any Kill calls that were made a bit after the actual kill time, after the item was already awarded.
+        DateTime referenceTime = dkpEntry.Timestamp.AddMinutes(10);
         AttendanceEntry killCallPrior = AttendanceEntries
             .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && x.Timestamp < referenceTime)
             .MaxBy(x => x.Timestamp);
@@ -167,28 +167,7 @@ public sealed class RaidEntries
             .Where(x => x.AttendanceCallType == AttendanceCallType.Time && dkpEntry.Timestamp < x.Timestamp)
             .MinBy(x => x.Timestamp);
 
-        if (firstTimeCallAfter != null)
-        {
-            AttendanceEntry lastTimeCallPrior = AttendanceEntries
-                .Where(x => x.AttendanceCallType == AttendanceCallType.Time && x.Timestamp < dkpEntry.Timestamp)
-                .MaxBy(x => x.Timestamp);
-
-            if (firstTimeCallAfter.ZoneName != lastTimeCallPrior.ZoneName)
-            {
-                AttendanceEntry firstKillCallAfter = AttendanceEntries
-                    .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && dkpEntry.Timestamp < x.Timestamp)
-                    .MinBy(x => x.Timestamp);
-
-                if (firstKillCallAfter.Timestamp < dkpEntry.Timestamp.AddMinutes(30) && lastTimeCallPrior.ZoneName == firstKillCallAfter.ZoneName)
-                {
-                    return firstKillCallAfter;
-                }
-            }
-
-            return firstTimeCallAfter;
-        }
-
-        return AttendanceEntries.Last();
+        return firstTimeCallAfter ?? AttendanceEntries.Last();
     }
 
     public void RemoveAttendance(AttendanceEntry toBeRemoved)
