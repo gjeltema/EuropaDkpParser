@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidValues.cs Copyright 2024 Craig Gjeltema
+// RaidValues.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -106,7 +106,10 @@ public sealed class RaidValues : IRaidValues
         if (boss.UseOverrideValue)
             return boss.OverrideValue;
 
-        int tierValue = _tiers[boss.Tier];
+        int tierValue = boss.Tier >= 0
+            ? _tiers[boss.Tier]
+            : GetTimeBasedValue(zoneName);
+
         return tierValue;
     }
 
