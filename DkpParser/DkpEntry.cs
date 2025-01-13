@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpEntry.cs Copyright 2024 Craig Gjeltema
+// DkpEntry.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -63,4 +63,10 @@ public sealed class DkpEntry
 
     public override string ToString()
         => $"{Timestamp:HH:mm:ss} {PlayerName}  {Item}  {DkpSpent} DKP";
+
+    public string ToSummaryDisplay()
+    {
+        string itemName = Item.Replace('`', '\'');
+        return $"{Timestamp:HH:mm:ss} {PlayerName} {itemName} {DkpSpent} DKP";
+    }
 }

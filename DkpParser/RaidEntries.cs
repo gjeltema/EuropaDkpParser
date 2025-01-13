@@ -69,7 +69,7 @@ public sealed class RaidEntries
                 yield return $"================= {currentZoneName} =================";
             }
 
-            yield return dkpEntry.ToLogString();
+            yield return dkpEntry.ToSummaryDisplay();
         }
 
         yield return "";
