@@ -279,6 +279,7 @@
     <system:String x:Key="SpentCallsToPostToChat">SPENT Calls To Post To Chat</system:String>
     <system:String x:Key="LogFileToMonitor">Log File To Monitor</system:String>
     <system:String x:Key="RemindAttendances">Remind About Attendances</system:String>
+    <system:String x:Key="LowRollWins">Low Roll Wins</system:String>
     <system:String x:Key="SetFile">Set File</system:String>
     <system:String x:Key="GetUserDkp">Get DKP</system:String>
     <system:String x:Key="ChangeName">Change Name</system:String>

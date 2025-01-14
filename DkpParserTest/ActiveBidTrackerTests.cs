@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ActiveBidTrackerTests.cs Copyright 2024 Craig Gjeltema
+// ActiveBidTrackerTests.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParserTest;
@@ -36,10 +36,10 @@ internal sealed class ActiveBidTrackerTests
             LiveAuctionInfo auction = _systemUnderTest.ActiveAuctions.First();
             Assert.That(_systemUnderTest.Bids.Count(), Is.EqualTo(1));
 
-            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction);
+            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction, false);
             Assert.That(highBids.Any(x => x.CharacterBeingBidFor == "Undertree"), Is.True);
 
-            string statusMessage = _systemUnderTest.GetStatusMessage(auction, StatusMarker.SixtySeconds);
+            string statusMessage = _systemUnderTest.GetStatusMessage(auction, StatusMarker.SixtySeconds, false);
             Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 DKP 60s"));
         });
 
@@ -96,11 +96,11 @@ internal sealed class ActiveBidTrackerTests
             LiveAuctionInfo auction = _systemUnderTest.ActiveAuctions.First();
             Assert.That(_systemUnderTest.Bids.Count(), Is.EqualTo(4));
 
-            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction);
+            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction, false);
             Assert.That(highBids.Any(x => x.CharacterBeingBidFor == "Luciania"), Is.True);
             Assert.That(highBids.Any(x => x.CharacterBeingBidFor == "Undertree"), Is.True);
 
-            string statusMessage = _systemUnderTest.GetStatusMessage(auction, StatusMarker.SixtySeconds);
+            string statusMessage = _systemUnderTest.GetStatusMessage(auction, StatusMarker.SixtySeconds, false);
             Assert.That(statusMessage, Is.EqualTo($"/rs :::\u0012123456: Robe of Primal Force\u0012::: Undertree 20 DKP, Luciania 15 DKP 60s"));
         });
 
@@ -164,12 +164,12 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(_systemUnderTest.Bids.Count(), Is.EqualTo(5));
 
             LiveAuctionInfo auctionSpear = _systemUnderTest.ActiveAuctions.First(x => x.ItemName == "Crystalline Spear");
-            ICollection<LiveBidInfo> highBidsSpear = _systemUnderTest.GetHighBids(auctionSpear);
+            ICollection<LiveBidInfo> highBidsSpear = _systemUnderTest.GetHighBids(auctionSpear, false);
             Assert.That(highBidsSpear, Has.Count.EqualTo(1));
             Assert.That(highBidsSpear.Any(x => x.CharacterBeingBidFor == "Cyot"), Is.True);
 
             LiveAuctionInfo auctionRobe = _systemUnderTest.ActiveAuctions.First(x => x.ItemName == "Robe of Primal Force");
-            ICollection<LiveBidInfo> highBidsRobe = _systemUnderTest.GetHighBids(auctionRobe);
+            ICollection<LiveBidInfo> highBidsRobe = _systemUnderTest.GetHighBids(auctionRobe, false);
             Assert.That(highBidsRobe, Has.Count.EqualTo(2));
             Assert.That(highBidsRobe.Any(x => x.CharacterBeingBidFor == "Undertree"), Is.True);
             Assert.That(highBidsRobe.Any(x => x.CharacterBeingBidFor == "Luciania"), Is.True);
@@ -189,7 +189,7 @@ internal sealed class ActiveBidTrackerTests
             LiveAuctionInfo auction = _systemUnderTest.ActiveAuctions.First();
             Assert.That(_systemUnderTest.Bids.Count(), Is.EqualTo(1));
 
-            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction);
+            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction, false);
             Assert.That(highBids, Has.Count.EqualTo(1));
             LiveBidInfo bid = highBids.First();
             Assert.That(bid.CharacterBeingBidFor, Is.EqualTo("Underpaid"));
@@ -247,7 +247,7 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(bid.CharacterBeingBidFor, Is.EqualTo("Krizzy"));
             Assert.That(bid.Channel, Is.EqualTo(EqChannel.Raid));
 
-            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction);
+            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction, false);
             Assert.That(highBids, Has.Count.EqualTo(1));
             Assert.That(highBids.First(), Is.SameAs(bid));
         });
@@ -259,7 +259,7 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(_systemUnderTest.Bids.Count(), Is.EqualTo(1));
 
             LiveAuctionInfo auction = _systemUnderTest.ActiveAuctions.First();
-            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction);
+            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction, false);
             Assert.That(highBids, Has.Count.EqualTo(1));
         });
 
@@ -275,7 +275,7 @@ internal sealed class ActiveBidTrackerTests
             Assert.That(bid.CharacterBeingBidFor, Is.EqualTo("Cyot"));
             Assert.That(bid.Channel, Is.EqualTo(EqChannel.Raid));
 
-            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction);
+            ICollection<LiveBidInfo> highBids = _systemUnderTest.GetHighBids(auction, false);
             Assert.That(highBids, Has.Count.EqualTo(1));
             Assert.That(highBids.First(), Is.SameAs(bid));
         });

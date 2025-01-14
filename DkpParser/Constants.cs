@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// Constants.cs Copyright 2024 Craig Gjeltema
+// Constants.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -76,6 +76,7 @@ public static class Constants
     public const string RaidYou = "You tell your raid, '";
     public const string RaidYouSearch = $"] {RaidYou}";
     public const string Remove = "REMOVE";
+    public const string RollWin = "WINS";
     public const string Rot = "ROT";
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
     public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";

@@ -1,10 +1,8 @@
 ﻿// -----------------------------------------------------------------------
-// ActiveAuctionEndAnalyzer.cs Copyright 2024 Craig Gjeltema
+// ActiveAuctionEndAnalyzer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.LiveTracking;
-
-using System.Diagnostics;
 
 internal sealed class ActiveAuctionEndAnalyzer
 {
@@ -15,17 +13,45 @@ internal sealed class ActiveAuctionEndAnalyzer
         _dkpSpentAnalyzer = new(errorMessageHandler);
     }
 
-    public LiveSpentCall GetSpentCall(string logLine, EqChannel channel, DateTime timestamp)
+    public LiveSpentCall GetSpentCall(string logLineNoTimestamp, EqChannel channel, DateTime timestamp)
     {
-        if (!logLine.Contains(Constants.PossibleErrorDelimiter))
+        if (!logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter))
             return null;
 
-        bool isRot = logLine.Contains(Constants.Rot);
-        bool isSpent = logLine.Contains(Constants.DkpSpent);
+        if (logLineNoTimestamp.EndsWith(Constants.RollWin + "'"))
+        {
+            // $"{channel} :::{itemLink}::: {spentCall.Winner} rolled {spentCall.DkpSpent} WINS"
+            string[] parts = logLineNoTimestamp.Split(Constants.AttendanceDelimiter);
+            if (parts.Length != 3)
+                return null;
+
+            string itemName = parts[1];
+            string[] remainingParts = parts[2].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (remainingParts.Length != 4)
+                return null;
+
+            string winner = remainingParts[0];
+            string winningRollString = remainingParts[2];
+            if (!int.TryParse(winningRollString, out int winningRoll))
+                return null;
+
+            return new LiveSpentCall
+            {
+                Timestamp = timestamp,
+                Channel = channel,
+                ItemName = itemName,
+                DkpSpent = winningRoll,
+                Winner = winner,
+                IsRemoveCall = false
+            };
+        }
+
+        bool isRot = logLineNoTimestamp.Contains(Constants.Rot);
+        bool isSpent = logLineNoTimestamp.Contains(Constants.DkpSpent);
         if (!isSpent && !isRot)
             return null;
 
-        DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLine, channel, timestamp);
+        DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLineNoTimestamp, channel, timestamp);
         if (dkpEntry == null)
             return null;
 
@@ -37,35 +63,7 @@ internal sealed class ActiveAuctionEndAnalyzer
             ItemName = dkpEntry.Item,
             DkpSpent = dkpEntry.DkpSpent,
             Winner = dkpEntry.PlayerName,
-            IsRemoveCall = logLine.Contains(" " + Constants.Remove)
+            IsRemoveCall = logLineNoTimestamp.Contains(" " + Constants.Remove)
         };
     }
-}
-
-[DebuggerDisplay("{DebugText,nq}")]
-public sealed class LiveSpentCall
-{
-    public string Auctioneer { get; init; }
-
-    public LiveAuctionInfo AuctionStart { get; set; }
-
-    public EqChannel Channel { get; init; }
-
-    public string CharacterPlacingBid { get; set; }
-
-    public int DkpSpent { get; init; }
-
-    public bool IsRemoveCall { get; init; }
-
-    public string ItemName { get; init; }
-
-    public DateTime Timestamp { get; init; }
-
-    public string Winner { get; init; }
-
-    private string DebugText
-        => $"{Timestamp:HH:mm} {ItemName} {Winner} {DkpSpent}";
-
-    public override string ToString()
-        => $"{Channel} {Constants.AttendanceDelimiter}{ItemName}{Constants.AttendanceDelimiter} {Winner} {DkpSpent} {Constants.DkpSpent}";
 }

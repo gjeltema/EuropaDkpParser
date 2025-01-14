@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// LiveLogTrackingViewModel.cs Copyright 2024 Craig Gjeltema
+// LiveLogTrackingViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -32,6 +32,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private bool _incrementRaidNameOnNextReminder = true;
     private string _itemLinkIdToAdd;
     private DispatcherTimer _killCallReminderTimer;
+    private bool _lowRollWins;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private bool _remindAttendances;
     private LiveAuctionDisplay _selectedActiveAuction;
@@ -138,6 +139,12 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     }
 
     public ICollection<string> LogFileNames { get; }
+
+    public bool LowRollWins
+    {
+        get => _lowRollWins;
+        set => SetProperty(ref _lowRollWins, value);
+    }
 
     public DelegateCommand ReactivateCompletedAuctionCommand { get; }
 
@@ -429,7 +436,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private void SetAuctionStatusMessage()
     {
         StatusMarker marker = _activeBidTracker.GetStatusMarkerFromSelectionString(CurrentStatusMarker);
-        AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction?.Auction, marker);
+        AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction?.Auction, marker, LowRollWins);
     }
 
     private void SetReminderForAttendances()
@@ -473,9 +480,9 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
             UpdateBidsListing(selectedCurrentBid);
 
-            HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction.Auction));
+            HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction.Auction, LowRollWins));
 
-            SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(SelectedActiveAuction.Auction);
+            SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(SelectedActiveAuction.Auction, LowRollWins);
             if (selectedSpent != null)
             {
                 SuggestedSpentCall matchingSpent = SpentMessagesToPaste.FirstOrDefault(x => x.Winner == selectedSpent.Winner
@@ -615,6 +622,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     string ItemLinkIdToAdd { get; set; }
 
     ICollection<string> LogFileNames { get; }
+
+    bool LowRollWins { get; set; }
 
     DelegateCommand ReactivateCompletedAuctionCommand { get; }
 

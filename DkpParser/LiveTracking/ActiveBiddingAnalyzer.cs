@@ -1,17 +1,19 @@
 ﻿// -----------------------------------------------------------------------
-// ActiveBiddingAnalyzer.cs Copyright 2024 Craig Gjeltema
+// ActiveBiddingAnalyzer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.LiveTracking;
 
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 internal sealed partial class ActiveBiddingAnalyzer
 {
+    private const string MagicDieMessage = "**A Magic Die is rolled by ";
     private const int MinimumCharacterNameLength = 4;
+    private const string RollResultMessage = "**It could have been any number from ";
     private readonly Regex _findDigits = FindDigitsRegex();
     private readonly IDkpParserSettings _settings;
+    private MagicDieRollMessage _currentMagicMessage = null;
 
     public ActiveBiddingAnalyzer(IDkpParserSettings settings)
     {
@@ -76,6 +78,57 @@ internal sealed partial class ActiveBiddingAnalyzer
         };
     }
 
+    public LiveBidInfo GetRollInfo(string logLineNoTimestamp, DateTime timestamp, IEnumerable<LiveAuctionInfo> activeAuctions)
+    {
+        // **A Magic Die is rolled by Marak.
+        // **It could have been any number from 0 to 100, but this time it turned up a 97.
+
+        if (_currentMagicMessage != null && _currentMagicMessage.Timestamp < timestamp.AddSeconds(-2))
+            _currentMagicMessage = null;
+
+        bool isMagicMessage = logLineNoTimestamp.StartsWith(MagicDieMessage);
+        if (isMagicMessage)
+        {
+            string characterName = logLineNoTimestamp[MagicDieMessage.Length..^1];
+            _currentMagicMessage = new MagicDieRollMessage { CharacterName = characterName, Timestamp = timestamp };
+            return null;
+        }
+        else if (_currentMagicMessage != null && logLineNoTimestamp.StartsWith(RollResultMessage))
+        {
+            string messageAfterPreamble = logLineNoTimestamp[RollResultMessage.Length..^1];
+            string[] messageParts = messageAfterPreamble.Split(' ');
+            if (messageParts.Length != 11)
+                return null;
+
+            string randNumberRaw = messageParts[2].Replace(",", string.Empty);
+            if (!int.TryParse(randNumberRaw, out int randNumber))
+                return null;
+
+            string rollResultRaw = messageParts[messageParts.Length - 1];
+            if (!int.TryParse(rollResultRaw, out int rollResult))
+                return null;
+
+            LiveAuctionInfo parentAuction = activeAuctions.FirstOrDefault(x => x.IsRoll && x.TotalNumberOfItems == randNumber);
+            if (parentAuction == null)
+                return null;
+
+            parentAuction.HasNewBidsAdded = true;
+            return new LiveBidInfo
+            {
+                Timestamp = timestamp,
+                Channel = parentAuction.Channel,
+                ParentAuctionId = parentAuction.Id,
+                CharacterPlacingBid = _currentMagicMessage.CharacterName,
+                CharacterBeingBidFor = _currentMagicMessage.CharacterName,
+                ItemName = parentAuction.ItemName,
+                BidAmount = rollResult,
+                IsRoll = true
+            };
+        }
+
+        return null;
+    }
+
     [GeneratedRegex("\\d+", RegexOptions.Compiled)]
     private static partial Regex FindDigitsRegex();
 
@@ -84,70 +137,11 @@ internal sealed partial class ActiveBiddingAnalyzer
         Match m = _findDigits.Match(text);
         return int.TryParse(m.Value, out int result) ? result : 0;
     }
-}
 
-[DebuggerDisplay("{DebugText,nq}")]
-public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
-{
-    public int BidAmount { get; init; }
-
-    public EqChannel Channel { get; init; }
-
-    public string CharacterBeingBidFor { get; set; }
-
-    public bool CharacterNotOnDkpServer { get; set; }
-
-    public string CharacterPlacingBid { get; init; }
-
-    public string ItemName { get; init; }
-
-    public int ParentAuctionId { get; init; }
-
-    public DateTime Timestamp { get; init; }
-
-    private string DebugText
-        => $"{Timestamp:HH:mm:ss} {ParentAuctionId} {ItemName} {CharacterBeingBidFor} {BidAmount}";
-
-    public static bool operator ==(LiveBidInfo left, LiveBidInfo right)
-        => Equals(left, right);
-
-    public static bool operator !=(LiveBidInfo left, LiveBidInfo right)
-        => !Equals(left, right);
-
-    public static bool Equals(LiveBidInfo left, LiveBidInfo right)
+    private sealed class MagicDieRollMessage
     {
-        if (ReferenceEquals(left, right))
-            return true;
+        public string CharacterName { get; init; }
 
-        if (left is null || right is null)
-            return false;
-
-        if (left.ParentAuctionId != right.ParentAuctionId)
-            return false;
-
-        if (left.BidAmount != right.BidAmount)
-            return false;
-
-        if (left.ItemName != right.ItemName)
-            return false;
-
-        if (!left.CharacterBeingBidFor.Equals(right.CharacterBeingBidFor, StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        return true;
+        public DateTime Timestamp { get; init; }
     }
-
-    public override bool Equals(object other)
-        => Equals(this, other as LiveBidInfo);
-
-    public bool Equals(LiveBidInfo other)
-        => Equals(this, other);
-
-    public override int GetHashCode()
-        => ParentAuctionId.GetHashCode() ^ BidAmount.GetHashCode() ^ ItemName.GetHashCode() ^ CharacterBeingBidFor.ToUpper().GetHashCode();
-
-    public override string ToString()
-        => CharacterNotOnDkpServer
-        ? $"{Timestamp:HH:mm:ss} {ItemName} {CharacterBeingBidFor} {BidAmount} NOT ON SERVER"
-        : $"{Timestamp:HH:mm:ss} {ItemName} {CharacterBeingBidFor} {BidAmount}";
 }

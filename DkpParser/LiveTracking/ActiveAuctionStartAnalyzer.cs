@@ -1,22 +1,106 @@
 ﻿// -----------------------------------------------------------------------
-// ActiveAuctionStartAnalyzer.cs Copyright 2024 Craig Gjeltema
+// ActiveAuctionStartAnalyzer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.LiveTracking;
 
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 internal sealed partial class ActiveAuctionStartAnalyzer
 {
     private readonly Regex _findMultipleItemsMarker = MultipleItemsAuctionedRegex();
+    private readonly Regex _findNumbers = NumbersRegex();
     private readonly DelimiterStringSanitizer _sanitizer = new();
 
     public ICollection<LiveAuctionInfo> GetAuctionStart(string logLine, EqChannel channel, DateTime timeStamp)
     {
-        if (!logLine.Contains("OPEN"))
-            return [];
+        if (logLine.Contains("OPEN"))
+        {
+            return HandleOpen(logLine, channel, timeStamp);
+        }
+        else if (logLine.Contains("ROLL"))
+        {
+            return HandleRoll(logLine, channel, timeStamp);
+        }
 
+        return [];
+    }
+
+    [GeneratedRegex("x\\d", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
+    private static partial Regex MultipleItemsAuctionedRegex();
+
+    [GeneratedRegex("\\d+", RegexOptions.Compiled)]
+    private static partial Regex NumbersRegex();
+
+    private string GetAuctioneerName(string logLine)
+    {
+        int indexOfSpace = logLine.IndexOf(' ');
+        if (indexOfSpace < 3)
+            return string.Empty;
+
+        string auctioneerName = logLine[0..indexOfSpace].Trim();
+        return auctioneerName;
+    }
+
+    private int GetEndIndex(string logLine, string searchString)
+    {
+        int indexOfStart = logLine.IndexOf(searchString);
+        if (indexOfStart < 0)
+            return -1;
+
+        return indexOfStart + searchString.Length;
+    }
+
+    private int GetEndIndexOfChannelMessage(string logLine, string youTold, string otherTold)
+    {
+        int indexOfEnd = GetEndIndex(logLine, youTold);
+        if (indexOfEnd >= 0)
+            return indexOfEnd;
+
+        indexOfEnd = GetEndIndex(logLine, otherTold);
+        if (indexOfEnd >= 0)
+            return indexOfEnd;
+
+        return -1;
+    }
+
+    private int GetIndexOfEndOfMessagePreamble(string logLine, EqChannel channel)
+        => channel switch
+        {
+            EqChannel.Raid => GetEndIndexOfChannelMessage(logLine, Constants.RaidYou, Constants.RaidOtherFull),
+            EqChannel.Guild => GetEndIndexOfChannelMessage(logLine, Constants.GuildYou, Constants.GuildOther),
+            EqChannel.Ooc => GetEndIndexOfChannelMessage(logLine, Constants.OocYou, Constants.OocOther),
+            EqChannel.Auction => GetEndIndexOfChannelMessage(logLine, Constants.AuctionYou, Constants.AuctionOther),
+            _ => -1,
+        };
+
+    private int GetMultiplier(string logLine)
+    {
+        Match m = _findMultipleItemsMarker.Match(logLine);
+        string fullMatch = m.Value;
+        string multiplierAsText = fullMatch.Replace("x", "").Replace("X", "");
+        if (int.TryParse(multiplierAsText, out int multiplier))
+        {
+            return multiplier;
+        }
+
+        return 1;
+    }
+
+    private int GetRandNumber(string logLine)
+    {
+        Match m = _findNumbers.Match(logLine);
+        string fullMatch = m.Value;
+        if (int.TryParse(fullMatch, out int randNumber))
+        {
+            return randNumber;
+        }
+
+        return -1;
+    }
+
+    private ICollection<LiveAuctionInfo> HandleOpen(string logLine, EqChannel channel, DateTime timeStamp)
+    {
         int multiplier = GetMultiplier(logLine);
         string auctioneerName = GetAuctioneerName(logLine);
 
@@ -40,7 +124,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
         else
         {
             int startIndex = GetIndexOfEndOfMessagePreamble(logLine, channel);
-            if (startIndex < 0)
+            if (startIndex < 10)
                 return [];
 
             int endIndex = logLine.Length - 2;
@@ -93,119 +177,31 @@ internal sealed partial class ActiveAuctionStartAnalyzer
         return [];
     }
 
-    [GeneratedRegex("x\\d", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
-    private static partial Regex MultipleItemsAuctionedRegex();
-
-    private string GetAuctioneerName(string logLine)
+    private ICollection<LiveAuctionInfo> HandleRoll(string logLine, EqChannel channel, DateTime timeStamp)
     {
-        int indexOfSpace = logLine.IndexOf(' ');
+        // You tell your raid, 'Runed Bolster Belt 333 ROLL'
+        int randNumber = GetRandNumber(logLine);
+        if (randNumber < 1)
+            return [];
 
-        string auctioneerName = logLine[0..indexOfSpace].Trim();
-        return auctioneerName;
+        string auctioneerName = GetAuctioneerName(logLine);
+        int startIndex = GetIndexOfEndOfMessagePreamble(logLine, channel);
+        int endIndex = logLine.IndexOf(randNumber.ToString());
+
+        // 10 is at least the length of the preamble message, and 6 is the length of ROLL + space + at least 1 digit + space
+        if (startIndex < 10 || endIndex < startIndex || endIndex > (logLine.Length - 7))
+            return [];
+
+        string randName = logLine[startIndex..endIndex].Trim();
+
+        return [new LiveAuctionInfo
+            {
+                Timestamp = timeStamp,
+                Channel = channel,
+                Auctioneer = auctioneerName,
+                ItemName = randName,
+                TotalNumberOfItems = randNumber,
+                IsRoll = true
+            }];
     }
-
-    private int GetEndIndex(string logLine, string searchString)
-    {
-        int indexOfStart = logLine.IndexOf(searchString);
-        if (indexOfStart < 0)
-            return -1;
-
-        return indexOfStart + searchString.Length;
-    }
-
-    private int GetEndIndexOfChannelMessage(string logLine, string youTold, string otherTold)
-    {
-        int indexOfEnd = GetEndIndex(logLine, youTold);
-        if (indexOfEnd >= 0)
-            return indexOfEnd;
-
-        indexOfEnd = GetEndIndex(logLine, otherTold);
-        if (indexOfEnd >= 0)
-            return indexOfEnd;
-
-        return -1;
-    }
-
-    private int GetIndexOfEndOfMessagePreamble(string logLine, EqChannel channel)
-        => channel switch
-        {
-            EqChannel.Raid => GetEndIndexOfChannelMessage(logLine, Constants.RaidYou, Constants.RaidOtherFull),
-            EqChannel.Guild => GetEndIndexOfChannelMessage(logLine, Constants.GuildYou, Constants.GuildOther),
-            EqChannel.Ooc => GetEndIndexOfChannelMessage(logLine, Constants.OocYou, Constants.OocOther),
-            EqChannel.Auction => GetEndIndexOfChannelMessage(logLine, Constants.AuctionYou, Constants.AuctionOther),
-            _ => -1,
-        };
-
-    private int GetMultiplier(string logLine)
-    {
-        Match m = _findMultipleItemsMarker.Match(logLine);
-        string fullMatch = m.Value;
-        string multiplierAsText = fullMatch.Replace("x", "").Replace("X", "");
-        if (int.TryParse(multiplierAsText, out int multiplier))
-        {
-            return multiplier;
-        }
-
-        return 1;
-    }
-}
-
-[DebuggerDisplay("{DebugText,nq}")]
-public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
-{
-    private static int currentId = 1;
-
-    public LiveAuctionInfo()
-    {
-        Id = currentId++;
-    }
-
-    public string Auctioneer { get; init; }
-
-    public EqChannel Channel { get; init; }
-
-    public bool HasNewBidsAdded { get; set; }
-
-    public int Id { get; }
-
-    public string ItemName { get; init; }
-
-    public DateTime Timestamp { get; init; }
-
-    public int TotalNumberOfItems { get; set; }
-
-    private string DebugText
-        => $"{Timestamp:HH:mm} {Id} {ItemName} {Auctioneer} {TotalNumberOfItems} items";
-
-    public static bool operator ==(LiveAuctionInfo a, LiveAuctionInfo b)
-        => Equals(a, b);
-
-    public static bool operator !=(LiveAuctionInfo a, LiveAuctionInfo b)
-        => !Equals(a, b);
-
-    public static bool Equals(LiveAuctionInfo a, LiveAuctionInfo b)
-    {
-        if (a is null && b is null)
-            return true;
-
-        if (a is null || b is null)
-            return false;
-
-        if (a.ItemName != b.ItemName)
-            return false;
-
-        return true;
-    }
-
-    public override bool Equals(object obj)
-        => Equals(obj as LiveAuctionInfo);
-
-    public bool Equals(LiveAuctionInfo other)
-        => Equals(this, other);
-
-    public override int GetHashCode()
-        => ItemName.GetHashCode();
-
-    public override string ToString()
-        => $"{Timestamp:HH:mm} {ItemName} {Auctioneer} {(TotalNumberOfItems > 1 ? "x" + TotalNumberOfItems.ToString() : "")}";
 }

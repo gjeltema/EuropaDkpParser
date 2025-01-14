@@ -223,7 +223,10 @@
         </Grid>
 
         <Grid Grid.Row="1" Margin="0,5,0,0">
-            <CheckBox IsChecked="{Binding RemindAttendances}" Content="{StaticResource RemindAttendances}"/>
+            <StackPanel Orientation="Horizontal">
+                <CheckBox IsChecked="{Binding RemindAttendances}" Content="{StaticResource RemindAttendances}"/>
+                <CheckBox IsChecked="{Binding LowRollWins}" Content="{StaticResource LowRollWins}" Margin="20,0,0,0"/>
+            </StackPanel>
         </Grid>
 
         <!-- File path -->
