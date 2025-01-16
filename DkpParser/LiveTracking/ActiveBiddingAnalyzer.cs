@@ -22,16 +22,32 @@ internal sealed partial class ActiveBiddingAnalyzer
 
     public LiveBidInfo GetBidInformation(string logLine, EqChannel channel, DateTime timestamp, IEnumerable<LiveAuctionInfo> activeAuctions)
     {
-        int indexOfFirstSpace = logLine.IndexOf(' ');
-        string bidderName = logLine[0..indexOfFirstSpace].NormalizeName();
+        // Jeplante tells the raid,  'Left Eye of Xygoz Jeplante 1 dkp'
+        // Futtrup tells the raid,  'Left Eye of Xygoz - psychoblast - 50 dkp'
+        // Zygon tells the raid,  'Left Eye of Xygoz zygon 60 dkp'
+        // Aknok tells the raid,  'Eye of Xygoz Aknok 10 DKP'
+        // Futtrup tells the raid,  'Left Eye of Xygoz - psychoblast - 70 dkp'
+        // Tepla tells the raid,  ':::Left Eye of Xygoz::: Psychoblast 70dkp 15sec '
+        // Tepla tells the raid,  ':::Left Eye of Xygoz::: Psychoblast 70 SPENT '
+        // Tepla tells the raid,  ':::Eye of Xygoz::: Aknok 10dkp 15sec '
+        // Tepla tells the raid,  ':::Eye of Xygoz::: Aknok 10 SPENT '
 
-        LiveAuctionInfo relatedAuction = activeAuctions.FirstOrDefault(x => logLine.Contains(x.ItemName));
+        // Only way to differentiate between a status call and an actual bid at this point
+        if (logLine.Contains(Constants.PossibleErrorDelimiter)
+            && (logLine.Contains("60s") || logLine.Contains("30s") || logLine.Contains("10s") || logLine.Contains("COMPLETED")))
+            return null;
+
+        // OrderByDescending to handle the (Left) Eye of Xygoz issue, where people bidding on Left Eye of Xygoz would have
+        // their bids get lumped under the Eye of Xygoz auction if both items dropped.
+        LiveAuctionInfo relatedAuction = activeAuctions
+            .OrderByDescending(x => x.ItemName.Length)
+            .FirstOrDefault(x => logLine.Contains(x.ItemName));
+
         if (relatedAuction == null)
             return null;
 
-        // Only way to differentiate between a status call and an actual bid at this point
-        if (logLine.Contains("60s") || logLine.Contains("30s") || logLine.Contains("10s") || logLine.Contains("COMPLETED"))
-            return null;
+        int indexOfFirstSpace = logLine.IndexOf(' ');
+        string bidderName = logLine[0..indexOfFirstSpace].NormalizeName();
 
         string itemName = relatedAuction.ItemName;
         if (itemName == null)
