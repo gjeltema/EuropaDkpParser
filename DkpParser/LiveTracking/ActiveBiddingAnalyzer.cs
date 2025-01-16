@@ -65,6 +65,8 @@ internal sealed partial class ActiveBiddingAnalyzer
 
         bool characterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(characterBeingBidFor);
         relatedAuction.HasNewBidsAdded = true;
+        relatedAuction.HasBids = true;
+
         return new LiveBidInfo
         {
             Timestamp = timestamp,
@@ -113,6 +115,8 @@ internal sealed partial class ActiveBiddingAnalyzer
                 return null;
 
             parentAuction.HasNewBidsAdded = true;
+            parentAuction.HasBids = true;
+
             return new LiveBidInfo
             {
                 Timestamp = timestamp,

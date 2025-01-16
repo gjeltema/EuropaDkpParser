@@ -20,6 +20,8 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
 
     public EqChannel Channel { get; init; }
 
+    public bool HasBids { get; set; }
+
     public bool HasNewBidsAdded { get; set; }
 
     public int Id { get; }
@@ -80,8 +82,8 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
 
     public override string ToString()
         => IsRoll
-        ? $"{Timestamp:HH:mm} {ItemName} {Auctioneer} roll: {TotalNumberOfItems}"
-        : $"{Timestamp:HH:mm} {ItemName} {Auctioneer} {(TotalNumberOfItems > 1 ? "x" + TotalNumberOfItems.ToString() : "")}";
+        ? $"{Timestamp:HH:mm} {ItemName} {Auctioneer} roll: {TotalNumberOfItems}{(HasBids ? "*" : "")}"
+        : $"{Timestamp:HH:mm} {ItemName} {Auctioneer} {(TotalNumberOfItems > 1 ? "x" + TotalNumberOfItems.ToString() : "")}{(HasBids ? "*" : "")}";
 }
 
 [DebuggerDisplay("{DebugText,nq}")]
