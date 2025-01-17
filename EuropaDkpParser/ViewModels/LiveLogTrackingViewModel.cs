@@ -18,6 +18,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly IDialogFactory _dialogFactory;
     private readonly IDkpDataRetriever _dkpDataRetriever;
+    private readonly IOverlayFactory _overlayFactory;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
@@ -42,10 +43,11 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private SuggestedSpentCall _selectedSpentMessageToPaste;
     private ICollection<SuggestedSpentCall> _spentMessagesToPaste;
 
-    public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
+    public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
     {
         _settings = settings;
         _dialogFactory = dialogFactory;
+        _overlayFactory = overlayFactory;
 
         _dkpDataRetriever = new DkpDataRetriever(settings);
         _activeBidTracker = new(settings, new TailFile());

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// App.xaml.cs Copyright 2024 Craig Gjeltema
+// App.xaml.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser;
@@ -58,9 +58,10 @@ public partial class App : Application
         }
 
         DialogFactory dialogFactory = new(new DialogViewFactory());
+        OverlayFactory overlayFactory = new(new OverlayViewFactory());
         MessageDialog.Initialize(dialogFactory);
 
-        var shellViewModel = new ShellViewModel(_settings, dialogFactory);
+        var shellViewModel = new ShellViewModel(_settings, dialogFactory, overlayFactory);
         _shellView = new ShellView(shellViewModel);
         MainWindow = _shellView;
         MainWindow.Show();

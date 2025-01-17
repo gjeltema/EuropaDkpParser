@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ShellViewModel.cs Copyright 2024 Craig Gjeltema
+// ShellViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -12,7 +12,7 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
     private int _windowLocationX;
     private int _windowLocationY;
 
-    internal ShellViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
+    internal ShellViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
     {
         TitleText = Strings.GetString("MainWindowTitleText") + " " + Strings.GetString("Version");
 
@@ -20,7 +20,7 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
         if (UseAdvancedDialog)
             MainDisplayVM = new MainDisplayViewModel(settings, dialogFactory);
         else
-            SimpleStartDisplayVM = new SimpleStartDisplayViewModel(settings, dialogFactory);
+            SimpleStartDisplayVM = new SimpleStartDisplayViewModel(settings, dialogFactory, overlayFactory);
 
         WindowLocationX = settings.MainWindowX;
         WindowLocationY = settings.MainWindowY;

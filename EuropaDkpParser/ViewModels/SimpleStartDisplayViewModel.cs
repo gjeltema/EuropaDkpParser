@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// SimpleStartDisplayViewModel.cs Copyright 2024 Craig Gjeltema
+// SimpleStartDisplayViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -17,14 +17,16 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 {
     private readonly IDialogFactory _dialogFactory;
     private readonly DkpLogGenerator _logGenerator;
+    private readonly IOverlayFactory _overlayFactory;
     private readonly IDkpParserSettings _settings;
     private bool _ableToUpload;
     private ILiveLogTrackingViewModel _biddingDialogVM;
 
-    internal SimpleStartDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory)
+    internal SimpleStartDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
     {
         _settings = settings;
         _dialogFactory = dialogFactory;
+        _overlayFactory = overlayFactory;
 
         OpenSettingsCommand = new DelegateCommand(OpenSettingsDialog);
         OpenArchiveFilesCommand = new DelegateCommand(OpenArchiveFilesDialog);
@@ -69,7 +71,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private void OpenBiddingTrackerDialog()
     {
-        _biddingDialogVM = new LiveLogTrackingViewModel(_settings, _dialogFactory);
+        _biddingDialogVM = new LiveLogTrackingViewModel(_settings, _dialogFactory, _overlayFactory);
         Window biddingWindow = new LiveLogTrackingView(_biddingDialogVM);
         biddingWindow.Closing += HandleClosingBiddingWindow;
         biddingWindow.Show();

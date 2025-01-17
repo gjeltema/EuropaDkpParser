@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DialogViewModelBase.cs Copyright 2024 Craig Gjeltema
+// DialogViewModelBase.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -10,10 +10,11 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
 {
     private bool? _dialogResult;
     private string _title;
+    private IDialogViewFactory _viewFactory;
 
     protected DialogViewModelBase(IDialogViewFactory viewFactory)
     {
-        ViewFactory = viewFactory;
+        _viewFactory = viewFactory;
         CloseOkCommand = new DelegateCommand(CloseOk, CloseOkCanExecute);
         CloseCancelCommand = new DelegateCommand(CloseCancel);
     }
@@ -38,8 +39,6 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
 
     public int Width { get; set; } = 700;
 
-    protected IDialogViewFactory ViewFactory { get; private set; }
-
     public void CloseCancel()
         => DialogResult = false;
 
@@ -52,9 +51,9 @@ internal abstract class DialogViewModelBase : EuropaViewModelBase, IDialogViewMo
     protected virtual bool CloseOkCanExecute()
         => true;
 
-    protected bool? CreateAndShowDialog()
+    private bool? CreateAndShowDialog()
     {
-        IDialogView view = ViewFactory.CreateDialogView(this);
+        IDialogView view = _viewFactory.CreateDialogView(this);
         view.Height = Height;
         view.Width = Width;
         return view.ShowDialog();
