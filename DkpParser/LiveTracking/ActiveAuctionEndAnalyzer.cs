@@ -13,20 +13,20 @@ internal sealed class ActiveAuctionEndAnalyzer
         _dkpSpentAnalyzer = new(errorMessageHandler);
     }
 
-    public LiveSpentCall GetSpentCall(string logLineNoTimestamp, EqChannel channel, DateTime timestamp)
+    public LiveSpentCall GetSpentCall(string messageFromPlayer, EqChannel channel, DateTime timestamp, string messageSenderName)
     {
-        if (!logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter))
+        if (!messageFromPlayer.Contains(Constants.PossibleErrorDelimiter))
             return null;
 
-        if (logLineNoTimestamp.EndsWith(Constants.RollWin + "'"))
+        if (messageFromPlayer.EndsWith(Constants.RollWin))
         {
             // $"{channel} :::{itemLink}::: {spentCall.Winner} rolled {spentCall.DkpSpent} WINS"
-            string[] parts = logLineNoTimestamp.Split(Constants.AttendanceDelimiter);
-            if (parts.Length != 3)
+            string[] parts = messageFromPlayer.Split(Constants.AttendanceDelimiter, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2)
                 return null;
 
-            string itemName = parts[1];
-            string[] remainingParts = parts[2].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string itemName = parts[0];
+            string[] remainingParts = parts[1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (remainingParts.Length != 4)
                 return null;
 
@@ -46,12 +46,12 @@ internal sealed class ActiveAuctionEndAnalyzer
             };
         }
 
-        bool isRot = logLineNoTimestamp.Contains(Constants.Rot);
-        bool isSpent = logLineNoTimestamp.Contains(Constants.DkpSpent);
+        bool isRot = messageFromPlayer.Contains(Constants.Rot);
+        bool isSpent = messageFromPlayer.Contains(Constants.DkpSpent);
         if (!isSpent && !isRot)
             return null;
 
-        DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLineNoTimestamp, channel, timestamp);
+        DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(messageFromPlayer, channel, timestamp, messageSenderName);
         if (dkpEntry == null)
             return null;
 
@@ -63,7 +63,7 @@ internal sealed class ActiveAuctionEndAnalyzer
             ItemName = dkpEntry.Item,
             DkpSpent = dkpEntry.DkpSpent,
             Winner = dkpEntry.PlayerName,
-            IsRemoveCall = logLineNoTimestamp.Contains(" " + Constants.Remove)
+            IsRemoveCall = messageFromPlayer.Contains(" " + Constants.Remove)
         };
     }
 }

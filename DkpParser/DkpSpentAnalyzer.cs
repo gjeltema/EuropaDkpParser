@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpSpentAnalyzer.cs Copyright 2024 Craig Gjeltema
+// DkpSpentAnalyzer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -17,73 +17,62 @@ internal sealed partial class DkpSpentAnalyzer
         _errorMessageHandler = errorMessageHandler;
     }
 
-    public DkpEntry ExtractDkpSpentInfo(string logLine, EqChannel channel, DateTime timestamp)
+    public DkpEntry ExtractDkpSpentInfo(string messageFromSender, EqChannel channel, DateTime timestamp, string messageSender)
     {
         // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
         // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
-        logLine = _sanitizer.SanitizeDelimiterString(logLine);
+        messageFromSender = _sanitizer.SanitizeDelimiterString(messageFromSender);
 
-        int indexOfFirstDelimiter = logLine.IndexOf(Constants.AttendanceDelimiter);
-        string auctioneerSection = logLine[0..indexOfFirstDelimiter];
-        int indexOfSpace = auctioneerSection.IndexOf(' ');
-        if (indexOfSpace < 1)
-        {
-            _errorMessageHandler($"Unable to extract pieces from DkpEntry: {logLine}");
-            return new DkpEntry
-            {
-                Timestamp = timestamp,
-                RawLogLine = logLine,
-                Channel = channel,
-                PossibleError = PossibleError.MalformedDkpSpentLine
-            };
-        }
-        string auctioneer = auctioneerSection[..indexOfSpace].ToString();
-
+        int indexOfFirstDelimiter = messageFromSender.IndexOf(Constants.AttendanceDelimiter);
         int startOfItemSectionIndex = indexOfFirstDelimiter + Constants.AttendanceDelimiter.Length;
-        int indexOfSecondDelimiter = logLine[startOfItemSectionIndex..].IndexOf(Constants.AttendanceDelimiter);
-        if (indexOfSecondDelimiter < 1)
-        {
-            _errorMessageHandler($"Unable to extract pieces from DkpEntry: {logLine}");
-            return new DkpEntry
-            {
-                Timestamp = timestamp,
-                RawLogLine = logLine,
-                Channel = channel,
-                Auctioneer = auctioneer,
-                PossibleError = PossibleError.MalformedDkpSpentLine
-            };
-        }
-        string itemName = logLine[startOfItemSectionIndex..][..indexOfSecondDelimiter].Trim();
 
-        ReadOnlySpan<char> playerSection = logLine[(startOfItemSectionIndex + indexOfSecondDelimiter + Constants.AttendanceDelimiter.Length)..].Trim();
-        indexOfSpace = playerSection.IndexOf(' ');
-        if (indexOfSpace < 1)
+        string[] messageParts = messageFromSender[startOfItemSectionIndex..].Split(Constants.AttendanceDelimiter);
+        if (messageParts.Length != 2)
         {
-            _errorMessageHandler($"Unable to extract pieces from DkpEntry: {logLine}");
+            _errorMessageHandler($"Unable to extract pieces from DkpEntry: {messageFromSender}");
             return new DkpEntry
             {
                 Timestamp = timestamp,
-                RawLogLine = logLine,
+                RawLogLine = messageFromSender,
                 Channel = channel,
-                Auctioneer = auctioneer,
-                Item = itemName,
-                PlayerName = ProcessName(playerSection.TrimEnd('\'').Trim().ToString()),
+                Auctioneer = messageSender,
                 PossibleError = PossibleError.MalformedDkpSpentLine
             };
         }
-        string playerName = playerSection[..indexOfSpace].ToString();
+
+        string itemName = messageParts[0].Trim();
+
+        string afterItemSection = messageParts[1].Trim();
+
+        int indexOfSpace = afterItemSection.IndexOf(' ');
+        if (indexOfSpace < 3)
+        {
+            _errorMessageHandler($"Unable to extract pieces from DkpEntry: {messageFromSender}");
+            return new DkpEntry
+            {
+                Timestamp = timestamp,
+                RawLogLine = messageFromSender,
+                Channel = channel,
+                Auctioneer = messageSender,
+                Item = itemName,
+                PlayerName = ProcessName(afterItemSection.TrimEnd('\'').Trim().ToString()),
+                PossibleError = PossibleError.MalformedDkpSpentLine
+            };
+        }
+
+        string playerName = afterItemSection[0..indexOfSpace];
 
         DkpEntry dkpEntry = new()
         {
             PlayerName = ProcessName(playerName),
             Item = itemName,
             Timestamp = timestamp,
-            RawLogLine = logLine,
-            Auctioneer = auctioneer,
+            RawLogLine = messageFromSender,
+            Auctioneer = messageSender,
             Channel = channel
         };
 
-        string endSection = playerSection[playerName.Length..].ToString();
+        string endSection = afterItemSection[(indexOfSpace + 1)..];
         GetDkpAmount(endSection, dkpEntry);
 
         return dkpEntry;

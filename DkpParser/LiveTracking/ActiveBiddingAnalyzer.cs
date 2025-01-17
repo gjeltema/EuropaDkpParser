@@ -20,7 +20,7 @@ internal sealed partial class ActiveBiddingAnalyzer
         _settings = settings;
     }
 
-    public LiveBidInfo GetBidInformation(string logLine, EqChannel channel, DateTime timestamp, IEnumerable<LiveAuctionInfo> activeAuctions)
+    public LiveBidInfo GetBidInformation(string messageFromPlayer, EqChannel channel, DateTime timestamp, string messageSenderName, IEnumerable<LiveAuctionInfo> activeAuctions)
     {
         // Jeplante tells the raid,  'Left Eye of Xygoz Jeplante 1 dkp'
         // Futtrup tells the raid,  'Left Eye of Xygoz - psychoblast - 50 dkp'
@@ -33,32 +33,29 @@ internal sealed partial class ActiveBiddingAnalyzer
         // Tepla tells the raid,  ':::Eye of Xygoz::: Aknok 10 SPENT '
 
         // Only way to differentiate between a status call and an actual bid at this point
-        if (logLine.Contains(Constants.PossibleErrorDelimiter)
-            && (logLine.Contains("60s") || logLine.Contains("30s") || logLine.Contains("10s") || logLine.Contains("COMPLETED")))
+        if (messageFromPlayer.Contains(Constants.PossibleErrorDelimiter)
+            && (messageFromPlayer.Contains("60s") || messageFromPlayer.Contains("30s") || messageFromPlayer.Contains("10s") || messageFromPlayer.Contains("COMPLETED")))
             return null;
 
         // OrderByDescending to handle the (Left) Eye of Xygoz issue, where people bidding on Left Eye of Xygoz would have
         // their bids get lumped under the Eye of Xygoz auction if both items dropped.
         LiveAuctionInfo relatedAuction = activeAuctions
             .OrderByDescending(x => x.ItemName.Length)
-            .FirstOrDefault(x => logLine.Contains(x.ItemName));
+            .FirstOrDefault(x => messageFromPlayer.Contains(x.ItemName));
 
         if (relatedAuction == null)
             return null;
-
-        int indexOfFirstSpace = logLine.IndexOf(' ');
-        string bidderName = logLine[0..indexOfFirstSpace].NormalizeName();
 
         string itemName = relatedAuction.ItemName;
         if (itemName == null)
             return null;
 
-        int dkpValue = GetDigits(logLine);
+        int dkpValue = GetDigits(messageFromPlayer);
         if (dkpValue < 1)
             return null;
 
-        int endIndexOfItem = logLine.IndexOf(itemName) + itemName.Length;
-        string lineAfterItem = logLine[endIndexOfItem..^1];
+        int endIndexOfItem = messageFromPlayer.IndexOf(itemName) + itemName.Length;
+        string lineAfterItem = messageFromPlayer[endIndexOfItem..];
         lineAfterItem = lineAfterItem
             .Replace(dkpValue.ToString(), "")
             .Replace("DKP", "", StringComparison.OrdinalIgnoreCase)
@@ -68,11 +65,11 @@ internal sealed partial class ActiveBiddingAnalyzer
             .Replace("-", "")
             .Trim();
 
-        string characterBeingBidFor = bidderName;
+        string characterBeingBidFor = messageSenderName;
         string[] lineParts = lineAfterItem.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (lineParts.Length > 0)
         {
-            string characterName = lineParts[0].Trim();
+            string characterName = lineParts[0];
             if (characterName.Length >= MinimumCharacterNameLength)
             {
                 characterBeingBidFor = characterName.NormalizeName();
@@ -89,7 +86,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             Channel = channel,
             ParentAuctionId = relatedAuction.Id,
             CharacterBeingBidFor = characterBeingBidFor,
-            CharacterPlacingBid = bidderName,
+            CharacterPlacingBid = messageSenderName,
             ItemName = itemName,
             BidAmount = dkpValue,
             CharacterNotOnDkpServer = characterNotOnDkpServer

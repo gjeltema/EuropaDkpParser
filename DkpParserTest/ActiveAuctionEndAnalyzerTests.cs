@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ActiveAuctionEndAnalyzerTests.cs Copyright 2024 Craig Gjeltema
+// ActiveAuctionEndAnalyzerTests.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParserTest;
@@ -12,12 +12,12 @@ internal sealed class ActiveAuctionEndAnalyzerTests
 {
     private ActiveAuctionEndAnalyzer _systemUnderTest;
 
-    [TestCase("Balm tells the raid,  ':::Runed Bolster Belt::: ROT'", "Runed Bolster Belt", "Balm")]
-    [TestCase("Galena tells the guild, ':::Shroud of Veeshan::: ROT '", "Shroud of Veeshan", "Galena")]
+    [TestCase(" :::Runed Bolster Belt::: ROT'", "Runed Bolster Belt", "Balm")]
+    [TestCase(":::Shroud of Veeshan::: ROT '", "Shroud of Veeshan", "Galena")]
     public void GetSpentCall_WhenCalledWithRot_ReturnsRotEntry(string logLine, string itemName, string auctioneer)
     {
         DateTime timestamp = DateTime.Now;
-        LiveSpentCall actual = _systemUnderTest.GetSpentCall(logLine, EqChannel.Raid, timestamp);
+        LiveSpentCall actual = _systemUnderTest.GetSpentCall(logLine, EqChannel.Raid, timestamp, auctioneer);
 
         Assert.Multiple(() =>
         {

@@ -268,6 +268,16 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "/rs",
         };
 
+    private string GetMessageSenderName(string logLine)
+    {
+        int indexOfSpace = logLine.IndexOf(' ');
+        if (indexOfSpace < 3)
+            return string.Empty;
+
+        string auctioneerName = logLine[0..indexOfSpace].Trim();
+        return auctioneerName;
+    }
+
     private string GetStatusString(StatusMarker statusMarker)
         => statusMarker switch
         {
@@ -335,11 +345,19 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 HandleBid(rollInfo);
             }
 
-            EqChannel channel = _channelAnalyzer.GetValidDkpChannel(logLineNoTimestamp);
+            EqChannel channel = _channelAnalyzer.GetChannel(logLineNoTimestamp);
             if (channel == EqChannel.None)
                 return;
 
-            ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(logLineNoTimestamp, channel, timestamp);
+            bool isValidDkpChannel = _channelAnalyzer.IsValidDkpChannel(channel);
+            if (!isValidDkpChannel && channel != EqChannel.Group)
+                return;
+
+            string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
+            int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'');
+            string messageFromPlayer = logLineNoTimestamp[(indexOfFirstQuote + 1)..^1].Trim();
+
+            ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(messageFromPlayer, channel, timestamp, messageSenderName);
             if (auctionStarts.Count > 0)
             {
                 ProcessAuctionStart(auctionStarts);
@@ -348,26 +366,29 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 return;
             }
 
-            LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(logLineNoTimestamp, channel, timestamp);
+            LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(messageFromPlayer, channel, timestamp, messageSenderName);
             if (spentCall != null)
             {
                 Updated = ProcessSpentCall(spentCall);
                 return;
             }
 
-            LiveBidInfo bid = _activeBiddingAnalyzer.GetBidInformation(logLineNoTimestamp, channel, timestamp, _activeAuctions);
-            if (bid != null)
+            if (isValidDkpChannel)
             {
-                LiveBidInfo possibleDuplicateBid = _bids.FirstOrDefault(x => x == bid);
-                if (possibleDuplicateBid != null)
+                LiveBidInfo bid = _activeBiddingAnalyzer.GetBidInformation(messageFromPlayer, channel, timestamp, messageSenderName, _activeAuctions);
+                if (bid != null)
                 {
-                    _bids.Remove(possibleDuplicateBid);
+                    LiveBidInfo possibleDuplicateBid = _bids.FirstOrDefault(x => x == bid);
+                    if (possibleDuplicateBid != null)
+                    {
+                        _bids.Remove(possibleDuplicateBid);
+                    }
+
+                    _bids = _bids.Add(bid);
+
+                    Updated = true;
+                    return;
                 }
-
-                _bids = _bids.Add(bid);
-
-                Updated = true;
-                return;
             }
         }
         catch (Exception ex)

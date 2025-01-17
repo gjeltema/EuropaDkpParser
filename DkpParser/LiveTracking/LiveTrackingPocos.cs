@@ -43,7 +43,7 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
     private string DebugText
         => IsRoll
         ? $"{Timestamp:HH:mm} {Id} {ItemName} {Auctioneer} rand {TotalNumberOfItems}"
-        : $"{Timestamp:HH:mm} {Id} {ItemName} {Auctioneer} {TotalNumberOfItems} items";
+        : $"{Timestamp:HH:mm} {Id} {ItemName} {Auctioneer} {TotalNumberOfItems} item(s)";
 
     public static bool operator ==(LiveAuctionInfo a, LiveAuctionInfo b)
         => Equals(a, b);

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// Enums.cs Copyright 2024 Craig Gjeltema
+// Enums.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -17,6 +17,7 @@ public enum EqChannel : byte
     Guild,
     Ooc,
     Auction,
+    Group,
     Shout,
     Say,
     Tell,

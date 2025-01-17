@@ -37,6 +37,8 @@ public static class Constants
     public const string EuropaGuildTag = "<Europa>";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
     public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-eqlog-";
+    public const string GroupOther = " tells the group, '";
+    public const string GroupYou = "You tell your party, '";
     // [Tue Mar 19 20:15:09 2024] Aaeien tells the guild, 'we have 7 rangers and 2 mages... if that helps with the decision-making :)'
     public const string GuildOther = " tells the guild, '";
     public const string GuildYou = "You say to your guild, '";

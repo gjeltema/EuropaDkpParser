@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpEntryAnalyzer.cs Copyright 2024 Craig Gjeltema
+// DkpEntryAnalyzer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -72,14 +72,26 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         {
             entry.Visited = true;
 
-            string logLineNoTimestamp = entry.LogLine[(Constants.LogDateTimeLength + 1)..];
+            string logLineNoTimestamp = entry.LogLine[(Constants.LogDateTimeLength + 1)..^1];
+            string messageSender = GetMessageSenderName(logLineNoTimestamp);
+            if (string.IsNullOrEmpty(messageSender))
+                return null;
 
-            DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLineNoTimestamp, entry.Channel, entry.Timestamp);
+            int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'') + 1;
+            // 12 being a dumb-check value - the "player tells a channel, '" part should be AT LEAST this long
+            // (the actual minimum is definitely higher, but this should catch super odd situations)
+            if (indexOfFirstQuote < 12)
+                return null;
+
+            string logLineAfterQuote = logLineNoTimestamp[indexOfFirstQuote..].Trim();
+
+            DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLineAfterQuote, entry.Channel, entry.Timestamp, messageSender);
+            dkpEntry.RawLogLine = entry.LogLine;
 
             if (dkpEntry.PlayerName == Constants.Rot)
                 return null;
 
-            if (logLineNoTimestamp.IndexOf(Constants.Undo) > 0 || logLineNoTimestamp.IndexOf(Constants.Remove) > 0)
+            if (logLineAfterQuote.IndexOf(Constants.Undo) > 0 || logLineAfterQuote.IndexOf(Constants.Remove) > 0)
             {
                 DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
                 if (toBeRemoved != null)
@@ -113,6 +125,16 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
     {
         Match m = _findDigits.Match(endText);
         return m.Value;
+    }
+
+    private string GetMessageSenderName(string logLine)
+    {
+        int indexOfSpace = logLine.IndexOf(' ');
+        if (indexOfSpace < 3)
+            return string.Empty;
+
+        string auctioneerName = logLine[0..indexOfSpace].Trim();
+        return auctioneerName;
     }
 
     private DkpEntry ProcessPossibleDkpspentCalls(EqLogEntry entry)
