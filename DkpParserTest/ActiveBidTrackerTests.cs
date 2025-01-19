@@ -385,6 +385,14 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public string OutputDirectory { get; set; } = "C:\\";
 
+    public string OverlayFontColor { get; set; }
+
+    public int OverlayFontSize { get; set; }
+
+    public int OverlayLocationX { get; set; }
+
+    public int OverlayLocationY { get; set; }
+
     public IRaidValues RaidValue { get; }
 
     public ICollection<string> SelectedLogFiles { get; set; }

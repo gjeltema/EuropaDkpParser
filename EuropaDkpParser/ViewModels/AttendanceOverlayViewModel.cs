@@ -1,31 +1,31 @@
 ﻿// -----------------------------------------------------------------------
-// ReminderDialogViewModel.cs Copyright 2025 Craig Gjeltema
+// AttendanceOverlayViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
 
 using DkpParser;
-using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
 using Prism.Commands;
 
-internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDialogViewModel
+internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttendanceOverlayViewModel
 {
+    private readonly IDkpParserSettings _settings;
     private readonly List<string> _timeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
             , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call"];
     private string _attendanceName;
-    private int _reminderInterval;
-    private string _reminderText;
-    private int _timeCallIndex = 0;
+    private int _timeCallIndex = -1;
 
-    public ReminderDialogViewModel(IDialogViewFactory viewFactory)
+    public AttendanceOverlayViewModel(IOverlayViewFactory viewFactory, IDkpParserSettings settings)
         : base(viewFactory)
     {
-        Title = Strings.GetString("ReminderDialogTitleText");
-        Height = 220;
-        Width = 400;
+        _settings = settings;
 
-        ReminderInterval = 3;
+        XPos = _settings.OverlayLocationX;
+        YPos = _settings.OverlayLocationY;
+
+        DisplayFontSize = _settings.OverlayFontSize;
+        DisplayColor = _settings.OverlayFontColor;
 
         CopyAttendanceCallCommand = new DelegateCommand(CopyAttendanceCall);
     }
@@ -51,20 +51,14 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
 
     public DelegateCommand CopyAttendanceCallCommand { get; }
 
+    public string DisplayColor { get; }
+
+    public int DisplayFontSize { get; }
+
+    public string DisplayMessage { get; private set; }
+
     public bool IsTimeCall
-        => AttendanceType == AttendanceCallType.Time;
-
-    public int ReminderInterval
-    {
-        get => _reminderInterval;
-        set => SetProperty(ref _reminderInterval, value);
-    }
-
-    public string ReminderText
-    {
-        get => _reminderText;
-        set => SetProperty(ref _reminderText, value);
-    }
+       => AttendanceType == AttendanceCallType.Time;
 
     public ICollection<string> TimeCalls
         => _timeCalls;
@@ -72,22 +66,40 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
     public int GetTimeCallIndex()
         => _timeCallIndex;
 
-    public void SetTimeCallIndex(int timeCallIndex)
+    public void Show(int timeCallIndex)
     {
-        if (timeCallIndex < 0 || timeCallIndex >= TimeCalls.Count)
+        _timeCallIndex = timeCallIndex;
+
+        AttendanceType = AttendanceCallType.Time;
+
+        if (_timeCallIndex > _timeCalls.Count || _timeCallIndex < 0)
             _timeCallIndex = 0;
 
-        _attendanceName = _timeCalls[_timeCallIndex];
+        AttendanceName = _timeCalls[_timeCallIndex];
+
+        DisplayMessage = $"{AttendanceType} attendance:";
+
+        CreateAndShowOverlay();
+    }
+
+    public void Show(string bossName)
+    {
+        AttendanceType = AttendanceCallType.Kill;
+        AttendanceName = bossName;
+        DisplayMessage = $"{AttendanceType} attendance: {AttendanceName}";
+
+        CreateAndShowOverlay();
     }
 
     private void CopyAttendanceCall()
     {
         string message = AttendanceType.GetAttendanceCall(AttendanceName);
         Clip.Copy(message);
+        Close();
     }
 }
 
-public interface IReminderDialogViewModel : IDialogViewModel
+public interface IAttendanceOverlayViewModel : IOverlayViewModel
 {
     string AttendanceName { get; set; }
 
@@ -95,15 +107,19 @@ public interface IReminderDialogViewModel : IDialogViewModel
 
     DelegateCommand CopyAttendanceCallCommand { get; }
 
+    string DisplayColor { get; }
+
+    int DisplayFontSize { get; }
+
+    string DisplayMessage { get; }
+
     bool IsTimeCall { get; }
-
-    int ReminderInterval { get; set; }
-
-    string ReminderText { get; set; }
 
     ICollection<string> TimeCalls { get; }
 
     int GetTimeCallIndex();
 
-    void SetTimeCallIndex(int timeCallIndex);
+    void Show(int timeCallIndex);
+
+    void Show(string bossName);
 }

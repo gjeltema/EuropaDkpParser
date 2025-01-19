@@ -1,20 +1,25 @@
 ﻿// -----------------------------------------------------------------------
-// LiveLogTrackingView.xaml.cs Copyright 2024 Craig Gjeltema
+// LiveLogTrackingView.xaml.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
-namespace EuropaDkpParser.Views
+namespace EuropaDkpParser.Views;
+
+using System.Windows;
+using EuropaDkpParser.ViewModels;
+
+public partial class LiveLogTrackingView : Window
 {
-    using System.Windows;
-    using EuropaDkpParser.ViewModels;
-
-    public partial class LiveLogTrackingView : Window
+    public LiveLogTrackingView(ILiveLogTrackingViewModel liveLogTrackingViewModel)
     {
-        public LiveLogTrackingView(ILiveLogTrackingViewModel liveLogTrackingViewModel)
-        {
-            InitializeComponent();
+        InitializeComponent();
 
-            Owner = Application.Current.MainWindow;
-            DataContext = liveLogTrackingViewModel;
-        }
+        Owner = Application.Current.MainWindow;
+        DataContext = liveLogTrackingViewModel;
+    }
+
+    private void ClosedHandler(object sender, EventArgs e)
+    {
+        ILiveLogTrackingViewModel dc = DataContext as ILiveLogTrackingViewModel;
+        dc?.HandleClosed();
     }
 }

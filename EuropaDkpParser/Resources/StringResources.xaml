@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v2.7.2b</system:String>
+    <system:String x:Key="Version">v2.8b</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -126,6 +126,8 @@
     <system:String x:Key="DkpspentOocEnable">Check /ooc for SPENT calls</system:String>
     <system:String x:Key="GetDkpChars">Get DKP Chars</system:String>
     <system:String x:Key="GetDkpCharsTooltip">Get all characters from the DKP server and store them locally.</system:String>
+    <system:String x:Key="OverlayFontSizeLabel">Overlay Font Size</system:String>
+    <system:String x:Key="OverlayFontColorLabel">Overlay Font Color</system:String>
 
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>
@@ -283,11 +285,16 @@
     <system:String x:Key="SetFile">Set File</system:String>
     <system:String x:Key="GetUserDkp">Get DKP</system:String>
     <system:String x:Key="ChangeName">Change Name</system:String>
+    <system:String x:Key="UseOverlay">Use Overlay</system:String>
+    <system:String x:Key="ShowOverlayForMoving">Show Overlay For Moving</system:String>
 
     <!-- ReminderDialog -->
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>
     <system:String x:Key="TimeAttendanceReminderMessage">Periodic reminder to perform a Time Attendance call.</system:String>
     <system:String x:Key="KillAttendanceReminderMessageFormat">Reminder to perform a Kill Attendance call for: {0}.</system:String>
     <system:String x:Key="CopyAttendanceCall">Copy Attendance</system:String>
+    
+    <!-- Overlays -->
+    <system:String x:Key="OverlayMoveMessage">Drag Me</system:String>
 
 </ResourceDictionary>

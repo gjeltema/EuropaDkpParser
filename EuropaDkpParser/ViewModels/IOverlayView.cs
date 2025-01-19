@@ -12,11 +12,11 @@ public interface IOverlayView
 
     void Close();
 
+    void DisableMove();
+
+    void EnableMove();
+
     void Hide();
 
-    void HideBorder();
-
     void Show();
-
-    void ShowBorder();
 }

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ValueConverters.cs Copyright 2024 Craig Gjeltema
+// ValueConverters.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Utility;
@@ -74,6 +74,22 @@ public class InverseBoolToVisibilityConverter : IValueConverter
         Visibility visibility = parameter as Visibility? ?? Visibility.Visible;
 
         return (bool)value ? Visibility.Collapsed : visibility;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
+[ValueConversion(typeof(string), typeof(System.Windows.Media.Brush))]
+public class StringToBrushConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not string)
+            return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 255, 255, 255));
+
+        System.Windows.Media.BrushConverter bc = new();
+        return (System.Windows.Media.Brush)bc.ConvertFrom(value);
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

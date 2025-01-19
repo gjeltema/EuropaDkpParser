@@ -5,5 +5,6 @@
     <utilities:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <utilities:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
     <utilities:InverseBoolConverter x:Key="InverseBoolConverter" />
+    <utilities:StringToBrushConverter x:Key="StringToBrushConverter" />
 
 </ResourceDictionary>

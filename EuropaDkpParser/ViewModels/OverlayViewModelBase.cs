@@ -7,8 +7,6 @@ namespace EuropaDkpParser.ViewModels;
 internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayViewModel
 {
     protected IOverlayViewFactory _viewFactory;
-    private int _xPos;
-    private int _yPos;
 
     protected OverlayViewModelBase(IOverlayViewFactory viewFactory)
     {
@@ -17,52 +15,39 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
     public bool PositionChanged { get; private set; }
 
-    public int XPos
-    {
-        get => _xPos;
-        set
-        {
-            if (_xPos != value)
-            {
-                _xPos = value;
-                PositionChanged = true;
-            }
-        }
-    }
+    public int XPos { get; set; }
 
-    public int YPos
-    {
-        get => _yPos;
-        set
-        {
-            if (_yPos != value)
-            {
-                _yPos = value;
-                PositionChanged = true;
-            }
-        }
-    }
+    public int YPos { get; set; }
 
     protected IOverlayView OverlayView { get; private set; }
+
+    public void Close()
+    {
+        OverlayView?.Close();
+        OverlayView = null;
+    }
 
     public void CreateAndShowOverlay()
     {
         OverlayView = _viewFactory.CreateOverlayView(this);
         OverlayView.Top = YPos;
         OverlayView.Left = XPos;
-        Show();
+        ShowOverlay();
     }
 
     public void DisableMove()
-        => OverlayView?.HideBorder();
+        => OverlayView?.DisableMove();
 
     public void EnableMove()
-        => OverlayView?.ShowBorder();
+        => OverlayView?.EnableMove();
 
     public void HideOverlay()
-        => OverlayView?.Hide();
+    {
+        OverlayView?.DisableMove();
+        OverlayView?.Hide();
+    }
 
-    public void Show()
+    public void ShowOverlay()
         => OverlayView?.Show();
 }
 
@@ -74,6 +59,8 @@ public interface IOverlayViewModel
 
     int YPos { get; set; }
 
+    void Close();
+
     void CreateAndShowOverlay();
 
     void DisableMove();
@@ -82,5 +69,5 @@ public interface IOverlayViewModel
 
     void HideOverlay();
 
-    void Show();
+    void ShowOverlay();
 }

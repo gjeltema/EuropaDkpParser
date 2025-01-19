@@ -12,27 +12,34 @@ using EuropaDkpParser.ViewModels;
 public partial class OverlayView : Window, IOverlayView
 {
     private readonly IOverlayViewModel _overlayViewModel;
+    private bool _enableMove = false;
 
     public OverlayView(IOverlayViewModel overlayViewModel)
     {
         InitializeComponent();
 
+        DataContext = overlayViewModel;
+
         Owner = Application.Current.MainWindow;
         _overlayViewModel = overlayViewModel;
-        DataContext = overlayViewModel;
+
         LocationChanged += HandleLocationChanged;
     }
 
-    public void HideBorder()
+    public void DisableMove()
     {
-        WindowResizeChrome.ResizeBorderThickness = new Thickness(0);
+        //WindowResizeChrome.ResizeBorderThickness = new Thickness(0);
         WindowBorder.BorderThickness = new Thickness(0, 0, 0, 0);
+        _enableMove = false;
+        Background.Opacity = 0;
     }
 
-    public void ShowBorder()
+    public void EnableMove()
     {
-        WindowResizeChrome.ResizeBorderThickness = new Thickness(8);
+        //WindowResizeChrome.ResizeBorderThickness = new Thickness(8);
         WindowBorder.BorderThickness = new Thickness(1, 1, 1, 1);
+        _enableMove = true;
+        Background.Opacity = 0.2;
     }
 
     private void HandleLocationChanged(object sender, EventArgs e)
@@ -41,13 +48,9 @@ public partial class OverlayView : Window, IOverlayView
         _overlayViewModel.YPos = (int)Top;
     }
 
-    private void MouseEnterHandler(object sender, MouseEventArgs e)
+    private void MouseDownHandler(object sender, MouseEventArgs e)
     {
-        ShowBorder();
-    }
-
-    private void MouseLeaveHandler(object sender, MouseEventArgs e)
-    {
-        HideBorder();
+        if (_enableMove && e.LeftButton.HasFlag(MouseButtonState.Pressed))
+            DragMove();
     }
 }

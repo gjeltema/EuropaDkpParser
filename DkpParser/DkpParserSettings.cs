@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpParserSettings.cs Copyright 2024 Craig Gjeltema
+// DkpParserSettings.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -30,6 +30,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string IncludeTellsInRawLogSection = "INCLUDE_TELLS_IN_RAW_LOG";
     private const string LogMatchPatternSection = "LOG_MATCH_PATTERN";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
+    private const string OverlayFontColorSection = "OVERLAY_FONT_COLOR";
+    private const string OverlayFontSizeSection = "OVERLAY_FONT_SIZE";
+    private const string OverlayLocationXSection = "OVERLAY_LOCATION_X";
+    private const string OverlayLocationYSection = "OVERLAY_LOCATION_Y";
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
@@ -100,6 +104,14 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public string OutputDirectory { get; set; }
 
+    public string OverlayFontColor { get; set; }
+
+    public int OverlayFontSize { get; set; }
+
+    public int OverlayLocationX { get; set; }
+
+    public int OverlayLocationY { get; set; }
+
     public IRaidValues RaidValue { get; private set; }
 
     public ICollection<string> SelectedLogFiles { get; set; } = [];
@@ -150,6 +162,11 @@ public sealed class DkpParserSettings : IDkpParserSettings
         DkpspentGuEnabled = GetBoolValue(fileContents, DkpspentGuildEnableSection, true);
         DkpspentOocEnabled = GetBoolValue(fileContents, DkpspentOocEnableSection, true);
         UseLightMode = GetBoolValue(fileContents, UseLightModeSection);
+
+        OverlayLocationX = GetIntValue(fileContents, OverlayLocationXSection, 100);
+        OverlayLocationY = GetIntValue(fileContents, OverlayLocationYSection, 100);
+        OverlayFontColor = GetStringValue(fileContents, OverlayFontColorSection, "#CCCCCC");
+        OverlayFontSize = GetIntValue(fileContents, OverlayFontSizeSection, 20);
     }
 
     public void SaveSettings()
@@ -180,7 +197,11 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(DkpspentAucEnableSection, DkpspentAucEnabled),
             CreateFileEntry(DkpspentGuildEnableSection, DkpspentGuEnabled),
             CreateFileEntry(DkpspentOocEnableSection, DkpspentOocEnabled),
-            CreateFileEntry(UseLightModeSection, UseLightMode)
+            CreateFileEntry(UseLightModeSection, UseLightMode),
+            CreateFileEntry(OverlayLocationXSection, OverlayLocationX),
+            CreateFileEntry(OverlayLocationYSection, OverlayLocationY),
+            CreateFileEntry(OverlayFontColorSection, OverlayFontColor),
+            CreateFileEntry(OverlayFontSizeSection, OverlayFontSize),
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -408,6 +429,14 @@ public interface IDkpParserSettings
     int MainWindowY { get; set; }
 
     string OutputDirectory { get; set; }
+
+    string OverlayFontColor { get; set; }
+
+    int OverlayFontSize { get; set; }
+
+    int OverlayLocationX { get; set; }
+
+    int OverlayLocationY { get; set; }
 
     IRaidValues RaidValue { get; }
 

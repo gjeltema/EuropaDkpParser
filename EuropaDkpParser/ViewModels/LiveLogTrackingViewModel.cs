@@ -23,17 +23,20 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
+    private IAttendanceOverlayViewModel _attendanceOverlayViewModel;
     private DispatcherTimer _attendanceReminderTimer;
     private string _auctionStatusMessagesToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
     private ICollection<LiveBidInfo> _currentBids;
     private string _currentStatusMarker;
     private string _filePath;
+    private bool _forceShowOverlay;
     private ICollection<LiveBidInfo> _highBids;
-    private bool _incrementRaidNameOnNextReminder = true;
     private string _itemLinkIdToAdd;
+    private IAttendanceOverlayViewModel _killAttendanceOverlay;
     private DispatcherTimer _killCallReminderTimer;
     private bool _lowRollWins;
+    private IOverlayPositioningViewModel _movingOverlay;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private bool _remindAttendances;
     private LiveAuctionDisplay _selectedActiveAuction;
@@ -42,6 +45,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private CompletedAuction _selectedCompletedAuction;
     private SuggestedSpentCall _selectedSpentMessageToPaste;
     private ICollection<SuggestedSpentCall> _spentMessagesToPaste;
+    private int _timeCallIndex = 0;
+    private bool _useOverlayForAttendanceReminder;
 
     public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
     {
@@ -123,6 +128,39 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         {
             if (SetProperty(ref _filePath, value))
                 StartTailingFile(value);
+        }
+    }
+
+    public bool ForceShowOverlay
+    {
+        get => _forceShowOverlay;
+        set
+        {
+            if (SetProperty(ref _forceShowOverlay, value))
+            {
+                if (value)
+                {
+                    _movingOverlay = _overlayFactory.CreateOverlayPositioningViewModel(_settings);
+                    _movingOverlay.ShowToMove();
+                }
+                else
+                {
+                    if (_movingOverlay == null)
+                        return;
+
+                    int newXPosition = _movingOverlay.XPos;
+                    int newYPosition = _movingOverlay.YPos;
+                    if (_settings.OverlayLocationX != newXPosition || _settings.OverlayLocationY != newYPosition)
+                    {
+                        _settings.OverlayLocationX = newXPosition;
+                        _settings.OverlayLocationY = newYPosition;
+                        _settings.SaveSettings();
+                    }
+
+                    _movingOverlay.Close();
+                    _movingOverlay = null;
+                }
+            }
         }
     }
 
@@ -210,11 +248,26 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         private set => SetProperty(ref _spentMessagesToPaste, value);
     }
 
+    public bool UseOverlayForAttendanceReminder
+    {
+        get => _useOverlayForAttendanceReminder;
+        set => SetProperty(ref _useOverlayForAttendanceReminder, value);
+    }
+
     public void Close()
     {
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
         _attendanceReminderTimer?.Stop();
+    }
+
+    public void HandleClosed()
+    {
+        if (_attendanceOverlayViewModel == null)
+            return;
+
+        _attendanceOverlayViewModel.HideOverlay();
+        _attendanceOverlayViewModel = null;
     }
 
     private void AddItemLinkId()
@@ -336,13 +389,25 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     {
         _attendanceReminderTimer.Stop();
 
-        IReminderDialogViewModel reminder = GetReminderDialog(Strings.GetString("TimeAttendanceReminderMessage"), AttendanceCallType.Time);
-        if (_incrementRaidNameOnNextReminder)
-            reminder.IncrementToNextTimeCall();
+        TimeSpan nextInterval = GetAttendanceReminderInterval();
 
-        bool ok = reminder.ShowDialog() == true;
-        TimeSpan nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);
-        _incrementRaidNameOnNextReminder = ok;
+        if (UseOverlayForAttendanceReminder)
+        {
+            _timeCallIndex = _attendanceOverlayViewModel?.GetTimeCallIndex() ?? _timeCallIndex;
+
+            _attendanceOverlayViewModel = _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
+            _attendanceOverlayViewModel.Show(_timeCallIndex + 1);
+        }
+        else
+        {
+            IReminderDialogViewModel reminder = GetReminderDialog(Strings.GetString("TimeAttendanceReminderMessage"), AttendanceCallType.Time);
+            reminder.SetTimeCallIndex(_timeCallIndex + 1);
+
+            bool ok = reminder.ShowDialog() == true;
+            nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);
+            int selectedTimeCallIndex = reminder.GetTimeCallIndex();
+            _timeCallIndex = ok ? selectedTimeCallIndex : selectedTimeCallIndex - 1;
+        }
 
         _attendanceReminderTimer.Interval = nextInterval;
         _attendanceReminderTimer.Start();
@@ -376,22 +441,30 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         if (!RemindAttendances || string.IsNullOrEmpty(bossName))
             return;
 
-        string statusMessageFormat = Strings.GetString("KillAttendanceReminderMessageFormat");
-        string statusMessage = string.Format(statusMessageFormat, bossName);
-
-        IReminderDialogViewModel reminder = GetReminderDialog(statusMessage, AttendanceCallType.Kill);
-        reminder.AttendanceName = bossName;
-
-        bool doneWithReminder = reminder.ShowDialog() == true;
-        if (!doneWithReminder)
+        if (UseOverlayForAttendanceReminder)
         {
-            TimeSpan userSpecifiedInterval = TimeSpan.FromMinutes(reminder.ReminderInterval);
-            _killCallReminderTimer = new DispatcherTimer(
-                userSpecifiedInterval,
-                DispatcherPriority.Normal,
-                (s, e) => HandleKillCallReminder(bossName),
-                Dispatcher.CurrentDispatcher);
-            _killCallReminderTimer.Start();
+            _killAttendanceOverlay = _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
+            _killAttendanceOverlay.Show(bossName);
+        }
+        else
+        {
+            string statusMessageFormat = Strings.GetString("KillAttendanceReminderMessageFormat");
+            string statusMessage = string.Format(statusMessageFormat, bossName);
+
+            IReminderDialogViewModel reminder = GetReminderDialog(statusMessage, AttendanceCallType.Kill);
+            reminder.AttendanceName = bossName;
+
+            bool doneWithReminder = reminder.ShowDialog() == true;
+            if (!doneWithReminder)
+            {
+                TimeSpan userSpecifiedInterval = TimeSpan.FromMinutes(reminder.ReminderInterval);
+                _killCallReminderTimer = new DispatcherTimer(
+                    userSpecifiedInterval,
+                    DispatcherPriority.Normal,
+                    (s, e) => HandleKillCallReminder(bossName),
+                    Dispatcher.CurrentDispatcher);
+                _killCallReminderTimer.Start();
+            }
         }
     }
 
@@ -617,6 +690,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
 
     string FilePath { get; set; }
 
+    bool ForceShowOverlay { get; set; }
+
     DelegateCommand GetUserDkpCommand { get; }
 
     ICollection<LiveBidInfo> HighBids { get; }
@@ -649,5 +724,9 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
 
     ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; }
 
+    bool UseOverlayForAttendanceReminder { get; set; }
+
     void Close();
+
+    void HandleClosed();
 }

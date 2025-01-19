@@ -11,24 +11,29 @@
         ShowInTaskbar="False"
         WindowStyle="None"
         SizeToContent="WidthAndHeight"
-        AllowsTransparency="True">
+        AllowsTransparency="True"
+        Topmost="True">
     <Window.Background>
         <SolidColorBrush Color="White" Opacity="0"/>
     </Window.Background>
+    <!--<WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" x:Name="WindowResizeChrome" />
+    </WindowChrome.WindowChrome>-->
 
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" x:Name="WindowResizeChrome"/>
-    </WindowChrome.WindowChrome>
-
-    <Border CornerRadius="0" BorderBrush="White" Name="WindowBorder" MouseEnter="MouseEnterHandler" MouseLeave="MouseLeaveHandler">
-        <ContentPresenter Content="{Binding}">
-            <ContentPresenter.Resources>
-                <ResourceDictionary>
-                    <!--<DataTemplate DataType="{x:Type dialogsViewModel:LogSelectionViewModel}">
-                    <dialogsView:LogSelectionDialog />
-                </DataTemplate>-->
-                </ResourceDictionary>
-            </ContentPresenter.Resources>
-        </ContentPresenter>
+    <Border CornerRadius="0" BorderBrush="White" Name="WindowBorder" MouseLeftButtonDown="MouseDownHandler">
+        <Grid MouseLeftButtonDown="MouseDownHandler">
+            <ContentPresenter Content="{Binding}">
+                <ContentPresenter.Resources>
+                    <ResourceDictionary>
+                        <DataTemplate DataType="{x:Type overlayViewModel:AttendanceOverlayViewModel}">
+                            <overlayView:AttendanceOverlay/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type overlayViewModel:OverlayPositioningViewModel}">
+                            <overlayView:OverlayPositioningOverlay/>
+                        </DataTemplate>
+                    </ResourceDictionary>
+                </ContentPresenter.Resources>
+            </ContentPresenter>
+        </Grid>
     </Border>
 </Window>

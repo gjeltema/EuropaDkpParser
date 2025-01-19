@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// LogSelectionViewModel.cs Copyright 2024 Craig Gjeltema
+// LogSelectionViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -25,6 +25,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private bool _isDebugOptionsEnabled;
     private string _logFileMatchPattern;
     private string _outputDirectory;
+    private string _overlayFontColor;
+    private string _overlayFontSize;
     private string _selectedLogFileToAdd;
     private string _selectedLogFileToParse;
     private bool _showAfkReview;
@@ -70,6 +72,9 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         DkpspentAucEnable = _settings.DkpspentAucEnabled;
         DkpspentGuEnable = _settings.DkpspentGuEnabled;
         DkpspentOocEnable = _settings.DkpspentOocEnabled;
+
+        OverlayFontSize = _settings.OverlayFontSize.ToString();
+        OverlayFontColor = _settings.OverlayFontColor;
 
         SetAllCharacterLogFiles();
     }
@@ -154,6 +159,18 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         set => SetProperty(ref _outputDirectory, value);
     }
 
+    public string OverlayFontColor
+    {
+        get => _overlayFontColor;
+        set => SetProperty(ref _overlayFontColor, value);
+    }
+
+    public string OverlayFontSize
+    {
+        get => _overlayFontSize;
+        set => SetProperty(ref _overlayFontSize, value);
+    }
+
     public DelegateCommand RemoveLogFileFromListCommand { get; }
 
     public DelegateCommand RetrieveAndSaveDkpCharactersCommand { get; }
@@ -220,6 +237,11 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.DkpspentGuEnabled = DkpspentGuEnable;
         _settings.DkpspentOocEnabled = DkpspentOocEnable;
         _settings.UseLightMode = UseLightMode;
+        _settings.OverlayFontColor = OverlayFontColor;
+        if (int.TryParse(OverlayFontSize, out int fontSize))
+        {
+            _settings.OverlayFontSize = fontSize;
+        }
         _settings.SaveSettings();
     }
 
@@ -360,6 +382,10 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string LogFileMatchPattern { get; set; }
 
     string OutputDirectory { get; set; }
+
+    string OverlayFontColor { get; set; }
+
+    string OverlayFontSize { get; set; }
 
     DelegateCommand RemoveLogFileFromListCommand { get; }
 
