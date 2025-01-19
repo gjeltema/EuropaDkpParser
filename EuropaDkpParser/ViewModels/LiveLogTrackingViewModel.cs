@@ -45,7 +45,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private CompletedAuction _selectedCompletedAuction;
     private SuggestedSpentCall _selectedSpentMessageToPaste;
     private ICollection<SuggestedSpentCall> _spentMessagesToPaste;
-    private int _timeCallIndex = 0;
+    private int _timeCallIndex = -1;
     private bool _useOverlayForAttendanceReminder;
 
     public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
