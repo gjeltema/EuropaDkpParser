@@ -72,6 +72,9 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
 
         AttendanceType = AttendanceCallType.Time;
 
+        XPos = _settings.OverlayLocationX;
+        YPos = _settings.OverlayLocationY;
+
         if (_timeCallIndex > _timeCalls.Count || _timeCallIndex < 0)
             _timeCallIndex = 0;
 
@@ -87,6 +90,10 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
         AttendanceType = AttendanceCallType.Kill;
         AttendanceName = bossName;
         DisplayMessage = $"{AttendanceType} attendance: {AttendanceName}";
+
+        // Offset the Kill window so that it does not overlay the Time window
+        XPos = _settings.OverlayLocationX + 20;
+        YPos = _settings.OverlayLocationY + 40;
 
         CreateAndShowOverlay();
     }
