@@ -14,6 +14,8 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
     private readonly List<string> _timeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
             , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call"];
     private string _attendanceName;
+    private string _displayMessage;
+    private bool _isTimeCall;
     private int _timeCallIndex = -1;
 
     public AttendanceOverlayViewModel(IOverlayViewFactory viewFactory, IDkpParserSettings settings)
@@ -55,10 +57,17 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
 
     public int DisplayFontSize { get; }
 
-    public string DisplayMessage { get; private set; }
+    public string DisplayMessage
+    {
+        get => _displayMessage;
+        private set => SetProperty(ref _displayMessage, value);
+    }
 
     public bool IsTimeCall
-       => AttendanceType == AttendanceCallType.Time;
+    {
+        get => _isTimeCall;
+        private set => SetProperty(ref _isTimeCall, value);
+    }
 
     public ICollection<string> TimeCalls
         => _timeCalls;
@@ -71,6 +80,7 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
         _timeCallIndex = timeCallIndex;
 
         AttendanceType = AttendanceCallType.Time;
+        IsTimeCall = true;
 
         XPos = _settings.OverlayLocationX;
         YPos = _settings.OverlayLocationY;
@@ -88,12 +98,9 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
     public void Show(string bossName)
     {
         AttendanceType = AttendanceCallType.Kill;
+        IsTimeCall = false;
         AttendanceName = bossName;
         DisplayMessage = $"{AttendanceType} attendance: {AttendanceName}";
-
-        // Offset the Kill window so that it does not overlay the Time window
-        XPos = _settings.OverlayLocationX + 20;
-        YPos = _settings.OverlayLocationY + 40;
 
         CreateAndShowOverlay();
     }
@@ -102,7 +109,7 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
     {
         string message = AttendanceType.GetAttendanceCall(AttendanceName);
         Clip.Copy(message);
-        Close();
+        HideOverlay();
     }
 }
 

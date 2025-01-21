@@ -6,11 +6,21 @@ namespace EuropaDkpParser.ViewModels;
 
 internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayViewModel
 {
+    private const double OverlayControlOpacity = 0.7;
     protected IOverlayViewFactory _viewFactory;
+    private double _controlOpacity;
+    private Action _hideAction;
+    private bool _windowHasBeenShown;
 
     protected OverlayViewModelBase(IOverlayViewFactory viewFactory)
     {
         _viewFactory = viewFactory;
+    }
+
+    public double ControlOpacity
+    {
+        get => _controlOpacity;
+        set => SetProperty(ref _controlOpacity, value);
     }
 
     public bool PositionChanged { get; private set; }
@@ -29,9 +39,11 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
     public void CreateAndShowOverlay()
     {
-        OverlayView = _viewFactory.CreateOverlayView(this);
+        OverlayView ??= _viewFactory.CreateOverlayView(this);
+
         OverlayView.Top = YPos;
         OverlayView.Left = XPos;
+        ControlOpacity = OverlayControlOpacity;
         ShowOverlay();
     }
 
@@ -43,16 +55,33 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
     public void HideOverlay()
     {
-        OverlayView?.DisableMove();
-        OverlayView?.Hide();
+        if (OverlayView != null)
+        {
+            OverlayView.DisableMove();
+            //OverlayView?.Hide();
+            ControlOpacity = 0.0;
+        }
+
+        _hideAction?.Invoke();
     }
 
+    public void SetHideHandler(Action hideAction)
+        => _hideAction = hideAction;
+
     public void ShowOverlay()
-        => OverlayView?.Show();
+    {
+        if (!_windowHasBeenShown)
+        {
+            _windowHasBeenShown = true;
+            OverlayView?.Show();
+        }
+    }
 }
 
 public interface IOverlayViewModel
 {
+    public double ControlOpacity { get; set; }
+
     bool PositionChanged { get; }
 
     int XPos { get; set; }
@@ -68,6 +97,8 @@ public interface IOverlayViewModel
     void EnableMove();
 
     void HideOverlay();
+
+    void SetHideHandler(Action hideAction);
 
     void ShowOverlay();
 }

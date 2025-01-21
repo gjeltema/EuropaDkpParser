@@ -11,10 +11,10 @@
     <Grid>
         <StackPanel Orientation="Horizontal">
             <Label x:Name="DisplayLabel" Content="{Binding DisplayMessage}" FontSize="{Binding DisplayFontSize}"  VerticalContentAlignment="Center"
-                   Foreground="{Binding DisplayColor, Converter={StaticResource StringToBrushConverter}}" Opacity="1"/>
+                   Foreground="{Binding DisplayColor, Converter={StaticResource StringToBrushConverter}}" Opacity="{Binding ControlOpacity}"/>
             <ComboBox ItemsSource="{Binding TimeCalls}" SelectedItem="{Binding AttendanceName}" Margin="5,0,0,0" Height="30" Width="100" VerticalContentAlignment="Center"
-                Opacity="0.8" Visibility="{Binding IsTimeCall, Converter={StaticResource BoolToVisibilityConverter}}" />
-            <Button Command="{Binding CopyAttendanceCallCommand}" Margin="5,0,0,0" Content="{StaticResource CopyText}" Width="70" Height="30" Opacity="0.5" FontSize="18" 
+                Opacity="{Binding ControlOpacity}" Visibility="{Binding IsTimeCall, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <Button Command="{Binding CopyAttendanceCallCommand}" Margin="5,0,0,0" Content="{StaticResource CopyText}" Width="70" Height="30" Opacity="{Binding ControlOpacity}" FontSize="18" 
                     VerticalContentAlignment="Center"/>
         </StackPanel>
     </Grid>

@@ -8,7 +8,6 @@ using System.IO;
 using System.Windows.Threading;
 using DkpParser;
 using DkpParser.LiveTracking;
-using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
 using Prism.Commands;
 
@@ -16,16 +15,13 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 {
     private const int DkpDisplayFontSize = 16;
     private readonly ActiveBidTracker _activeBidTracker;
-    private readonly IDialogFactory _dialogFactory;
+    private readonly AttendanceTimerHandler _attendanceTimerHandler;
     private readonly IDkpDataRetriever _dkpDataRetriever;
-    private readonly IOverlayFactory _overlayFactory;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
-    private IAttendanceOverlayViewModel _attendanceOverlayViewModel;
-    private DispatcherTimer _attendanceReminderTimer;
-    private string _auctionStatusMessagesToPaste;
+    private string _auctionStatusMessageToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
     private ICollection<LiveBidInfo> _currentBids;
     private string _currentStatusMarker;
@@ -33,10 +29,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private bool _forceShowOverlay;
     private ICollection<LiveBidInfo> _highBids;
     private string _itemLinkIdToAdd;
-    private IAttendanceOverlayViewModel _killAttendanceOverlay;
-    private DispatcherTimer _killCallReminderTimer;
     private bool _lowRollWins;
-    private IOverlayPositioningViewModel _movingOverlay;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private bool _remindAttendances;
     private LiveAuctionDisplay _selectedActiveAuction;
@@ -45,18 +38,16 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private CompletedAuction _selectedCompletedAuction;
     private SuggestedSpentCall _selectedSpentMessageToPaste;
     private ICollection<SuggestedSpentCall> _spentMessagesToPaste;
-    private int _timeCallIndex = -1;
     private bool _useOverlayForAttendanceReminder;
 
     public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
     {
         _settings = settings;
-        _dialogFactory = dialogFactory;
-        _overlayFactory = overlayFactory;
 
         _dkpDataRetriever = new DkpDataRetriever(settings);
         _activeBidTracker = new(settings, new TailFile());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
+        _attendanceTimerHandler = new AttendanceTimerHandler(settings, overlayFactory, dialogFactory);
 
         CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
             .ObservesProperty(() => SelectedSpentMessageToPaste);
@@ -91,8 +82,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
     public string AuctionStatusMessageToPaste
     {
-        get => _auctionStatusMessagesToPaste;
-        set => SetProperty(ref _auctionStatusMessagesToPaste, value);
+        get => _auctionStatusMessageToPaste;
+        set => SetProperty(ref _auctionStatusMessageToPaste, value);
     }
 
     public DelegateCommand ChangeBidCharacterNameCommand { get; }
@@ -138,27 +129,11 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         {
             if (SetProperty(ref _forceShowOverlay, value))
             {
-                if (value)
+                if (!_attendanceTimerHandler.TogglePositioningOverlay(value))
                 {
-                    _movingOverlay = _overlayFactory.CreateOverlayPositioningViewModel(_settings);
-                    _movingOverlay.ShowToMove();
-                }
-                else
-                {
-                    if (_movingOverlay == null)
-                        return;
-
-                    int newXPosition = _movingOverlay.XPos;
-                    int newYPosition = _movingOverlay.YPos;
-                    if (_settings.OverlayLocationX != newXPosition || _settings.OverlayLocationY != newYPosition)
-                    {
-                        _settings.OverlayLocationX = newXPosition;
-                        _settings.OverlayLocationY = newYPosition;
-                        _settings.SaveSettings();
-                    }
-
-                    _movingOverlay.Close();
-                    _movingOverlay = null;
+                    //** show error dialog
+                    _forceShowOverlay = false;
+                    RaisePropertyChanged(nameof(ForceShowOverlay));
                 }
             }
         }
@@ -193,8 +168,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         get => _remindAttendances;
         set
         {
-            SetProperty(ref _remindAttendances, value);
-            SetReminderForAttendances();
+            if (SetProperty(ref _remindAttendances, value))
+                _attendanceTimerHandler.RemindAttendances = value;
         }
     }
 
@@ -251,23 +226,22 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     public bool UseOverlayForAttendanceReminder
     {
         get => _useOverlayForAttendanceReminder;
-        set => SetProperty(ref _useOverlayForAttendanceReminder, value);
+        set
+        {
+            if (SetProperty(ref _useOverlayForAttendanceReminder, value))
+                _attendanceTimerHandler.UseOverlayForAttendanceReminder = value;
+        }
     }
 
     public void Close()
     {
+        _attendanceTimerHandler.CloseAll();
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
-        _attendanceReminderTimer?.Stop();
     }
 
     public void HandleClosed()
     {
-        if (_attendanceOverlayViewModel == null)
-            return;
-
-        _attendanceOverlayViewModel.HideOverlay();
-        _attendanceOverlayViewModel = null;
     }
 
     private void AddItemLinkId()
@@ -333,24 +307,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         SetAuctionStatusMessage();
     }
 
-    private TimeSpan GetAttendanceReminderInterval()
-    {
-        int minutes = DateTime.Now.Minute;
-        if (minutes < 30)
-            return TimeSpan.FromMinutes(30 - minutes);
-        else
-            return TimeSpan.FromMinutes(60 - minutes);
-    }
-
-    private IReminderDialogViewModel GetReminderDialog(string reminderDisplayText, AttendanceCallType callType)
-    {
-        IReminderDialogViewModel reminderDialogViewModel = _dialogFactory.CreateReminderDialogViewModel();
-        reminderDialogViewModel.ReminderText = reminderDisplayText;
-        reminderDialogViewModel.AttendanceType = callType;
-
-        return reminderDialogViewModel;
-    }
-
     private DateTime GetSortingTimestamp(CompletedAuction completed)
     {
         if (completed.SpentCalls.Count > 0)
@@ -385,42 +341,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         }
     }
 
-    private void HandleAttendanceReminderTimer(object sender, EventArgs e)
-    {
-        _attendanceReminderTimer.Stop();
-
-        TimeSpan nextInterval = GetAttendanceReminderInterval();
-
-        if (UseOverlayForAttendanceReminder)
-        {
-            _timeCallIndex = _attendanceOverlayViewModel?.GetTimeCallIndex() ?? _timeCallIndex;
-
-            _attendanceOverlayViewModel = _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
-            _attendanceOverlayViewModel.Show(_timeCallIndex + 1);
-        }
-        else
-        {
-            IReminderDialogViewModel reminder = GetReminderDialog(Strings.GetString("TimeAttendanceReminderMessage"), AttendanceCallType.Time);
-            reminder.SetTimeCallIndex(_timeCallIndex + 1);
-
-            bool ok = reminder.ShowDialog() == true;
-            nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);
-            int selectedTimeCallIndex = reminder.GetTimeCallIndex();
-            _timeCallIndex = ok ? selectedTimeCallIndex : selectedTimeCallIndex - 1;
-        }
-
-        _attendanceReminderTimer.Interval = nextInterval;
-        _attendanceReminderTimer.Start();
-    }
-
-    private void HandleKillCallReminder(string bossName)
-    {
-        _killCallReminderTimer?.Stop();
-        _killCallReminderTimer = null;
-
-        RemindForKillAttendance(bossName);
-    }
-
     private void HandleUpdate(object sender, EventArgs e)
     {
         CheckAndUpdateDisplay();
@@ -434,38 +354,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
         SelectedCompletedAuction = null;
         _activeBidTracker.ReactivateCompletedAuction(selectedAuction);
-    }
-
-    private void RemindForKillAttendance(string bossName)
-    {
-        if (!RemindAttendances || string.IsNullOrEmpty(bossName))
-            return;
-
-        if (UseOverlayForAttendanceReminder)
-        {
-            _killAttendanceOverlay = _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
-            _killAttendanceOverlay.Show(bossName);
-        }
-        else
-        {
-            string statusMessageFormat = Strings.GetString("KillAttendanceReminderMessageFormat");
-            string statusMessage = string.Format(statusMessageFormat, bossName);
-
-            IReminderDialogViewModel reminder = GetReminderDialog(statusMessage, AttendanceCallType.Kill);
-            reminder.AttendanceName = bossName;
-
-            bool doneWithReminder = reminder.ShowDialog() == true;
-            if (!doneWithReminder)
-            {
-                TimeSpan userSpecifiedInterval = TimeSpan.FromMinutes(reminder.ReminderInterval);
-                _killCallReminderTimer = new DispatcherTimer(
-                    userSpecifiedInterval,
-                    DispatcherPriority.Normal,
-                    (s, e) => HandleKillCallReminder(bossName),
-                    Dispatcher.CurrentDispatcher);
-                _killCallReminderTimer.Start();
-            }
-        }
     }
 
     private void RemoveBid()
@@ -512,24 +400,6 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     {
         StatusMarker marker = _activeBidTracker.GetStatusMarkerFromSelectionString(CurrentStatusMarker);
         AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction?.Auction, marker, LowRollWins);
-    }
-
-    private void SetReminderForAttendances()
-    {
-        if (RemindAttendances)
-        {
-            TimeSpan interval = GetAttendanceReminderInterval();
-            _attendanceReminderTimer = new DispatcherTimer(
-                interval,
-                DispatcherPriority.Normal,
-                HandleAttendanceReminderTimer,
-                Dispatcher.CurrentDispatcher);
-        }
-        else
-        {
-            _attendanceReminderTimer?.Stop();
-            _attendanceReminderTimer = null;
-        }
     }
 
     private void StartTailingFile(string fileToTail)
@@ -622,7 +492,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
                 SelectedCompletedAuction = matchingCompleted;
         }
 
-        RemindForKillAttendance(_activeBidTracker.GetBossKilledName());
+        _attendanceTimerHandler.RemindForKillAttendance(_activeBidTracker.GetBossKilledName());
 
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }
