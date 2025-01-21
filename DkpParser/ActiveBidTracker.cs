@@ -220,7 +220,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     public void StopTracking()
         => _messageProvider.StopMessages();
 
-    private ICollection<LiveBidInfo> GetAllMaxRolls(LiveAuctionInfo auction, bool lowRollWins)
+    private List<LiveBidInfo> GetAllMaxRolls(LiveAuctionInfo auction, bool lowRollWins)
     {
         int currentMaxRoll = lowRollWins ? int.MaxValue : 0;
         List<LiveBidInfo> maxRolls = [];

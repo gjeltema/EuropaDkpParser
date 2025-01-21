@@ -98,7 +98,8 @@ internal sealed partial class ActiveAuctionStartAnalyzer
 
             string itemsString = playerMessage[0..endIndex];
 
-            string[] itemNames = itemsString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            char delimiter = itemsString.Contains('|') ? '|' : ',';
+            string[] itemNames = itemsString.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
 
             List<LiveAuctionInfo> auctions = new(itemNames.Length);
             foreach (string itemName in itemNames)
