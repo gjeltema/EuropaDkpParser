@@ -159,7 +159,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         if (auction.IsRoll)
         {
-            string channel = GetChannelShortcut(EqChannel.Raid);
+            string channel = GetChannelShortcut(auction.Channel);
             int highRoll = highBids.First().BidAmount;
             string highRollersString = string.Join(", ", highBids.Select(x => $"{x.CharacterPlacingBid}"));
             string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
@@ -265,6 +265,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             EqChannel.Guild => "/gu",
             EqChannel.Ooc => "/ooc",
             EqChannel.Auction => "/auc",
+            EqChannel.Group => "/g",
             _ => "/rs",
         };
 
