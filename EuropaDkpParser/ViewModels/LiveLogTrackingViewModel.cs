@@ -229,7 +229,12 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         set
         {
             if (SetProperty(ref _useOverlayForAttendanceReminder, value))
+            {
                 _attendanceTimerHandler.UseOverlayForAttendanceReminder = value;
+
+                if (!value)
+                    _attendanceTimerHandler.CloseOverlays();
+            }
         }
     }
 

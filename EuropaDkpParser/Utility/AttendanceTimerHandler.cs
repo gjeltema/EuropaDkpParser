@@ -85,6 +85,14 @@ internal sealed class AttendanceTimerHandler
         _movingOverlay = null;
     }
 
+    public void CloseOverlays()
+    {
+        _pendingOverlays.Clear();
+
+        _attendanceOverlayViewModel?.HideOverlay();
+        _movingOverlay?.HideOverlay();
+    }
+
     public void RemindForKillAttendance(string bossName)
     {
         if (!RemindAttendances || string.IsNullOrEmpty(bossName))
