@@ -12,7 +12,7 @@ using Prism.Commands;
 internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDialogViewModel
 {
     private readonly List<string> _timeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
-            , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call"];
+            , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call", "Thirteenth Call", "Fourteenth Call"];
     private string _attendanceName;
     private int _reminderInterval;
     private string _reminderText;
@@ -74,9 +74,7 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
 
     public void SetTimeCallIndex(int timeCallIndex)
     {
-        if (timeCallIndex < 0 || timeCallIndex >= TimeCalls.Count)
-            _timeCallIndex = 0;
-
+        _timeCallIndex = Math.Clamp(timeCallIndex, 0, _timeCalls.Count - 1);
         _attendanceName = _timeCalls[_timeCallIndex];
     }
 
