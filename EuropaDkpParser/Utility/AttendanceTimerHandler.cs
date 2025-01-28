@@ -52,6 +52,8 @@ internal sealed class AttendanceTimerHandler
         }
     }
 
+    public bool UseAudioReminder { get; set; }
+
     public bool UseOverlayForAttendanceReminder
     {
         get => _useOverlayForAttendanceReminder;
@@ -103,6 +105,8 @@ internal sealed class AttendanceTimerHandler
             _pendingOverlays.Enqueue(new PendingOverlay { OverlayType = OverlayType.Kill, BossName = bossName });
             return;
         }
+
+        DoAudioReminder();
 
         if (UseOverlayForAttendanceReminder)
         {
@@ -173,6 +177,12 @@ internal sealed class AttendanceTimerHandler
             }
             return true;
         }
+    }
+
+    private void DoAudioReminder()
+    {
+        if(UseAudioReminder)
+            System.Media.SystemSounds.Hand.Play();
     }
 
     private TimeSpan GetAttendanceReminderInterval()
@@ -268,6 +278,7 @@ internal sealed class AttendanceTimerHandler
             return;
         }
 
+        DoAudioReminder();
         TimeSpan nextInterval;
 
         if (UseOverlayForAttendanceReminder)

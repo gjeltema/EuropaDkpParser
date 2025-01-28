@@ -38,6 +38,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private CompletedAuction _selectedCompletedAuction;
     private SuggestedSpentCall _selectedSpentMessageToPaste;
     private ICollection<SuggestedSpentCall> _spentMessagesToPaste;
+    private bool _useAudioReminder;
     private bool _useOverlayForAttendanceReminder;
 
     public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
@@ -221,6 +222,16 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     {
         get => _spentMessagesToPaste;
         private set => SetProperty(ref _spentMessagesToPaste, value);
+    }
+
+    public bool UseAudioReminder
+    {
+        get => _useAudioReminder;
+        set
+        {
+            if (SetProperty(ref _useAudioReminder, value))
+                _attendanceTimerHandler.UseAudioReminder = value;
+        }
     }
 
     public bool UseOverlayForAttendanceReminder
@@ -598,6 +609,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     DelegateCommand SetActiveAuctionToCompletedCommand { get; }
 
     ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; }
+
+    bool UseAudioReminder { get; set; }
 
     bool UseOverlayForAttendanceReminder { get; set; }
 
