@@ -191,6 +191,13 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (bidToRemove == null)
             return;
 
+        LiveAuctionInfo auction = _activeAuctions.FirstOrDefault(x => x.Id == bidToRemove.ParentAuctionId);
+        if (auction != null)
+        {
+            if (!_bids.Any(x => x.ParentAuctionId == auction.Id))
+                auction.HasBids = false;
+        }
+
         _bids = _bids.Remove(bidToRemove);
         Updated = true;
     }
