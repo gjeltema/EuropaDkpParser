@@ -191,6 +191,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (bidToRemove == null)
             return;
 
+        _bids = _bids.Remove(bidToRemove);
+
         LiveAuctionInfo auction = _activeAuctions.FirstOrDefault(x => x.Id == bidToRemove.ParentAuctionId);
         if (auction != null)
         {
@@ -198,7 +200,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 auction.HasBids = false;
         }
 
-        _bids = _bids.Remove(bidToRemove);
         Updated = true;
     }
 
@@ -389,7 +390,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     LiveBidInfo possibleDuplicateBid = _bids.FirstOrDefault(x => x == bid);
                     if (possibleDuplicateBid != null)
                     {
-                        _bids.Remove(possibleDuplicateBid);
+                        _bids = _bids.Remove(possibleDuplicateBid);
                     }
 
                     _bids = _bids.Add(bid);

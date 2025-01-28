@@ -155,7 +155,7 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
         => Equals(this, other);
 
     public override int GetHashCode()
-        => ParentAuctionId.GetHashCode() ^ BidAmount.GetHashCode() ^ ItemName.GetHashCode() ^ CharacterBeingBidFor.ToUpper().GetHashCode();
+        => HashCode.Combine(ParentAuctionId, BidAmount, ItemName, CharacterBeingBidFor);
 
     public override string ToString()
     {
