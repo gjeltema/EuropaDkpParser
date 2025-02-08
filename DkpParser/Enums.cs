@@ -72,3 +72,13 @@ public enum StatusMarker : byte
     ThirtySeconds,
     SixtySeconds
 }
+
+public enum PipeMessageType
+{
+    LogText,
+    Label,
+    Gauge,
+    Player,
+    PipeCmd, // custom in zeal
+    Raid
+}

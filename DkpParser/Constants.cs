@@ -34,6 +34,7 @@ public static class Constants
     public const string DoubleDash = "--";
     public const string EndLootedDashes = ".--";
     public const string EqLogSearchPattern = "*eqlog*.txt";
+    public const string EqProcessName = "eqgame";
     public const string EuropaGuildTag = "<Europa>";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
     public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-eqlog-";
@@ -92,6 +93,12 @@ public static class Constants
     public const string WhoZonePrefixSingle = "There is ";
     public const string YouTold = "You told ";
     public const string YouToldSearch = $"] {YouTold}";
+    public const int ZealPipeBufferSize = 32768;
+    /// <summary>
+    /// One argument for format: Process ID
+    /// </summary>
+    public const string ZealPipeNameFormat = ZealPipePrefix + "_{0}";
+    public const string ZealPipePrefix = "zeal";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(10);
     public static readonly int LogDateTimeLength = LogDateTimeFormat.Length;
     public static readonly CultureInfo UsCulture = new("en-US");
