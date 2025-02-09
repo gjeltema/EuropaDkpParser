@@ -17,6 +17,11 @@ internal sealed class ZealPipe
 
     private CancellationTokenSource _cancellationTokenSource;
 
+    private ZealPipe() { }
+
+    public static ZealPipe Instance
+        => new();
+
     public void StartListening()
     {
         if (_cancellationTokenSource != null)
