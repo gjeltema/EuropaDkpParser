@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpParserExtensions.cs Copyright 2024 Craig Gjeltema
+// DkpParserExtensions.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -35,6 +35,9 @@ public static class DkpParserExtensions
         else
             return name.ToUpper();
     }
+
+    public static string RemoveAllWhitespace(this string uneditedLine)
+        => new(uneditedLine.ToCharArray().Where(x => !char.IsWhiteSpace(x)).ToArray());
 
     public static string ToUsTimestamp(this DateTime timeStamp, string format)
         => timeStamp.ToString(format, Constants.UsCulture);
