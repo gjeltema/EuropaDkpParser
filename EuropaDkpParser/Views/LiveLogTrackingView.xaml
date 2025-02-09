@@ -47,7 +47,8 @@
 
                     <Label Grid.Row="0" Content="{StaticResource ActiveAuctions}" />
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" Margin="0,0,0,5">
+                    <ListView Grid.Row="1" x:Name="ActiveAuctionListing" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" 
+                              Margin="0,0,0,5">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
                                 <Style.Triggers>

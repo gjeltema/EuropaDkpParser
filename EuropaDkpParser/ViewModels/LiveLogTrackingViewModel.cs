@@ -186,6 +186,8 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         }
     }
 
+    public ICollection<LiveAuctionDisplay> SelectedActiveAuctions { get; set; } = [];
+
     public LiveBidInfo SelectedBid
     {
         get => _selectedBid;
@@ -403,13 +405,16 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
 
     private void SetActiveAuctionToCompleted()
     {
-        LiveAuctionDisplay selectedAuction = SelectedActiveAuction;
-        if (selectedAuction == null)
+        if (SelectedActiveAuctions.Count == 0)
             return;
 
+        ICollection<LiveAuctionDisplay> selectedAuctions = [.. SelectedActiveAuctions];
         SelectedActiveAuction = null;
 
-        _activeBidTracker.SetAuctionToCompleted(selectedAuction.Auction);
+        foreach (LiveAuctionDisplay selectedAuction in selectedAuctions)
+        {
+            _activeBidTracker.SetAuctionToCompleted(selectedAuction.Auction);
+        }
     }
 
     private void SetAuctionStatusMessage()
@@ -595,6 +600,8 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     DelegateCommand RemoveBidCommand { get; }
 
     LiveAuctionDisplay SelectedActiveAuction { get; set; }
+
+    ICollection<LiveAuctionDisplay> SelectedActiveAuctions { get; set; }
 
     LiveBidInfo SelectedBid { get; set; }
 
