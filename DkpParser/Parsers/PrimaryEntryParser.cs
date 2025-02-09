@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// PrimaryEntryParser.cs Copyright 2024 Craig Gjeltema
+// PrimaryEntryParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -78,21 +78,25 @@ internal sealed class PrimaryEntryParser : IParseEntry
                     ? LogEntryType.Kill
                     : LogEntryType.Attendance;
             }
-            else if (logLine.Contains(Constants.Crashed, StringComparison.OrdinalIgnoreCase) || logLine.Contains(Constants.CrashedSpaces, StringComparison.OrdinalIgnoreCase))
+            else
             {
-                logEntry.EntryType = LogEntryType.Crashed;
-            }
-            else if (logLine.Contains(Constants.AfkStart, StringComparison.OrdinalIgnoreCase) || logLine.Contains(Constants.AfkStartSpaces, StringComparison.OrdinalIgnoreCase))
-            {
-                logEntry.EntryType = LogEntryType.AfkStart;
-            }
-            else if (logLine.Contains(Constants.AfkEnd, StringComparison.OrdinalIgnoreCase) || logLine.Contains(Constants.AfkEndSpaces, StringComparison.OrdinalIgnoreCase))
-            {
-                logEntry.EntryType = LogEntryType.AfkEnd;
-            }
-            else if (logLine.Contains(Constants.Transfer))
-            {
-                logEntry.EntryType = LogEntryType.Transfer;
+                string noWhitespaceLogline = logLine.RemoveAllWhitespace();
+                if (noWhitespaceLogline.Contains(Constants.Crashed, StringComparison.OrdinalIgnoreCase))
+                {
+                    logEntry.EntryType = LogEntryType.Crashed;
+                }
+                else if (noWhitespaceLogline.Contains(Constants.AfkStart, StringComparison.OrdinalIgnoreCase))
+                {
+                    logEntry.EntryType = LogEntryType.AfkStart;
+                }
+                else if (noWhitespaceLogline.Contains(Constants.AfkEnd, StringComparison.OrdinalIgnoreCase))
+                {
+                    logEntry.EntryType = LogEntryType.AfkEnd;
+                }
+                else if (logLine.Contains(Constants.Transfer))
+                {
+                    logEntry.EntryType = LogEntryType.Transfer;
+                }
             }
         }
     }
