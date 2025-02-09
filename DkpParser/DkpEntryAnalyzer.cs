@@ -48,6 +48,9 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
     private void CheckDkpPlayerName(DkpEntry dkpEntry)
     {
+        if (dkpEntry.PossibleError != PossibleError.None)
+            return;
+
         foreach (PlayerLooted playerLootedEntry in _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName.Equals(dkpEntry.PlayerName, StringComparison.OrdinalIgnoreCase)))
         {
             if (playerLootedEntry.ItemLooted == dkpEntry.Item)
