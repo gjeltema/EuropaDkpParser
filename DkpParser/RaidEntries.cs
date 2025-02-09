@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidEntries.cs Copyright 2024 Craig Gjeltema
+// RaidEntries.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -24,6 +24,8 @@ public sealed class RaidEntries
     public ICollection<CharacterJoinRaidEntry> CharacterJoinCalls { get; set; } = new List<CharacterJoinRaidEntry>();
 
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
+
+    public ICollection<DkpEntry> DkpUploadErrors { get; set; } = new List<DkpEntry>();
 
     public ICollection<MultipleCharsOnAttendanceError> MultipleCharsInAttendanceErrors { get; set; } = new List<MultipleCharsOnAttendanceError>();
 

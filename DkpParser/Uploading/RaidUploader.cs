@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidUploader.cs Copyright 2024 Craig Gjeltema
+// RaidUploader.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Uploading;
@@ -107,11 +107,9 @@ public sealed class RaidUploader : IRaidUpload
                     Dkp = dkpEntry,
                     Error = ex
                 };
-                results.DkpFailure = error;
+                results.DkpFailures.Add(error);
 
                 _debugInfo.AddDebugMessage($"Error encountered when uploading {dkpEntry}: {ex}");
-
-                return;
             }
         }
 
@@ -123,7 +121,7 @@ public sealed class RaidUploadResults
 {
     public AttendanceUploadFailure AttendanceError { get; set; }
 
-    public DkpUploadFailure DkpFailure { get; set; }
+    public ICollection<DkpUploadFailure> DkpFailures { get; set; } = new List<DkpUploadFailure>();
 
     public Exception EventIdCallFailure { get; set; }
 

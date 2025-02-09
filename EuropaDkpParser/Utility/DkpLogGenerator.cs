@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpLogGenerator.cs Copyright 2024 Craig Gjeltema
+// DkpLogGenerator.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Utility;
@@ -253,6 +253,13 @@ internal sealed class DkpLogGenerator
             summaryDisplay.AppendLine();
             summaryDisplay.AppendLine("-------------- DKPSPENT Entries Removed Due To No Player On DKP Server --------------");
             summaryDisplay.AppendLine(string.Join(Environment.NewLine, raidEntries.RemovedDkpEntries));
+        }
+
+        if (raidEntries.DkpUploadErrors.Count > 0)
+        {
+            summaryDisplay.AppendLine();
+            summaryDisplay.AppendLine("-------------- DKPSPENT Entries With Upload Errors --------------");
+            summaryDisplay.AppendLine(string.Join(Environment.NewLine, raidEntries.DkpUploadErrors.Select(x => x.RawLogLine)));
         }
 
         return summaryDisplay.ToString();

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidUploadDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// RaidUploadDialogViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -178,6 +178,10 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             RaidUploader server = new(_settings, debugInfo);
             RaidUploadResults uploadResults = await server.UploadRaid(raidsToUpload);
 
+            _raidEntries.DkpUploadErrors = uploadResults.DkpFailures.Select(
+                x => _raidEntries.DkpEntries.FirstOrDefault(z => z.Timestamp == x.Dkp.Timestamp && z.Item == x.Dkp.Item && z.PlayerName == x.Dkp.CharacterName))
+                .ToList();
+
             ErrorMessages = SetDisplayedErrorMessages(uploadResults).ToList();
             ShowErrorMessages = ErrorMessages.Count > 0;
 
@@ -319,8 +323,8 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         if (uploadResults.AttendanceError != null)
             yield return new UploadErrorDisplay { AttendanceError = uploadResults.AttendanceError };
 
-        if (uploadResults.DkpFailure != null)
-            yield return new UploadErrorDisplay { DkpFailure = uploadResults.DkpFailure };
+        if (uploadResults.DkpFailures.Count > 0)
+            yield return new UploadErrorDisplay { DkpFailures = uploadResults.DkpFailures };
     }
 
     private async Task WriteDebugInfo(IServerCommDebugInfo debugInfo)
@@ -340,7 +344,7 @@ public sealed class UploadErrorDisplay
 
     public AttendanceUploadFailure AttendanceError { get; init; }
 
-    public DkpUploadFailure DkpFailure { get; init; }
+    public ICollection<DkpUploadFailure> DkpFailures { get; init; }
 
     public Exception EventIdCallFailure { get; init; }
 
@@ -364,8 +368,8 @@ public sealed class UploadErrorDisplay
             return GetEventIdFailureMessage(EventIdNotFound);
         else if (AttendanceError != null)
             return $"Failed to upload attendance call {AttendanceError.Attendance.CallName}: {AttendanceError.Error.Message}";
-        else if (DkpFailure != null)
-            return $"Failed to upload DKP spend call for {DkpFailure.Dkp.CharacterName} for item {DkpFailure.Dkp.Item}: {DkpFailure.Error.Message}";
+        else if (DkpFailures != null)
+            return $"Failed to upload DKP Spent calls: {string.Join(", ", DkpFailures.Select(x => $"{x.Dkp.CharacterName} for item {x.Dkp.Item}: {x.Error.Message}"))}";
         else if (UnexpectedError != null)
             return $"Unexpected error encountered when uploading: {UnexpectedError}";
         else
