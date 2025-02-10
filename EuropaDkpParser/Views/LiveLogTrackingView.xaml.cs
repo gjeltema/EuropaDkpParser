@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using EuropaDkpParser.ViewModels;
 
-public partial class LiveLogTrackingView : Window
+public partial class LiveLogTrackingView : Window, ILiveLogTrackingWindow
 {
     public LiveLogTrackingView(ILiveLogTrackingViewModel liveLogTrackingViewModel)
     {
@@ -18,12 +18,6 @@ public partial class LiveLogTrackingView : Window
         DataContext = liveLogTrackingViewModel;
 
         ActiveAuctionListing.SelectionChanged += HandleSelectionChanged;
-    }
-
-    private void ClosedHandler(object sender, EventArgs e)
-    {
-        ILiveLogTrackingViewModel dc = DataContext as ILiveLogTrackingViewModel;
-        dc?.HandleClosed();
     }
 
     private void HandleSelectionChanged(object sender, SelectionChangedEventArgs e)

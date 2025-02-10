@@ -38,7 +38,12 @@ public partial class App : Application
 
         if (!File.Exists(RaidValuesFilePath))
         {
-            MessageBox.Show("RaidValues.txt file was not found. Obtain this file and place it in the same folder as this executable.", "RaidValues.txt Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(
+                "RaidValues.txt file was not found. Obtain this file and place it in the same folder as this executable.",
+                "RaidValues.txt Not Found",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+
             Current?.Shutdown(1);
             return;
         }
@@ -59,9 +64,10 @@ public partial class App : Application
 
         DialogFactory dialogFactory = new(new DialogViewFactory());
         OverlayFactory overlayFactory = new(new OverlayViewFactory());
+        WindowFactory windowFactory = new(new WindowViewFactory());
         MessageDialog.Initialize(dialogFactory);
 
-        var shellViewModel = new ShellViewModel(_settings, dialogFactory, overlayFactory);
+        var shellViewModel = new ShellViewModel(_settings, dialogFactory, overlayFactory, windowFactory);
         _shellView = new ShellView(shellViewModel);
         MainWindow = _shellView;
         MainWindow.Show();

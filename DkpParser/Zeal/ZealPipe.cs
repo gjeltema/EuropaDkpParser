@@ -43,7 +43,7 @@ internal sealed class ZealPipe
 
     public void StopListening()
     {
-        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource?.Cancel();
         _cancellationTokenSource = null;
     }
 

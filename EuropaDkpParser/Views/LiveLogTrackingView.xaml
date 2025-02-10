@@ -13,8 +13,8 @@
              Title="{StaticResource LiveLogTrackingDialogTitleText}"
              d:DesignHeight="450" d:DesignWidth="800"
              Background="{StaticResource DefaultBackgroundColor}"
-             Foreground="{StaticResource DefaultForegroundColor}"
-             Closed="ClosedHandler">
+             Foreground="{StaticResource DefaultForegroundColor}">
+    
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>

@@ -8,10 +8,11 @@ using System.IO;
 using System.Windows.Threading;
 using DkpParser;
 using DkpParser.LiveTracking;
+using DkpParser.Zeal;
 using EuropaDkpParser.Utility;
 using Prism.Commands;
 
-internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTrackingViewModel
+internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTrackingViewModel
 {
     private const int DkpDisplayFontSize = 16;
     private readonly ActiveBidTracker _activeBidTracker;
@@ -20,6 +21,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
+    private readonly ZealPipeMessageProcessor _zealMessageProcessor;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
     private string _auctionStatusMessageToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
@@ -41,7 +43,13 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
     private bool _useAudioReminder;
     private bool _useOverlayForAttendanceReminder;
 
-    public LiveLogTrackingViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
+    public LiveLogTrackingViewModel(
+        IWindowViewFactory windowViewFactory,
+        IDkpParserSettings settings,
+        IDialogFactory dialogFactory,
+        IOverlayFactory overlayFactory,
+        IWindowFactory windowFactory)
+        : base(windowViewFactory)
     {
         _settings = settings;
 
@@ -49,6 +57,7 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         _activeBidTracker = new(settings, new TailFile());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, overlayFactory, dialogFactory);
+        _zealMessageProcessor = ZealPipeMessageProcessor.Instance;
 
         CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
             .ObservesProperty(() => SelectedSpentMessageToPaste);
@@ -251,15 +260,15 @@ internal sealed class LiveLogTrackingViewModel : EuropaViewModelBase, ILiveLogTr
         }
     }
 
-    public void Close()
+    protected override sealed IWindowView CreateWindowView(IWindowViewFactory viewFactory)
+        => viewFactory.CreateLiveLogTrackingWindow(this);
+
+    protected override sealed void HandleClosing()
     {
         _attendanceTimerHandler.CloseAll();
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
-    }
-
-    public void HandleClosed()
-    {
+        _zealMessageProcessor.StopListeningToPipe();
     }
 
     private void AddItemLinkId()
@@ -557,7 +566,7 @@ public sealed class LiveAuctionDisplay : EuropaViewModelBase
         => _liveAuctionInfo.ToString();
 }
 
-public interface ILiveLogTrackingViewModel : IEuropaViewModel
+public interface ILiveLogTrackingViewModel : IWindowViewModel
 {
     ICollection<LiveAuctionDisplay> ActiveAuctions { get; }
 
@@ -620,8 +629,4 @@ public interface ILiveLogTrackingViewModel : IEuropaViewModel
     bool UseAudioReminder { get; set; }
 
     bool UseOverlayForAttendanceReminder { get; set; }
-
-    void Close();
-
-    void HandleClosed();
 }

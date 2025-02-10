@@ -12,7 +12,7 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
     private int _windowLocationX;
     private int _windowLocationY;
 
-    internal ShellViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
+    internal ShellViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory, IWindowFactory windowFactory)
     {
         TitleText = Strings.GetString("MainWindowTitleText") + " " + Strings.GetString("Version");
 
@@ -20,7 +20,7 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
         if (UseAdvancedDialog)
             MainDisplayVM = new MainDisplayViewModel(settings, dialogFactory);
         else
-            SimpleStartDisplayVM = new SimpleStartDisplayViewModel(settings, dialogFactory, overlayFactory);
+            SimpleStartDisplayVM = new SimpleStartDisplayViewModel(settings, dialogFactory, overlayFactory, windowFactory);
 
         WindowLocationX = settings.MainWindowX;
         WindowLocationY = settings.MainWindowY;

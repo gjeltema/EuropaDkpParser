@@ -4,13 +4,10 @@
 
 namespace EuropaDkpParser.ViewModels;
 
-using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using DkpParser;
 using EuropaDkpParser.Utility;
-using EuropaDkpParser.Views;
-using Microsoft.Win32;
 using Prism.Commands;
 
 internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimpleStartDisplayViewModel
@@ -19,14 +16,16 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     private readonly DkpLogGenerator _logGenerator;
     private readonly IOverlayFactory _overlayFactory;
     private readonly IDkpParserSettings _settings;
+    private readonly IWindowFactory _windowFactory;
     private bool _ableToUpload;
     private ILiveLogTrackingViewModel _biddingDialogVM;
 
-    internal SimpleStartDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory)
+    internal SimpleStartDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory, IWindowFactory windowFactory)
     {
         _settings = settings;
         _dialogFactory = dialogFactory;
         _overlayFactory = overlayFactory;
+        _windowFactory = windowFactory;
 
         OpenSettingsCommand = new DelegateCommand(OpenSettingsDialog);
         OpenArchiveFilesCommand = new DelegateCommand(OpenArchiveFilesDialog);
@@ -57,9 +56,6 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     public DelegateCommand UploadGeneratedLogCommand { get; }
 
-    private void HandleClosingBiddingWindow(object sender, CancelEventArgs e)
-        => _biddingDialogVM.Close();
-
     private void OpenArchiveFilesDialog()
     {
         IFileArchiveDialogViewModel fileArchiveDialog = _dialogFactory.CreateFileArchiveDialogViewModel(_settings);
@@ -71,10 +67,8 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private void OpenBiddingTrackerDialog()
     {
-        _biddingDialogVM = new LiveLogTrackingViewModel(_settings, _dialogFactory, _overlayFactory);
-        Window biddingWindow = new LiveLogTrackingView(_biddingDialogVM);
-        biddingWindow.Closing += HandleClosingBiddingWindow;
-        biddingWindow.Show();
+        _biddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, _dialogFactory, _overlayFactory, _windowFactory);
+        _biddingDialogVM.Show();
     }
 
     private void OpenDkpParserDialog()
@@ -105,7 +99,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private async Task UploadGeneratedLogAsync()
     {
-        var fileDialog = new OpenFileDialog()
+        var fileDialog = new Microsoft.Win32.OpenFileDialog()
         {
             Title = "Select Generated Log File"
         };
