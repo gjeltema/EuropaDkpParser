@@ -9,7 +9,7 @@
              d:DataContext="{d:DesignInstance Type=viewmodels:LiveLogTrackingViewModel}"
              WindowStartupLocation="CenterOwner"
              ShowInTaskbar="False"
-             Width="900" Height="700"
+             Width="900" Height="750"
              Title="{StaticResource LiveLogTrackingDialogTitleText}"
              d:DesignHeight="450" d:DesignWidth="800"
              Background="{StaticResource DefaultBackgroundColor}"
@@ -18,6 +18,7 @@
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <!--<RowDefinition Height="Auto"/>-->
@@ -224,42 +225,60 @@
             <!-- End of Row 0 -->
         </Grid>
 
-        <Grid Grid.Row="1" Margin="0,5,0,0">
+        <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="1" Margin="0,5,0,5"/>
+
+        <Grid Grid.Row="2" Margin="0,5,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0">
+            <Border Grid.Column="0" BorderThickness="1" BorderBrush="DarkGray" Padding="5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <CheckBox Grid.Row="0" IsChecked="{Binding RemindAttendances}" Content="{StaticResource RemindAttendances}"/>
+
+                        <Grid Grid.Row="1"  Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <CheckBox Grid.Row="0" IsChecked="{Binding UseOverlayForAttendanceReminder}" Content="{StaticResource UseOverlay}" IsEnabled="{Binding RemindAttendances}"
+                              Margin="20,0,0,5"/>
+                            <CheckBox Grid.Row="1" IsChecked="{Binding UseAudioReminder}" Content="{StaticResource AudioReminder}" Margin="20,0,0,0"/>
+                        </Grid>
+                    </Grid>
+
+                    <Grid Grid.Column="1" Margin="10,0,0,0">
+                        <Button Grid.Column="1" Content="{StaticResource TimeNow}" Command="{Binding SpawnTimeAttendanceCall}" Width="85" Height="30"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="1" Margin="30,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-
-                <CheckBox Grid.Row="0" IsChecked="{Binding RemindAttendances}" Content="{StaticResource RemindAttendances}"/>
-
-                <Grid Grid.Row="1"  Margin="0,5,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <CheckBox Grid.Column="0" IsChecked="{Binding UseOverlayForAttendanceReminder}" Content="{StaticResource UseOverlay}" IsEnabled="{Binding RemindAttendances}"
-                              Margin="20,0,0,0"/>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding UseAudioReminder}" Content="{StaticResource AudioReminder}" Margin="20,0,0,0"/>
-                    
-                    <CheckBox Grid.Column="2" IsChecked="{Binding ForceShowOverlay}" Content="{StaticResource ShowOverlayForMoving}" Margin="20,0,0,0" VerticalAlignment="Top"/>
-                </Grid>
-            </Grid>
-
-            <Grid Grid.Column="1" Margin="30,0,0,0">
-                <CheckBox IsChecked="{Binding LowRollWins}" Content="{StaticResource LowRollWins}" />
+                
+                <CheckBox Grid.Row="0" IsChecked="{Binding LowRollWins}" Content="{StaticResource LowRollWins}" />
+                <CheckBox Grid.Row="1" IsChecked="{Binding ForceShowOverlay}" Content="{StaticResource ShowOverlayForMoving}"/>
             </Grid>
         </Grid>
 
         <!-- File path -->
-        <Grid Grid.Row="2" Margin="0,7,0,0">
+        <Grid Grid.Row="3" Margin="0,7,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

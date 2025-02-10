@@ -136,6 +136,48 @@ internal sealed class AttendanceTimerHandler
         }
     }
 
+    public void ShowTimeAttendanceReminder()
+    {
+        if (!RemindAttendances)
+        {
+            SetReminderForAttendances();
+            return;
+        }
+
+        _attendanceReminderTimer.Stop();
+
+        if (_overlayTypeShowing != OverlayType.None)
+        {
+            _pendingOverlays.Enqueue(new PendingOverlay { OverlayType = OverlayType.Time });
+            return;
+        }
+
+        DoAudioReminder();
+        TimeSpan nextInterval;
+
+        if (UseOverlayForAttendanceReminder)
+        {
+            _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
+            _attendanceOverlayViewModel.Show(_timeCallIndex);
+            _overlayTypeShowing = OverlayType.Time;
+
+            nextInterval = GetAttendanceReminderInterval();
+        }
+        else
+        {
+            IReminderDialogViewModel reminder = GetReminderDialog(Strings.GetString("TimeAttendanceReminderMessage"), AttendanceCallType.Time);
+            reminder.SetTimeCallIndex(_timeCallIndex);
+
+            bool ok = reminder.ShowDialog() == true;
+            nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);
+            int selectedTimeCallIndex = reminder.GetTimeCallIndex();
+            _timeCallIndex = ok ? selectedTimeCallIndex + 1 : selectedTimeCallIndex - 1;
+        }
+
+        _attendanceReminderTimer.Interval = nextInterval;
+        _attendanceReminderTimer.Start();
+    }
+
     public bool TogglePositioningOverlay(bool showPositionOverlay)
     {
         if (showPositionOverlay)
@@ -181,7 +223,7 @@ internal sealed class AttendanceTimerHandler
 
     private void DoAudioReminder()
     {
-        if(UseAudioReminder)
+        if (UseAudioReminder)
             System.Media.SystemSounds.Hand.Play();
     }
 
@@ -260,48 +302,6 @@ internal sealed class AttendanceTimerHandler
             _attendanceReminderTimer?.Stop();
             _attendanceReminderTimer = null;
         }
-    }
-
-    private void ShowTimeAttendanceReminder()
-    {
-        if (!RemindAttendances)
-        {
-            SetReminderForAttendances();
-            return;
-        }
-
-        _attendanceReminderTimer.Stop();
-
-        if (_overlayTypeShowing != OverlayType.None)
-        {
-            _pendingOverlays.Enqueue(new PendingOverlay { OverlayType = OverlayType.Time });
-            return;
-        }
-
-        DoAudioReminder();
-        TimeSpan nextInterval;
-
-        if (UseOverlayForAttendanceReminder)
-        {
-            _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
-            _attendanceOverlayViewModel.Show(_timeCallIndex);
-            _overlayTypeShowing = OverlayType.Time;
-
-            nextInterval = GetAttendanceReminderInterval();
-        }
-        else
-        {
-            IReminderDialogViewModel reminder = GetReminderDialog(Strings.GetString("TimeAttendanceReminderMessage"), AttendanceCallType.Time);
-            reminder.SetTimeCallIndex(_timeCallIndex);
-
-            bool ok = reminder.ShowDialog() == true;
-            nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);
-            int selectedTimeCallIndex = reminder.GetTimeCallIndex();
-            _timeCallIndex = ok ? selectedTimeCallIndex + 1 : selectedTimeCallIndex - 1;
-        }
-
-        _attendanceReminderTimer.Interval = nextInterval;
-        _attendanceReminderTimer.Start();
     }
 
     private sealed class PendingOverlay

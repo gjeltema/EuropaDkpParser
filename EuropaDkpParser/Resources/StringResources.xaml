@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v2.8.1</system:String>
+    <system:String x:Key="Version">v2.9b</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -287,7 +287,9 @@
     <system:String x:Key="ChangeName">Change Name</system:String>
     <system:String x:Key="UseOverlay">Use Overlay</system:String>
     <system:String x:Key="ShowOverlayForMoving">Show Overlay For Moving</system:String>
-    <system:String x:Key="AudioReminder">Give Audio Reminder</system:String>
+    <system:String x:Key="AudioReminder">Audio Reminder</system:String>
+    <system:String x:Key="AttendanceReminderGroupBoxLabel">Attendance Reminder</system:String>
+    <system:String x:Key="TimeNow">Time Now</system:String>
 
     <!-- ReminderDialog -->
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>

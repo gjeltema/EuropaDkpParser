@@ -76,6 +76,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             .ObservesProperty(() => SelectedBid);
         ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
             .ObservesProperty(() => SelectedBid).ObservesProperty(() => SelectedBidCharacterName);
+        SpawnTimeAttendanceCall = new DelegateCommand(SpawnTimeAttendanceCallNow, () => RemindAttendances).ObservesProperty(() => RemindAttendances);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
 
@@ -228,6 +229,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     public DelegateCommand SelectFileToTailCommand { get; }
 
     public DelegateCommand SetActiveAuctionToCompletedCommand { get; }
+
+    public DelegateCommand SpawnTimeAttendanceCall { get; }
 
     public ICollection<SuggestedSpentCall> SpentMessagesToPaste
     {
@@ -432,6 +435,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction?.Auction, marker, LowRollWins);
     }
 
+    private void SpawnTimeAttendanceCallNow()
+        => _attendanceTimerHandler.ShowTimeAttendanceReminder();
+
     private void StartTailingFile(string fileToTail)
     {
         if (string.IsNullOrWhiteSpace(fileToTail))
@@ -623,6 +629,8 @@ public interface ILiveLogTrackingViewModel : IWindowViewModel
     DelegateCommand SelectFileToTailCommand { get; }
 
     DelegateCommand SetActiveAuctionToCompletedCommand { get; }
+
+    DelegateCommand SpawnTimeAttendanceCall { get; }
 
     ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; }
 
