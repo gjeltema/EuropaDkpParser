@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// CollectionsLogger.cs Copyright 2025 Craig Gjeltema
+// CollectionLogger.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace Gjeltema.Logging;
@@ -13,16 +13,16 @@ using System.Collections.ObjectModel;
 /// </summary>
 public sealed class CollectionLogger : ILogger
 {
-    private readonly ConcurrentDictionary<string, ILogTarget> Loggers = new();
-    private ILogTarget defaultLogTarget;
+    private readonly ConcurrentDictionary<string, ILogTarget> _logTargets = new();
+    private ILogTarget _defaultLogTarget;
 
     /// <summary>
     /// Constructor.
     /// </summary>
     public CollectionLogger()
     {
-        defaultLogTarget = new EmptyLogTarget();
-        this["Default"] = defaultLogTarget;
+        _defaultLogTarget = new EmptyLogTarget();
+        this["Default"] = _defaultLogTarget;
     }
 
     /// <inheritdoc/>
@@ -30,7 +30,7 @@ public sealed class CollectionLogger : ILogger
     {
         get
         {
-            if (Loggers.TryGetValue(name, out ILogTarget logTarget))
+            if (_logTargets.TryGetValue(name, out ILogTarget logTarget))
             {
                 return logTarget;
             }
@@ -43,28 +43,28 @@ public sealed class CollectionLogger : ILogger
                 return;
             if (string.IsNullOrWhiteSpace(name))
                 return;
-            Loggers[name] = value;
+            _logTargets[name] = value;
         }
     }
 
     /// <inheritdoc/>
     public ILogTarget Default
     {
-        get => defaultLogTarget;
+        get => _defaultLogTarget;
         set
         {
             if (value == null)
                 return;
-            defaultLogTarget = value;
-            this["Default"] = defaultLogTarget;
+            _defaultLogTarget = value;
+            this["Default"] = _defaultLogTarget;
         }
     }
 
     /// <inheritdoc/>
     public IReadOnlyDictionary<string, ILogTarget> AllLogTargets()
-        => new ReadOnlyDictionary<string, ILogTarget>(Loggers);
+        => new ReadOnlyDictionary<string, ILogTarget>(_logTargets);
 
     /// <inheritdoc/>
     public bool RemoveLogTarget(string logTargetName)
-        => Loggers.TryRemove(logTargetName, out ILogTarget _);
+        => _logTargets.TryRemove(logTargetName, out ILogTarget _);
 }

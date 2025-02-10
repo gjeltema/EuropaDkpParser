@@ -11,6 +11,8 @@ using DkpParser;
 using EuropaDkpParser.Utility;
 using EuropaDkpParser.ViewModels;
 using EuropaDkpParser.Views;
+using Gjeltema.Logging;
+using static Gjeltema.Logging.SimpleLogTarget;
 
 public partial class App : Application
 {
@@ -18,6 +20,8 @@ public partial class App : Application
     private const string ItemLinkIdsFilePath = "ItemLinkIDs.txt";
     private const string RaidValuesFilePath = "RaidValues.txt";
     private const string SettingsFilePath = "Settings.txt";
+    private static readonly LogFormatter LogFormatter =
+         (logLevel, message) => $"{DateTime.Now:HH:mm:ss} {logLevel.ToString().ToUpper()} {message}";
     private IDkpParserSettings _settings;
     private ShellView _shellView;
 
@@ -47,6 +51,8 @@ public partial class App : Application
             Current?.Shutdown(1);
             return;
         }
+
+        InitializeLogging();
 
         _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath, DkpCharactersFilePath);
         _settings.LoadAllSettings();
@@ -86,8 +92,34 @@ public partial class App : Application
 
     private static void HandleFatalException(Exception ex)
     {
-        //Log.Critical($"Critical error, application ending: {ex?.ToLogMessage()}");
+        Log.Critical($"Fatal exception: {ex?.ToLogMessage()}");
         MessageBox.Show(ex.Message);
         Current?.Shutdown(1);
+    }
+
+    private static void InitializeLogging()
+    {
+        string logFileName = $"{DateTime.Now:MMdd}_ParserLog.txt";
+        string currentDirectory = AppContext.BaseDirectory;
+        string logDirectory = Path.Combine(currentDirectory, "Logs");
+        if (!Directory.Exists(logDirectory))
+        {
+            try
+            {
+                Directory.CreateDirectory(logDirectory);
+            }
+            catch
+            {
+                return;
+            }
+        }
+
+        string logFilePath = Path.Combine(logDirectory, logFileName);
+
+        ILogTargetFactory logFactory = new LogTargetFactory();
+        ILogTarget simpleAsyncLogTarget = logFactory.CreateAsyncSimpleLogTarget(logFilePath, LogFormatter);
+
+        Log.Logger = new SingleLogger();
+        Log.Logger.Default = simpleAsyncLogTarget;
     }
 }
