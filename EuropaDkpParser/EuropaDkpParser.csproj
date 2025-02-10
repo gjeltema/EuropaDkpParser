@@ -16,6 +16,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\DkpParser\DkpParser.csproj" />
+      <ProjectReference Include="..\Logging\Logging.csproj" />
     </ItemGroup>
 
     <ItemGroup>

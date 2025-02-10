@@ -14,6 +14,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DkpParser", "DkpParser\DkpP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DkpParserTest", "DkpParserTest\DkpParserTest.csproj", "{2320B63D-0092-4459-886A-1A03B2D2FC1C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "Logging\Logging.csproj", "{3A432DED-93BA-49B1-A503-B843581B6DB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{2320B63D-0092-4459-886A-1A03B2D2FC1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2320B63D-0092-4459-886A-1A03B2D2FC1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2320B63D-0092-4459-886A-1A03B2D2FC1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A432DED-93BA-49B1-A503-B843581B6DB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A432DED-93BA-49B1-A503-B843581B6DB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A432DED-93BA-49B1-A503-B843581B6DB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A432DED-93BA-49B1-A503-B843581B6DB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
