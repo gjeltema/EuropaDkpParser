@@ -21,7 +21,7 @@
     </WindowChrome.WindowChrome>-->
 
     <Border CornerRadius="0" BorderBrush="White" Name="WindowBorder" MouseLeftButtonDown="MouseDownHandler">
-        <Grid MouseLeftButtonDown="MouseDownHandler">
+        <Grid MouseLeftButtonDown="MouseDownHandler" Visibility="{Binding ContentIsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
             <ContentPresenter Content="{Binding}">
                 <ContentPresenter.Resources>
                     <ResourceDictionary>

@@ -6,9 +6,8 @@ namespace EuropaDkpParser.ViewModels;
 
 internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayViewModel
 {
-    private const double OverlayControlOpacity = 0.7;
     protected IOverlayViewFactory _viewFactory;
-    private double _controlOpacity;
+    private bool _contentIsVisible;
     private Action _hideAction;
     private bool _windowHasBeenShown;
 
@@ -17,10 +16,10 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
         _viewFactory = viewFactory;
     }
 
-    public double ControlOpacity
+    public bool ContentIsVisible
     {
-        get => _controlOpacity;
-        set => SetProperty(ref _controlOpacity, value);
+        get => _contentIsVisible;
+        set => SetProperty(ref _contentIsVisible, value);
     }
 
     public bool PositionChanged { get; private set; }
@@ -43,7 +42,7 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
         OverlayView.Top = YPos;
         OverlayView.Left = XPos;
-        ControlOpacity = OverlayControlOpacity;
+        ContentIsVisible = true;
         ShowOverlay();
     }
 
@@ -59,7 +58,7 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
         {
             OverlayView.DisableMove();
             //OverlayView?.Hide();
-            ControlOpacity = 0.0;
+            ContentIsVisible = false;
         }
 
         _hideAction?.Invoke();
@@ -80,7 +79,7 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
 public interface IOverlayViewModel
 {
-    public double ControlOpacity { get; set; }
+    bool ContentIsVisible { get; set; }
 
     bool PositionChanged { get; }
 
