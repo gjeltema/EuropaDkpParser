@@ -157,6 +157,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (highBids.Count == 0)
             return string.Empty;
 
+        string statusString = GetStatusString(statusMarker);
+
         if (auction.IsRoll)
         {
             string channel = GetChannelShortcut(auction.Channel);
@@ -164,13 +166,12 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             string highRollersString = string.Join(", ", highBids.Select(x => $"{x.CharacterPlacingBid}"));
             string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
             string highOrLow = lowRollWins ? "Low" : "High";
-            return $"{channel} {highOrLow} roll of {highRoll} for {auction.ItemName} by {highRollersString}";
+            return $"{channel} {highOrLow} roll of {highRoll} for {auction.ItemName} by {highRollersString} {statusString}";
         }
         else
         {
             string channel = GetChannelShortcut(auction.Channel);
             string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterBeingBidFor} {x.BidAmount} DKP"));
-            string statusString = GetStatusString(statusMarker);
             string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
             return $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {highBiddersString} {statusString}";
         }
