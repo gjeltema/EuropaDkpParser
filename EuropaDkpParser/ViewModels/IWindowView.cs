@@ -14,3 +14,8 @@ public interface IWindowView
 public interface ILiveLogTrackingWindow : IWindowView
 {
 }
+
+public interface IWindowViewFactory
+{
+    ILiveLogTrackingWindow CreateLiveLogTrackingWindow(ILiveLogTrackingViewModel liveLogTrackingViewModel);
+}

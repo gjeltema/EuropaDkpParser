@@ -20,3 +20,8 @@ public interface IOverlayView
 
     void Show();
 }
+
+public interface IOverlayViewFactory
+{
+    IOverlayView CreateOverlayView(IOverlayViewModel overlayViewModel);
+}

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// IDialogView.cs Copyright 2024 Craig Gjeltema
+// IDialogView.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -13,4 +13,9 @@ public interface IDialogView
     double Width { get; set; }
 
     bool? ShowDialog();
+}
+
+public interface IDialogViewFactory
+{
+    IDialogView CreateDialogView(IDialogViewModel dialogViewModel);
 }
