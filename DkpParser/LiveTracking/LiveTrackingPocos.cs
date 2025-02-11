@@ -10,6 +10,7 @@ using System.Diagnostics;
 public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
 {
     private static int currentId = 1;
+    private StatusUpdateInfo _lastStatusUpdate;
 
     public LiveAuctionInfo()
     {
@@ -80,10 +81,45 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
     public override int GetHashCode()
         => ItemName.GetHashCode();
 
+    public void SetStatusUpdate(string auctioneer, DateTime timestamp)
+    {
+        _lastStatusUpdate = new StatusUpdateInfo
+        {
+            Auctioneer = auctioneer,
+            Timestamp = timestamp
+        };
+    }
+
     public override string ToString()
         => IsRoll
-        ? $"{Timestamp:HH:mm} {ItemName} {Auctioneer} roll: {TotalNumberOfItems}{(HasBids ? "*" : "")}"
-        : $"{Timestamp:HH:mm} {ItemName} {Auctioneer} {(TotalNumberOfItems > 1 ? "x" + TotalNumberOfItems.ToString() : "")}{(HasBids ? "*" : "")}";
+        ? $"{Timestamp:HH:mm} {ItemName} roll:{TotalNumberOfItems}{GetStatusUpdateText()}{(HasBids ? " *" : "")}"
+        : $"{Timestamp:HH:mm} {ItemName}{(TotalNumberOfItems > 1 ? " x" + TotalNumberOfItems.ToString() : "")}{GetStatusUpdateText()}{(HasBids ? " *" : "")}";
+
+    private string GetStatusUpdateText()
+    {
+        if (_lastStatusUpdate == null)
+            return string.Empty;
+
+        TimeSpan timeSinceUpdate = DateTime.Now - _lastStatusUpdate.Timestamp;
+        string timeSinceUpdateText;
+        if (timeSinceUpdate.TotalSeconds < 60)
+            timeSinceUpdateText = timeSinceUpdate.ToString("s's'");
+        else if (timeSinceUpdate.TotalSeconds < 3600)
+            timeSinceUpdateText = timeSinceUpdate.ToString("m'm's's'");
+        else if (timeSinceUpdate.TotalDays < 1)
+            timeSinceUpdateText = timeSinceUpdate.ToString("h'h'm'm's's'");
+        else
+            timeSinceUpdateText = "very long";
+
+        return $" (Update {timeSinceUpdateText} ago by {_lastStatusUpdate.Auctioneer})";
+    }
+
+    private sealed class StatusUpdateInfo
+    {
+        public string Auctioneer { get; init; }
+
+        public DateTime Timestamp { get; init; }
+    }
 }
 
 [DebuggerDisplay("{DebugText,nq}")]

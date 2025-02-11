@@ -32,11 +32,6 @@ internal sealed partial class ActiveBiddingAnalyzer
         // Tepla tells the raid,  ':::Eye of Xygoz::: Aknok 10dkp 15sec '
         // Tepla tells the raid,  ':::Eye of Xygoz::: Aknok 10 SPENT '
 
-        // Only way to differentiate between a status call and an actual bid at this point
-        if (messageFromPlayer.Contains(Constants.PossibleErrorDelimiter)
-            && (messageFromPlayer.Contains("60s") || messageFromPlayer.Contains("30s") || messageFromPlayer.Contains("10s") || messageFromPlayer.Contains("COMPLETED")))
-            return null;
-
         // OrderByDescending to handle the (Left) Eye of Xygoz issue, where people bidding on Left Eye of Xygoz would have
         // their bids get lumped under the Eye of Xygoz auction if both items dropped.
         LiveAuctionInfo relatedAuction = activeAuctions
@@ -45,6 +40,14 @@ internal sealed partial class ActiveBiddingAnalyzer
 
         if (relatedAuction == null)
             return null;
+
+        // Only way to differentiate between a status call and an actual bid at this point
+        if (messageFromPlayer.Contains(Constants.PossibleErrorDelimiter)
+            && (messageFromPlayer.Contains("60s") || messageFromPlayer.Contains("30s") || messageFromPlayer.Contains("10s") || messageFromPlayer.Contains("COMPLETED")))
+        {
+            relatedAuction.SetStatusUpdate(messageSenderName, timestamp);
+            return null;
+        }
 
         string itemName = relatedAuction.ItemName;
         if (itemName == null)
