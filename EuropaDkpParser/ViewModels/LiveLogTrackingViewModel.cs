@@ -58,6 +58,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, overlayFactory, dialogFactory);
         _zealMessageProcessor = ZealPipeMessageProcessor.Instance;
+        _zealMessageProcessor.StartListeningToPipe();
 
         CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
             .ObservesProperty(() => SelectedSpentMessageToPaste);

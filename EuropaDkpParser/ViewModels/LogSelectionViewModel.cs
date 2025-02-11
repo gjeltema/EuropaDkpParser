@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows.Forms;
 using DkpParser;
 using EuropaDkpParser.Resources;
+using Gjeltema.Logging;
 using Prism.Commands;
 
 internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelectionViewModel
@@ -29,6 +30,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _overlayFontSize;
     private string _selectedLogFileToAdd;
     private string _selectedLogFileToParse;
+    private string _selectedLoggingLevel;
     private bool _showAfkReview;
     private bool _showPogress;
     private bool _useAdvancedDialog;
@@ -60,6 +62,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         IsDebugOptionsEnabled = _settings.EnableDebugOptions;
         _logFileMatchPattern = _settings.LogFileMatchPattern;
 
+        LoggingLevels = [.. Enum.GetNames<LogLevel>()];
+
         ApiUrl = _settings.ApiUrl;
         ApiReadToken = _settings.ApiReadToken;
         ApiWriteToken = _settings.ApiWriteToken;
@@ -75,6 +79,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
         OverlayFontSize = _settings.OverlayFontSize.ToString();
         OverlayFontColor = _settings.OverlayFontColor;
+
+        SelectedLoggingLevel = _settings.LoggingLevel.ToString();
 
         SetAllCharacterLogFiles();
     }
@@ -153,6 +159,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         }
     }
 
+    public ICollection<string> LoggingLevels { get; }
+
     public string OutputDirectory
     {
         get => _outputDirectory;
@@ -187,6 +195,12 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     {
         get => _selectedLogFileToParse;
         set => SetProperty(ref _selectedLogFileToParse, value);
+    }
+
+    public string SelectedLoggingLevel
+    {
+        get => _selectedLoggingLevel;
+        set => SetProperty(ref _selectedLoggingLevel, value);
     }
 
     public DelegateCommand SelectEqDirectoryCommand { get; }
@@ -242,6 +256,10 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         {
             _settings.OverlayFontSize = fontSize;
         }
+
+        _settings.LoggingLevel = Log.ConvertToLogLevel(SelectedLoggingLevel);
+        Log.Logger.Default.LoggingLevel = _settings.LoggingLevel;
+
         _settings.SaveSettings();
     }
 
@@ -381,6 +399,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
 
     string LogFileMatchPattern { get; set; }
 
+    ICollection<string> LoggingLevels { get; }
+
     string OutputDirectory { get; set; }
 
     string OverlayFontColor { get; set; }
@@ -396,6 +416,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string SelectedLogFileToAdd { get; set; }
 
     string SelectedLogFileToParse { get; set; }
+
+    string SelectedLoggingLevel { get; set; }
 
     DelegateCommand SelectEqDirectoryCommand { get; }
 

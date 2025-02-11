@@ -128,6 +128,7 @@
     <system:String x:Key="GetDkpCharsTooltip">Get all characters from the DKP server and store them locally.</system:String>
     <system:String x:Key="OverlayFontSizeLabel">Overlay Font Size</system:String>
     <system:String x:Key="OverlayFontColorLabel">Overlay Font Color</system:String>
+    <system:String x:Key="LogLevelLabel">Log Level</system:String>
 
     <!-- MainDisplayView -->
     <system:String x:Key="StartTime">Start Time</system:String>

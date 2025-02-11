@@ -5,6 +5,7 @@
 namespace DkpParser;
 
 using System.IO;
+using Gjeltema.Logging;
 
 public sealed class DkpParserSettings : IDkpParserSettings
 {
@@ -28,6 +29,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string IncludeTellsInRawLogSection = "INCLUDE_TELLS_IN_RAW_LOG";
+    private const string LogLevelSection = "LOG_LEVEL";
     private const string LogMatchPatternSection = "LOG_MATCH_PATTERN";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string OverlayFontColorSection = "OVERLAY_FONT_COLOR";
@@ -98,6 +100,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public string LogFileMatchPattern { get; set; }
 
+    public LogLevel LoggingLevel { get; set; }
+
     public int MainWindowX { get; set; } = DefaultWindowLocation;
 
     public int MainWindowY { get; set; } = DefaultWindowLocation;
@@ -167,6 +171,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
         OverlayLocationY = GetIntValue(fileContents, OverlayLocationYSection, 100);
         OverlayFontColor = GetStringValue(fileContents, OverlayFontColorSection, "#CCCCCC");
         OverlayFontSize = GetIntValue(fileContents, OverlayFontSizeSection, 20);
+
+        int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Error);
+        LoggingLevel = (LogLevel)loggingLevelRaw;
     }
 
     public void SaveSettings()
@@ -202,6 +209,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(OverlayLocationYSection, OverlayLocationY),
             CreateFileEntry(OverlayFontColorSection, OverlayFontColor),
             CreateFileEntry(OverlayFontSizeSection, OverlayFontSize),
+            CreateFileEntry(LogLevelSection, (int)LoggingLevel),
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -423,6 +431,8 @@ public interface IDkpParserSettings
     ItemLinkValues ItemLinkIds { get; }
 
     string LogFileMatchPattern { get; set; }
+
+    LogLevel LoggingLevel { get; set; }
 
     int MainWindowX { get; set; }
 

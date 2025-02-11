@@ -10,6 +10,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Gjeltema.Logging;
 
 internal sealed class ZealPipe
 {
@@ -71,6 +72,7 @@ internal sealed class ZealPipe
                     if (bytesRead > 0)
                     {
                         string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        Log.Trace($"{nameof(ZealPipe)} Zeal message received: {message}");
 
                         foreach (string json in splitter.SplitJson(message))
                         {
@@ -82,9 +84,9 @@ internal sealed class ZealPipe
                                     continue;
                                 ZealPipeMessageReceived?.Invoke(this, new ZealPipeMessageEventArgs { PipeName = pipeName, Message = zpm });
                             }
-                            catch (JsonException)
+                            catch (JsonException jex)
                             {
-                                // Handle JSON parsing error
+                                Log.Warning($"[{nameof(ZealPipe)}] JSON parsing error: {jex.ToLogMessage()}");
                             }
                         }
                     }
@@ -95,11 +97,13 @@ internal sealed class ZealPipe
                 }
             }
         }
-        catch (IOException ex) when (ex.InnerException is ObjectDisposedException)
+        catch (IOException ioex) when (ioex.InnerException is ObjectDisposedException)
         {
+            Log.Error($"[{nameof(ZealPipe)}] Pipe object disposed error: {ioex.ToLogMessage()}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Log.Error($"[{nameof(ZealPipe)}] Pipe read error: {ex.ToLogMessage()}");
         }
     }
 }

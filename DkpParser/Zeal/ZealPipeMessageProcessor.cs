@@ -5,6 +5,7 @@
 namespace DkpParser.Zeal;
 
 using System.Text.Json;
+using Gjeltema.Logging;
 
 public sealed class ZealPipeMessageProcessor
 {
@@ -56,12 +57,14 @@ public sealed class ZealPipeMessageProcessor
         };
 
         CharacterInfo = character;
+
+        Log.Trace($"[{nameof(ZealPipeMessageProcessor)}] ZealPlayerCharacter message: {character}");
     }
 
     private void HandleRaidMessage(ZealPipeMessage message)
     {
         ICollection<ZealRaidCharacter> raidAttendees = JsonSerializer.Deserialize<ZealRaidCharacter[]>(message.Data)
-            .Where(x => !string.IsNullOrEmpty(x.Level))
+            .Where(x => !string.IsNullOrEmpty(x?.Level))
             .ToList();
 
         ZealRaidInfo raidInfo = new()
@@ -71,5 +74,7 @@ public sealed class ZealPipeMessageProcessor
         };
 
         RaidInfo = raidInfo;
+
+        Log.Trace($"[{nameof(ZealPipeMessageProcessor)}] ZealRaidInfo message: {raidInfo}");
     }
 }

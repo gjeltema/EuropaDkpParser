@@ -7,6 +7,7 @@ namespace DkpParserTest;
 using System.Collections.Generic;
 using DkpParser;
 using DkpParser.LiveTracking;
+using Gjeltema.Logging;
 
 [TestFixture]
 internal sealed class ActiveBidTrackerTests
@@ -378,6 +379,8 @@ internal sealed class SettingsMock : IDkpParserSettings
     public ItemLinkValues ItemLinkIds { get; }
 
     public string LogFileMatchPattern { get; set; }
+
+    public LogLevel LoggingLevel { get; set; }
 
     public int MainWindowX { get; set; }
 
