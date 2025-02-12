@@ -80,9 +80,13 @@ internal sealed partial class ActiveAuctionStartAnalyzer
         }
         else
         {
-            int endIndex = playerMessage.Length - 1;
-            int indexOfOpen = playerMessage.IndexOf("OPEN");
-            int indexOfBids = playerMessage.IndexOf("BIDS");
+            string playerMessageWithoutMultiplier = playerMessage;
+            if (multiplier > 1)
+                playerMessageWithoutMultiplier = playerMessageWithoutMultiplier.Replace("x" + multiplier.ToString(), "", StringComparison.OrdinalIgnoreCase);
+
+            int endIndex = playerMessageWithoutMultiplier.Length - 1;
+            int indexOfOpen = playerMessageWithoutMultiplier.IndexOf("OPEN");
+            int indexOfBids = playerMessageWithoutMultiplier.IndexOf("BIDS");
             if (indexOfBids < indexOfOpen)
             {
                 int possibleEndIndex = indexOfBids < 1 ? indexOfOpen : indexOfBids;
@@ -96,7 +100,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
                     endIndex = possibleEndIndex;
             }
 
-            string itemsString = playerMessage[0..endIndex];
+            string itemsString = playerMessageWithoutMultiplier[0..endIndex];
 
             char delimiter = itemsString.Contains('|') ? '|' : ',';
             string[] itemNames = itemsString.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
@@ -115,7 +119,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
             }
 
             var auctionGrouping = auctions.GroupBy(x => x.ItemName)
-                .Select(a => new { ItemCount = a.Count(), Auction = a.First() })
+                .Select(a => new { ItemCount = Math.Max(a.Count(), a.Max(x => x.TotalNumberOfItems)), Auction = a.First() })
                 .ToList();
 
             auctions.Clear();

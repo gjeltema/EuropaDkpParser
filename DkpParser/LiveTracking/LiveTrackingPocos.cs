@@ -66,8 +66,11 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
         if (a.ItemName != b.ItemName)
             return false;
 
-        if (a.IsRoll && b.IsRoll && a.TotalNumberOfItems == b.TotalNumberOfItems)
-            return true;
+        if (a.IsRoll != b.IsRoll)
+            return false;
+
+        if (a.IsRoll && b.IsRoll && a.TotalNumberOfItems != b.TotalNumberOfItems)
+            return false;
 
         return true;
     }
