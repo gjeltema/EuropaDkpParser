@@ -52,7 +52,7 @@ public sealed class ZealRaidCharacter
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class ZealPlayerCharacter
 {
-    public CharacterInfo CharacterData { get; init; }
+    public ZealCharacterInfo CharacterData { get; init; }
 
     public string CharacterName { get; init; }
 
@@ -67,7 +67,7 @@ public sealed class ZealPlayerCharacter
 }
 
 [DebuggerDisplay("{DebugText,nq}")]
-public sealed class Vector3d
+public sealed class ZealVector3d
 {
     [JsonPropertyName("x")]
     public float X { get; set; }
@@ -82,17 +82,17 @@ public sealed class Vector3d
         => ToString();
 
     public override string ToString()
-       => $"{X} {Y} {Z}";
+       => $"{X:0.0} {Y:0.0} {Z:0.0}";
 }
 
 [DebuggerDisplay("{DebugText,nq}")]
-public class CharacterInfo
+public class ZealCharacterInfo
 {
     [JsonPropertyName("heading")]
     public float Heading { get; set; }
 
     [JsonPropertyName("location")]
-    public Vector3d Position { get; set; }
+    public ZealVector3d Position { get; set; }
 
     [JsonPropertyName("zone")]
     public int ZoneId { get; set; }

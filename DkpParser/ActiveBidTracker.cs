@@ -4,9 +4,11 @@
 
 namespace DkpParser;
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.IO;
 using DkpParser.LiveTracking;
+using Gjeltema.Logging;
 
 public sealed class ActiveBidTracker : IActiveBidTracker
 {
@@ -19,11 +21,13 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly string _errorFileName;
     private readonly ItemLinkValues _itemLinkValues;
     private readonly IMessageProvider _messageProvider;
+    private readonly ConcurrentQueue<CharacterReadyCheckStatus> _readyCheckStatus = new();
     private readonly IDkpParserSettings _settings;
     private ImmutableList<LiveAuctionInfo> _activeAuctions;
     private ImmutableList<LiveBidInfo> _bids;
     private string _bossKilledName;
     private ImmutableList<CompletedAuction> _completedAuctions;
+    private bool _readyCheckInitiated;
     private ImmutableList<LiveSpentCall> _spentCalls;
 
     public ActiveBidTracker(IDkpParserSettings settings, IMessageProvider messageProvider)
@@ -54,6 +58,18 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     public IEnumerable<CompletedAuction> CompletedAuctions
         => _completedAuctions;
+
+    public bool ReadyCheckInitiated
+    {
+        get
+        {
+            bool readyCheck = _readyCheckInitiated;
+            _readyCheckInitiated = false;
+            return readyCheck;
+        }
+    }
+
+    public bool TrackReadyCheck { get; set; }
 
     public bool Updated { get; set; }
 
@@ -229,6 +245,9 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     public void StopTracking()
         => _messageProvider.StopMessages();
 
+    public bool TryGetReadyCheckStatus(out CharacterReadyCheckStatus readyStatus)
+        => _readyCheckStatus.TryDequeue(out readyStatus);
+
     private List<LiveBidInfo> GetAllMaxRolls(LiveAuctionInfo auction, bool lowRollWins)
     {
         int currentMaxRoll = lowRollWins ? int.MaxValue : 0;
@@ -340,6 +359,31 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         {
             // +1 to remove the following space.
             string logLineNoTimestamp = message[(Constants.LogDateTimeLength + 1)..];
+            string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
+
+            if (TrackReadyCheck && logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter))
+            {
+                string noWhitespaceLogLine = logLineNoTimestamp.RemoveAllWhitespace();
+
+                if (noWhitespaceLogLine.Contains(Constants.ReadyCheck))
+                {
+                    _readyCheckInitiated = true;
+                    Updated = true;
+                    return;
+                }
+                else if (noWhitespaceLogLine.Contains(Constants.Ready))
+                {
+                    _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = true });
+                    Updated = true;
+                    return;
+                }
+                else if (noWhitespaceLogLine.Contains(Constants.NotReady))
+                {
+                    _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = false });
+                    Updated = true;
+                    return;
+                }
+            }
 
             string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
             if (bossKilledName != null)
@@ -363,7 +407,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (!isValidDkpChannel && channel != EqChannel.Group)
                 return;
 
-            string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
             int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'');
             string messageFromPlayer = logLineNoTimestamp[(indexOfFirstQuote + 1)..^1].Trim();
 
@@ -404,6 +447,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         catch (Exception ex)
         {
             ProcessErrorMessage($"Error processing message: {ex}");
+            Log.Error($"Error processing messages: {ex}");
         }
     }
 
@@ -486,6 +530,10 @@ public interface IActiveBidTracker
     IEnumerable<LiveBidInfo> Bids { get; }
 
     IEnumerable<CompletedAuction> CompletedAuctions { get; }
+
+    bool ReadyCheckInitiated { get; }
+
+    bool TrackReadyCheck { get; set; }
 
     bool Updated { get; set; }
 

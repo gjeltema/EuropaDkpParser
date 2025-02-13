@@ -38,6 +38,7 @@ internal sealed class ZealPipe
             string pipeName = string.Format(Constants.ZealPipeNameFormat, eqProcess.Id.ToString());
 
             Thread messageListenerThread = new(() => ProcessZealPipeMessages(pipeName, _cancellationTokenSource.Token));
+            messageListenerThread.IsBackground = true;
             messageListenerThread.Start();
         }
     }

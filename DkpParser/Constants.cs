@@ -48,6 +48,7 @@ public static class Constants
     public const string LogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string LootedA = " looted a ";
     public const int MinimumRaidNameLength = 5;
+    public const string NotReady = ":::NOTREADY:::";
     // [Tue Mar 19 20:13:39 2024] Slebog says out of character, '>> an azarack has been SLOWED  <<'
     public const string OocOther = " says out of character, '";
     public const string OocYou = "You say out of character, '";
@@ -75,6 +76,8 @@ public static class Constants
     // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
     public const string RaidYou = "You tell your raid, '";
     public const string RaidYouSearch = $"] {RaidYou}";
+    public const string Ready = ":::READY:::";
+    public const string ReadyCheck = ":::READYCHECK:::";
     public const string Remove = "REMOVE";
     public const string RollWin = "WINS";
     public const string Rot = "ROT";

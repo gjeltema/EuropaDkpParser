@@ -52,10 +52,13 @@ public partial class App : Application
             return;
         }
 
-        InitializeLogging();
+        DialogFactory dialogFactory = new(new DialogViewFactory());
+        MessageDialog.Initialize(dialogFactory);
 
         _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath, DkpCharactersFilePath);
         _settings.LoadAllSettings();
+
+        InitializeLogging();
 
         if (_settings.UseLightMode)
         {
@@ -68,10 +71,8 @@ public partial class App : Application
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = darkMode });
         }
 
-        DialogFactory dialogFactory = new(new DialogViewFactory());
         OverlayFactory overlayFactory = new(new OverlayViewFactory());
         WindowFactory windowFactory = new(new WindowViewFactory());
-        MessageDialog.Initialize(dialogFactory);
 
         var shellViewModel = new ShellViewModel(_settings, dialogFactory, overlayFactory, windowFactory);
         _shellView = new ShellView(shellViewModel);
@@ -97,7 +98,10 @@ public partial class App : Application
         Current?.Shutdown(1);
     }
 
-    private static void InitializeLogging()
+    private static void HandleLoggingError(object sender, BackgroundLogErrorEventArgs e)
+        => MessageDialog.ShowDialog($"Logger error: {e.ErrorException}", "Logger Error");
+
+    private void InitializeLogging()
     {
         string logFileName = $"{DateTime.Now:MMdd}_ParserLog.txt";
         string currentDirectory = AppContext.BaseDirectory;
@@ -118,8 +122,14 @@ public partial class App : Application
 
         ILogTargetFactory logFactory = new LogTargetFactory();
         ILogTarget simpleAsyncLogTarget = logFactory.CreateAsyncSimpleLogTarget(logFilePath, LogFormatter);
+        BackgroundLogTarget backgroundLogTarget = (BackgroundLogTarget)simpleAsyncLogTarget;
+        backgroundLogTarget.ErrorLoggingMessage += HandleLoggingError;
+
+        simpleAsyncLogTarget.LoggingLevel = _settings.LoggingLevel;
 
         Log.Logger = new SingleLogger();
         Log.Logger.Default = simpleAsyncLogTarget;
+
+        Log.Info($"Logging started.  LogLevel set to: {Log.Logger.Default.LoggingLevel}");
     }
 }

@@ -4,6 +4,7 @@
 
 namespace DkpParser.Zeal;
 
+using System.Diagnostics;
 using System.Text.Json;
 using Gjeltema.Logging;
 
@@ -11,14 +12,22 @@ public sealed class ZealPipeMessageProcessor
 {
     private readonly ZealPipe _zealPipe = ZealPipe.Instance;
 
-    private ZealPipeMessageProcessor() { }
+    private ZealPipeMessageProcessor()
+    {
+        CharacterInfo = new()
+        {
+            CharacterName = string.Empty,
+            ZoneId = 0,
+            CharacterPosition = new Vector3d { X = 0, Y = 0, Z = 0 }
+        };
+    }
 
     public static ZealPipeMessageProcessor Instance
         => new();
 
-    public ZealPlayerCharacter CharacterInfo { get; private set; }
+    public RemotePlayerCharacterInfo CharacterInfo { get; }
 
-    public ZealRaidInfo RaidInfo { get; private set; }
+    public IDictionary<string, ICollection<RemoteRaidCharacterInfo>> RaidInfo { get; } = new Dictionary<string, ICollection<RemoteRaidCharacterInfo>>();
 
     public void StartListeningToPipe()
     {
@@ -49,14 +58,18 @@ public sealed class ZealPipeMessageProcessor
 
     private void HandlePlayerMessage(ZealPipeMessage message)
     {
-        CharacterInfo characterInfo = JsonSerializer.Deserialize<CharacterInfo>(message.Data);
+        ZealCharacterInfo characterInfo = JsonSerializer.Deserialize<ZealCharacterInfo>(message.Data);
         ZealPlayerCharacter character = new()
         {
             CharacterName = message.Character,
             CharacterData = characterInfo
         };
 
-        CharacterInfo = character;
+        CharacterInfo.CharacterName = character.CharacterName;
+        CharacterInfo.ZoneId = character.CharacterData.ZoneId;
+        CharacterInfo.CharacterPosition.X = character.CharacterData.Position.X;
+        CharacterInfo.CharacterPosition.Y = character.CharacterData.Position.Y;
+        CharacterInfo.CharacterPosition.Z = character.CharacterData.Position.Z;
 
         Log.Trace($"[{nameof(ZealPipeMessageProcessor)}] ZealPlayerCharacter message: {character}");
     }
@@ -73,8 +86,93 @@ public sealed class ZealPipeMessageProcessor
             RaidAttendees = raidAttendees
         };
 
-        RaidInfo = raidInfo;
+        UpdateRaidListing(raidInfo);
 
         Log.Trace($"[{nameof(ZealPipeMessageProcessor)}] ZealRaidInfo message: {raidInfo}");
     }
+
+    private void UpdateRaidListing(ZealRaidInfo raidInfo)
+    {
+        if (!RaidInfo.TryGetValue(raidInfo.CharacterName, out ICollection<RemoteRaidCharacterInfo> charactersInfo))
+        {
+            charactersInfo = new List<RemoteRaidCharacterInfo>(72);
+            RaidInfo.Add(raidInfo.CharacterName, charactersInfo);
+        }
+
+        foreach (ZealRaidCharacter raidChar in raidInfo.RaidAttendees)
+        {
+            RemoteRaidCharacterInfo existingRaidChar = charactersInfo.FirstOrDefault(x => x.CharacterName == raidChar.Name);
+            if (existingRaidChar == null)
+            {
+                RemoteRaidCharacterInfo newRaidChar = new()
+                {
+                    CharacterName = raidChar.Name,
+                    Class = raidChar.Class,
+                    Group = raidChar.Group,
+                    Level = raidChar.Level,
+                    Rank = raidChar.Rank,
+                };
+
+                charactersInfo.Add(newRaidChar);
+            }
+            else
+            {
+                existingRaidChar.Group = raidChar.Group;
+                existingRaidChar.Level = raidChar.Level;
+                existingRaidChar.Rank = raidChar.Rank;
+            }
+        }
+    }
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class RemotePlayerCharacterInfo
+{
+    public string CharacterName { get; set; }
+
+    public Vector3d CharacterPosition { get; set; }
+
+    public int ZoneId { get; set; }
+
+    private string DebugText
+        => ToString();
+
+    public override string ToString()
+        => $"{CharacterName} {CharacterPosition} {ZoneId}";
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class Vector3d
+{
+    public float X { get; set; }
+
+    public float Y { get; set; }
+
+    public float Z { get; set; }
+
+    private string DebugText
+        => ToString();
+
+    public override string ToString()
+       => $"{X:0} {Y:0} {Z:0}";
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class RemoteRaidCharacterInfo
+{
+    public string CharacterName { get; set; }
+
+    public string Class { get; set; }
+
+    public string Group { get; set; }
+
+    public string Level { get; set; }
+
+    public string Rank { get; set; }
+
+    private string DebugText
+        => ToString();
+
+    public override string ToString()
+        => $"{CharacterName} {Class} {Level} {Group} {Rank}";
 }

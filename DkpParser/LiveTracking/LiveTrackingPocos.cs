@@ -269,6 +269,7 @@ public sealed class CompletedAuction
     }
 }
 
+[DebuggerDisplay("{DebugText,nq}")]
 public sealed class SuggestedSpentCall
 {
     public EqChannel Channel { get; init; }
@@ -283,8 +284,28 @@ public sealed class SuggestedSpentCall
 
     public string Winner { get; init; }
 
+    private string DebugText
+        => $"{ItemName} {Winner} {DkpSpent} {(IsRoll ? "IsRoll" : "IsDKP")}";
+
     public override string ToString()
         => IsRoll
         ? $"{ItemName} {Winner} rolled {DkpSpent}"
         : $"{Channel} {Constants.AttendanceDelimiter}{ItemName}{Constants.AttendanceDelimiter} {Winner} {DkpSpent} {Constants.DkpSpent}";
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class CharacterReadyCheckStatus
+{
+    public string CharacterName { get; init; }
+
+    public bool? IsReady { get; set; }
+
+    private string DebugText
+        => ToString();
+
+    public string ToDebugString()
+        => $"{CharacterName} '{IsReady}'";
+
+    public override string ToString()
+         => CharacterName;
 }

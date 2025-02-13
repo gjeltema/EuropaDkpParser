@@ -20,6 +20,9 @@ internal sealed class OverlayFactory : IOverlayFactory
 
     public IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings)
         => new OverlayPositioningViewModel(_viewFactory, settings);
+
+    public IReadyCheckOverlayViewModel CreateReadyCheckOverlayViewModel(IDkpParserSettings settings)
+        => new ReadyCheckOverlayViewModel(_viewFactory, settings);
 }
 
 public interface IOverlayFactory
@@ -27,4 +30,6 @@ public interface IOverlayFactory
     IAttendanceOverlayViewModel CreateAttendanceOverlayViewModel(IDkpParserSettings settings);
 
     IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings);
+
+    IReadyCheckOverlayViewModel CreateReadyCheckOverlayViewModel(IDkpParserSettings settings);
 }

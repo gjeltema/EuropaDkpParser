@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="EuropaDkpParser.Views.ReadyCheckOerlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EuropaDkpParser.Views"
+             xmlns:viewmodels="clr-namespace:EuropaDkpParser.ViewModels" 
+             d:DataContext="{d:DesignInstance Type=viewmodels:ReadyCheckOverlayViewModel}"
+             mc:Ignorable="d" 
+             MaxHeight="300"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Label Grid.Column="0" Content="Ready Check" />
+            <Button Grid.Column="1" Content="Done" Command="{Binding Hide}"/>
+        </Grid>
+
+        <ListView Grid.Row="1" ItemsSource="{Binding CharactersNotReady}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Vertical" Background="Transparent"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="{x:Type ListViewItem}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=IsReady}" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                    <Setter Property="Focusable" Value="False"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+    </Grid>
+</UserControl>

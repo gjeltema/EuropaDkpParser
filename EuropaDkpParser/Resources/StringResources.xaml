@@ -291,6 +291,7 @@
     <system:String x:Key="AudioReminder">Audio Reminder</system:String>
     <system:String x:Key="AttendanceReminderGroupBoxLabel">Attendance Reminder</system:String>
     <system:String x:Key="TimeNow">Time Now</system:String>
+    <system:String x:Key="EnableReadyCheckMonitoring">Enable Ready Check Monitor</system:String>
 
     <!-- ReminderDialog -->
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>

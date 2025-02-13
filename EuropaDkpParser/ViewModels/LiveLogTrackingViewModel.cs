@@ -18,6 +18,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly AttendanceTimerHandler _attendanceTimerHandler;
     private readonly IDkpDataRetriever _dkpDataRetriever;
+    private readonly IReadyCheckOverlayViewModel _readyCheckOverlayViewModel;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
@@ -27,6 +28,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private ICollection<CompletedAuction> _completedAuctions;
     private ICollection<LiveBidInfo> _currentBids;
     private string _currentStatusMarker;
+    private bool _enableReadyCheck;
     private string _filePath;
     private bool _forceShowOverlay;
     private ICollection<LiveBidInfo> _highBids;
@@ -60,6 +62,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _zealMessageProcessor = ZealPipeMessageProcessor.Instance;
         _zealMessageProcessor.StartListeningToPipe();
 
+        _readyCheckOverlayViewModel = overlayFactory.CreateReadyCheckOverlayViewModel(_settings);
+
         CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
             .ObservesProperty(() => SelectedSpentMessageToPaste);
         CopySelectedStatusMessageToClipboardCommand = new DelegateCommand(CopySelectedStatusMessageToClipboard, () => AuctionStatusMessageToPaste != null)
@@ -78,6 +82,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
             .ObservesProperty(() => SelectedBid).ObservesProperty(() => SelectedBidCharacterName);
         SpawnTimeAttendanceCall = new DelegateCommand(SpawnTimeAttendanceCallNow, () => RemindAttendances).ObservesProperty(() => RemindAttendances);
+        StartReadyCheckCommand = new DelegateCommand(StartReadyCheck, () => EnableReadyCheck).ObservesProperty(() => EnableReadyCheck);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
 
@@ -123,6 +128,16 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     }
 
     public DelegateCommand CycleToNextStatusMarkerCommand { get; }
+
+    public bool EnableReadyCheck
+    {
+        get => _enableReadyCheck;
+        set
+        {
+            if (SetProperty(ref _enableReadyCheck, value))
+                _activeBidTracker.TrackReadyCheck = value;
+        }
+    }
 
     public string FilePath
     {
@@ -239,6 +254,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         private set => SetProperty(ref _spentMessagesToPaste, value);
     }
 
+    public DelegateCommand StartReadyCheckCommand { get; }
+
     public bool UseAudioReminder
     {
         get => _useAudioReminder;
@@ -273,6 +290,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
         _zealMessageProcessor.StopListeningToPipe();
+        _readyCheckOverlayViewModel?.Close();
     }
 
     private void AddItemLinkId()
@@ -439,6 +457,24 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private void SpawnTimeAttendanceCallNow()
         => _attendanceTimerHandler.ShowTimeAttendanceReminder();
 
+    private void StartReadyCheck()
+    {
+        if (!EnableReadyCheck)
+            return;
+
+        Clip.Copy($"/rs {Constants.ReadyCheck}");
+
+        if (!_readyCheckOverlayViewModel.ContentIsVisible)
+        {
+            if (_zealMessageProcessor.RaidInfo.Count == 0)
+                return;
+
+            _readyCheckOverlayViewModel.SetInitialCharacterList(_zealMessageProcessor.RaidInfo.First().Value.Select(x => x.CharacterName));
+        }
+
+        _readyCheckOverlayViewModel.Show();
+    }
+
     private void StartTailingFile(string fileToTail)
     {
         if (string.IsNullOrWhiteSpace(fileToTail))
@@ -531,6 +567,17 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         _attendanceTimerHandler.RemindForKillAttendance(_activeBidTracker.GetBossKilledName());
 
+        if (_activeBidTracker.ReadyCheckInitiated)
+            StartReadyCheck();
+
+        if (EnableReadyCheck)
+        {
+            while (_activeBidTracker.TryGetReadyCheckStatus(out CharacterReadyCheckStatus readyStatus))
+            {
+                _readyCheckOverlayViewModel.SetCharacterReadyStatus(readyStatus);
+            }
+        }
+
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }
 }
@@ -595,6 +642,8 @@ public interface ILiveLogTrackingViewModel : IWindowViewModel
 
     DelegateCommand CycleToNextStatusMarkerCommand { get; }
 
+    bool EnableReadyCheck { get; set; }
+
     string FilePath { get; set; }
 
     bool ForceShowOverlay { get; set; }
@@ -634,6 +683,8 @@ public interface ILiveLogTrackingViewModel : IWindowViewModel
     DelegateCommand SpawnTimeAttendanceCall { get; }
 
     ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; }
+
+    DelegateCommand StartReadyCheckCommand { get; }
 
     bool UseAudioReminder { get; set; }
 

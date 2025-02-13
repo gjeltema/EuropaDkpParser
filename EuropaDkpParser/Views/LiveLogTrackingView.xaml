@@ -230,6 +230,7 @@
         <Grid Grid.Row="2" Margin="0,5,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -270,11 +271,15 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 
                 <CheckBox Grid.Row="0" IsChecked="{Binding LowRollWins}" Content="{StaticResource LowRollWins}" />
                 <CheckBox Grid.Row="1" IsChecked="{Binding ForceShowOverlay}" Content="{StaticResource ShowOverlayForMoving}"/>
+                <CheckBox Grid.Row="2" IsChecked="{Binding EnableReadyCheck}" Content="{StaticResource EnableReadyCheckMonitoring}"/>
             </Grid>
+
+            <Button Grid.Column="2" Content="Ready Check" Command="{Binding StartReadyCheckCommand}" Width="85" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
         </Grid>
 
         <!-- File path -->
