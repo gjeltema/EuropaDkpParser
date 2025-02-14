@@ -471,6 +471,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             return false;
 
         spentCall.AuctionStart = existingAuction;
+        if (!existingAuction.IsRoll && existingAuction.TotalNumberOfItems > 1)
+            existingAuction.SetStatusUpdate(spentCall.Auctioneer, spentCall.Timestamp);
 
         LiveBidInfo bid = _bids.FirstOrDefault(x => x.CharacterBeingBidFor == spentCall.Winner);
         spentCall.CharacterPlacingBid = bid?.CharacterPlacingBid ?? spentCall.Winner;

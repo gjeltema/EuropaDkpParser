@@ -20,12 +20,13 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            
+
             <Label Grid.Column="0" Content="Ready Check" />
             <Button Grid.Column="1" Content="Done" Command="{Binding Hide}"/>
         </Grid>
 
-        <ListView Grid.Row="1" ItemsSource="{Binding CharactersNotReady}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
+        <ListView Height="250" MaxHeight="250" Grid.Row="1" ItemsSource="{Binding CharactersNotReady}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel Orientation="Vertical" Background="Transparent"/>

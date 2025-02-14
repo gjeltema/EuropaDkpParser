@@ -16,20 +16,23 @@ internal sealed class ZealPipe
 {
     public event EventHandler<ZealPipeMessageEventArgs> ZealPipeMessageReceived;
 
+    private const string LogPrefix = $"[{nameof(ZealPipe)}]";
     private CancellationTokenSource _cancellationTokenSource;
+    private string _characterName;
 
     private ZealPipe() { }
 
     public static ZealPipe Instance
         => new();
 
-    public void StartListening()
+    public void StartListening(string characterName)
     {
         if (_cancellationTokenSource != null)
         {
             StopListening();
         }
 
+        _characterName = characterName;
         _cancellationTokenSource = new CancellationTokenSource();
 
         Process[] eqProcesses = Process.GetProcessesByName(Constants.EqProcessName);
@@ -73,13 +76,19 @@ internal sealed class ZealPipe
                     if (bytesRead > 0)
                     {
                         string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                        Log.Trace($"{nameof(ZealPipe)} Zeal message received: {message}");
+                        Log.Trace($"{LogPrefix} Zeal message received: {message}");
 
                         foreach (string json in splitter.SplitJson(message))
                         {
                             try
                             {
                                 ZealPipeMessage zpm = JsonSerializer.Deserialize<ZealPipeMessage>(json);
+                                if (zpm.Character != _characterName)
+                                {
+                                    Log.Info($"{LogPrefix} Message character name {zpm.Character} is not set character name {_characterName}. Ending listening to pipe.");
+                                    return;
+                                }
+
                                 if (bytesRead >= Constants.ZealPipeBufferSize / 2
                                     && (zpm.MessageType == PipeMessageType.Gauge || zpm.MessageType == PipeMessageType.Label))
                                     continue;
@@ -87,7 +96,7 @@ internal sealed class ZealPipe
                             }
                             catch (JsonException jex)
                             {
-                                Log.Warning($"[{nameof(ZealPipe)}] JSON parsing error: {jex.ToLogMessage()}");
+                                Log.Warning($"{LogPrefix} JSON parsing error: {jex.ToLogMessage()}");
                             }
                         }
                     }
@@ -100,11 +109,11 @@ internal sealed class ZealPipe
         }
         catch (IOException ioex) when (ioex.InnerException is ObjectDisposedException)
         {
-            Log.Error($"[{nameof(ZealPipe)}] Pipe object disposed error: {ioex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} Pipe object disposed error: {ioex.ToLogMessage()}");
         }
         catch (Exception ex)
         {
-            Log.Error($"[{nameof(ZealPipe)}] Pipe read error: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} Pipe read error: {ex.ToLogMessage()}");
         }
     }
 }

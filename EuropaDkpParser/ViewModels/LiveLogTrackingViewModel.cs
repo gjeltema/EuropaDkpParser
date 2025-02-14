@@ -27,6 +27,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private string _auctionStatusMessageToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
     private ICollection<LiveBidInfo> _currentBids;
+    private string _currentCharacterName = string.Empty;
     private string _currentStatusMarker;
     private bool _enableReadyCheck;
     private string _filePath;
@@ -60,7 +61,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, overlayFactory, dialogFactory);
         _zealMessageProcessor = ZealPipeMessageProcessor.Instance;
-        _zealMessageProcessor.StartListeningToPipe();
 
         _readyCheckOverlayViewModel = overlayFactory.CreateReadyCheckOverlayViewModel(_settings);
 
@@ -145,7 +145,15 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         set
         {
             if (SetProperty(ref _filePath, value))
+            {
                 StartTailingFile(value);
+                string characterName = ExtractCharacterNameFromLogFile(value);
+                if (!string.IsNullOrEmpty(characterName))
+                {
+                    _currentCharacterName = characterName;
+                    _zealMessageProcessor.StartListeningToPipe(characterName);
+                }
+            }
         }
     }
 
@@ -356,6 +364,20 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         SetAuctionStatusMessage();
     }
 
+    private string ExtractCharacterNameFromLogFile(string fullLogFilePath)
+    {
+        int lastIndexOfSlash = fullLogFilePath.LastIndexOf('\\');
+        if (lastIndexOfSlash < 1)
+            return string.Empty;
+
+        string fileName = fullLogFilePath[(lastIndexOfSlash + 1)..];
+        string[] fileNameParts = fileName.Split('_');
+        if (fileNameParts.Length < 2)
+            return string.Empty;
+
+        return fileNameParts[1];
+    }
+
     private DateTime GetSortingTimestamp(CompletedAuction completed)
     {
         if (completed.SpentCalls.Count > 0)
@@ -462,14 +484,18 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         if (!EnableReadyCheck)
             return;
 
+        if (_zealMessageProcessor.RaidInfo.Count == 0)
+            return;
+
         Clip.Copy($"/rs {Constants.ReadyCheck}");
 
         if (!_readyCheckOverlayViewModel.ContentIsVisible)
         {
-            if (_zealMessageProcessor.RaidInfo.Count == 0)
-                return;
+            IEnumerable<string> charactersInRaid = _zealMessageProcessor.RaidInfo
+                .Where(x => x.CharacterName != _currentCharacterName)
+                .Select(x => x.CharacterName);
 
-            _readyCheckOverlayViewModel.SetInitialCharacterList(_zealMessageProcessor.RaidInfo.First().Value.Select(x => x.CharacterName));
+            _readyCheckOverlayViewModel.SetInitialCharacterList(charactersInRaid);
         }
 
         _readyCheckOverlayViewModel.Show();

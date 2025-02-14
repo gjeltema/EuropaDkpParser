@@ -27,12 +27,14 @@ public sealed class ZealPipeMessageProcessor
 
     public RemotePlayerCharacterInfo CharacterInfo { get; }
 
-    public IDictionary<string, ICollection<RemoteRaidCharacterInfo>> RaidInfo { get; } = new Dictionary<string, ICollection<RemoteRaidCharacterInfo>>();
+    public ICollection<RemoteRaidCharacterInfo> RaidInfo { get; private set; } = new List<RemoteRaidCharacterInfo>(72);
 
-    public void StartListeningToPipe()
+    public void StartListeningToPipe(string characterName)
     {
+        StopListeningToPipe();
+
         _zealPipe.ZealPipeMessageReceived += HandlePipeMessages;
-        _zealPipe.StartListening();
+        _zealPipe.StartListening(characterName);
     }
 
     public void StopListeningToPipe()
@@ -93,34 +95,41 @@ public sealed class ZealPipeMessageProcessor
 
     private void UpdateRaidListing(ZealRaidInfo raidInfo)
     {
-        if (!RaidInfo.TryGetValue(raidInfo.CharacterName, out ICollection<RemoteRaidCharacterInfo> charactersInfo))
-        {
-            charactersInfo = new List<RemoteRaidCharacterInfo>(72);
-            RaidInfo.Add(raidInfo.CharacterName, charactersInfo);
-        }
+        RaidInfo.Clear();
 
         foreach (ZealRaidCharacter raidChar in raidInfo.RaidAttendees)
         {
-            RemoteRaidCharacterInfo existingRaidChar = charactersInfo.FirstOrDefault(x => x.CharacterName == raidChar.Name);
-            if (existingRaidChar == null)
+            RemoteRaidCharacterInfo newRaidChar = new()
             {
-                RemoteRaidCharacterInfo newRaidChar = new()
-                {
-                    CharacterName = raidChar.Name,
-                    Class = raidChar.Class,
-                    Group = raidChar.Group,
-                    Level = raidChar.Level,
-                    Rank = raidChar.Rank,
-                };
+                CharacterName = raidChar.Name,
+                Class = raidChar.Class,
+                Group = raidChar.Group,
+                Level = raidChar.Level,
+                Rank = raidChar.Rank,
+            };
 
-                charactersInfo.Add(newRaidChar);
-            }
-            else
-            {
-                existingRaidChar.Group = raidChar.Group;
-                existingRaidChar.Level = raidChar.Level;
-                existingRaidChar.Rank = raidChar.Rank;
-            }
+            RaidInfo.Add(newRaidChar);
+
+            //RemoteRaidCharacterInfo existingRaidChar = RaidInfo.FirstOrDefault(x => x.CharacterName == raidChar.Name);
+            //if (existingRaidChar == null)
+            //{
+            //    RemoteRaidCharacterInfo newRaidChar = new()
+            //    {
+            //        CharacterName = raidChar.Name,
+            //        Class = raidChar.Class,
+            //        Group = raidChar.Group,
+            //        Level = raidChar.Level,
+            //        Rank = raidChar.Rank,
+            //    };
+
+            //    RaidInfo.Add(newRaidChar);
+            //}
+            //else
+            //{
+            //    existingRaidChar.Group = raidChar.Group;
+            //    existingRaidChar.Level = raidChar.Level;
+            //    existingRaidChar.Rank = raidChar.Rank;
+            //}
         }
     }
 }
