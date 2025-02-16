@@ -34,17 +34,16 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
     /// </summary>
     public string ItemName { get; init; }
 
+    public int RandValue { get; init; }
+
     public DateTime Timestamp { get; init; }
 
-    /// <summary>
-    /// Dual use - for DKP bidding the total number of items in the auction.  For rolling, the number being /rand'd.
-    /// </summary>
     public int TotalNumberOfItems { get; set; }
 
     private string DebugText
         => IsRoll
-        ? $"{Timestamp:HH:mm} {Id} {ItemName} {Auctioneer} rand {TotalNumberOfItems}"
-        : $"{Timestamp:HH:mm} {Id} {ItemName} {Auctioneer} {TotalNumberOfItems} item(s)";
+        ? $"{Timestamp:HH:mm} {Id} {ItemName} {Auctioneer} x{TotalNumberOfItems} rand: {RandValue}"
+        : $"{Timestamp:HH:mm} {Id} {ItemName} {Auctioneer} x{TotalNumberOfItems} item(s)";
 
     public static bool operator ==(LiveAuctionInfo a, LiveAuctionInfo b)
         => Equals(a, b);
@@ -69,7 +68,7 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
         if (a.IsRoll != b.IsRoll)
             return false;
 
-        if (a.IsRoll && b.IsRoll && a.TotalNumberOfItems != b.TotalNumberOfItems)
+        if (a.IsRoll && b.IsRoll && a.RandValue != b.RandValue)
             return false;
 
         return true;
@@ -95,7 +94,7 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
 
     public override string ToString()
         => IsRoll
-        ? $"{Timestamp:HH:mm} {ItemName} roll:{TotalNumberOfItems}{GetStatusUpdateText()}{(HasBids ? " *" : "")}"
+        ? $"{Timestamp:HH:mm} {ItemName}{(TotalNumberOfItems > 1 ? " x" + TotalNumberOfItems.ToString() : "")} roll:{RandValue}{GetStatusUpdateText()}{(HasBids ? " *" : "")}"
         : $"{Timestamp:HH:mm} {ItemName}{(TotalNumberOfItems > 1 ? " x" + TotalNumberOfItems.ToString() : "")}{GetStatusUpdateText()}{(HasBids ? " *" : "")}";
 
     private string GetStatusUpdateText()

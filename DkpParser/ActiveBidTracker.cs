@@ -91,7 +91,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             return _bids
                 .Where(x => x.ParentAuctionId == auction.Id)
                 .OrderBy(x => x.Timestamp)
-                .OrderByDescending(x => x.BidAmount)
+                .ThenByDescending(x => x.BidAmount)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
     }
@@ -113,33 +113,18 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         IEnumerable<LiveBidInfo> highBids = GetHighBids(auction, lowRollWins);
 
-        if (auction.IsRoll)
-        {
-            return highBids
-                .Select(x => new SuggestedSpentCall
-                {
-                    Channel = auction.Channel,
-                    ItemName = x.ItemName,
-                    DkpSpent = x.BidAmount,
-                    Winner = x.CharacterPlacingBid,
-                    IsRoll = true
-                })
-                .ToList();
-        }
-        else
-        {
-            string channel = GetChannelShortcut(auction.Channel);
-            return highBids
-                .Select(x => new SuggestedSpentCall
-                {
-                    Channel = auction.Channel,
-                    ItemName = x.ItemName,
-                    DkpSpent = x.BidAmount,
-                    Winner = x.CharacterBeingBidFor,
-                    SpentCallSent = SpentCallExists(x)
-                })
-                .ToList();
-        }
+        string channel = GetChannelShortcut(auction.Channel);
+        return highBids
+            .Select(x => new SuggestedSpentCall
+            {
+                Channel = auction.Channel,
+                ItemName = x.ItemName,
+                DkpSpent = x.BidAmount,
+                Winner = x.CharacterBeingBidFor,
+                IsRoll = auction.IsRoll,
+                SpentCallSent = SpentCallExists(x)
+            })
+            .ToList();
     }
 
     public string GetSpentMessageWithLink(SuggestedSpentCall spentCall)
@@ -178,11 +163,11 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (auction.IsRoll)
         {
             string channel = GetChannelShortcut(auction.Channel);
-            int highRoll = highBids.First().BidAmount;
-            string highRollersString = string.Join(", ", highBids.Select(x => $"{x.CharacterPlacingBid}"));
+            string highRollersString = string.Join(", ", highBids.Select(x => $"{x.CharacterPlacingBid} {x.BidAmount}"));
             string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
             string highOrLow = lowRollWins ? "Low" : "High";
-            return $"{channel} {highOrLow} roll of {highRoll} for {auction.ItemName} by {highRollersString} {statusString}";
+            string rollsText = highBids.Count > 1 ? "rolls" : "roll";
+            return $"{channel} {highOrLow} {rollsText} for {itemLink} by {highRollersString} {statusString}";
         }
         else
         {
@@ -250,40 +235,20 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     private List<LiveBidInfo> GetAllMaxRolls(LiveAuctionInfo auction, bool lowRollWins)
     {
-        int currentMaxRoll = lowRollWins ? int.MaxValue : 0;
-        List<LiveBidInfo> maxRolls = [];
+        IOrderedEnumerable<LiveBidInfo> orderedBids = _bids
+            .Where(x => x.ParentAuctionId == auction.Id)
+            .OrderBy(x => x.Timestamp);
 
-        foreach (LiveBidInfo currentBid in _bids.Where(x => x.IsRoll && x.ParentAuctionId == auction.Id))
-        {
-            if (lowRollWins)
-            {
-                if (currentBid.BidAmount < currentMaxRoll)
-                {
-                    maxRolls.Clear();
-                    currentMaxRoll = currentBid.BidAmount;
-                    maxRolls.Add(currentBid);
-                }
-                else if (currentBid.BidAmount == currentMaxRoll)
-                {
-                    maxRolls.Add(currentBid);
-                }
-            }
-            else
-            {
-                if (currentBid.BidAmount > currentMaxRoll)
-                {
-                    maxRolls.Clear();
-                    currentMaxRoll = currentBid.BidAmount;
-                    maxRolls.Add(currentBid);
-                }
-                else if (currentBid.BidAmount == currentMaxRoll)
-                {
-                    maxRolls.Add(currentBid);
-                }
-            }
-        }
-
-        return maxRolls;
+        if (lowRollWins)
+            return orderedBids
+                .ThenBy(x => x.BidAmount)
+                .Take(auction.TotalNumberOfItems)
+                .ToList();
+        else
+            return orderedBids
+                .ThenByDescending(x => x.BidAmount)
+                .Take(auction.TotalNumberOfItems)
+                .ToList();
     }
 
     private string GetChannelShortcut(EqChannel channel)
@@ -317,7 +282,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "60s",
         };
 
-    private void HandleBid(LiveBidInfo rollInfo)
+    private void HandleRollByPlayer(LiveBidInfo rollInfo)
     {
         if (rollInfo == null)
             return;
@@ -396,7 +361,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             LiveBidInfo rollInfo = _activeBiddingAnalyzer.GetRollInfo(logLineNoTimestamp, timestamp, _activeAuctions);
             if (rollInfo != null)
             {
-                HandleBid(rollInfo);
+                HandleRollByPlayer(rollInfo);
             }
 
             EqChannel channel = _channelAnalyzer.GetChannel(logLineNoTimestamp);
@@ -404,6 +369,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 return;
 
             bool isValidDkpChannel = _channelAnalyzer.IsValidDkpChannel(channel);
+
+            // Include Group so that the tool can be used in xp groups
             if (!isValidDkpChannel && channel != EqChannel.Group)
                 return;
 
@@ -471,7 +438,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             return false;
 
         spentCall.AuctionStart = existingAuction;
-        if (!existingAuction.IsRoll && existingAuction.TotalNumberOfItems > 1)
+        if (existingAuction.TotalNumberOfItems > 1)
             existingAuction.SetStatusUpdate(spentCall.Auctioneer, spentCall.Timestamp);
 
         LiveBidInfo bid = _bids.FirstOrDefault(x => x.CharacterBeingBidFor == spentCall.Winner);
@@ -481,19 +448,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         ICollection<LiveSpentCall> spentCalls = _spentCalls.Where(x => x.AuctionStart.Id == existingAuction.Id).ToList();
 
-        if (!existingAuction.IsRoll && spentCalls.Count >= existingAuction.TotalNumberOfItems)
-        {
-            _activeAuctions = _activeAuctions.Remove(existingAuction);
-            _completedAuctions = _completedAuctions.Add(new CompletedAuction
-            {
-                AuctionStart = existingAuction,
-                ItemName = spentCall.ItemName,
-                SpentCalls = spentCalls
-            });
-
-            return true;
-        }
-        else if (existingAuction.IsRoll && spentCalls.Count > 0)
+        if (spentCalls.Count >= existingAuction.TotalNumberOfItems)
         {
             _activeAuctions = _activeAuctions.Remove(existingAuction);
             _completedAuctions = _completedAuctions.Add(new CompletedAuction

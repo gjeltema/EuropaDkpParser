@@ -32,11 +32,11 @@ internal sealed partial class ActiveAuctionStartAnalyzer
     [GeneratedRegex("\\d+", RegexOptions.Compiled)]
     private static partial Regex NumbersRegex();
 
-    private int GetMultiplier(string logLine)
+    private int GetMultiplier(string logLine, out string multiplierDeclaration)
     {
         Match m = _findMultipleItemsMarker.Match(logLine);
-        string fullMatch = m.Value;
-        string multiplierAsText = fullMatch.Replace("x", "").Replace("X", "");
+        multiplierDeclaration = m.Value;
+        string multiplierAsText = multiplierDeclaration.Replace("x", "", StringComparison.OrdinalIgnoreCase);
         if (int.TryParse(multiplierAsText, out int multiplier))
         {
             return multiplier;
@@ -59,7 +59,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
 
     private ICollection<LiveAuctionInfo> HandleOpen(string playerMessage, EqChannel channel, DateTime timeStamp, string messageSender)
     {
-        int multiplier = GetMultiplier(playerMessage);
+        int multiplier = GetMultiplier(playerMessage, out string multiplierDeclaration);
 
         if (playerMessage.Contains(Constants.PossibleErrorDelimiter))
         {
@@ -82,7 +82,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
         {
             string playerMessageWithoutMultiplier = playerMessage;
             if (multiplier > 1)
-                playerMessageWithoutMultiplier = playerMessageWithoutMultiplier.Replace("x" + multiplier.ToString(), "", StringComparison.OrdinalIgnoreCase);
+                playerMessageWithoutMultiplier = playerMessageWithoutMultiplier.Replace(multiplierDeclaration, "");
 
             int endIndex = playerMessageWithoutMultiplier.Length - 1;
             int indexOfOpen = playerMessageWithoutMultiplier.IndexOf("OPEN");
@@ -135,20 +135,28 @@ internal sealed partial class ActiveAuctionStartAnalyzer
         return [];
     }
 
-    private ICollection<LiveAuctionInfo> HandleRoll(string logLine, EqChannel channel, DateTime timeStamp, string messageSender)
+    private ICollection<LiveAuctionInfo> HandleRoll(string playerMessage, EqChannel channel, DateTime timeStamp, string messageSender)
     {
         // You tell your raid, 'Runed Bolster Belt 333 ROLL'
-        int randNumber = GetRandNumber(logLine);
+        // You tell your raid, 'Runed Bolster Belt x2 333 ROLL'
+
+        int multiplier = GetMultiplier(playerMessage, out string multiplierDeclaration);
+
+        string messageWithoutMultiplier = playerMessage;
+        if (multiplier > 1)
+            messageWithoutMultiplier = messageWithoutMultiplier.Replace(multiplierDeclaration, "");
+
+        int randNumber = GetRandNumber(messageWithoutMultiplier);
         if (randNumber < 1)
             return [];
 
-        int endIndex = logLine.IndexOf(randNumber.ToString());
+        int endIndex = messageWithoutMultiplier.IndexOf(randNumber.ToString());
 
         // Item or reward name is at least 3 chars, 7 is the length of ROLL + space + at least 1 digit + space
-        if (endIndex < 3 || endIndex > (logLine.Length - 7))
+        if (endIndex < 3 || endIndex > (messageWithoutMultiplier.Length - 7))
             return [];
 
-        string randName = logLine[..endIndex].Trim();
+        string randName = messageWithoutMultiplier[..endIndex].Trim();
 
         return [new LiveAuctionInfo
             {
@@ -156,7 +164,8 @@ internal sealed partial class ActiveAuctionStartAnalyzer
                 Channel = channel,
                 Auctioneer = messageSender,
                 ItemName = randName,
-                TotalNumberOfItems = randNumber,
+                TotalNumberOfItems = multiplier,
+                RandValue = randNumber,
                 IsRoll = true
             }];
     }

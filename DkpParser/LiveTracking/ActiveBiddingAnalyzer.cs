@@ -4,6 +4,7 @@
 
 namespace DkpParser.LiveTracking;
 
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 internal sealed partial class ActiveBiddingAnalyzer
@@ -126,7 +127,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             if (!int.TryParse(rollResultRaw, out int rollResult))
                 return null;
 
-            LiveAuctionInfo parentAuction = activeAuctions.FirstOrDefault(x => x.IsRoll && x.TotalNumberOfItems == randNumber);
+            LiveAuctionInfo parentAuction = activeAuctions.FirstOrDefault(x => x.IsRoll && x.RandValue == randNumber);
             if (parentAuction == null)
                 return null;
 
@@ -158,10 +159,14 @@ internal sealed partial class ActiveBiddingAnalyzer
         return int.TryParse(m.Value, out int result) ? result : 0;
     }
 
+    [DebuggerDisplay("{DebugText,nq}")]
     private sealed class MagicDieRollMessage
     {
         public string CharacterName { get; init; }
 
         public DateTime Timestamp { get; init; }
+
+        private string DebugText
+            => $"{Timestamp:HH:mm:ss} {CharacterName}";
     }
 }
