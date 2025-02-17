@@ -402,8 +402,6 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool ShowAfkReview { get; set; }
 
-    public bool UseAdvancedDialog { get; set; }
-
     public bool UseLightMode { get; set; }
 
     public void LoadAllSettings()

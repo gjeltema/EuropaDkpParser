@@ -21,7 +21,7 @@ public sealed class ZealRaidInfo
         => $"{CharacterName} {RaidAttendees?.Count ?? -1}";
 
     public override string ToString()
-       => $"{string.Join(Environment.NewLine, RaidAttendees)}";
+       => $"{string.Join(";", RaidAttendees)}";
 }
 
 [DebuggerDisplay("{DebugText,nq}")]

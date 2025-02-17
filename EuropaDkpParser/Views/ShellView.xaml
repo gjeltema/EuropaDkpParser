@@ -13,11 +13,6 @@
         Foreground="{StaticResource DefaultForegroundColor}">
 
     <Grid>
-        <Grid Visibility="{Binding UseAdvancedDialog, Converter={StaticResource BoolToVisibilityConverter}}">
-            <local:MainDisplayView DataContext="{Binding MainDisplayVM}"/>
-        </Grid>
-        <Grid Visibility="{Binding UseAdvancedDialog, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-            <local:SimpleStartDisplayView DataContext="{Binding SimpleStartDisplayVM}" />
-        </Grid>
+        <local:SimpleStartDisplayView DataContext="{Binding SimpleStartDisplayVM}" />
     </Grid>
 </Window>

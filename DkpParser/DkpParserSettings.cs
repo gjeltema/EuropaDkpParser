@@ -39,7 +39,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
-    private const string UseAdvancedDialogSection = "USE_ADVANCED_DIALOG";
     private const string UseLightModeSection = "USE_LIGHT_MODE";
     private const string WindowLocationSection = "WINDOW_LOCATION";
     private readonly string _dkpCharactersFileName;
@@ -122,8 +121,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool ShowAfkReview { get; set; }
 
-    public bool UseAdvancedDialog { get; set; }
-
     public bool UseLightMode { get; set; }
 
     public void LoadAllSettings()
@@ -160,7 +157,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
         ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
         LogFileMatchPattern = GetStringValue(fileContents, LogMatchPatternSection, DefaultMatchPattern);
-        UseAdvancedDialog = GetBoolValue(fileContents, UseAdvancedDialogSection);
         IncludeTellsInRawLog = GetBoolValue(fileContents, IncludeTellsInRawLogSection);
         DkpspentAucEnabled = GetBoolValue(fileContents, DkpspentAucEnableSection, true);
         DkpspentGuEnabled = GetBoolValue(fileContents, DkpspentGuildEnableSection, true);
@@ -199,7 +195,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid),
             CreateFileEntry(ShowAfkReviewSection, ShowAfkReview),
             CreateFileEntry(LogMatchPatternSection, LogFileMatchPattern),
-            CreateFileEntry(UseAdvancedDialogSection, UseAdvancedDialog),
             CreateFileEntry(IncludeTellsInRawLogSection, IncludeTellsInRawLog),
             CreateFileEntry(DkpspentAucEnableSection, DkpspentAucEnabled),
             CreateFileEntry(DkpspentGuildEnableSection, DkpspentGuEnabled),
@@ -453,8 +448,6 @@ public interface IDkpParserSettings
     ICollection<string> SelectedLogFiles { get; set; }
 
     bool ShowAfkReview { get; set; }
-
-    bool UseAdvancedDialog { get; set; }
 
     bool UseLightMode { get; set; }
 

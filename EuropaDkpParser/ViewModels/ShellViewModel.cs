@@ -16,17 +16,11 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
     {
         TitleText = Strings.GetString("MainWindowTitleText") + " " + Strings.GetString("Version");
 
-        UseAdvancedDialog = settings.UseAdvancedDialog;
-        if (UseAdvancedDialog)
-            MainDisplayVM = new MainDisplayViewModel(settings, dialogFactory);
-        else
-            SimpleStartDisplayVM = new SimpleStartDisplayViewModel(settings, dialogFactory, overlayFactory, windowFactory);
+        SimpleStartDisplayVM = new SimpleStartDisplayViewModel(settings, dialogFactory, overlayFactory, windowFactory);
 
         WindowLocationX = settings.MainWindowX;
         WindowLocationY = settings.MainWindowY;
     }
-
-    public IMainDisplayViewModel MainDisplayVM { get; }
 
     public ISimpleStartDisplayViewModel SimpleStartDisplayVM { get; }
 
@@ -49,8 +43,6 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 
 public interface IShellViewModel : IEuropaViewModel
 {
-    IMainDisplayViewModel MainDisplayVM { get; }
-
     ISimpleStartDisplayViewModel SimpleStartDisplayVM { get; }
 
     string TitleText { get; }
