@@ -22,6 +22,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly ItemLinkValues _itemLinkValues;
     private readonly IMessageProvider _messageProvider;
     private readonly ConcurrentQueue<CharacterReadyCheckStatus> _readyCheckStatus = new();
+    private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly IDkpParserSettings _settings;
     private ImmutableList<LiveAuctionInfo> _activeAuctions;
     private ImmutableList<LiveBidInfo> _bids;
@@ -327,30 +328,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             string logLineNoTimestamp = message[(Constants.LogDateTimeLength + 1)..];
             string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
 
-            if (TrackReadyCheck && logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter))
-            {
-                string noWhitespaceLogLine = logLineNoTimestamp.RemoveAllWhitespace();
-
-                if (noWhitespaceLogLine.Contains(Constants.ReadyCheck))
-                {
-                    _readyCheckInitiated = true;
-                    Updated = true;
-                    return;
-                }
-                else if (noWhitespaceLogLine.Contains(Constants.Ready))
-                {
-                    _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = true });
-                    Updated = true;
-                    return;
-                }
-                else if (noWhitespaceLogLine.Contains(Constants.NotReady))
-                {
-                    _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = false });
-                    Updated = true;
-                    return;
-                }
-            }
-
             string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
             if (bossKilledName != null)
             {
@@ -374,6 +351,31 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             // Include Group so that the tool can be used in xp groups
             if (!isValidDkpChannel && channel != EqChannel.Group)
                 return;
+
+            if (TrackReadyCheck && logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter))
+            {
+                string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(logLineNoTimestamp);
+                string noWhitespaceLogLine = sanitizedLogLine.RemoveAllWhitespace();
+
+                if (noWhitespaceLogLine.Contains(Constants.ReadyCheck))
+                {
+                    _readyCheckInitiated = true;
+                    Updated = true;
+                    return;
+                }
+                else if (noWhitespaceLogLine.Contains(Constants.Ready, StringComparison.OrdinalIgnoreCase))
+                {
+                    _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = true });
+                    Updated = true;
+                    return;
+                }
+                else if (noWhitespaceLogLine.Contains(Constants.NotReady, StringComparison.OrdinalIgnoreCase))
+                {
+                    _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = false });
+                    Updated = true;
+                    return;
+                }
+            }
 
             int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'');
             string messageFromPlayer = logLineNoTimestamp[(indexOfFirstQuote + 1)..^1].Trim();
