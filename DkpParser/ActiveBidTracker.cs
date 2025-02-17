@@ -90,8 +90,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         else
             return _bids
                 .Where(x => x.ParentAuctionId == auction.Id)
-                .OrderBy(x => x.Timestamp)
-                .ThenByDescending(x => x.BidAmount)
+                .OrderBy(x => x.BidAmount)
+                .ThenByDescending(x => x.Timestamp)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
     }
@@ -235,18 +235,19 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     private List<LiveBidInfo> GetAllMaxRolls(LiveAuctionInfo auction, bool lowRollWins)
     {
-        IOrderedEnumerable<LiveBidInfo> orderedBids = _bids
-            .Where(x => x.ParentAuctionId == auction.Id)
-            .OrderBy(x => x.Timestamp);
+        IEnumerable<LiveBidInfo> filteredBids = _bids
+            .Where(x => x.ParentAuctionId == auction.Id);
 
         if (lowRollWins)
-            return orderedBids
-                .ThenBy(x => x.BidAmount)
+            return filteredBids
+                .OrderBy(x => x.BidAmount)
+                .ThenBy(x => x.Timestamp)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
         else
-            return orderedBids
-                .ThenByDescending(x => x.BidAmount)
+            return filteredBids
+                .OrderByDescending(x => x.BidAmount)
+                .ThenBy(x => x.Timestamp)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
     }
