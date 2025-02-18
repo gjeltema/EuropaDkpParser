@@ -20,6 +20,7 @@ public partial class App : Application
     private const string ItemLinkIdsFilePath = "ItemLinkIDs.txt";
     private const string RaidValuesFilePath = "RaidValues.txt";
     private const string SettingsFilePath = "Settings.txt";
+    private const string ZoneIdMappingFilePath = "Zones.txt";
     private static readonly LogFormatter LogFormatter =
          (logLevel, message) => $"{DateTime.Now:HH:mm:ss} {logLevel.ToString().ToUpper()} {message}";
     private IDkpParserSettings _settings;
@@ -55,7 +56,7 @@ public partial class App : Application
         DialogFactory dialogFactory = new(new DialogViewFactory());
         MessageDialog.Initialize(dialogFactory);
 
-        _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath, DkpCharactersFilePath);
+        _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath, DkpCharactersFilePath, ZoneIdMappingFilePath);
         _settings.LoadAllSettings();
 
         InitializeLogging();

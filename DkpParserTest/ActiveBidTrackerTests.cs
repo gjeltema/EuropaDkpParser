@@ -404,6 +404,8 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool UseLightMode { get; set; }
 
+    public IDictionary<int, string> ZoneIdMapping { get; }
+
     public void LoadAllSettings()
         => throw new NotImplementedException();
 

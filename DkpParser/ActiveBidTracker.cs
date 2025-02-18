@@ -312,10 +312,14 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (string.IsNullOrEmpty(raidName))
             return;
 
+        int zoneId = ZealPipeMessageProcessor.Instance.CharacterInfo.ZoneId;
+        if (!_settings.ZoneIdMapping.TryGetValue(zoneId, out string zoneName))
+            return;
+
         string fileName = string.Format(Constants.ZealAttendanceBasedFileName, timestamp.ToString("yyMMdd"));
         string fullFilePath = Path.Combine(eqDirectory, fileName);
 
-        string firstLine = $"{timestamp.ToString(Constants.LogDateTimeFormat)}|{raidName}";
+        string firstLine = $"{timestamp.ToString(Constants.LogDateTimeFormat)}|{raidName}|{zoneName}";
         IEnumerable<string> names = ZealPipeMessageProcessor.Instance.RaidInfo.Select(x => x.CharacterName);
         IEnumerable<string> fileContents = [firstLine, .. names, ""];
 

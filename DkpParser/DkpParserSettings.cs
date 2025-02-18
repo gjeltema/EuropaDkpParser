@@ -45,13 +45,15 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private readonly string _itemLinkValuesFileName;
     private readonly string _raidValuesFileName;
     private readonly string _settingsFilePath;
+    private readonly string _zoneIdMapFileName;
 
-    public DkpParserSettings(string settingsFilePath, string raidValuesFileName, string itemLinkValuesFileName, string dkpCharactersFileName)
+    public DkpParserSettings(string settingsFilePath, string raidValuesFileName, string itemLinkValuesFileName, string dkpCharactersFileName, string zoneIdMapFileName)
     {
         _settingsFilePath = settingsFilePath;
         _raidValuesFileName = raidValuesFileName;
         _itemLinkValuesFileName = itemLinkValuesFileName;
         _dkpCharactersFileName = dkpCharactersFileName;
+        _zoneIdMapFileName = zoneIdMapFileName;
     }
 
     public bool AddBonusDkpRaid { get; set; }
@@ -123,6 +125,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool UseLightMode { get; set; }
 
+    public IDictionary<int, string> ZoneIdMapping { get; private set; }
+
     public void LoadAllSettings()
     {
         RaidValue = new RaidValues(_raidValuesFileName);
@@ -133,6 +137,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         CharactersOnDkpServer = new(_dkpCharactersFileName);
         CharactersOnDkpServer.LoadValues();
+
+        InitializeZoneIdMapping();
 
         if (!File.Exists(_settingsFilePath))
         {
@@ -341,6 +347,26 @@ public sealed class DkpParserSettings : IDkpParserSettings
         return DefaultWindowLocation;
     }
 
+    private void InitializeZoneIdMapping()
+    {
+        if (!File.Exists(_zoneIdMapFileName))
+        {
+            //** Log
+            return;
+        }
+
+        string[] fileContents = File.ReadAllLines(_zoneIdMapFileName);
+        ZoneIdMapping = new Dictionary<int, string>(fileContents.Length);
+
+        foreach (string zoneIdMapping in fileContents)
+        {
+            string[] parts = zoneIdMapping.Split('|');
+            int zoneId = int.Parse(parts[0]);
+            string zoneName = parts[2];
+            ZoneIdMapping[zoneId] = zoneName;
+        }
+    }
+
     private bool IsValidIndex(int indexOfSection, ICollection<string> fileContents)
         => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
 
@@ -450,6 +476,8 @@ public interface IDkpParserSettings
     bool ShowAfkReview { get; set; }
 
     bool UseLightMode { get; set; }
+
+    IDictionary<int, string> ZoneIdMapping { get; }
 
     void LoadAllSettings();
 
