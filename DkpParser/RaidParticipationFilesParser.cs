@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidParticipationFilesParser.cs Copyright 2024 Craig Gjeltema
+// RaidParticipationFilesParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -37,6 +37,17 @@ public sealed class RaidParticipationFilesParser
         return relevantRaidListFiles;
     }
 
+    public IList<ZealRaidAttendanceFile> GetParsedZealRaidAttendanceFiles(DateTime startTime, DateTime endTime)
+    {
+        List<ZealRaidAttendanceFile> relevantZealAttendanceFiles = GetRelevantZealRaidAttendanceFiles(startTime, endTime).ToList();
+        foreach (ZealRaidAttendanceFile zealAttendanceFile in relevantZealAttendanceFiles)
+        {
+            ParseZealAttendance(zealAttendanceFile);
+        }
+
+        return relevantZealAttendanceFiles.Where(x => x.CharacterNames.Count > 0).ToList();
+    }
+
     public IEnumerable<RaidDumpFile> GetRelevantRaidDumpFiles(DateTime startTime, DateTime endTime)
     {
         string fileNameSearchString = Constants.RaidDumpFileNameStart + "*.txt";
@@ -53,6 +64,14 @@ public sealed class RaidParticipationFilesParser
             .Where(x => startTime <= x.FileDateTime && x.FileDateTime <= endTime);
     }
 
+    public IEnumerable<ZealRaidAttendanceFile> GetRelevantZealRaidAttendanceFiles(DateTime startTime, DateTime endTime)
+    {
+        string fileNameSearchString = Constants.ZealAttendanceBasedFileName + "*.txt";
+        return Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString)
+            .Select(ZealRaidAttendanceFile.CreateZealRaidAttendanceFile)
+            .Where(x => startTime <= x.FileDateTime && x.FileDateTime <= endTime);
+    }
+
     private void ParseRaidDump(RaidDumpFile dumpFile)
     {
         /*
@@ -61,7 +80,7 @@ public sealed class RaidParticipationFilesParser
 2	Lucismule	1	Warrior	Group Leader	
         */
 
-        foreach (string line in File.ReadLines(dumpFile.FullFilePath))
+        foreach (string line in File.ReadAllLines(dumpFile.FullFilePath))
         {
             string[] characterEntry = line.Split('\t');
             string characterName = characterEntry[1];
@@ -88,14 +107,8 @@ Cinu	50	Ranger	2024-03-22_09-47-32	3
 Tester	37	Magician	2024-03-22_09-47-32	
         */
 
-        bool firstLineSkipped = false;
-        foreach (string line in File.ReadLines(raidListFile.FullFilePath))
+        foreach (string line in File.ReadAllLines(raidListFile.FullFilePath).Skip(1))
         {
-            if (!firstLineSkipped)
-            {
-                firstLineSkipped = true;
-                continue;
-            }
 
             string[] characterEntry = line.Split('\t');
             string characterName = characterEntry[0];
@@ -110,6 +123,44 @@ Tester	37	Magician	2024-03-22_09-47-32
             };
 
             raidListFile.CharacterNames.Add(character);
+        }
+    }
+
+    private void ParseZealAttendance(ZealRaidAttendanceFile zealAttendanceFile)
+    {
+        /*
+First Call|Veeshans Peak
+1|Kassandra|Bard|60|Raid Leader	
+2|Lucismule|Warrior|1|Group Leader	
+        */
+
+        string[] fileContents = File.ReadAllLines(zealAttendanceFile.FullFilePath);
+        if (fileContents.Length < 2)
+            return;
+
+        string firstLine = fileContents[0];
+        string[] firstLineSplit = firstLine.Split('|');
+        if (firstLineSplit.Length < 2)
+            return;
+
+        zealAttendanceFile.RaidName = firstLineSplit[0];
+        zealAttendanceFile.ZoneName = firstLineSplit[1];
+
+        foreach (string line in fileContents.Skip(1))
+        {
+            string[] characterEntry = line.Split('|');
+            string characterName = characterEntry[1];
+            string className = characterEntry[2];
+            int level = int.Parse(characterEntry[3]);
+
+            PlayerCharacter character = new()
+            {
+                CharacterName = characterName,
+                Level = level,
+                ClassName = className,
+            };
+
+            zealAttendanceFile.CharacterNames.Add(character);
         }
     }
 }

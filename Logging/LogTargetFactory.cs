@@ -12,14 +12,14 @@ using System.IO;
 public sealed class LogTargetFactory : ILogTargetFactory
 {
     /// <inheritdoc/>
-    public ILogTarget CreateAsyncSimpleLogTarget(string logFile, SimpleLogTarget.LogFormatter logFormatter = null)
+    public ILogTarget CreateAsyncSimpleLogTarget(string logFile, LogFormatter logFormatter = null)
     {
         var simpleLogTarget = new SimpleLogTarget(logFile, logFormatter);
         return new BackgroundLogTarget(simpleLogTarget);
     }
 
     /// <inheritdoc/>
-    public ILogTarget CreateAsyncSimpleLogTarget(TextWriter logTextTextWriter, SimpleLogTarget.LogFormatter logFormatter = null)
+    public ILogTarget CreateAsyncSimpleLogTarget(TextWriter logTextTextWriter, LogFormatter logFormatter = null)
     {
         var simpleLogTarget = new SimpleLogTarget(logTextTextWriter, logFormatter);
         return new BackgroundLogTarget(simpleLogTarget);
@@ -46,7 +46,7 @@ public interface ILogTargetFactory
     /// <param name="logFormatter">The formatting delegate to apply to the log messages.  If one is not supplied, a default delegate is used.<br/>
     /// The default delegate outputs the log message in the following format: yyyy-MM-dd HH:mm:ss:ffff [LOGLEVEL] message<br/>
     /// e.g.: 2020-09-10 08:15:23:1234  [INFO]    The application started.</param>
-    ILogTarget CreateAsyncSimpleLogTarget(string logFile, SimpleLogTarget.LogFormatter logFormatter = null);
+    ILogTarget CreateAsyncSimpleLogTarget(string logFile, LogFormatter logFormatter = null);
 
     /// <summary>
     /// Creates a <see cref="SimpleLogTarget" /> wrapped by a <see cref="BackgroundLogTarget"/>.
@@ -55,7 +55,7 @@ public interface ILogTargetFactory
     /// <param name="logFormatter">The formatting delegate to apply to the log messages.  If one is not supplied, a default delegate is used.<br/>
     /// The default delegate outputs the log message in the following format: yyyy-MM-dd HH:mm:ss:ffff [LOGLEVEL] message<br/>
     /// e.g.: 2020-09-10 08:15:23:1234  [INFO]    The application started.</param>
-    ILogTarget CreateAsyncSimpleLogTarget(TextWriter logTextTextWriter, SimpleLogTarget.LogFormatter logFormatter = null);
+    ILogTarget CreateAsyncSimpleLogTarget(TextWriter logTextTextWriter, LogFormatter logFormatter = null);
 
     /// <summary>
     /// Creates a <see cref="CompositeLogTarget"/> using the passed in <see cref="ILogTarget"/>s.

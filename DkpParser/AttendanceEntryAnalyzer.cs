@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceEntryAnalyzer.cs Copyright 2024 Craig Gjeltema
+// AttendanceEntryAnalyzer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -75,6 +75,18 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
     }
 
+    private void AddZealRaidMembers(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
+    {
+        ZealRaidAttendanceFile zealRaidList = logParseResults.ZealRaidAttendanceFiles.FirstOrDefault(x => x.FileDateTime.IsWithinDurationOfPopulationThreshold(logEntry.Timestamp));
+        if (zealRaidList == null)
+            return;
+
+        foreach (PlayerCharacter character in zealRaidList.CharacterNames)
+        {
+            call.AddOrMergeInPlayerCharacter(character);
+        }
+    }
+
     private void AnalyzeLogFilesAttendanceCalls(LogParseResults logParseResults)
     {
         // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
@@ -96,9 +108,11 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                     if (IsRemoveCall(logEntry, call, correctedLogLine))
                         continue;
 
-                    AddRaidDumpMembers(logParseResults, logEntry, call);
-
                     AddRaidListMembers(logParseResults, logEntry, call);
+
+                    AddZealRaidMembers(logParseResults, logEntry, call);
+
+                    AddRaidDumpMembers(logParseResults, logEntry, call);
 
                     AddCharactersFromCharactersAttending(logEntry, call);
 
@@ -512,20 +526,18 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private bool IsRemoveCall(EqLogEntry logEntry, AttendanceEntry call, string logLine)
     {
-        if (logLine.Contains(Constants.Undo) || logLine.Contains(Constants.Remove))
+        if (!logLine.Contains(Constants.Undo) && !logLine.Contains(Constants.Remove))
+            return false;
+
+        logEntry.Visited = true;
+
+        AttendanceEntry toBeRemoved = GetAssociatedLogEntry(call);
+        if (toBeRemoved != null)
         {
-            logEntry.Visited = true;
-
-            AttendanceEntry toBeRemoved = GetAssociatedLogEntry(call);
-            if (toBeRemoved != null)
-            {
-                _raidEntries.AttendanceEntries.Remove(toBeRemoved);
-            }
-
-            return true;
+            _raidEntries.AttendanceEntries.Remove(toBeRemoved);
         }
 
-        return false;
+        return true;
     }
 
     private void PopulateCharacterAttends(LogParseResults logParseResults)
@@ -551,6 +563,10 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
             _zones.AddRange(zones);
         }
+
+        IEnumerable<ZoneNameInfo> zealZones = logParseResults.ZealRaidAttendanceFiles
+            .Select(x => new ZoneNameInfo { ZoneName = x.ZoneName, Timestamp = x.FileDateTime });
+        _zones.AddRange(zealZones);
     }
 
     private void SetAttendanceType(EqLogEntry logEntry, AttendanceEntry call, string logLine)

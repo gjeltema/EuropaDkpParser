@@ -8,18 +8,18 @@ using System;
 using System.IO;
 
 /// <summary>
+/// Delegate that is used by the <see cref="SimpleLogTarget"/> to format the output log message.
+/// </summary>
+/// <param name="logLevel">The level of logging message to output.</param>
+/// <param name="message">The message to be output to the log file, pre-formatted.</param>
+/// <returns></returns>
+public delegate string LogFormatter(LogLevel logLevel, string message);
+
+/// <summary>
 ///     A convenient default implementation of <see cref="ILogTarget"/> for writing simple log message to a specified file.
 /// </summary>
 public sealed class SimpleLogTarget : ILogTarget, IDisposable
 {
-    /// <summary>
-    /// Delegate that is used by the <see cref="SimpleLogTarget"/> to format the output log message.
-    /// </summary>
-    /// <param name="logLevel">The level of logging message to output.</param>
-    /// <param name="message">The message to be output to the log file, pre-formatted.</param>
-    /// <returns></returns>
-    public delegate string LogFormatter(LogLevel logLevel, string message);
-
     private static readonly LogFormatter DefaultLogFormatter =
          (logLevel, message) => $"{DateTime.Now:yyyy-MM-dd HH:mm:ss:ffff}\t{logLevel.ToString().ToUpper()}\t{message}";
     private readonly LogFormatter LogFormatting;

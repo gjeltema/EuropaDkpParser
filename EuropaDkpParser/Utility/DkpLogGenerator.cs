@@ -52,22 +52,30 @@ internal sealed class DkpLogGenerator
 
         RaidParticipationFilesParser listFilesParser = new(_settings);
 
-        IEnumerable<RaidDumpFile> raidDumpFiles = listFilesParser.GetRelevantRaidDumpFiles(startTime, endTime);
-        foreach (RaidDumpFile raidDumpFile in raidDumpFiles)
-        {
-            if (!await TryCopyFile(raidDumpFile.FullFilePath, Path.Combine(directoryForFiles, raidDumpFile.FileName)))
-            {
-                await DeleteDirectory(directoryForFiles);
-            }
-        }
-
         IEnumerable<RaidListFile> raidListFiles = listFilesParser.GetRelevantRaidListFiles(startTime, endTime);
         foreach (RaidListFile raidListFile in raidListFiles)
         {
             if (!await TryCopyFile(raidListFile.FullFilePath, Path.Combine(directoryForFiles, raidListFile.FileName)))
             {
                 await DeleteDirectory(directoryForFiles);
+                return;
             }
+        }
+
+        IEnumerable<ZealRaidAttendanceFile> zealRaidFiles = listFilesParser.GetRelevantZealRaidAttendanceFiles(startTime, endTime);
+        foreach (ZealRaidAttendanceFile zealRaidFile in zealRaidFiles)
+        {
+            if (!await TryCopyFile(zealRaidFile.FullFilePath, Path.Combine(directoryForFiles, zealRaidFile.FileName)))
+            {
+                await DeleteDirectory(directoryForFiles);
+                return;
+            }
+        }
+
+        IEnumerable<RaidDumpFile> raidDumpFiles = listFilesParser.GetRelevantRaidDumpFiles(startTime, endTime);
+        foreach (RaidDumpFile raidDumpFile in raidDumpFiles)
+        {
+            await TryCopyFile(raidDumpFile.FullFilePath, Path.Combine(directoryForFiles, raidDumpFile.FileName));
         }
 
         string zipFullFilePath = Path.Combine(outputPath, directoryName + ".zip");
@@ -75,6 +83,7 @@ internal sealed class DkpLogGenerator
         if (!await TryCreateZip(directoryForFiles, zipFullFilePath))
         {
             await DeleteDirectory(directoryForFiles);
+            //** Log
             return;
         }
 

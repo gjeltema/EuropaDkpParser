@@ -93,13 +93,15 @@ public static class Constants
     public const string WhoZonePrefixSingle = "There is ";
     public const string YouTold = "You told ";
     public const string YouToldSearch = $"] {YouTold}";
-    public const string ZealAttendanceBasedFileName = "ZealRaidAttendance_{0}.txt";
+    public const string ZealAttendanceBasedFileName = "ZealRaidAttendance_";
+    public const string ZealAttendanceBasedFileNameFormat = ZealAttendanceBasedFileName + "{0}.txt";
     public const int ZealPipeBufferSize = 32768;
     /// <summary>
     /// One argument for format: Process ID
     /// </summary>
     public const string ZealPipeNameFormat = ZealPipePrefix + "_{0}";
     public const string ZealPipePrefix = "zeal";
+    public const string ZealRaidAttendanceFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(10);
     public static readonly int LogDateTimeLength = LogDateTimeFormat.Length;
     public static readonly CultureInfo UsCulture = new("en-US");

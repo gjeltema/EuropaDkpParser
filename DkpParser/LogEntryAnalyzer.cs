@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// LogEntryAnalyzer.cs Copyright 2024 Craig Gjeltema
+// LogEntryAnalyzer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -350,9 +350,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         };
     }
 
-    private string GetZoneRaidAlias(string zoneName)
-        => _settings.RaidValue.GetZoneRaidAlias(zoneName);
-
     private void PopulateLootedList(LogParseResults logParseResults)
     {
         List<PlayerLooted> lootedEntries = [];
@@ -382,6 +379,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         foreach (RaidListFile raidList in logParseResults.RaidListFiles)
         {
             foreach (PlayerCharacter playerChar in raidList.CharacterNames)
+            {
+                _raidEntries.AddOrMergeInPlayerCharacter(playerChar);
+            }
+        }
+
+        foreach (ZealRaidAttendanceFile zealRaidList in logParseResults.ZealRaidAttendanceFiles)
+        {
+            foreach (PlayerCharacter playerChar in zealRaidList.CharacterNames)
             {
                 _raidEntries.AddOrMergeInPlayerCharacter(playerChar);
             }

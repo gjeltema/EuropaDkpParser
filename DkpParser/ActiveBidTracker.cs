@@ -316,12 +316,16 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (!_settings.ZoneIdMapping.TryGetValue(zoneId, out string zoneName))
             return;
 
-        string fileName = string.Format(Constants.ZealAttendanceBasedFileName, timestamp.ToString("yyMMdd"));
+        string fileName = string.Format(Constants.ZealAttendanceBasedFileNameFormat, timestamp.ToString(Constants.ZealRaidAttendanceFileNameTimeFormat));
         string fullFilePath = Path.Combine(eqDirectory, fileName);
 
-        string firstLine = $"{timestamp.ToString(Constants.LogDateTimeFormat)}|{raidName}|{zoneName}";
-        IEnumerable<string> names = ZealPipeMessageProcessor.Instance.RaidInfo.Select(x => x.CharacterName);
-        IEnumerable<string> fileContents = [firstLine, .. names, ""];
+        string firstLine = $"{raidName}|{zoneName}";
+        IEnumerable<string> characters = ZealPipeMessageProcessor.Instance.RaidInfo
+            .OrderBy(x => x.Group)
+            .ThenBy(x => x.CharacterName)
+            .Select(x => $"{x.Group}|{x.CharacterName}|{x.Class}|{x.Level}|{x.Rank}");
+
+        IEnumerable<string> fileContents = [firstLine, .. characters];
 
         WriteToFile(fullFilePath, fileContents);
     }
@@ -530,7 +534,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     {
         try
         {
-            Task.Run(() => File.AppendAllLines(fileToWriteTo, fileContents));
+            Task.Run(() => File.WriteAllLines(fileToWriteTo, fileContents));
         }
         catch (Exception ex)
         {

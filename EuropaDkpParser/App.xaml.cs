@@ -12,7 +12,6 @@ using EuropaDkpParser.Utility;
 using EuropaDkpParser.ViewModels;
 using EuropaDkpParser.Views;
 using Gjeltema.Logging;
-using static Gjeltema.Logging.SimpleLogTarget;
 
 public partial class App : Application
 {

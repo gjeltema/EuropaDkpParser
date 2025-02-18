@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpLogParseProcessor.cs Copyright 2024 Craig Gjeltema
+// DkpLogParseProcessor.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -23,7 +23,7 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
         EqLogDkpParser parser = new(_settings);
         EqLogFile parsedFile = parser.ParseLogFile(generatedLogFile, DateTime.MinValue, DateTime.MaxValue);
 
-        LogParseResults results = new([parsedFile], [], []);
+        LogParseResults results = new([parsedFile], [], [], []);
         return results;
     }
 
@@ -31,9 +31,10 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
     {
         IList<RaidDumpFile> raidDumpFiles = _raidParticipationFilesParser.GetParsedRelevantRaidDumpFiles(startTime, endTime);
         IList<RaidListFile> raidListFiles = _raidParticipationFilesParser.GetParsedRelevantRaidListFiles(startTime, endTime);
+        IList<ZealRaidAttendanceFile> zealRaidAttendanceFiles = _raidParticipationFilesParser.GetParsedZealRaidAttendanceFiles(startTime, endTime);
         IList<EqLogFile> logFiles = GetEqLogFiles(startTime, endTime);
 
-        LogParseResults results = new(logFiles, raidDumpFiles, raidListFiles);
+        LogParseResults results = new(logFiles, raidDumpFiles, raidListFiles, zealRaidAttendanceFiles);
         return results;
     }
 
