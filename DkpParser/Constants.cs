@@ -93,6 +93,7 @@ public static class Constants
     public const string WhoZonePrefixSingle = "There is ";
     public const string YouTold = "You told ";
     public const string YouToldSearch = $"] {YouTold}";
+    public const string ZealAttendanceBasedFileName = "ZealRaidAttendance_{0}.txt";
     public const int ZealPipeBufferSize = 32768;
     /// <summary>
     /// One argument for format: Process ID

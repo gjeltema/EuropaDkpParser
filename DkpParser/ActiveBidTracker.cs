@@ -8,11 +8,13 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.IO;
 using DkpParser.LiveTracking;
+using DkpParser.Zeal;
 using Gjeltema.Logging;
 
 public sealed class ActiveBidTracker : IActiveBidTracker
 {
     private const string ErrorFileName = "Errors_LiveBidTracking.txt";
+    private const string LogFormat = $"[{nameof(ActiveBidTracker)}]";
     private readonly ActiveBiddingAnalyzer _activeBiddingAnalyzer;
     private readonly ActiveBossKillAnalyzer _activeBossKillAnalyzer;
     private readonly ActiveAuctionEndAnalyzer _auctionEndAnalyzer;
@@ -284,6 +286,42 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "60s",
         };
 
+    private void HandleAttendanceCall(DateTime timestamp, string messageFromPlayer, string messageSenderName)
+    {
+        // :::Raid Attendance Taken:::Attendance:::Fifth Call:::
+        // :::Raid Attendance Taken:::Sister of the Spire:::Kill:::
+
+        if (messageSenderName != "You"
+            || !messageFromPlayer.Contains(Constants.PossibleErrorDelimiter)
+            || !messageFromPlayer.Contains(Constants.RaidAttendanceTaken))
+            return;
+
+        if (ZealPipeMessageProcessor.Instance.RaidInfo.Count == 0)
+            return;
+
+        string eqDirectory = _settings.EqDirectory;
+        if (string.IsNullOrEmpty(eqDirectory))
+            return;
+
+        string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(messageFromPlayer);
+        string[] lineParts = sanitizedLogLine.Split(Constants.AttendanceDelimiter, StringSplitOptions.RemoveEmptyEntries);
+        if (lineParts.Length < 3)
+            return;
+
+        string raidName = lineParts[1] == Constants.Attendance ? lineParts[2] : lineParts[1];
+        if (string.IsNullOrEmpty(raidName))
+            return;
+
+        string fileName = string.Format(Constants.ZealAttendanceBasedFileName, timestamp.ToString("yyMMdd"));
+        string fullFilePath = Path.Combine(eqDirectory, fileName);
+
+        string firstLine = $"{timestamp.ToString(Constants.LogDateTimeFormat)}|{raidName}";
+        IEnumerable<string> names = ZealPipeMessageProcessor.Instance.RaidInfo.Select(x => x.CharacterName);
+        IEnumerable<string> fileContents = [firstLine, .. names, ""];
+
+        WriteToFile(fullFilePath, fileContents);
+    }
+
     private void HandleRollByPlayer(LiveBidInfo rollInfo)
     {
         if (rollInfo == null)
@@ -412,12 +450,14 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     Updated = true;
                     return;
                 }
+
+                HandleAttendanceCall(timestamp, messageFromPlayer, messageSenderName);
             }
         }
         catch (Exception ex)
         {
             ProcessErrorMessage($"Error processing message: {ex}");
-            Log.Error($"Error processing messages: {ex}");
+            Log.Error($"{LogFormat} Error processing messages: {ex}");
         }
     }
 
@@ -480,6 +520,18 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             File.AppendAllLines(_errorFileName, [message]);
         }
         catch { }
+    }
+
+    private void WriteToFile(string fileToWriteTo, IEnumerable<string> fileContents)
+    {
+        try
+        {
+            Task.Run(() => File.AppendAllLines(fileToWriteTo, fileContents));
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogFormat} Error writing out Zeal attendance info: {ex.ToLogMessage()}");
+        }
     }
 }
 
