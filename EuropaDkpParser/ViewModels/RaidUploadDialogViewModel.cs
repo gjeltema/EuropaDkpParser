@@ -21,7 +21,6 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<UploadErrorDisplay> _errorMessages;
-    private bool _outputDebugInfo;
     private AttendanceEntry _selectedAttendance;
     private ObservableCollection<AttendanceEntry> _selectedAttendances;
     private AttendanceEntry _selectedAttendanceToRemove;

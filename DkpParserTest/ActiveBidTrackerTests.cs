@@ -350,11 +350,7 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public DkpServerCharacters CharactersOnDkpServer { get; } = new DkpServerCharacters("");
 
-    public bool DkpspentAucEnabled { get; set; }
-
     public bool DkpspentGuEnabled { get; set; }
-
-    public bool DkpspentOocEnabled { get; set; }
 
     public bool EnableDebugOptions { get; set; }
 
@@ -407,6 +403,12 @@ internal sealed class SettingsMock : IDkpParserSettings
     public IDictionary<int, string> ZoneIdMapping { get; }
 
     public void LoadAllSettings()
+        => throw new NotImplementedException();
+
+    public bool LoadBaseSettings()
+        => throw new NotImplementedException();
+
+    public void LoadOtherFileSettings()
         => throw new NotImplementedException();
 
     public void SaveSettings()

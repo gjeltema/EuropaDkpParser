@@ -18,9 +18,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _apiReadToken;
     private string _apiUrl;
     private string _apiWriteToken;
-    private bool _dkpspentAucEnable;
     private bool _dkpspentGuEnable;
-    private bool _dkpspentOocEnable;
     private string _eqDirectory;
     private bool _includeTellsInRawLog;
     private bool _isDebugOptionsEnabled;
