@@ -56,9 +56,23 @@ public partial class App : Application
         MessageDialog.Initialize(dialogFactory);
 
         _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath, DkpCharactersFilePath, ZoneIdMappingFilePath);
-        _settings.LoadAllSettings();
+
+        bool success = _settings.LoadBaseSettings();
+        if (!success)
+        {
+            MessageBox.Show(
+               "RaidValues.txt file was unable to be loaded. Obtain a correct version of this file and place it in the same folder as this executable.",
+               "RaidValues.txt Not Loaded",
+               MessageBoxButton.OK,
+               MessageBoxImage.Error);
+
+            Current?.Shutdown(1);
+            return;
+        }
 
         InitializeLogging();
+
+        _settings.LoadOtherFileSettings();
 
         if (_settings.UseLightMode)
         {

@@ -61,7 +61,10 @@ public sealed class ItemLinkValues
     public void LoadValues()
     {
         if (!File.Exists(_itemLinkValuesFileName))
+        {
+            Log.Error($"{LogPrefix} {_itemLinkValuesFileName} does not exist.");
             return;
+        }
 
         IEnumerable<string> fileContents = File.ReadAllLines(_itemLinkValuesFileName);
         foreach (string itemLine in fileContents)
@@ -77,7 +80,7 @@ public sealed class ItemLinkValues
         {
             File.WriteAllLines(_itemLinkValuesFileName, _itemLinkValues.Select(x => $"{x.Key}{Delimiter}{x.Value}"));
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Log.Error($"{LogPrefix} Unable to write item link info to file: {_itemLinkValuesFileName}: {ex.ToLogMessage()}");
         }

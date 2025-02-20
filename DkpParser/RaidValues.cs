@@ -7,6 +7,7 @@ namespace DkpParser;
 using System.Diagnostics;
 using System.IO;
 using DkpParser.Uploading;
+using Gjeltema.Logging;
 
 public sealed class RaidValues : IRaidValues
 {
@@ -15,6 +16,7 @@ public sealed class RaidValues : IRaidValues
     private const string BossSection = "BOSS_SECTION";
     private const string Comment = "#";
     private const char Delimiter = '\t';
+    private const string LogPrefix = $"[{nameof(RaidValues)}]";
     private const string SectionEnding = "_END";
     private const string TierSection = "TIER_SECTION";
     private const string ZoneValueSection = "ZONE_SECTION";
@@ -55,7 +57,10 @@ public sealed class RaidValues : IRaidValues
     public void LoadSettings()
     {
         if (!File.Exists(_raidValuesFileName))
+        {
+            Log.Error($"{LogPrefix} {_raidValuesFileName} does not exist.");
             return;
+        }
 
         string[] fileContents = File.ReadAllLines(_raidValuesFileName);
         LoadTierSection(fileContents);

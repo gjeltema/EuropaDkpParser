@@ -124,21 +124,17 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public void LoadAllSettings()
     {
-        RaidValue = new RaidValues(_raidValuesFileName);
-        RaidValue.LoadSettings();
+        LoadBaseSettings();
 
-        ItemLinkIds = new(_itemLinkValuesFileName);
-        ItemLinkIds.LoadValues();
+        LoadOtherFileSettings();
+    }
 
-        CharactersOnDkpServer = new(_dkpCharactersFileName);
-        CharactersOnDkpServer.LoadValues();
-
-        InitializeZoneIdMapping();
-
+    public bool LoadBaseSettings()
+    {
         if (!File.Exists(_settingsFilePath))
         {
             SaveSettings();
-            return;
+            return false;
         }
 
         string[] fileContents = File.ReadAllLines(_settingsFilePath);
@@ -169,6 +165,22 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Error);
         LoggingLevel = (LogLevel)loggingLevelRaw;
+
+        return true;
+    }
+
+    public void LoadOtherFileSettings()
+    {
+        RaidValue = new RaidValues(_raidValuesFileName);
+        RaidValue.LoadSettings();
+
+        ItemLinkIds = new(_itemLinkValuesFileName);
+        ItemLinkIds.LoadValues();
+
+        CharactersOnDkpServer = new(_dkpCharactersFileName);
+        CharactersOnDkpServer.LoadValues();
+
+        InitializeZoneIdMapping();
     }
 
     public void SaveSettings()
@@ -470,6 +482,10 @@ public interface IDkpParserSettings
     IDictionary<int, string> ZoneIdMapping { get; }
 
     void LoadAllSettings();
+
+    bool LoadBaseSettings();
+
+    void LoadOtherFileSettings();
 
     void SaveSettings();
 }

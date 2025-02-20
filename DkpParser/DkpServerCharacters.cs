@@ -104,6 +104,7 @@ public sealed class DkpServerCharacters
         if (!File.Exists(_dkpCharactersFileName))
         {
             SaveValues();
+            Log.Error($"{LogPrefix} {_dkpCharactersFileName} does not exist.");
             return;
         }
 
