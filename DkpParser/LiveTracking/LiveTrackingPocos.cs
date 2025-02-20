@@ -243,6 +243,7 @@ public sealed class CompletedAuction
 
     public ICollection<LiveSpentCall> SpentCalls { get; set; }
 
+    // Binding in the xaml to this
     public string Winners
         => string.Join(Environment.NewLine, SpentCalls.Select(GetSpentInfo));
 
@@ -250,7 +251,7 @@ public sealed class CompletedAuction
         => $"{ItemName} {AuctionStart.Id}";
 
     public override string ToString()
-        => $"{AuctionStart.Timestamp:HH:mm} {ItemName}";
+    => $"{AuctionStart.Timestamp:HH:mm} {ItemName} {string.Join(", ", SpentCalls.Select(GetWinnerSummary))}";
 
     private string GetSpentInfo(LiveSpentCall spent)
     {
@@ -264,6 +265,21 @@ public sealed class CompletedAuction
                 return $"{spent.Winner} {spent.DkpSpent} DKP";
             else
                 return $"{spent.Winner} ({spent.CharacterPlacingBid}) {spent.DkpSpent} DKP";
+        }
+    }
+
+    private string GetWinnerSummary(LiveSpentCall spent)
+    {
+        if (AuctionStart.IsRoll)
+        {
+            return $"{spent.Winner}";
+        }
+        else
+        {
+            if (spent.Winner == spent.CharacterPlacingBid)
+                return $"{spent.Winner}";
+            else
+                return $"{spent.Winner} ({spent.CharacterPlacingBid})";
         }
     }
 }
