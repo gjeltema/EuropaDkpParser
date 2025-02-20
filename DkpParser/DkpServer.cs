@@ -1,32 +1,33 @@
 ﻿// -----------------------------------------------------------------------
-// DkpServer.cs Copyright 2024 Craig Gjeltema
+// DkpServer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
 
+using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
 using DkpParser.Uploading;
+using Gjeltema.Logging;
 
 public sealed class DkpServer : IDkpServer
 {
+    private const string LogPrefix = $"[{nameof(DkpServer)}]";
     private const string ServerTimeFormat = "yyyy-MM-dd HH:mm";
     private static readonly HttpClient LocalHttpClient = new();
-    private readonly IServerCommDebugInfo _debugInfo;
     private readonly Dictionary<string, int> _eventIdCache = [];
     private readonly MediaTypeHeaderValue _mediaHeader = new("application/xml");
     private readonly Dictionary<string, int> _playerIdCache = [];
     private readonly Dictionary<string, int> _raidIdCache = [];
     private readonly IDkpParserSettings _settings;
 
-    public DkpServer(IDkpParserSettings settings, IServerCommDebugInfo debugInfo)
+    public DkpServer(IDkpParserSettings settings)
     {
         _settings = settings;
-        _debugInfo = debugInfo;
 
-        _debugInfo.AddDebugMessage($"HttpClient initialized with default User Agent: {LocalHttpClient.DefaultRequestHeaders.UserAgent}");
+        Log.Debug($"{LogPrefix} HttpClient initialized with default User Agent: {LocalHttpClient.DefaultRequestHeaders.UserAgent}");
     }
 
     static DkpServer()
@@ -55,7 +56,7 @@ public sealed class DkpServer : IDkpServer
         }
         catch (Exception ex)
         {
-            _debugInfo.AddDebugMessage($"Error encountered in user_char call: {ex}");
+            Log.Error($"{LogPrefix} Error encountered in user_char call: {ex.ToLogMessage()}");
         }
 
         return null;
@@ -74,7 +75,7 @@ public sealed class DkpServer : IDkpServer
         }
         catch (Exception ex)
         {
-            _debugInfo.AddDebugMessage($"Error encountered in Points call: {ex}");
+            Log.Error($"{LogPrefix} Error encountered in Points call: {ex.ToLogMessage()}");
         }
 
         return int.MinValue;
@@ -82,7 +83,7 @@ public sealed class DkpServer : IDkpServer
 
     public async Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
     {
-        _debugInfo.AddDebugMessage("------- Starting retrieval of IDs -------");
+        Log.Debug($"{LogPrefix} ------- Starting retrieval of IDs -------");
 
         await GetEventIds(zoneNames, results);
 
@@ -91,7 +92,7 @@ public sealed class DkpServer : IDkpServer
             await GetCharacterIdFromServer(playerName, results);
         }
 
-        _debugInfo.AddDebugMessage("------- Completed retrieval of IDs -------");
+        Log.Debug($"{LogPrefix} ------- Completed retrieval of IDs -------");
     }
 
     public async Task UploadAttendance(AttendanceUploadInfo attendanceEntry)
@@ -102,7 +103,7 @@ public sealed class DkpServer : IDkpServer
         XElement root = XDocument.Parse(response).Root;
         int raidId = (int)root.Descendants("raid_id").FirstOrDefault();
 
-        _debugInfo.AddDebugMessage($"Raid ID assigned to attendance call: {raidId}");
+        Log.Debug($"{LogPrefix} Raid ID assigned to attendance call: {raidId}");
 
         _raidIdCache[attendanceEntry.CallName] = raidId;
     }
@@ -176,7 +177,7 @@ public sealed class DkpServer : IDkpServer
 
         int characterId = GetCharacterIdFromResponse(responseDoc);
 
-        _debugInfo.AddDebugMessage($"Extracted character ID for {characterName} is {characterId}");
+        Log.Debug($"{LogPrefix} Extracted character ID for {characterName} is {characterId}");
 
         _playerIdCache[characterName] = characterId;
 
@@ -197,7 +198,7 @@ public sealed class DkpServer : IDkpServer
                 Error = ex
             };
             results.FailedCharacterIdRetrievals.Add(fail);
-            _debugInfo.AddDebugMessage($"Error encountered retrieving character ID for {playerName}: {ex}");
+            Log.Error($"{LogPrefix} Error encountered retrieving character ID for {playerName}: {ex.ToLogMessage()}");
         }
     }
 
@@ -238,7 +239,7 @@ public sealed class DkpServer : IDkpServer
                         ZoneAlias = aliasedZoneName,
                         IdValue = idValue.Value
                     }
-                    );
+                );
                 continue;
             }
 
@@ -258,7 +259,7 @@ public sealed class DkpServer : IDkpServer
         catch (Exception ex)
         {
             results.EventIdCallFailure = ex;
-            _debugInfo.AddDebugMessage($"Error encountered in Events call: {ex}");
+            Log.Error($"{LogPrefix} Error encountered in Events call: {ex.ToLogMessage()}");
         }
 
         return null;
@@ -302,15 +303,15 @@ public sealed class DkpServer : IDkpServer
 
     private async Task<XDocument> MakeGetCall(string url)
     {
-        _debugInfo.AddDebugMessage($"---- Making GET call with URL: {url}");
+        Log.Debug($"{LogPrefix} ---- Making GET call with URL: {url}");
 
         using HttpResponseMessage response = await LocalHttpClient.GetAsync(url);
 
-        _debugInfo.AddDebugMessage($"GET response received.  Response object: {response}");
+        Log.Debug($"{LogPrefix} GET response received.  Response object: {response}");
 
         string responseText = await response.Content.ReadAsStringAsync();
 
-        _debugInfo.AddDebugMessage($"GET response text:{Environment.NewLine}{responseText}");
+        Log.Debug($"{LogPrefix} GET response text:{Environment.NewLine}{responseText}");
 
         response.EnsureSuccessStatusCode();
 
@@ -326,21 +327,21 @@ public sealed class DkpServer : IDkpServer
 
     private async Task<string> UploadMessage(string function, string content)
     {
-        _debugInfo.AddDebugMessage($"Uploading with POST body:{Environment.NewLine}{content}");
+        Log.Debug($"{LogPrefix} Uploading with POST body:{Environment.NewLine}{content}");
 
         using HttpContent postContent = GetPostContent(content);
         postContent.Headers.ContentType = _mediaHeader;
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiWriteToken}&function={function}";
 
-        _debugInfo.AddDebugMessage($"Uploading with URL: {uri}");
+        Log.Debug($"{LogPrefix} Uploading with URL: {uri}");
 
         using HttpResponseMessage response = await LocalHttpClient.PostAsync(uri, postContent);
 
-        _debugInfo.AddDebugMessage($"Received response.  Response object:{Environment.NewLine}{response}");
+        Log.Debug($"{LogPrefix} Received response.  Response object:{Environment.NewLine}{response}");
 
         string text = await response.Content.ReadAsStringAsync();
 
-        _debugInfo.AddDebugMessage($"Response:{Environment.NewLine}{text}");
+        Log.Debug($"{LogPrefix} Response:{Environment.NewLine}{text}");
 
         response.EnsureSuccessStatusCode();
 

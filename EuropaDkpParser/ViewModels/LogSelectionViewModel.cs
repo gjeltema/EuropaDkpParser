@@ -71,9 +71,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         ShowAfkReview = _settings.ShowAfkReview;
         IncludeTellsInRawLog = _settings.IncludeTellsInRawLog;
 
-        DkpspentAucEnable = _settings.DkpspentAucEnabled;
         DkpspentGuEnable = _settings.DkpspentGuEnabled;
-        DkpspentOocEnable = _settings.DkpspentOocEnabled;
 
         OverlayFontSize = _settings.OverlayFontSize.ToString();
         OverlayFontColor = _settings.OverlayFontColor;
@@ -105,22 +103,10 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         set => SetProperty(ref _apiWriteToken, value);
     }
 
-    public bool DkpspentAucEnable
-    {
-        get => _dkpspentAucEnable;
-        set => SetProperty(ref _dkpspentAucEnable, value);
-    }
-
     public bool DkpspentGuEnable
     {
         get => _dkpspentGuEnable;
         set => SetProperty(ref _dkpspentGuEnable, value);
-    }
-
-    public bool DkpspentOocEnable
-    {
-        get => _dkpspentOocEnable;
-        set => SetProperty(ref _dkpspentOocEnable, value);
     }
 
     public string EqDirectory
@@ -238,9 +224,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.ShowAfkReview = ShowAfkReview;
         _settings.LogFileMatchPattern = LogFileMatchPattern;
         _settings.IncludeTellsInRawLog = IncludeTellsInRawLog;
-        _settings.DkpspentAucEnabled = DkpspentAucEnable;
         _settings.DkpspentGuEnabled = DkpspentGuEnable;
-        _settings.DkpspentOocEnabled = DkpspentOocEnable;
         _settings.UseLightMode = UseLightMode;
         _settings.OverlayFontColor = OverlayFontColor;
         if (int.TryParse(OverlayFontSize, out int fontSize))
@@ -376,11 +360,7 @@ public interface ILogSelectionViewModel : IDialogViewModel
 
     string ApiWriteToken { get; set; }
 
-    bool DkpspentAucEnable { get; set; }
-
     bool DkpspentGuEnable { get; set; }
-
-    bool DkpspentOocEnable { get; set; }
 
     string EqDirectory { get; set; }
 

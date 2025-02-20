@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpParseDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// DkpParseDialogViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -17,12 +17,9 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
     private bool _debugOptionsEnabled;
     private string _endTimeText;
     private string _generatedFile;
-    private bool _isOutputRawParseResultsChecked;
-    private bool _isRawAnalyzerResultsChecked;
-    private bool _outputAnalyzerErrors;
     private bool _performingParse = false;
-    private string _startTimeText;
     private bool _startTimeSet = false;
+    private string _startTimeText;
 
     internal DkpParseDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IDialogViewFactory viewFactory)
         : base(viewFactory)
@@ -72,24 +69,6 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
     }
 
     public DelegateCommand GetRawLogFileCommand { get; }
-
-    public bool IsRawAnalyzerResultsChecked
-    {
-        get => _isRawAnalyzerResultsChecked;
-        set => SetProperty(ref _isRawAnalyzerResultsChecked, value);
-    }
-
-    public bool IsRawParseResultsChecked
-    {
-        get => _isOutputRawParseResultsChecked;
-        set => SetProperty(ref _isOutputRawParseResultsChecked, value);
-    }
-
-    public bool OutputAnalyzerErrors
-    {
-        get => _outputAnalyzerErrors;
-        set => SetProperty(ref _outputAnalyzerErrors, value);
-    }
 
     public DelegateCommand ResetTimeCommand { get; }
 
@@ -163,9 +142,6 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
         {
             StartTime = startTime,
             EndTime = endTime,
-            IsRawAnalyzerResultsChecked = IsRawAnalyzerResultsChecked,
-            IsRawParseResultsChecked = IsRawParseResultsChecked,
-            OutputAnalyzerErrors = OutputAnalyzerErrors,
             OutputDirectory = _settings.OutputDirectory,
             GeneratedFile = GeneratedFile,
             OutputPath = GetOutputPath()
@@ -186,12 +162,6 @@ public interface IDkpParseDialogViewModel : IDialogViewModel
     string GeneratedFile { get; set; }
 
     DelegateCommand GetRawLogFileCommand { get; }
-
-    bool IsRawAnalyzerResultsChecked { get; set; }
-
-    bool IsRawParseResultsChecked { get; set; }
-
-    bool OutputAnalyzerErrors { get; set; }
 
     DelegateCommand ResetTimeCommand { get; }
 

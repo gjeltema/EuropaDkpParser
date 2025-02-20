@@ -1,15 +1,17 @@
 ﻿// -----------------------------------------------------------------------
-// DkpServerCharacters.cs Copyright 2024 Craig Gjeltema
+// DkpServerCharacters.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
 
 using System.Diagnostics;
 using System.IO;
+using Gjeltema.Logging;
 
 public sealed class DkpServerCharacters
 {
     private const char Delimiter = '|';
+    private const string LogPrefix = $"[{nameof(DkpServerCharacters)}]";
     private readonly string _dkpCharactersFileName;
     private ICollection<DkpUserCharacter> _userCharacters = [];
 
@@ -123,7 +125,10 @@ public sealed class DkpServerCharacters
             IEnumerable<string> lines = GetFileLines(characters);
             File.WriteAllLines(_dkpCharactersFileName, lines);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogPrefix} Unable to write character info to file: {_dkpCharactersFileName}: {ex.ToLogMessage()}");
+        }
     }
 
     private DkpUserCharacter ExtractUserCharacter(string fileLine)

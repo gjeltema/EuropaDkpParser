@@ -26,7 +26,7 @@ internal sealed class PopulationListingEntryParser : IParseEntry
         // [Sun Jun 09 19:59:39 2024] [50 Magician] Cemtex (Dark Elf) <Europa> LFG
         // [Sun Jun 09 19:59:39 2024] [ANONYMOUS] Cyberjam  <Europa>
         // [Mon Oct 28 21:32:54 2024]  AFK [55 Blackguard] Ilsidor (Human) <Europa>
-        if (logLine.Contains(Constants.EuropaGuildTag))
+        if (logLine.Contains(Constants.GuildTag))
         {
             EqLogEntry logEntry = new()
             {

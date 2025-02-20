@@ -13,9 +13,11 @@ using DkpParser;
 using DkpParser.Parsers;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.ViewModels;
+using Gjeltema.Logging;
 
 internal sealed class DkpLogGenerator
 {
+    private const string LogPrefix = $"[{nameof(DkpLogGenerator)}]";
     private readonly IDialogFactory _dialogFactory;
     private readonly IDkpParserSettings _settings;
 
@@ -27,11 +29,14 @@ internal sealed class DkpLogGenerator
 
     public async Task GetRawLogFilesParseAsync(DateTime startTime, DateTime endTime, string outputPath)
     {
+        Log.Debug($"{LogPrefix} Starting {GetRawLogFilesParseAsync}");
+
         IFullRaidLogsParser fullLogParser = new FullRaidLogsParser(_settings);
         ICollection<EqLogFile> logFiles = await Task.Run(() => fullLogParser.GetEqLogFiles(startTime, endTime));
 
         if (logFiles.Count == 0)
         {
+            Log.Info($"{LogPrefix} No log entries were found between {startTime} and {endTime}.  Ending RawLog parse.");
             string errorMessage = $"No log entries were found between {startTime} and {endTime}.  Ending parse.";
             MessageBox.Show(errorMessage, "No Log Entries Found", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
@@ -41,6 +46,8 @@ internal sealed class DkpLogGenerator
         string directoryForFiles = Path.Combine(outputPath, directoryName);
         string fullLogOutputFile = $"{Constants.FullGeneratedLogFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string fullLogOutputFullPath = Path.Combine(directoryForFiles, fullLogOutputFile);
+
+        Log.Trace($"{LogPrefix} {nameof(directoryName)}:{directoryName}; {nameof(directoryForFiles)}:{directoryForFiles}; {nameof(fullLogOutputFile)}:{fullLogOutputFile}; {nameof(fullLogOutputFullPath)}{fullLogOutputFullPath}");
 
         if (!await TryCreateDirectory(directoryForFiles))
             return;
@@ -83,9 +90,10 @@ internal sealed class DkpLogGenerator
         if (!await TryCreateZip(directoryForFiles, zipFullFilePath))
         {
             await DeleteDirectory(directoryForFiles);
-            //** Log
             return;
         }
+
+        Log.Debug($"Zip file {zipFullFilePath} created.");
 
         await DeleteDirectory(directoryForFiles);
 
@@ -98,10 +106,15 @@ internal sealed class DkpLogGenerator
 
     public async Task StartLogParseAsync(DkpLogGenerationSessionSettings sessionSettings)
     {
+        Log.Debug($"{LogPrefix} Starting {StartLogParseAsync}");
+
         RaidEntries raidEntries = await ParseAndAnalyzeLogFiles(sessionSettings);
 
         if (raidEntries == null)
+        {
+            Log.Info($"{LogPrefix} RaidEntries is null. Ending parse.");
             return;
+        }
 
         if (raidEntries.AttendanceEntries.Count == 0)
         {
@@ -111,17 +124,8 @@ internal sealed class DkpLogGenerator
                 MessageBoxButton.OK,
                 MessageBoxImage.Information
             );
+            Log.Info($"{LogPrefix} No attendance entries were found between {sessionSettings.StartTime} and {sessionSettings.EndTime}.  Ending parse.");
             return;
-        }
-
-        if (sessionSettings.IsRawAnalyzerResultsChecked)
-        {
-            await OutputRawAnalyzerResults(raidEntries, sessionSettings);
-        }
-
-        if (sessionSettings.OutputAnalyzerErrors && raidEntries.AnalysisErrors.Count > 0)
-        {
-            await OutputAnalyzerErrorsToFile(raidEntries, sessionSettings);
         }
 
         if (raidEntries.AttendanceEntries.Any(x => x.PossibleError != PossibleError.None))
@@ -151,12 +155,17 @@ internal sealed class DkpLogGenerator
                 afkDialog.ShowDialog();
         }
 
-        IBonusDkpAnalyzer bonusDkp = new BonusDkpAnalyzer(_settings);
-        bonusDkp.AddBonusAttendance(raidEntries);
+        //IBonusDkpAnalyzer bonusDkp = new BonusDkpAnalyzer(_settings);
+        //bonusDkp.AddBonusAttendance(raidEntries);
+
+        Log.Trace($"{LogPrefix} RaidEntries:{Environment.NewLine}{raidEntries.GetAllEntries()}");
 
         IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, _settings, raidEntries, _settings.IsApiConfigured);
         if (finalSummaryDialog.ShowDialog() == false)
+        {
+            Log.Debug($"{LogPrefix} User cancelled out of FinalSummaryDialog.  Ending parse.");
             return;
+        }
 
         IOutputGenerator generator = new FileOutputGenerator();
         IEnumerable<string> fileContents = generator.GenerateOutput(raidEntries, _settings.RaidValue.GetZoneRaidAlias);
@@ -164,11 +173,15 @@ internal sealed class DkpLogGenerator
         if (!success)
             return;
 
+        Log.Debug($"{LogPrefix} {nameof(StartLogParseAsync)}, {nameof(finalSummaryDialog.UploadToServer)}: {finalSummaryDialog.UploadToServer}, {nameof(_settings.IsApiConfigured)}: {_settings.IsApiConfigured}.");
         if (finalSummaryDialog.UploadToServer && _settings.IsApiConfigured)
         {
+            Log.Debug($"{LogPrefix} {nameof(StartLogParseAsync)}, beginning upload.");
             IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(_dialogFactory, raidEntries, _settings);
             raidUpload.ShowDialog();
         }
+
+        Log.Debug($"{LogPrefix} {nameof(StartLogParseAsync)}, finished upload.");
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(sessionSettings.GeneratedFile);
         completedDialog.SummaryDisplay = GetSummaryDisplay(raidEntries);
@@ -177,20 +190,38 @@ internal sealed class DkpLogGenerator
 
     public async Task UploadGeneratedLogFile(string generatedLogFile)
     {
+        Log.Debug($"{LogPrefix} Starting {UploadGeneratedLogFile}");
+
         RaidEntries raidEntries = await ParseGeneratedLogFile(generatedLogFile);
 
         if (raidEntries == null || (raidEntries.DkpEntries.Count == 0 && raidEntries.AttendanceEntries.Count == 0))
+        {
+            MessageBox.Show(
+                $"No attendance entries and no DKP entries were found.  Ending Upload Generated File.",
+                "No Entries Found",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+            Log.Info($"{LogPrefix} RaidEntries is null, or has no attendance entries and no DKP entries.  Ending Upload Generated File.");
             return;
+        }
 
         IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, _settings, raidEntries, _settings.IsApiConfigured);
         if (finalSummaryDialog.ShowDialog() == false)
+        {
+            Log.Debug($"{LogPrefix} User cancelled out of FinalSummaryDialog.  Ending parse.");
             return;
+        }
 
+        Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFile)}, {nameof(finalSummaryDialog.UploadToServer)}: {finalSummaryDialog.UploadToServer}, {nameof(_settings.IsApiConfigured)}: {_settings.IsApiConfigured}.");
         if (finalSummaryDialog.UploadToServer && _settings.IsApiConfigured)
         {
+            Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFile)}, beginning upload.");
             IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(_dialogFactory, raidEntries, _settings);
             raidUpload.ShowDialog();
         }
+
+        Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFile)}, finished upload.");
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel("No file generated, uploaded existing generated file");
         completedDialog.SummaryDisplay = GetSummaryDisplay(raidEntries);
@@ -203,12 +234,14 @@ internal sealed class DkpLogGenerator
         if (!DateTime.TryParse(startTimeText, out startTime))
         {
             MessageBox.Show(Strings.GetString("StartTimeErrorMessage"), Strings.GetString("StartTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            Log.Warning($"{LogPrefix} Unable to parse StartTime value of: {startTimeText}");
             return false;
         }
 
         if (!DateTime.TryParse(endTimeText, out endTime))
         {
             MessageBox.Show(Strings.GetString("EndTimeErrorMessage"), Strings.GetString("EndTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            Log.Warning($"{LogPrefix} Unable to parse EndTime value of: {endTimeText}");
             return false;
         }
 
@@ -230,6 +263,7 @@ internal sealed class DkpLogGenerator
         }
         catch (Exception ex)
         {
+            Log.Error($"{LogPrefix} {nameof(CreateFile)} failed to create {fileToWriteTo}: {ex.ToLogMessage()}");
             MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.ToString(), Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }
@@ -241,8 +275,10 @@ internal sealed class DkpLogGenerator
         {
             await Task.Run(() => Directory.Delete(directoryName, true));
         }
-        catch
-        { }
+        catch (Exception ex)
+        {
+            Log.Warning($"{LogPrefix} Error deleting directory {directoryName} : {ex.ToLogMessage()}");
+        }
     }
 
     private string GetSummaryDisplay(RaidEntries raidEntries)
@@ -271,37 +307,9 @@ internal sealed class DkpLogGenerator
             summaryDisplay.AppendLine(string.Join(Environment.NewLine, raidEntries.DkpUploadErrors.Select(x => x.RawLogLine)));
         }
 
-        return summaryDisplay.ToString();
-    }
-
-    private async Task OutputAnalyzerErrorsToFile(RaidEntries raidEntries, DkpLogGenerationSessionSettings sessionSettings)
-    {
-        string directory = sessionSettings.OutputPath;
-
-        string rawAnalyzerOutputFile = $"DEBUG_AnalyzerErrors-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
-        await CreateFile(rawAnalyzerOutputFullPath, raidEntries.AnalysisErrors);
-    }
-
-    private async Task OutputRawAnalyzerResults(RaidEntries raidEntries, DkpLogGenerationSessionSettings sessionSettings)
-    {
-        string directory = sessionSettings.OutputPath;
-
-        string rawAnalyzerOutputFile = $"DEBUG_RawAnalyzerOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string rawAnalyzerOutputFullPath = Path.Combine(directory, rawAnalyzerOutputFile);
-        await CreateFile(rawAnalyzerOutputFullPath, [$"Parser elapsed time: {raidEntries.ParseTime}", $"Analyzer elapsed time: {raidEntries.AnalysisTime}", .. raidEntries.GetAllEntries()]);
-    }
-
-    private async Task OutputRawParseResults(LogParseResults results, DkpLogGenerationSessionSettings sessionSettings, TimeSpan parserTimeElapsed)
-    {
-        string directory = sessionSettings.OutputPath;
-
-        string rawParseOutputFile = $"RawParseOutput-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string rawParseOutputFullPath = Path.Combine(directory, rawParseOutputFile);
-        foreach (EqLogFile logFile in results.EqLogFiles)
-        {
-            await CreateFile(rawParseOutputFullPath, [$"Parser elapsed time: {parserTimeElapsed}", .. logFile.GetAllLogLines()]);
-        }
+        string summaryDisplayText = summaryDisplay.ToString();
+        Log.Trace($"{LogPrefix} Summary Display:{Environment.NewLine}{summaryDisplayText}");
+        return summaryDisplayText;
     }
 
     private async Task<RaidEntries> ParseAndAnalyzeLogFiles(DkpLogGenerationSessionSettings sessionSettings)
@@ -314,12 +322,7 @@ internal sealed class DkpLogGenerator
             timer.Start();
             LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(sessionSettings.StartTime, sessionSettings.EndTime));
             timer.Stop();
-            TimeSpan parserTimeElapsed = timer.Elapsed;
-
-            if (sessionSettings.IsRawParseResultsChecked)
-            {
-                await OutputRawParseResults(results, sessionSettings, parserTimeElapsed);
-            }
+            Log.Info($"{LogPrefix} {nameof(parseProcessor.ParseLogs)} elapsed time: {timer.Elapsed.TotalMilliseconds}ms");
 
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
 
@@ -327,24 +330,20 @@ internal sealed class DkpLogGenerator
             timer.Start();
             RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
             timer.Stop();
-            TimeSpan analyzerTimeElapsed = timer.Elapsed;
+            Log.Info($"{LogPrefix} {nameof(logEntryAnalyzer.AnalyzeRaidLogEntries)} elapsed time: {timer.Elapsed.TotalMilliseconds}ms");
 
-            raidEntries.ParseTime = parserTimeElapsed;
-            raidEntries.AnalysisTime = analyzerTimeElapsed;
             return raidEntries;
         }
         catch (EuropaDkpParserException e)
         {
-            await WriteEuropaExceptionToLogFile(e, sessionSettings);
-
+            Log.Error($"{LogPrefix} Parse/analysis error of log line:{e.LogLine}{Environment.NewLine}{e.ToLogMessage()}");
             string errorMessage = $"{e.Message}: {e.InnerException?.Message}{Environment.NewLine}{e.LogLine}";
             MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }
         catch (Exception e)
         {
-            await WriteExceptionToLogFile(e, sessionSettings);
-
+            Log.Error($"{LogPrefix} Unexpected parse/analysis error: {e.ToLogMessage()}");
             MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }
@@ -362,12 +361,14 @@ internal sealed class DkpLogGenerator
         }
         catch (EuropaDkpParserException e)
         {
+            Log.Error($"{LogPrefix} Parse error of log line:{e.LogLine}{Environment.NewLine}{e.ToLogMessage()}");
             string errorMessage = $"{e.Message}: {e.InnerException?.Message}{Environment.NewLine}{e.LogLine}";
             MessageBox.Show(errorMessage, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }
         catch (Exception e)
         {
+            Log.Error($"{LogPrefix} Unexpected parse error: {e.ToLogMessage()}");
             MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }
@@ -377,11 +378,13 @@ internal sealed class DkpLogGenerator
     {
         try
         {
+            Log.Debug($"{LogPrefix} Copying {sourceFilePath} to {destinationFilePath}");
             await Task.Run(() => File.Copy(sourceFilePath, destinationFilePath));
             return true;
         }
         catch (Exception ex)
         {
+            Log.Error($"{LogPrefix} Failed to copy file from {sourceFilePath} to {destinationFilePath}: {ex.ToLogMessage()}");
             string errorMessage = $"Failed to copy file from {sourceFilePath} to {destinationFilePath}: {ex}";
             MessageBox.Show(errorMessage, "Failed to Copy File", MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
@@ -392,11 +395,13 @@ internal sealed class DkpLogGenerator
     {
         try
         {
+            Log.Debug($"{LogPrefix} Creating directory {directoryName}");
             await Task.Run(() => Directory.CreateDirectory(directoryName));
             return true;
         }
         catch (Exception ex)
         {
+            Log.Error($"{LogPrefix} Unable to create directory at {directoryName}: {ex.ToLogMessage()}");
             MessageBox.Show($"Unable to create directory at {directoryName}: " + ex.ToString(), "Unable to create directory", MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }
@@ -406,43 +411,17 @@ internal sealed class DkpLogGenerator
     {
         try
         {
+            Log.Debug($"{LogPrefix} Creating zip {zipFullFilePath} using {sourceDirectory}");
             await Task.Run(() => ZipFile.CreateFromDirectory(sourceDirectory, zipFullFilePath));
             return true;
         }
         catch (Exception ex)
         {
+            Log.Error($"{LogPrefix} Failed to create zip {zipFullFilePath} using {sourceDirectory}: {ex.ToLogMessage()}");
             string errorMessage = $"Failed to create zip {zipFullFilePath} using {sourceDirectory}: {ex}";
             MessageBox.Show(errorMessage, "Failed to Create Zip", MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }
-    }
-
-    private async Task WriteEuropaExceptionToLogFile(EuropaDkpParserException e, DkpLogGenerationSessionSettings sessionSettings)
-    {
-        StringBuilder message = new();
-        message.AppendLine(e.Message);
-        message.Append("Raw log line: ").AppendLine(e.LogLine);
-        message.Append("Inner exception message: ").AppendLine(e.InnerException?.Message);
-        message.Append("Stack trace:").AppendLine(e.InnerException?.StackTrace).AppendLine();
-        message.AppendLine("Inner exception ToString: ").AppendLine(e.InnerException?.ToString());
-
-        string directory = sessionSettings.OutputPath;
-        string errorOutputFile = $"ERROR_EXCEPTION-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string errorOutputFullPath = Path.Combine(directory, errorOutputFile);
-        await CreateFile(errorOutputFullPath, [message.ToString()]);
-    }
-
-    private async Task WriteExceptionToLogFile(Exception e, DkpLogGenerationSessionSettings sessionSettings)
-    {
-        StringBuilder message = new();
-        message.AppendLine(e.Message);
-        message.Append("Stack trace:").AppendLine(e.StackTrace).AppendLine();
-        message.AppendLine("Exception ToString: ").AppendLine(e.ToString());
-
-        string directory = sessionSettings.OutputPath;
-        string errorOutputFile = $"ERROR_EXCEPTION-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string errorOutputFullPath = Path.Combine(directory, errorOutputFile);
-        await CreateFile(errorOutputFullPath, [message.ToString()]);
     }
 }
 
@@ -451,12 +430,6 @@ internal sealed class DkpLogGenerationSessionSettings
     public DateTime EndTime { get; init; }
 
     public string GeneratedFile { get; init; }
-
-    public bool IsRawAnalyzerResultsChecked { get; init; }
-
-    public bool IsRawParseResultsChecked { get; init; }
-
-    public bool OutputAnalyzerErrors { get; init; }
 
     public string OutputDirectory { get; init; }
 

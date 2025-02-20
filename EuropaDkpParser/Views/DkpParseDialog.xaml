@@ -15,9 +15,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Margin="5">
@@ -54,19 +51,7 @@
 
         <!-- Grid.Row 2 is filler -->
 
-        <Grid Grid.Row="3" Margin="12,5,0,15" Visibility="{Binding DebugOptionsEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <CheckBox Grid.Column="0" Content="{StaticResource OutputRawParseResults}" IsChecked="{Binding IsRawParseResultsChecked}" Margin="0,0,15,0"/>
-            <CheckBox Grid.Column="1" Content="{StaticResource OutputRawAnalyzerResults}" IsChecked="{Binding IsRawAnalyzerResultsChecked}" />
-        </Grid>
-
-        <CheckBox Grid.Row="4" IsChecked="{Binding OutputAnalyzerErrors}" Content="{StaticResource OutputAnalyzerErrors}" Margin="12,0,0,35"/>
-
-        <Grid Grid.Row="5" Margin="0,0,0,10">
+        <Grid Grid.Row="3" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>

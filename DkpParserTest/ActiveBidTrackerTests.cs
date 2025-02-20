@@ -321,7 +321,7 @@ internal sealed class MessageProviderMock : IMessageProvider
     public void SendMessage(string message)
         => _lineHandler(message);
 
-    public void StartMessages(string filePath, Action<string> lineHandler, Action<string> errorMessage)
+    public void StartMessages(string filePath, Action<string> lineHandler)
     {
         _lineHandler = lineHandler;
     }

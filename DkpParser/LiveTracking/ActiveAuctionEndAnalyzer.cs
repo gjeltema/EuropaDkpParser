@@ -8,9 +8,9 @@ internal sealed class ActiveAuctionEndAnalyzer
 {
     private readonly DkpSpentAnalyzer _dkpSpentAnalyzer;
 
-    public ActiveAuctionEndAnalyzer(Action<string> errorMessageHandler)
+    public ActiveAuctionEndAnalyzer()
     {
-        _dkpSpentAnalyzer = new(errorMessageHandler);
+        _dkpSpentAnalyzer = new();
     }
 
     public LiveSpentCall GetSpentCall(string messageFromPlayer, EqChannel channel, DateTime timestamp, string messageSenderName)

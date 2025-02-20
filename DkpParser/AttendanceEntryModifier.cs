@@ -1,10 +1,11 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceEntryModifier.cs Copyright 2024 Craig Gjeltema
+// AttendanceEntryModifier.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
 
 using System.Diagnostics;
+using Gjeltema.Logging;
 
 /// <summary>
 /// Moves an attendance entry or adds a new one, using "has joined the raid" and "left the raid" entries to maintain a correct
@@ -12,6 +13,7 @@ using System.Diagnostics;
 /// </summary>
 public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
 {
+    private const string LogPrefix = $"[{nameof(AttendanceEntryModifier)}]";
     private readonly RaidEntries _raidEntries;
 
     public AttendanceEntryModifier(RaidEntries raidEntries)
@@ -88,6 +90,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
             {
                 // Is an error, should not reach here
                 Debug.Fail($"Reached area in {nameof(ModifyPlayersMovingBackwards)} that should not be reached - LogEntryType is not a valid value: {playerJoin.EntryType}.");
+                Log.Error($"{LogPrefix} Reached area in {nameof(ModifyPlayersMovingBackwards)} that should not be reached - LogEntryType is not a valid value: {playerJoin.EntryType}.");
             }
         }
     }
@@ -111,6 +114,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
             {
                 // Is an error, should not reach here
                 Debug.Fail($"Reached area in {nameof(ModifyPlayersMovingForwards)} that should not be reached - LogEntryType is not a valid value: {playerJoin.EntryType}.");
+                Log.Error($"{LogPrefix} Reached area in {nameof(ModifyPlayersMovingForwards)} that should not be reached - LogEntryType is not a valid value: {playerJoin.EntryType}.");
             }
         }
     }

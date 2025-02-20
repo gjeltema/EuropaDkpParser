@@ -1,22 +1,23 @@
 ﻿// -----------------------------------------------------------------------
-// TailFile.cs Copyright 2024 Craig Gjeltema
+// TailFile.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
 
 using System.IO;
 using System.Threading;
+using Gjeltema.Logging;
 
 public sealed class TailFile : IMessageProvider
 {
+    private const string LogPrefix = $"[{nameof(TailFile)}]";
     private const int Timeout = 500;
     private CancellationTokenSource _cancellationTokenSource;
-    private Action<string> _errorMessage;
     private string _filePath;
     private Thread _fileReaderThread;
     private Action<string> _lineHandler;
 
-    public void StartMessages(string filePath, Action<string> lineHandler, Action<string> errorMessage)
+    public void StartMessages(string filePath, Action<string> lineHandler)
     {
         if (string.IsNullOrWhiteSpace(filePath))
             return;
@@ -24,7 +25,6 @@ public sealed class TailFile : IMessageProvider
         StopMessages();
 
         _lineHandler = lineHandler;
-        _errorMessage = errorMessage;
 
         _filePath = filePath;
 
@@ -56,7 +56,10 @@ public sealed class TailFile : IMessageProvider
                 Thread.Sleep(Timeout);
 
                 if (cancelToken.IsCancellationRequested)
+                {
+                    Log.Debug($"{LogPrefix} Cancellation Token cancel requested.");
                     break;
+                }
 
                 if (reader.BaseStream.Length == lastOffset)
                     continue;
@@ -72,7 +75,7 @@ public sealed class TailFile : IMessageProvider
                     }
                     catch (Exception e)
                     {
-                        _errorMessage($"Error encountered when processing line: {line}{Environment.NewLine}Error: {e.Message}");
+                        Log.Error($"{LogPrefix} Error encountered when processing line: {line}{Environment.NewLine}Error: {e.ToLogMessage()}");
                     }
                 }
 
@@ -84,14 +87,16 @@ public sealed class TailFile : IMessageProvider
         }
         catch (Exception ex)
         {
-            _errorMessage($"Error encountered when processing messages: Error: {ex.Message}");
+            Log.Error($"{LogPrefix} Error encountered when processing messages: Error: {ex.ToLogMessage()}");
         }
+
+        Log.Info($"{LogPrefix} Leaving {nameof(ReadFile)}");
     }
 }
 
 public interface IMessageProvider
 {
-    void StartMessages(string filePath, Action<string> lineHandler, Action<string> errorMessage);
+    void StartMessages(string filePath, Action<string> lineHandler);
 
     void StopMessages();
 }

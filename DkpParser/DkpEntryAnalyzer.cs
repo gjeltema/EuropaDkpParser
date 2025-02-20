@@ -5,9 +5,11 @@
 namespace DkpParser;
 
 using System.Text.RegularExpressions;
+using Gjeltema.Logging;
 
 internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 {
+    private const string LogPrefix = $"[{nameof(DkpEntryAnalyzer)}]";
     private readonly Regex _findDigits = FindDigitsRegex();
     private DkpSpentAnalyzer _dkpSpentAnalyzer;
     private RaidEntries _raidEntries;
@@ -16,7 +18,7 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
     public void AnalyzeLootCalls(LogParseResults logParseResults, RaidEntries raidEntries, DkpServerCharacters serverCharacters)
     {
         _raidEntries = raidEntries;
-        _dkpSpentAnalyzer = new DkpSpentAnalyzer(_raidEntries.AnalysisErrors.Add);
+        _dkpSpentAnalyzer = new DkpSpentAnalyzer();
         _serverCharacters = serverCharacters;
 
         foreach (EqLogFile log in logParseResults.EqLogFiles)
@@ -75,16 +77,24 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         {
             entry.Visited = true;
 
+            Log.Debug($"{LogPrefix} Processing {entry.LogLine}");
+
             string logLineNoTimestamp = entry.LogLine[(Constants.LogDateTimeLength + 1)..^1];
             string messageSender = GetMessageSenderName(logLineNoTimestamp);
             if (string.IsNullOrEmpty(messageSender))
+            {
+                Log.Warning($"{LogPrefix} Unable to extract message sender from: {entry.LogLine}");
                 return null;
+            }
 
             int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'') + 1;
             // 12 being a dumb-check value - the "player tells a channel, '" part should be AT LEAST this long
             // (the actual minimum is definitely higher, but this should catch super odd situations)
             if (indexOfFirstQuote < 12)
+            {
+                Log.Warning($"{LogPrefix} Index of first quote is too low: {logLineNoTimestamp}");
                 return null;
+            }
 
             string logLineAfterQuote = logLineNoTimestamp[indexOfFirstQuote..].Trim();
 
@@ -92,10 +102,15 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             dkpEntry.RawLogLine = entry.LogLine;
 
             if (dkpEntry.PlayerName == Constants.Rot)
+            {
+                Log.Info($"{LogPrefix} DKP call ({entry.LogLine}) is for {Constants.Rot}.");
                 return null;
+            }
 
             if (logLineAfterQuote.IndexOf(Constants.Undo) > 0 || logLineAfterQuote.IndexOf(Constants.Remove) > 0)
             {
+                Log.Info($"{LogPrefix} DKP call ({entry.LogLine}) is an {Constants.Undo} or {Constants.Remove}.");
+
                 DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
                 if (toBeRemoved != null)
                 {
@@ -134,7 +149,10 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
     {
         int indexOfSpace = logLine.IndexOf(' ');
         if (indexOfSpace < 3)
+        {
+            Log.Warning($"{LogPrefix} First index of space is too low: {logLine}");
             return string.Empty;
+        }
 
         string auctioneerName = logLine[0..indexOfSpace].Trim();
         return auctioneerName;
@@ -145,21 +163,25 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         entry.Visited = true;
 
         if (entry.LogLine.Length < Constants.LogDateTimeLength + 25)
+        {
+            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Log line is too short: {entry.LogLine}");
             return null;
+        }
 
         string logLineNoTimestamp = entry.LogLine[Constants.LogDateTimeLength..];
 
         string dkpValueText = GetDigits(logLineNoTimestamp);
         if (!int.TryParse(dkpValueText, out int dkpValue))
+        {
+            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Unable to parse DKP value from '{dkpValueText}', extracted from {logLineNoTimestamp}");
             return null;
+        }
 
-        bool hasSpent = logLineNoTimestamp.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase);
-        if (!hasSpent)
+        if (entry.Channel != EqChannel.Raid || entry.Channel != EqChannel.Guild)
+        {
+            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Possible entry not in valid channel: {entry.Channel}");
             return null;
-
-        bool hasDkp = logLineNoTimestamp.Contains("DKP", StringComparison.OrdinalIgnoreCase);
-        if (!hasDkp)
-            return null;
+        }
 
         DkpEntry dkpEntry = new()
         {

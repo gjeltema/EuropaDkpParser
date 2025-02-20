@@ -6,21 +6,21 @@ namespace DkpParser.Uploading;
 
 using System.Diagnostics;
 using DkpParser;
+using Gjeltema.Logging;
 
 public sealed class RaidUploader : IRaidUpload
 {
-    private readonly IServerCommDebugInfo _debugInfo;
+    private const string LogPrefix = $"[{nameof(RaidUploader)}]";
     private readonly IDkpServer _dkpServer;
 
-    public RaidUploader(IDkpParserSettings settings, IServerCommDebugInfo debugInfo)
+    public RaidUploader(IDkpParserSettings settings)
     {
-        _dkpServer = new DkpServer(settings, debugInfo);
-        _debugInfo = debugInfo;
+        _dkpServer = new DkpServer(settings);
     }
 
     public async Task<RaidUploadResults> UploadRaid(UploadRaidInfo uploadRaidInfo)
     {
-        _debugInfo.AddDebugMessage("=========== Beginning Upload Process ===========");
+        Log.Debug($"{LogPrefix} =========== Beginning Upload Process ===========");
 
         RaidUploadResults results = new();
 
@@ -36,22 +36,22 @@ public sealed class RaidUploader : IRaidUpload
 
         if (results.HasInitializationError)
         {
-            _debugInfo.AddDebugMessage("=========== Errors encountered retriving IDs, ending upload process ===========");
+            Log.Debug($"{LogPrefix} =========== Errors encountered retriving IDs, ending upload process ===========");
             return results;
         }
 
-        _debugInfo.AddDebugMessage("===== Beginning Attendances Uploads =====");
+        Log.Debug($"{LogPrefix} ===== Beginning Attendances Uploads =====");
 
         await UploadAttendances(uploadRaidInfo.AttendanceInfo, results);
         if (results.AttendanceError != null)
         {
-            _debugInfo.AddDebugMessage("=========== Errors encountered uploading attendances, ending upload process ===========");
+            Log.Debug($"{LogPrefix} =========== Errors encountered uploading attendances, ending upload process ===========");
             return results;
         }
 
         await UploadDkpSpendings(uploadRaidInfo.DkpInfo, results);
 
-        _debugInfo.AddDebugMessage("=========== Completed Upload Process =========== ");
+        Log.Debug($"{LogPrefix} =========== Completed Upload Process =========== ");
 
         return results;
     }
@@ -62,7 +62,7 @@ public sealed class RaidUploader : IRaidUpload
         {
             if (attendance.Characters.Count > 1)
             {
-                _debugInfo.AddDebugMessage($"----- Beginning upload process of {attendance}.");
+                Log.Debug($"{LogPrefix} ----- Beginning upload process of {attendance}.");
 
                 try
                 {
@@ -77,18 +77,18 @@ public sealed class RaidUploader : IRaidUpload
                     };
                     results.AttendanceError = error;
 
-                    _debugInfo.AddDebugMessage($"Error encountered when uploading {attendance}: {ex}");
+                    Log.Error($"{LogPrefix} Error encountered when uploading {attendance}: {ex.ToLogMessage()}");
 
                     return;
                 }
             }
             else
             {
-                _debugInfo.AddDebugMessage($"Attendance {attendance} has no players in attendance.  Not uploading.");
+                Log.Debug($"{LogPrefix} Attendance {attendance} has no players in attendance.  Not uploading.");
             }
         }
 
-        _debugInfo.AddDebugMessage("----- Completed uploading raid attendances.");
+        Log.Debug($"{LogPrefix} ----- Completed uploading raid attendances.");
     }
 
     private async Task UploadDkpSpendings(IEnumerable<DkpUploadInfo> dkpEntries, RaidUploadResults results)
@@ -97,7 +97,7 @@ public sealed class RaidUploader : IRaidUpload
         {
             try
             {
-                _debugInfo.AddDebugMessage($"----- Beginning upload process of: {dkpEntry}.");
+                Log.Debug($"{LogPrefix} ----- Beginning upload process of: {dkpEntry}.");
                 await _dkpServer.UploadDkpSpent(dkpEntry);
             }
             catch (Exception ex)
@@ -109,11 +109,11 @@ public sealed class RaidUploader : IRaidUpload
                 };
                 results.DkpFailures.Add(error);
 
-                _debugInfo.AddDebugMessage($"Error encountered when uploading {dkpEntry}: {ex}");
+                Log.Error($"{LogPrefix} Error encountered when uploading {dkpEntry}: {ex.ToLogMessage()}");
             }
         }
 
-        _debugInfo.AddDebugMessage("----- Completed uploading DKSPENT calls.");
+        Log.Debug($"{LogPrefix} ----- Completed uploading DKSPENT calls.");
     }
 }
 

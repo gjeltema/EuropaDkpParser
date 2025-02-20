@@ -33,6 +33,6 @@ internal sealed class ActiveAuctionEndAnalyzerTests
     [SetUp]
     public void SetUp()
     {
-        _systemUnderTest = new ActiveAuctionEndAnalyzer(s => { });
+        _systemUnderTest = new ActiveAuctionEndAnalyzer();
     }
 }

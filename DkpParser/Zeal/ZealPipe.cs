@@ -52,26 +52,47 @@ internal sealed class ZealPipe
         _cancellationTokenSource = null;
     }
 
+    private bool IsValidCharacter(string characterName)
+    {
+        if (characterName == _characterName)
+            return true;
+
+        if (characterName.Contains(_characterName) && characterName.Contains("s corpse"))
+            return true;
+
+        return false;
+    }
+
     private void ProcessZealPipeMessages(string pipeName, CancellationToken cancelToken)
     {
         try
         {
+            Log.Debug($"{LogPrefix} Starting Zeal Pipe listener.");
+
             using (NamedPipeClientStream pipeClient = new(".", pipeName, PipeDirection.In))
             {
                 pipeClient.Connect();
                 byte[] buffer = new byte[Constants.ZealPipeBufferSize];
 
+                Log.Debug($"{LogPrefix} Zeal Pipe connected.");
+
                 JsonSplitter splitter = new();
                 while (!cancelToken.IsCancellationRequested)
                 {
                     if (!pipeClient.IsConnected)
+                    {
+                        Log.Info($"{LogPrefix} Zeal Pipe is no longer connected");
                         break;
+                    }
 
                     Array.Clear(buffer);
                     int bytesRead = pipeClient.Read(buffer, 0, buffer.Length);
 
                     if (cancelToken.IsCancellationRequested)
+                    {
+                        Log.Info($"{LogPrefix} CancelToken cancellation requested.");
                         break;
+                    }
 
                     if (bytesRead > 0)
                     {
@@ -83,7 +104,7 @@ internal sealed class ZealPipe
                             try
                             {
                                 ZealPipeMessage zpm = JsonSerializer.Deserialize<ZealPipeMessage>(json);
-                                if (zpm.Character != _characterName)
+                                if (!IsValidCharacter(zpm.Character))
                                 {
                                     Log.Info($"{LogPrefix} Message character name {zpm.Character} is not set character name {_characterName}. Ending listening to pipe.");
                                     return;
@@ -115,6 +136,8 @@ internal sealed class ZealPipe
         {
             Log.Error($"{LogPrefix} Pipe read error: {ex.ToLogMessage()}");
         }
+
+        Log.Info($"{LogPrefix} Exiting listening to Zeal Pipe name: {pipeName}.  CancelToken IsCancelled:{cancelToken.IsCancellationRequested}");
     }
 }
 

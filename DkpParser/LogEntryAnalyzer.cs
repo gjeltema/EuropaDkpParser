@@ -6,9 +6,11 @@ namespace DkpParser;
 
 using System;
 using System.Diagnostics;
+using Gjeltema.Logging;
 
 public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 {
+    private const string LogPrefix = $"[{nameof(LogEntryAnalyzer)}]";
     private static readonly TimeSpan JoinedTimeLimit = TimeSpan.FromMinutes(15);
     private readonly RaidEntries _raidEntries = new();
     private readonly IDkpParserSettings _settings;
@@ -20,6 +22,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     public RaidEntries AnalyzeRaidLogEntries(LogParseResults logParseResults)
     {
+        Log.Debug($"{LogPrefix} Beginning {nameof(AnalyzeRaidLogEntries)}");
+
         PopulateMemberLists(logParseResults);
         PopulateLootedList(logParseResults);
         PopulateRaidJoin(logParseResults);
@@ -36,14 +40,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
     private void AddUnvisitedEntries(LogParseResults logParseResults)
     {
-        foreach (EqLogFile log in logParseResults.EqLogFiles)
-        {
-            IEnumerable<EqLogEntry> entries = log.LogEntries.Where(x => !x.Visited);
-            foreach (EqLogEntry entry in entries)
-            {
-                _raidEntries.UnvisitedEntries.Add(entry);
-            }
-        }
+        Log.Trace($"{LogPrefix} Unvisited entries:{Environment.NewLine}{string.Join(Environment.NewLine, GetUnvisitedEntries(logParseResults))}");
     }
 
     private void AnalyzeAttendanceCalls(LogParseResults logParseResults)
@@ -98,43 +95,6 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         {
             IEnumerable<AttendanceEntry> attendancesMissingFrom = _raidEntries.AttendanceEntries.Where(x => !x.Characters.Contains(player));
 
-            // Commenting out this check - this is checking if someone missed a call within an hour timeframe.  Too long, gives almost purely false positives.
-            //// If they are present in the Time attendance before and after, then put them up for review.
-            //// Dont bother with the first and last attendance calls of the raid - too many false positives.
-            //foreach (AttendanceEntry attendance in attendancesMissingFrom)
-            //{
-            //    try
-            //    {
-            //        AttendanceEntry previousAttendance = orderedAttendances
-            //            .Where(x => x.Timestamp < attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
-            //            .LastOrDefault();
-
-            //        if (previousAttendance == null)
-            //            continue;
-
-            //        AttendanceEntry nextAttendance = orderedAttendances
-            //            .Where(x => x.Timestamp > attendance.Timestamp && x.AttendanceCallType != AttendanceCallType.Kill)
-            //            .FirstOrDefault();
-
-            //        if (nextAttendance == null)
-            //            continue;
-
-            //        bool playerInPreviousAttendance = previousAttendance.Characters.Any(x => x.CharacterName == player.CharacterName);
-            //        bool playerInNextAttendance = nextAttendance.Characters.Any(x => x.CharacterName == player.CharacterName);
-
-            //        if (playerInPreviousAttendance && playerInNextAttendance)
-            //        {
-            //            if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(player, attendance.Characters))
-            //                _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = attendance });
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        string analysisError = $"Error when analyzing for potential linkdeads method (1): {player}{Environment.NewLine}{ex}";
-            //        _raidEntries.AnalysisErrors.Add(analysisError);
-            //    }
-            //}
-
             // Check in between a Joined and Left call to see if the player is missing from any of the attendances in between.  Limit the time between
             // Joined and Left calls to 15 minutes.
             IEnumerable<CharacterJoinRaidEntry> playerJoinedOrLeftCalls = _raidEntries.CharacterJoinCalls
@@ -174,19 +134,20 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                     }
                     catch (Exception ex)
                     {
-                        string analysisError = $"Error when analyzing for potential linkdeads method (2): {playerJoinedOrLeft}{Environment.NewLine}{ex}";
-                        _raidEntries.AnalysisErrors.Add(analysisError);
+                        Log.Error($"{LogPrefix} Error when analyzing for potential linkdeads method: {playerJoinedOrLeft}{Environment.NewLine}{ex.ToLogMessage()}");
                     }
                 }
             }
         }
+
+        Log.Trace($"{LogPrefix} Possible Linkdeads:{Environment.NewLine}{string.Join(Environment.NewLine, _raidEntries.PossibleLinkdeads)}");
     }
 
     private void CheckRaidBossTypo()
     {
         ICollection<string> bossMobNames = _settings.RaidValue.AllBossMobNames;
 
-        // Dont bother checking if the file wasnt found
+        // Dont bother checking if the data wasnt configured
         if (bossMobNames.Count == 0)
             return;
 
@@ -236,16 +197,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         int indexOfLastBracket = entry.LogLine.IndexOf(']');
         if (indexOfLastBracket < 0 || entry.LogLine.Length < indexOfLastBracket + 3)
         {
-            string analysisError = $"Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}");
             return null;
         }
 
         string entryMessage = entry.LogLine[(indexOfLastBracket + 2)..];
         if (string.IsNullOrWhiteSpace(entryMessage))
         {
-            string analysisError = $"Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}");
             return null;
         }
 
@@ -257,16 +216,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         int indexOfSpace = entryMessage.IndexOf(' ');
         if (indexOfSpace < 2)
         {
-            string analysisError = $"Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}");
             return null;
         }
 
         string playerName = entryMessage[0..indexOfSpace];
         if (string.IsNullOrWhiteSpace(playerName))
         {
-            string analysisError = $"Unable to find player name in a Player Joined/Left raid entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to find player name in a Player Joined/Left raid entry: {entry.LogLine}");
             return null;
         }
 
@@ -287,40 +244,35 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         int indexOfFirstDashes = entry.LogLine.IndexOf(Constants.DoubleDash);
         if (indexOfFirstDashes <= Constants.LogDateTimeLength)
         {
-            string analysisError = $"Unable to validate log entry is a player looted entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.LogLine}");
             return null;
         }
         int startIndex = indexOfFirstDashes + Constants.DoubleDash.Length;
         int endIndex = entry.LogLine.Length - Constants.EndLootedDashes.Length;
         if (startIndex >= endIndex)
         {
-            string analysisError = $"Unable to validate log entry is a player looted entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.LogLine}");
             return null;
         }
 
         string lootString = entry.LogLine[startIndex..endIndex].Trim();
         if (string.IsNullOrWhiteSpace(lootString))
         {
-            string analysisError = $"Unable to extract string after timestamp from player looted entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to extract string after timestamp from player looted entry: {entry.LogLine}");
             return null;
         }
 
         int indexOfSpace = lootString.IndexOf(' ');
         if (indexOfSpace < 1)
         {
-            string analysisError = $"Unable to validate log entry is a player looted entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.LogLine}");
             return null;
         }
 
         string playerName = lootString[0..indexOfSpace];
         if (string.IsNullOrWhiteSpace(playerName))
         {
-            string analysisError = $"Unable to extract player name from player looted entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to extract player name from player looted entry: {entry.LogLine}");
             return null;
         }
 
@@ -328,16 +280,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         int startIndexOfItem = indexOfLooted + Constants.LootedA.Length;
         if (indexOfLooted < 1)
         {
-            string analysisError = $"Unable to validate log entry is a player looted entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.LogLine}");
             return null;
         }
 
         string itemName = lootString[startIndexOfItem..];
         if (string.IsNullOrWhiteSpace(itemName))
         {
-            string analysisError = $"Unable to extract looted item from player looted entry: {entry.LogLine}";
-            _raidEntries.AnalysisErrors.Add(analysisError);
+            Log.Warning($"{LogPrefix} Unable to extract looted item from player looted entry: {entry.LogLine}");
             return null;
         }
 
@@ -349,6 +299,12 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             RawLogLine = entry.LogLine
         };
     }
+
+    private IEnumerable<string> GetUnvisitedEntries(LogParseResults logParseResults)
+        => from logFile in logParseResults.EqLogFiles
+           from entry in logFile.LogEntries
+           where !entry.Visited
+           select entry.LogLine;
 
     private void PopulateLootedList(LogParseResults logParseResults)
     {
@@ -421,6 +377,9 @@ public sealed class PlayerPossibleLinkdead
 
     private string DebugDisplay
         => $"{Player.CharacterName} {AttendanceMissingFrom}";
+
+    public override string ToString()
+        => DebugDisplay;
 }
 
 public interface ILogEntryAnalyzer

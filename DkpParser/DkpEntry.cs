@@ -46,14 +46,6 @@ public sealed class DkpEntry
             return Auctioneer == You
                 ? EqLogLine.YouTellGuild(Timestamp, message)
                 : EqLogLine.OtherTellsGuild(Timestamp, Auctioneer, message);
-        else if (Channel == EqChannel.Ooc)
-            return Auctioneer == You
-                ? EqLogLine.YouTellOoc(Timestamp, message)
-                : EqLogLine.OtherTellsOoc(Timestamp, Auctioneer, message);
-        else if (Channel == EqChannel.Auction)
-            return Auctioneer == You
-                ? EqLogLine.YouTellAuction(Timestamp, message)
-                : EqLogLine.OtherTellsAuction(Timestamp, Auctioneer, message);
 
         // Default if nothing else matches for some reason
         return Auctioneer == You

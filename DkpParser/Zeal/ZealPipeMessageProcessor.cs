@@ -10,6 +10,7 @@ using Gjeltema.Logging;
 
 public sealed class ZealPipeMessageProcessor
 {
+    private const string LogPrefix = $"[{nameof(ZealPipeMessageProcessor)}]";
     private readonly ZealPipe _zealPipe = ZealPipe.Instance;
 
     private ZealPipeMessageProcessor()
@@ -73,7 +74,7 @@ public sealed class ZealPipeMessageProcessor
         CharacterInfo.CharacterPosition.Y = character.CharacterData.Position.Y;
         CharacterInfo.CharacterPosition.Z = character.CharacterData.Position.Z;
 
-        Log.Trace($"[{nameof(ZealPipeMessageProcessor)}] ZealPlayerCharacter message: {character}");
+        Log.Trace($"{LogPrefix} ZealPlayerCharacter message: {character}");
     }
 
     private void HandleRaidMessage(ZealPipeMessage message)
@@ -90,7 +91,7 @@ public sealed class ZealPipeMessageProcessor
 
         UpdateRaidListing(raidInfo);
 
-        Log.Trace($"[{nameof(ZealPipeMessageProcessor)}] ZealRaidInfo message: {raidInfo}");
+        Log.Trace($"{LogPrefix} ZealRaidInfo message: {raidInfo}");
     }
 
     private void UpdateRaidListing(ZealRaidInfo raidInfo)

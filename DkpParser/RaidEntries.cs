@@ -15,10 +15,6 @@ public sealed class RaidEntries
 
     public ICollection<PlayerCharacter> AllCharactersInRaid { get; set; } = new HashSet<PlayerCharacter>();
 
-    public ICollection<string> AnalysisErrors { get; } = new List<string>();
-
-    public TimeSpan AnalysisTime { get; set; } = TimeSpan.Zero;
-
     public ICollection<AttendanceEntry> AttendanceEntries { get; set; } = new List<AttendanceEntry>();
 
     public ICollection<CharacterJoinRaidEntry> CharacterJoinCalls { get; set; } = new List<CharacterJoinRaidEntry>();
@@ -29,8 +25,6 @@ public sealed class RaidEntries
 
     public ICollection<MultipleCharsOnAttendanceError> MultipleCharsInAttendanceErrors { get; set; } = new List<MultipleCharsOnAttendanceError>();
 
-    public TimeSpan ParseTime { get; set; } = TimeSpan.Zero;
-
     public ICollection<PlayerLooted> PlayerLootedEntries { get; set; }
 
     public ICollection<PlayerPossibleLinkdead> PossibleLinkdeads { get; } = new List<PlayerPossibleLinkdead>();
@@ -40,8 +34,6 @@ public sealed class RaidEntries
     public ICollection<PlayerCharacter> RemovedPlayerCharacters { get; } = new HashSet<PlayerCharacter>();
 
     public ICollection<DkpTransfer> Transfers { get; set; } = new List<DkpTransfer>();
-
-    public ICollection<EqLogEntry> UnvisitedEntries { get; set; } = new List<EqLogEntry>();
 
     public void AddOrMergeInPlayerCharacter(PlayerCharacter playerCharacter)
     {
@@ -79,10 +71,6 @@ public sealed class RaidEntries
 
     public IEnumerable<string> GetAllEntries()
     {
-        yield return "-------------------- Analyzer Errors -------------------";
-        foreach (string error in AnalysisErrors)
-            yield return error;
-
         yield return "-------------------- Attendance Entries -------------------";
         foreach (AttendanceEntry attEntry in AttendanceEntries)
         {
@@ -135,12 +123,6 @@ public sealed class RaidEntries
         foreach (MultipleCharsOnAttendanceError multipleChars in MultipleCharsInAttendanceErrors)
             yield return
                 $"{multipleChars.MultipleCharsInAttendance.FirstCharacter} and {multipleChars.MultipleCharsInAttendance.FirstCharacter} in {multipleChars.Attendance.ToDisplayString()}";
-
-        yield return "";
-
-        yield return "-------------------- Unvisited Entries -------------------";
-        foreach (EqLogEntry unvisited in UnvisitedEntries)
-            yield return unvisited.LogLine;
 
         yield return "";
     }

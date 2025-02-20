@@ -5,20 +5,18 @@
 namespace DkpParser;
 
 using System.Text.RegularExpressions;
+using Gjeltema.Logging;
 
 internal sealed partial class DkpSpentAnalyzer
 {
-    private readonly Action<string> _errorMessageHandler;
+    private const string LogPrefix = $"[{nameof(DkpSpentAnalyzer)}]";
     private readonly Regex _findDigits = FindDigitsRegex();
     private readonly DelimiterStringSanitizer _sanitizer = new();
 
-    public DkpSpentAnalyzer(Action<string> errorMessageHandler)
-    {
-        _errorMessageHandler = errorMessageHandler;
-    }
-
     public DkpEntry ExtractDkpSpentInfo(string messageFromSender, EqChannel channel, DateTime timestamp, string messageSender)
     {
+        Log.Debug($"{LogPrefix} Extracting DKP info from message: {messageFromSender}");
+
         // [Thu Feb 22 23:27:00 2024] Genoo tells the raid,  '::: Belt of the Pine ::: huggin 3 DKPSPENT'
         // [Sun Mar 17 21:40:50 2024] You tell your raid, ':::High Quality Raiment::: Coyote 1 DKPSPENT'
         messageFromSender = _sanitizer.SanitizeDelimiterString(messageFromSender);
@@ -29,7 +27,7 @@ internal sealed partial class DkpSpentAnalyzer
         string[] messageParts = messageFromSender[startOfItemSectionIndex..].Split(Constants.AttendanceDelimiter);
         if (messageParts.Length != 2)
         {
-            _errorMessageHandler($"Unable to extract pieces from DkpEntry: {messageFromSender}");
+            Log.Warning($"{LogPrefix} Unable to extract pieces from DkpEntry - not enough messageParts: {messageFromSender}");
             return new DkpEntry
             {
                 Timestamp = timestamp,
@@ -47,7 +45,7 @@ internal sealed partial class DkpSpentAnalyzer
         int indexOfSpace = afterItemSection.IndexOf(' ');
         if (indexOfSpace < 3)
         {
-            _errorMessageHandler($"Unable to extract pieces from DkpEntry: {messageFromSender}");
+            Log.Warning($"{LogPrefix} Unable to extract pieces from DkpEntry - index of first space too low: {messageFromSender}");
             return new DkpEntry
             {
                 Timestamp = timestamp,
@@ -75,6 +73,8 @@ internal sealed partial class DkpSpentAnalyzer
         string endSection = afterItemSection[(indexOfSpace + 1)..];
         GetDkpAmount(endSection, dkpEntry);
 
+        Log.Trace($"{LogPrefix} Parsed DKP entry: {dkpEntry}");
+
         return dkpEntry;
     }
 
@@ -89,11 +89,13 @@ internal sealed partial class DkpSpentAnalyzer
 
     private void GetDkpAmount(string endText, DkpEntry dkpEntry)
     {
+        Log.Debug($"{LogPrefix} {nameof(GetDkpAmount)} for {endText}");
+
         // Get digits, since it must be assumed that the auctioneer will add extraneous characters such as '-' and 'alt'.
         string dkpNumber = GetDigits(endText);
         if (string.IsNullOrWhiteSpace(dkpNumber))
         {
-            _errorMessageHandler($"Unable to extract DKP amount from DkpEntry: {dkpEntry.RawLogLine}");
+            Log.Warning($"{LogPrefix} Unable to extract DKP amount from DkpEntry: {dkpEntry.RawLogLine}");
             dkpEntry.DkpSpent = 0;
             dkpEntry.PossibleError = PossibleError.ZeroDkp;
             return;
@@ -102,6 +104,7 @@ internal sealed partial class DkpSpentAnalyzer
         int.TryParse(dkpNumber, out int dkpAmount);
         if (dkpAmount == 0)
         {
+            Log.Warning($"{LogPrefix} DKP amount for {endText} is 0.  Value parsed: {dkpNumber}");
             dkpEntry.PossibleError = PossibleError.ZeroDkp;
         }
         dkpEntry.DkpSpent = dkpAmount;

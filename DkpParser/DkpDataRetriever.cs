@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpDataRetriever.cs Copyright 2024 Craig Gjeltema
+// DkpDataRetriever.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -11,7 +11,7 @@ public sealed class DkpDataRetriever : IDkpDataRetriever
 
     public DkpDataRetriever(IDkpParserSettings settings)
     {
-        _server = new DkpServer(settings, new NullServerCommDebugInfo());
+        _server = new DkpServer(settings);
     }
 
     public async Task<ICollection<DkpUserCharacter>> GetUserCharacters()

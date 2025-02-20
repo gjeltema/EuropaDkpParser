@@ -5,9 +5,11 @@
 namespace DkpParser;
 
 using System.IO;
+using Gjeltema.Logging;
 
 public sealed class ItemLinkValues
 {
+    private const string LogPrefix = $"[{nameof(ItemLinkValues)}]";
     private const char Delimiter = '|';
     private readonly Dictionary<string, string> _itemLinkValues;
     private readonly string _itemLinkValuesFileName;
@@ -75,7 +77,10 @@ public sealed class ItemLinkValues
         {
             File.WriteAllLines(_itemLinkValuesFileName, _itemLinkValues.Select(x => $"{x.Key}{Delimiter}{x.Value}"));
         }
-        catch { }
+        catch(Exception ex)
+        {
+            Log.Error($"{LogPrefix} Unable to write item link info to file: {_itemLinkValuesFileName}: {ex.ToLogMessage()}");
+        }
     }
 
     private string PadItemId(string itemId)

@@ -35,10 +35,6 @@ internal sealed class ChannelAnalyzer
             return EqChannel.Raid;
         else if (_settings.DkpspentGuEnabled && (logLine.Contains(Constants.GuildYouSearch) || logLine.Contains(Constants.GuildOther)))
             return EqChannel.Guild;
-        else if (_settings.DkpspentOocEnabled && (logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.OocOther)))
-            return EqChannel.Ooc;
-        else if (_settings.DkpspentAucEnabled && (logLine.Contains(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)))
-            return EqChannel.Auction;
 
         return EqChannel.None;
     }
@@ -48,8 +44,6 @@ internal sealed class ChannelAnalyzer
         {
             EqChannel.Raid => true,
             EqChannel.Guild => _settings.DkpspentGuEnabled,
-            EqChannel.Ooc => _settings.DkpspentOocEnabled,
-            EqChannel.Auction => _settings.DkpspentOocEnabled,
             _ => false,
         };
 }

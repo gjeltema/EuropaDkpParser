@@ -13,14 +13,12 @@ using Gjeltema.Logging;
 
 public sealed class ActiveBidTracker : IActiveBidTracker
 {
-    private const string ErrorFileName = "Errors_LiveBidTracking.txt";
-    private const string LogFormat = $"[{nameof(ActiveBidTracker)}]";
+    private const string LogPrefix = $"[{nameof(ActiveBidTracker)}]";
     private readonly ActiveBiddingAnalyzer _activeBiddingAnalyzer;
     private readonly ActiveBossKillAnalyzer _activeBossKillAnalyzer;
     private readonly ActiveAuctionEndAnalyzer _auctionEndAnalyzer;
     private readonly ActiveAuctionStartAnalyzer _auctionStartAnalyzer;
     private readonly ChannelAnalyzer _channelAnalyzer;
-    private readonly string _errorFileName;
     private readonly ItemLinkValues _itemLinkValues;
     private readonly IMessageProvider _messageProvider;
     private readonly ConcurrentQueue<CharacterReadyCheckStatus> _readyCheckStatus = new();
@@ -40,7 +38,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _channelAnalyzer = new(settings);
         _messageProvider = messageProvider;
         _auctionStartAnalyzer = new();
-        _auctionEndAnalyzer = new(ProcessErrorMessage);
+        _auctionEndAnalyzer = new();
         _activeBiddingAnalyzer = new(settings);
         _activeBossKillAnalyzer = new();
         _itemLinkValues = settings.ItemLinkIds;
@@ -49,8 +47,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _spentCalls = [];
         _completedAuctions = [];
         _bids = [];
-
-        _errorFileName = Path.Combine(settings.OutputDirectory, ErrorFileName);
     }
 
     public IEnumerable<LiveAuctionInfo> ActiveAuctions
@@ -93,7 +89,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         else
             return _bids
                 .Where(x => x.ParentAuctionId == auction.Id)
-                .OrderBy(x => x.BidAmount)
+                .OrderByDescending(x => x.BidAmount)
                 .ThenByDescending(x => x.Timestamp)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
@@ -228,7 +224,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     }
 
     public void StartTracking(string fileName)
-        => _messageProvider.StartMessages(fileName, ProcessMessage, ProcessErrorMessage);
+        => _messageProvider.StartMessages(fileName, ProcessMessage);
 
     public void StopTracking()
         => _messageProvider.StopMessages();
@@ -260,8 +256,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         {
             EqChannel.Raid => "/rs",
             EqChannel.Guild => "/gu",
-            EqChannel.Ooc => "/ooc",
-            EqChannel.Auction => "/auc",
             EqChannel.Group => "/g",
             _ => "/rs",
         };
@@ -355,12 +349,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
             _activeAuctions = _activeAuctions.Add(newAuction);
         }
-    }
-
-    private void ProcessErrorMessage(string message)
-    {
-        string messageToWrite = $"{DateTime.Now:HH:mm:ss} {message}";
-        Task.Run(() => WriteToErrorFile(messageToWrite));
     }
 
     private void ProcessMessage(string message)
@@ -464,8 +452,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         }
         catch (Exception ex)
         {
-            ProcessErrorMessage($"Error processing message: {ex}");
-            Log.Error($"{LogFormat} Error processing messages: {ex}");
+            Log.Error($"{LogPrefix} Error processing messages: {ex}");
         }
     }
 
@@ -521,15 +508,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 && x.ItemName == bid.ItemName
                 && x.Winner.Equals(bid.CharacterBeingBidFor, StringComparison.OrdinalIgnoreCase));
 
-    private void WriteToErrorFile(string message)
-    {
-        try
-        {
-            File.AppendAllLines(_errorFileName, [message]);
-        }
-        catch { }
-    }
-
     private void WriteToFile(string fileToWriteTo, IEnumerable<string> fileContents)
     {
         try
@@ -538,7 +516,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogFormat} Error writing out Zeal attendance info: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} Error writing out Zeal attendance info: {ex.ToLogMessage()}");
         }
     }
 }

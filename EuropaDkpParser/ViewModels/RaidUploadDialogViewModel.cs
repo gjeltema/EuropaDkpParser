@@ -12,10 +12,12 @@ using DkpParser.Parsers;
 using DkpParser.Uploading;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
+using Gjeltema.Logging;
 using Prism.Commands;
 
 internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUploadDialogViewModel
 {
+    private const string LogPrefix = $"[{nameof(RaidUploadDialogViewModel)}]";
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<UploadErrorDisplay> _errorMessages;
@@ -64,12 +66,6 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     {
         get => _errorMessages;
         set => SetProperty(ref _errorMessages, value);
-    }
-
-    public bool OutputDebugInfo
-    {
-        get => _outputDebugInfo;
-        set => SetProperty(ref _outputDebugInfo, value);
     }
 
     public DelegateCommand RemoveSelectedAttendanceCommand { get; }
@@ -174,8 +170,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
                 raidsToUpload = UploadRaidInfo.Create(_raidEntries, _settings.RaidValue.GetZoneRaidAlias);
             }
 
-            IServerCommDebugInfo debugInfo = OutputDebugInfo ? new ServerCommDebugInfo() : new NullServerCommDebugInfo();
-            RaidUploader server = new(_settings, debugInfo);
+            RaidUploader server = new(_settings);
             RaidUploadResults uploadResults = await server.UploadRaid(raidsToUpload);
 
             _raidEntries.DkpUploadErrors = uploadResults.DkpFailures.Select(
@@ -184,11 +179,10 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
             ErrorMessages = SetDisplayedErrorMessages(uploadResults).ToList();
             ShowErrorMessages = ErrorMessages.Count > 0;
-
-            await WriteDebugInfo(debugInfo);
         }
         catch (Exception e)
         {
+            Log.Error($"{LogPrefix} Unexpected error uploading: {e.ToLogMessage()}");
             ErrorMessages = [new UploadErrorDisplay { UnexpectedError = e }];
             ShowErrorMessages = true;
             StatusMessage = Strings.GetString("FailureStatus");
@@ -226,6 +220,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         }
         catch (Exception ex)
         {
+            Log.Error($"{LogPrefix} Unexpected error creating file {fileToWriteTo}: {ex.ToLogMessage()}");
             MessageBox.Show(Strings.GetString("DebugFileGenerationErrorMessage") + ex.ToString(), Strings.GetString("DebugFileGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }
@@ -326,16 +321,6 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         if (uploadResults.DkpFailures.Count > 0)
             yield return new UploadErrorDisplay { DkpFailures = uploadResults.DkpFailures };
     }
-
-    private async Task WriteDebugInfo(IServerCommDebugInfo debugInfo)
-    {
-        if (!OutputDebugInfo)
-            return;
-
-        string outputFile = $"{Constants.UploadDebugInfoFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-        string fullOutputPath = Path.Combine(_settings.OutputDirectory, outputFile);
-        await CreateFile(fullOutputPath, debugInfo.GetFullDebugInfo());
-    }
 }
 
 public sealed class UploadErrorDisplay
@@ -405,8 +390,6 @@ public interface IRaidUploadDialogViewModel : IDialogViewModel
     DelegateCommand BeginUploadCommand { get; }
 
     ICollection<UploadErrorDisplay> ErrorMessages { get; }
-
-    bool OutputDebugInfo { get; set; }
 
     DelegateCommand RemoveSelectedAttendanceCommand { get; }
 

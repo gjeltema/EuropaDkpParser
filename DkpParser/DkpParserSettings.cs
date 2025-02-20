@@ -22,15 +22,14 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string DefaultMatchPattern = "*eqlog*.txt";
     private const int DefaultWindowLocation = 200;
     private const char Delimiter = '=';
-    private const string DkpspentAucEnableSection = "DKPSPENT_AUC_ENABLE";
     private const string DkpspentGuildEnableSection = "DKPSPENT_GU_ENABLE";
-    private const string DkpspentOocEnableSection = "DKPSPENT_OOC_ENABLE";
     private const string EnableDebugOptionsSection = "ENABLE_DEBUG";
     private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string IncludeTellsInRawLogSection = "INCLUDE_TELLS_IN_RAW_LOG";
     private const string LogLevelSection = "LOG_LEVEL";
     private const string LogMatchPatternSection = "LOG_MATCH_PATTERN";
+    private const string LogPrefix = $"[{nameof(DkpParserSettings)}]";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string OverlayFontColorSection = "OVERLAY_FONT_COLOR";
     private const string OverlayFontSizeSection = "OVERLAY_FONT_SIZE";
@@ -70,11 +69,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public DkpServerCharacters CharactersOnDkpServer { get; private set; }
 
-    public bool DkpspentAucEnabled { get; set; }
-
     public bool DkpspentGuEnabled { get; set; }
-
-    public bool DkpspentOocEnabled { get; set; }
 
     public bool EnableDebugOptions { get; set; }
 
@@ -164,9 +159,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
         LogFileMatchPattern = GetStringValue(fileContents, LogMatchPatternSection, DefaultMatchPattern);
         IncludeTellsInRawLog = GetBoolValue(fileContents, IncludeTellsInRawLogSection);
-        DkpspentAucEnabled = GetBoolValue(fileContents, DkpspentAucEnableSection, true);
         DkpspentGuEnabled = GetBoolValue(fileContents, DkpspentGuildEnableSection, true);
-        DkpspentOocEnabled = GetBoolValue(fileContents, DkpspentOocEnableSection, true);
         UseLightMode = GetBoolValue(fileContents, UseLightModeSection);
 
         OverlayLocationX = GetIntValue(fileContents, OverlayLocationXSection, 100);
@@ -202,9 +195,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(ShowAfkReviewSection, ShowAfkReview),
             CreateFileEntry(LogMatchPatternSection, LogFileMatchPattern),
             CreateFileEntry(IncludeTellsInRawLogSection, IncludeTellsInRawLog),
-            CreateFileEntry(DkpspentAucEnableSection, DkpspentAucEnabled),
             CreateFileEntry(DkpspentGuildEnableSection, DkpspentGuEnabled),
-            CreateFileEntry(DkpspentOocEnableSection, DkpspentOocEnabled),
             CreateFileEntry(UseLightModeSection, UseLightMode),
             CreateFileEntry(OverlayLocationXSection, OverlayLocationX),
             CreateFileEntry(OverlayLocationYSection, OverlayLocationY),
@@ -221,7 +212,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
         {
             File.WriteAllLines(_settingsFilePath, settingsFileContent);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogPrefix} Error writing to file {_settingsFilePath}: {ex.ToLogMessage()}");
+        }
     }
 
     private static int GetStartingIndex(string[] fileContents, string configurationSectionName)
@@ -351,7 +345,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     {
         if (!File.Exists(_zoneIdMapFileName))
         {
-            //** Log
+            Log.Error($"{LogPrefix} ZoneID file does not exist: {_zoneIdMapFileName}");
             return;
         }
 
@@ -423,11 +417,7 @@ public interface IDkpParserSettings
 
     DkpServerCharacters CharactersOnDkpServer { get; }
 
-    bool DkpspentAucEnabled { get; set; }
-
     bool DkpspentGuEnabled { get; set; }
-
-    bool DkpspentOocEnabled { get; set; }
 
     bool EnableDebugOptions { get; set; }
 

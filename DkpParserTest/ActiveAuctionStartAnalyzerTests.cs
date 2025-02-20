@@ -72,12 +72,8 @@ internal sealed class ActiveAuctionStartAnalyzerTests
     [TestCase(":::Lyran's Mystical Lute::: BIDS OPEN x3'", "You", EqChannel.Raid, "Lyran's Mystical Lute", 3)]
     [TestCase("Sprinkler of Suffering OPEN for bids'", "Flubs", EqChannel.Raid, "Sprinkler of Suffering", 1)]
     [TestCase("Sprinkler of Suffering OPEN for bids'", "Flubs", EqChannel.Guild, "Sprinkler of Suffering", 1)]
-    [TestCase("Sprinkler of Suffering OPEN for bids'", "Flubs", EqChannel.Auction, "Sprinkler of Suffering", 1)]
-    [TestCase("Sprinkler of Suffering OPEN for bids'", "Flubs", EqChannel.Ooc, "Sprinkler of Suffering", 1)]
     [TestCase("Sprinkler of Suffering OPEN for bids'", "You", EqChannel.Raid, "Sprinkler of Suffering", 1)]
     [TestCase("Sprinkler of Suffering OPEN for bids'", "You", EqChannel.Guild, "Sprinkler of Suffering", 1)]
-    [TestCase("Sprinkler of Suffering OPEN for bids'", "You", EqChannel.Auction, "Sprinkler of Suffering", 1)]
-    [TestCase("Sprinkler of Suffering OPEN for bids'", "You", EqChannel.Ooc, "Sprinkler of Suffering", 1)]
     public void GetAuctionStart_WithSingleItem_ReturnsExpectedValue(string logLine, string auctioneer, EqChannel channel, string itemName, int numberOfItems)
     {
         DateTime timeStamp = DateTime.Now;
