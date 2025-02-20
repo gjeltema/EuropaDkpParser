@@ -1,11 +1,15 @@
 ﻿// -----------------------------------------------------------------------
-// Clip.cs Copyright 2024 Craig Gjeltema
+// Clip.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Utility;
 
+using Gjeltema.Logging;
+
 internal static class Clip
 {
+    private const string LogPrefix = $"{nameof(Clip)}";
+
     public static void Copy(string text)
     {
         try
@@ -13,14 +17,18 @@ internal static class Clip
             System.Windows.Clipboard.SetText(text);
             return;
         }
-        catch
-        { }
+        catch (Exception e)
+        {
+            Log.Warning($"{LogPrefix} Error copying to clipboard: {e.ToLogMessage()}");
+        }
 
         try
         {
             System.Windows.Clipboard.SetText(text);
         }
-        catch
-        { }
+        catch (Exception e)
+        {
+            Log.Warning($"{LogPrefix} Error copying to clipboard: {e.ToLogMessage()}");
+        }
     }
 }

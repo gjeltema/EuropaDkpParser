@@ -5,8 +5,6 @@
 namespace EuropaDkpParser.ViewModels;
 
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Windows;
 using DkpParser;
 using DkpParser.Parsers;
 using DkpParser.Uploading;
@@ -210,21 +208,6 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         return true;
     }
 
-    private async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
-    {
-        try
-        {
-            await Task.Run(() => File.AppendAllLines(fileToWriteTo, fileContents));
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"{LogPrefix} Unexpected error creating file {fileToWriteTo}: {ex.ToLogMessage()}");
-            MessageBox.Show(Strings.GetString("DebugFileGenerationErrorMessage") + ex.ToString(), Strings.GetString("DebugFileGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
-        }
-    }
-
     private async Task<ICollection<string>> GetAllBiddingLogEntriesForDkpspentCalls(ICollection<DkpEntry> dkpSpentEntriesRemoved)
     {
         List<string> logEntries = new(dkpSpentEntriesRemoved.Count * 12);
@@ -376,7 +359,8 @@ public sealed class UploadErrorDisplay
                 return $"{Prefix} {eventIdNotFound.ZoneName}, value returned from DKP server was: {eventIdNotFound.IdValue}";
             default:
                 return "Error not found.";
-        };
+        }
+        ;
     }
 }
 

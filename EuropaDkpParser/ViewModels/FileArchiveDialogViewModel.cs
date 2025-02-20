@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// FileArchiveDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// FileArchiveDialogViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -9,10 +9,12 @@ using System.IO;
 using System.Windows;
 using DkpParser;
 using EuropaDkpParser.Resources;
+using Gjeltema.Logging;
 using Prism.Commands;
 
 internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArchiveDialogViewModel
 {
+    private const string LogPrefix = $"[{nameof(FileArchiveDialogViewModel)}]";
     private readonly IDkpParserSettings _settings;
     private bool _archiveBasedOnAge;
     private bool _archiveBasedOnSize;
@@ -171,6 +173,7 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
         }
         catch (Exception ex)
         {
+            Log.Error($"{LogPrefix} Error moving file {currentFile} to {destinationFile}: {ex.ToLogMessage()}");
             string errorMessage = string.Format(Strings.GetString("FileMoveErrorMessage"), currentFile, destinationFile, ex.Message);
             MessageBox.Show(errorMessage, Strings.GetString("FileMoveError"), MessageBoxButton.OK, MessageBoxImage.Error);
         }

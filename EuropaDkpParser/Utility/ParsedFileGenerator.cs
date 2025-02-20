@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ParsedFileGenerator.cs Copyright 2024 Craig Gjeltema
+// ParsedFileGenerator.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Utility;
@@ -10,9 +10,11 @@ using DkpParser;
 using DkpParser.Parsers;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.ViewModels;
+using Gjeltema.Logging;
 
 internal sealed class ParsedFileGenerator
 {
+    private const string LogPrefix = $"[{nameof(ParsedFileGenerator)}]";
     private readonly IDialogFactory _dialogFactory;
     private readonly IDkpParserSettings _settings;
 
@@ -31,6 +33,7 @@ internal sealed class ParsedFileGenerator
         }
         catch (Exception ex)
         {
+            Log.Error($"{LogPrefix} Error creating file: {fileToWriteTo}: {ex.ToLogMessage()}");
             MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.ToString(), Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }

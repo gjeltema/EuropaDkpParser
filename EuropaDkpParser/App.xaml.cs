@@ -78,11 +78,13 @@ public partial class App : Application
         {
             Uri lightMode = new("Resources/GenericLight.xaml", UriKind.Relative);
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = lightMode });
+            Log.Debug($"Light Mode enabled");
         }
         else
         {
             Uri darkMode = new("Resources/Generic.xaml", UriKind.Relative);
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = darkMode });
+            Log.Debug($"Dark Mode enabled");
         }
 
         OverlayFactory overlayFactory = new(new OverlayViewFactory());
@@ -144,6 +146,6 @@ public partial class App : Application
         Log.Logger = new SingleLogger();
         Log.Logger.Default = simpleAsyncLogTarget;
 
-        Log.Info($"Logging started.  LogLevel set to: {Log.Logger.Default.LoggingLevel}");
+        Log.Info($"Logging started. LogLevel set to: {Log.Logger.Default.LoggingLevel}");
     }
 }
