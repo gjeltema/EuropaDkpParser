@@ -22,7 +22,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
-    private readonly ZealPipeMessageProcessor _zealMessageProcessor;
+    private readonly ZealAttendanceMessageProvider _zealMessages;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
     private string _auctionStatusMessageToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
@@ -60,7 +60,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _activeBidTracker = new(settings, new TailFile());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, overlayFactory, dialogFactory);
-        _zealMessageProcessor = ZealPipeMessageProcessor.Instance;
+
+        _zealMessages = ZealAttendanceMessageProvider.Instance;
 
         _readyCheckOverlayViewModel = overlayFactory.CreateReadyCheckOverlayViewModel(_settings);
 
@@ -151,7 +152,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
                 if (!string.IsNullOrEmpty(characterName))
                 {
                     _currentCharacterName = characterName;
-                    _zealMessageProcessor.StartListeningToPipe(characterName);
+                    _zealMessages.StartMessageProcessing(characterName);
                 }
             }
         }
@@ -297,7 +298,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _attendanceTimerHandler.CloseAll();
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
-        _zealMessageProcessor.StopListeningToPipe();
+        _zealMessages.StopMessageProcessing();
         _readyCheckOverlayViewModel?.Close();
     }
 
@@ -484,16 +485,16 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         if (!EnableReadyCheck)
             return;
 
-        if (_zealMessageProcessor.RaidInfo.Count == 0)
+        if (_zealMessages.RaidInfo.RaidAttendees.Count == 0)
             return;
 
         Clip.Copy($"/rs {Constants.ReadyCheck}");
 
         if (!_readyCheckOverlayViewModel.ContentIsVisible)
         {
-            IEnumerable<string> charactersInRaid = _zealMessageProcessor.RaidInfo
-                .Where(x => x.CharacterName != _currentCharacterName)
-                .Select(x => x.CharacterName);
+            IEnumerable<string> charactersInRaid = _zealMessages.RaidInfo.RaidAttendees
+                .Where(x => x.Name != _currentCharacterName)
+                .Select(x => x.Name);
 
             _readyCheckOverlayViewModel.SetInitialCharacterList(charactersInRaid);
         }

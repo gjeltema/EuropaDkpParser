@@ -10,15 +10,18 @@ using System.Text.Json.Serialization;
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class ZealRaidInfo
 {
-    public string CharacterName { get; init; }
+    //public string CharacterName { get; init; }
 
     public PipeMessageType MessageType
         => PipeMessageType.Raid;
 
-    public ICollection<ZealRaidCharacter> RaidAttendees { get; init; }
+    public ICollection<ZealRaidCharacter> RaidAttendees
+        => InternalAttendees;
+
+    internal List<ZealRaidCharacter> InternalAttendees { get; set; }
 
     private string DebugText
-        => $"{CharacterName} {RaidAttendees?.Count ?? -1}";
+        => $"{RaidAttendees?.Count ?? -1}";
 
     public override string ToString()
        => $"{string.Join(";", RaidAttendees)}";
@@ -49,22 +52,22 @@ public sealed class ZealRaidCharacter
         => $"{Name} {Class} {Level} {Group} {Rank}";
 }
 
-[DebuggerDisplay("{DebugText,nq}")]
-public sealed class ZealPlayerCharacter
-{
-    public ZealCharacterInfo CharacterData { get; init; }
+//[DebuggerDisplay("{DebugText,nq}")]
+//public sealed class ZealPlayerCharacter
+//{
+//    public ZealCharacterInfo CharacterData { get; init; }
 
-    public string CharacterName { get; init; }
+//    public string CharacterName { get; init; }
 
-    public PipeMessageType MessageType
-    => PipeMessageType.Player;
+//    public PipeMessageType MessageType
+//    => PipeMessageType.Player;
 
-    private string DebugText
-        => ToString();
+//    private string DebugText
+//        => ToString();
 
-    public override string ToString()
-       => $"{CharacterName} {CharacterData}";
-}
+//    public override string ToString()
+//       => $"{CharacterName} {CharacterData}";
+//}
 
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class ZealVector3d
@@ -102,4 +105,9 @@ public class ZealCharacterInfo
 
     public override string ToString()
        => $"{ZoneId} {Position} {Heading}";
+}
+
+[JsonSerializable(typeof(ZealCharacterInfo))]
+internal partial class ZealCharacterInfoGenerationContext : JsonSerializerContext
+{
 }

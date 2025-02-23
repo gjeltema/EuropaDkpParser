@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// Exceptions.cs Copyright 2024 Craig Gjeltema
+// Exceptions.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -23,4 +23,12 @@ public sealed class EuropaDkpParserException : Exception
     }
 
     public string LogLine { get; } = string.Empty;
+}
+
+public class ZealMessageProcessingException : Exception
+{
+    public ZealMessageProcessingException(string message)
+        : base(message)
+    {
+    }
 }

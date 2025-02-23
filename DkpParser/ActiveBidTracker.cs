@@ -290,8 +290,11 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             || !messageFromPlayer.Contains(Constants.RaidAttendanceTaken))
             return;
 
-        if (ZealPipeMessageProcessor.Instance.RaidInfo.Count == 0)
+        if (ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count == 0)
+        {
+            Log.Debug($"{LogPrefix} No values in {nameof(ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees)}, ending processing of AttendanceCall: {messageFromPlayer}.");
             return;
+        }
 
         string eqDirectory = _settings.EqDirectory;
         if (string.IsNullOrEmpty(eqDirectory))
@@ -300,24 +303,33 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(messageFromPlayer);
         string[] lineParts = sanitizedLogLine.Split(Constants.AttendanceDelimiter, StringSplitOptions.RemoveEmptyEntries);
         if (lineParts.Length < 3)
+        {
+            Log.Debug($"{LogPrefix} Malformed attendance call, ending processing of AttendanceCall: {messageFromPlayer}.");
             return;
+        }
 
         string raidName = lineParts[1] == Constants.Attendance ? lineParts[2] : lineParts[1];
         if (string.IsNullOrEmpty(raidName))
+        {
+            Log.Debug($"{LogPrefix} No raid name in attendance call, ending processing of AttendanceCall: {messageFromPlayer}.");
             return;
+        }
 
-        int zoneId = ZealPipeMessageProcessor.Instance.CharacterInfo.ZoneId;
+        int zoneId = ZealAttendanceMessageProvider.Instance.CharacterInfo.ZoneId;
         if (!_settings.ZoneIdMapping.TryGetValue(zoneId, out string zoneName))
+        {
+            Log.Debug($"{LogPrefix} Zone mapping not found for Zone ID {zoneId} in attendance call, ending processing of AttendanceCall: {messageFromPlayer}.");
             return;
+        }
 
         string fileName = string.Format(Constants.ZealAttendanceBasedFileNameFormat, timestamp.ToString(Constants.ZealRaidAttendanceFileNameTimeFormat));
         string fullFilePath = Path.Combine(eqDirectory, fileName);
 
         string firstLine = $"{raidName}|{zoneName}";
-        IEnumerable<string> characters = ZealPipeMessageProcessor.Instance.RaidInfo
+        IEnumerable<string> characters = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees
             .OrderBy(x => x.Group)
-            .ThenBy(x => x.CharacterName)
-            .Select(x => $"{x.Group}|{x.CharacterName}|{x.Class}|{x.Level}|{x.Rank}");
+            .ThenBy(x => x.Name)
+            .Select(x => $"{x.Group}|{x.Name}|{x.Class}|{x.Level}|{x.Rank}");
 
         IEnumerable<string> fileContents = [firstLine, .. characters];
 
