@@ -24,7 +24,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
-    private readonly ZealAttendanceMessageProvider _zealMessages;
+    private readonly IZealMessageProvider _zealMessages;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
     private string _auctionStatusMessageToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
@@ -64,6 +64,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, overlayFactory, dialogFactory);
 
         _zealMessages = ZealAttendanceMessageProvider.Instance;
+        _zealMessages.PipeError += HandleZealPipeError;
 
         _readyCheckOverlayViewModel = overlayFactory.CreateReadyCheckOverlayViewModel(_settings);
 
@@ -428,6 +429,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         CheckAndUpdateDisplay();
     }
+
+    private void HandleZealPipeError(object sender, ZealPipeErrorEventArgs e)
+        => MessageDialog.ShowDialog(e.ErrorMessage, "Zeal Pipe Error");
 
     private void ReactivateCompletedAuction()
     {

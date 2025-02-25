@@ -117,10 +117,12 @@ public sealed class ZealNamedPipe
         catch (IOException ioex) when (ioex.InnerException is ObjectDisposedException)
         {
             Log.Error($"{LogPrefix} Pipe object disposed error: {ioex.ToLogMessage()}");
+            messageUpdater.SendPipeError("Zeal named pipe was disposed.  Close Bid Tracker window and reopen to re-connect.", ioex);
         }
         catch (Exception ex)
         {
             Log.Error($"{LogPrefix} Pipe read error: {ex.ToLogMessage()}");
+            messageUpdater.SendPipeError("Unexpected error with Zeal named pipe.  Close Bid Tracker window and reopen to re-connect.", ex);
         }
 
         Log.Info($"{LogPrefix} Exiting listening to Zeal Pipe name: {pipeName}.  CancelToken IsCancelled:{cancelToken.IsCancellationRequested}");
