@@ -19,6 +19,7 @@ internal sealed partial class ZealMessageProcessor
     private const string NameKey = "\"name\":";
     private const string RankKey = "\"rank\":";
     private const string TypeKey = "\"type\":";
+    private readonly char[] _dataBuffer = new char[20000];
     private readonly IZealMessageUpdater _messageUpdater;
     private List<ZealRaidCharacter> _raidCharacterBuffer = new(72);
 
@@ -83,7 +84,8 @@ internal sealed partial class ZealMessageProcessor
             foreach (ValueMatch match in ParenDataFieldRegex().EnumerateMatches(message))
             {
                 ReadOnlySpan<char> matchingChars = message.Slice(match.Index + DataPrefix.Length, match.Length - DataPrefix.Length);
-                return matchingChars;
+                ReadOnlySpan<char> prunedData = SanitizeData(matchingChars);
+                return prunedData;
             }
             throw new ZealMessageProcessingException($"Unable to match parentheses Data Field with regex: {message.ToString()}");
         }
@@ -92,7 +94,8 @@ internal sealed partial class ZealMessageProcessor
             foreach (ValueMatch match in BracketDataFieldRegex().EnumerateMatches(message))
             {
                 ReadOnlySpan<char> matchingChars = message.Slice(match.Index + DataPrefix.Length, match.Length - DataPrefix.Length);
-                return matchingChars;
+                ReadOnlySpan<char> prunedData = SanitizeData(matchingChars);
+                return prunedData;
             }
             throw new ZealMessageProcessingException($"Unable to match bracket Data Field with regex: {message.ToString()}");
         }
@@ -222,5 +225,21 @@ internal sealed partial class ZealMessageProcessor
         List<ZealRaidCharacter> tempAttendees = _messageUpdater.GetRaidAttendees();
         _messageUpdater.SetRaidAttendees(_raidCharacterBuffer);
         _raidCharacterBuffer = tempAttendees;
+    }
+
+    private ReadOnlySpan<char> SanitizeData(ReadOnlySpan<char> matchingChars)
+    {
+        int bufferIndex = 0;
+        for (int i = 0; i < matchingChars.Length; i++)
+        {
+            char currentChar = matchingChars[i];
+            if (currentChar != '\\')
+            {
+                _dataBuffer[bufferIndex] = currentChar;
+                bufferIndex++;
+            }
+        }
+
+        return _dataBuffer.AsSpan()[..bufferIndex];
     }
 }

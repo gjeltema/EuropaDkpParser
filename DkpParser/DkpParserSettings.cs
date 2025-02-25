@@ -367,8 +367,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         foreach (string zoneIdMapping in fileContents)
         {
             string[] parts = zoneIdMapping.Split('|');
-            int zoneId = int.Parse(parts[0]);
-            string zoneName = parts[2];
+            string zoneName = parts[1];
+            int zoneId = int.Parse(parts[2]);
             ZoneIdMapping[zoneId] = zoneName;
         }
     }

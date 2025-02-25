@@ -10,8 +10,6 @@ using System.Text.Json.Serialization;
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class ZealRaidInfo
 {
-    //public string CharacterName { get; init; }
-
     public PipeMessageType MessageType
         => PipeMessageType.Raid;
 
@@ -51,23 +49,6 @@ public sealed class ZealRaidCharacter
     public override string ToString()
         => $"{Name} {Class} {Level} {Group} {Rank}";
 }
-
-//[DebuggerDisplay("{DebugText,nq}")]
-//public sealed class ZealPlayerCharacter
-//{
-//    public ZealCharacterInfo CharacterData { get; init; }
-
-//    public string CharacterName { get; init; }
-
-//    public PipeMessageType MessageType
-//    => PipeMessageType.Player;
-
-//    private string DebugText
-//        => ToString();
-
-//    public override string ToString()
-//       => $"{CharacterName} {CharacterData}";
-//}
 
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class ZealVector3d

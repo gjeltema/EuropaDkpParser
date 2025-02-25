@@ -11,8 +11,7 @@ public sealed class ZealAttendanceMessageProvider : IZealMessageUpdater, IZealMe
     private ZealAttendanceMessageProvider()
     { }
 
-    public static ZealAttendanceMessageProvider Instance
-        => new();
+    public static ZealAttendanceMessageProvider Instance { get; } = new();
 
     public ZealCharacterInfo CharacterInfo { get; private set; }
 

@@ -13,30 +13,29 @@ using Gjeltema.Logging;
 public sealed class ZealNamedPipe
 {
     private const string LogPrefix = $"[{nameof(ZealNamedPipe)}]";
-    private CancellationTokenSource _cancellationTokenSource;
+    private CancellationTokenSource _cancelTokenSource;
     private string _characterName;
 
     private ZealNamedPipe() { }
 
-    public static ZealNamedPipe Instance
-        => new();
+    public static ZealNamedPipe Instance { get; } = new();
 
     public void StartListening(string characterName, IZealMessageUpdater messageUpdater)
     {
-        if (_cancellationTokenSource != null)
+        if (_cancelTokenSource != null)
         {
             StopListening();
         }
 
         _characterName = characterName;
-        _cancellationTokenSource = new CancellationTokenSource();
+        _cancelTokenSource = new();
 
         Process[] eqProcesses = Process.GetProcessesByName(Constants.EqProcessName);
         foreach (Process eqProcess in eqProcesses)
         {
             string pipeName = string.Format(Constants.ZealPipeNameFormat, eqProcess.Id.ToString());
 
-            Thread messageListenerThread = new(() => ProcessZealPipeMessages(pipeName, messageUpdater, _cancellationTokenSource.Token));
+            Thread messageListenerThread = new(() => ProcessZealPipeMessages(pipeName, messageUpdater, _cancelTokenSource.Token));
             messageListenerThread.IsBackground = true;
             messageListenerThread.Start();
         }
@@ -44,8 +43,11 @@ public sealed class ZealNamedPipe
 
     public void StopListening()
     {
-        _cancellationTokenSource?.Cancel();
-        _cancellationTokenSource = null;
+        Log.Debug($"{LogPrefix} StopListening() called.");
+
+        _cancelTokenSource?.Cancel();
+        _cancelTokenSource?.Dispose();
+        _cancelTokenSource = null;
     }
 
     private void ProcessZealPipeMessages(string pipeName, IZealMessageUpdater messageUpdater, CancellationToken cancelToken)
@@ -83,16 +85,21 @@ public sealed class ZealNamedPipe
 
                     if (bytesRead > 0)
                     {
-                        if (!Encoding.UTF8.TryGetChars(pipeReadBytes, charBuffer, out int charsWritten))
+                        int charsWritten = Encoding.UTF8.GetChars(pipeReadBytes[..bytesRead], charBuffer);
+                        if (charsWritten == 0)
+                        {
+                            Log.Debug($"{LogPrefix} Unable to decode chars from message");
                             continue;
+                        }
 
-                        Log.Trace($"{LogPrefix} Zeal message received: {charBuffer.ToString()}");
+                        Log.Trace($"{LogPrefix} Zeal message received.  CharsWritten: {charsWritten}.  Message: {charBuffer[..charsWritten].ToString()}");
 
                         try
                         {
-                            if (!messageProcessor.ProcessMessage(charBuffer, charsWritten, _characterName))
+                            if (!messageProcessor.ProcessMessage(charBuffer[..charsWritten], charsWritten, _characterName))
                             {
-                                Log.Info($"{LogPrefix} Ending listening to pipe.");
+                                Log.Info($"{LogPrefix} Ending listening to pipe {pipeName}.");
+                                return;
                             }
                         }
                         catch (Exception ex)
