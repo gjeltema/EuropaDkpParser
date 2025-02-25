@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using DkpParser;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.ViewModels;
+using Gjeltema.Logging;
 
 internal sealed class AttendanceTimerHandler
 {
@@ -19,6 +20,7 @@ internal sealed class AttendanceTimerHandler
         Positioning
     }
 
+    private const string LogPrefix = $"{nameof(AttendanceTimerHandler)}";
     private readonly IDialogFactory _dialogFactory;
     private readonly IOverlayFactory _overlayFactory;
     private readonly Queue<PendingOverlay> _pendingOverlays = [];
@@ -72,6 +74,8 @@ internal sealed class AttendanceTimerHandler
 
     public void CloseAll()
     {
+        Log.Debug($"{LogPrefix} {nameof(CloseAll)} called.");
+
         _pendingOverlays.Clear();
 
         _attendanceReminderTimer?.Stop();
@@ -97,11 +101,14 @@ internal sealed class AttendanceTimerHandler
 
     public void RemindForKillAttendance(string bossName)
     {
+        Log.Debug($"{LogPrefix} {nameof(RemindForKillAttendance)} called for {bossName}.  {nameof(RemindAttendances)} is {RemindAttendances}.");
+
         if (!RemindAttendances || string.IsNullOrEmpty(bossName))
             return;
 
         if (_overlayTypeShowing != OverlayType.None)
         {
+            Log.Debug($"{LogPrefix} Overlay already showing. Adding to queue.");
             _pendingOverlays.Enqueue(new PendingOverlay { OverlayType = OverlayType.Kill, BossName = bossName });
             return;
         }
@@ -110,6 +117,7 @@ internal sealed class AttendanceTimerHandler
 
         if (UseOverlayForAttendanceReminder)
         {
+            Log.Debug($"{LogPrefix} Showing reminder overlay.");
             _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
             _attendanceOverlayViewModel.Show(bossName);
             _overlayTypeShowing = OverlayType.Kill;
@@ -118,6 +126,8 @@ internal sealed class AttendanceTimerHandler
         {
             string statusMessageFormat = Strings.GetString("KillAttendanceReminderMessageFormat");
             string statusMessage = string.Format(statusMessageFormat, bossName);
+
+            Log.Debug($"{LogPrefix} Showing reminder dialog.");
 
             IReminderDialogViewModel reminder = GetReminderDialog(statusMessage, AttendanceCallType.Kill);
             reminder.AttendanceName = bossName;
@@ -138,6 +148,8 @@ internal sealed class AttendanceTimerHandler
 
     public void ShowTimeAttendanceReminder()
     {
+        Log.Debug($"{LogPrefix} {nameof(ShowTimeAttendanceReminder)} called.  {nameof(RemindAttendances)} is {RemindAttendances}.");
+
         if (!RemindAttendances)
         {
             SetReminderForAttendances();
@@ -148,6 +160,7 @@ internal sealed class AttendanceTimerHandler
 
         if (_overlayTypeShowing != OverlayType.None)
         {
+            Log.Debug($"{LogPrefix} Overlay already showing. Adding to queue.");
             _pendingOverlays.Enqueue(new PendingOverlay { OverlayType = OverlayType.Time });
             return;
         }
@@ -157,6 +170,7 @@ internal sealed class AttendanceTimerHandler
 
         if (UseOverlayForAttendanceReminder)
         {
+            Log.Debug($"{LogPrefix} Showing reminder overlay.");
             _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
             _attendanceOverlayViewModel.Show(_timeCallIndex);
             _overlayTypeShowing = OverlayType.Time;
@@ -167,6 +181,8 @@ internal sealed class AttendanceTimerHandler
         {
             IReminderDialogViewModel reminder = GetReminderDialog(Strings.GetString("TimeAttendanceReminderMessage"), AttendanceCallType.Time);
             reminder.SetTimeCallIndex(_timeCallIndex);
+
+            Log.Debug($"{LogPrefix} Showing reminder dialog.");
 
             bool ok = reminder.ShowDialog() == true;
             nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);
@@ -180,14 +196,20 @@ internal sealed class AttendanceTimerHandler
 
     public bool TogglePositioningOverlay(bool showPositionOverlay)
     {
+        Log.Debug($"{LogPrefix} {nameof(TogglePositioningOverlay)} called.");
+
         if (showPositionOverlay)
         {
+            Log.Debug($"{LogPrefix} Attempting to show overlay.");
+
             if (_overlayTypeShowing == OverlayType.Positioning)
             {
+                Log.Debug($"{LogPrefix} Positioning overlay already showing.");
                 return true;
             }
             else if (_overlayTypeShowing == OverlayType.None)
             {
+                Log.Debug($"{LogPrefix} Displaying positioning overlay.");
                 _movingOverlay ??= _overlayFactory.CreateOverlayPositioningViewModel(_settings);
                 _movingOverlay.ShowToMove();
                 _overlayTypeShowing = OverlayType.Positioning;
@@ -195,11 +217,13 @@ internal sealed class AttendanceTimerHandler
             }
             else
             {
+                Log.Debug($"{LogPrefix} Another overlay is already displayed. Ending.");
                 return false;
             }
         }
         else
         {
+            Log.Debug($"{LogPrefix} Attempting to close positioning overlay.");
             if (_overlayTypeShowing == OverlayType.Positioning)
             {
                 int newXPosition = _movingOverlay.XPos;
@@ -216,6 +240,8 @@ internal sealed class AttendanceTimerHandler
 
                 _overlayTypeShowing = OverlayType.None;
                 HandleOverlayHide();
+
+                Log.Debug($"{LogPrefix} Closed positioning overlay.");
             }
             return true;
         }

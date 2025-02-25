@@ -10,11 +10,13 @@ using DkpParser;
 using DkpParser.LiveTracking;
 using DkpParser.Zeal;
 using EuropaDkpParser.Utility;
+using Gjeltema.Logging;
 using Prism.Commands;
 
 internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTrackingViewModel
 {
     private const int DkpDisplayFontSize = 16;
+    private const string LogPrefix = $"{nameof(LiveLogTrackingViewModel)}";
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly AttendanceTimerHandler _attendanceTimerHandler;
     private readonly IDkpDataRetriever _dkpDataRetriever;
@@ -136,7 +138,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         set
         {
             if (SetProperty(ref _enableReadyCheck, value))
+            {
+                Log.Debug($"{LogPrefix} {nameof(EnableReadyCheck)} set to {EnableReadyCheck}");
                 _activeBidTracker.TrackReadyCheck = value;
+            }
         }
     }
 
@@ -149,8 +154,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             {
                 StartTailingFile(value);
                 string characterName = ExtractCharacterNameFromLogFile(value);
+                Log.Debug($"{LogPrefix} {nameof(FilePath)} being set to {value}.");
                 if (!string.IsNullOrEmpty(characterName))
                 {
+                    Log.Debug($"{LogPrefix} {nameof(_currentCharacterName)} set to {characterName}.");
                     _currentCharacterName = characterName;
                     _zealMessages.StartMessageProcessing(characterName);
                 }
@@ -167,7 +174,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             {
                 if (!_attendanceTimerHandler.TogglePositioningOverlay(value))
                 {
-                    //** show error dialog
                     _forceShowOverlay = false;
                     RaisePropertyChanged(nameof(ForceShowOverlay));
                 }
@@ -205,7 +211,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         set
         {
             if (SetProperty(ref _remindAttendances, value))
+            {
                 _attendanceTimerHandler.RemindAttendances = value;
+                Log.Debug($"{LogPrefix} {nameof(RemindAttendances)} set to {value}.");
+            }
         }
     }
 
@@ -282,6 +291,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         {
             if (SetProperty(ref _useOverlayForAttendanceReminder, value))
             {
+                Log.Debug($"{LogPrefix} {nameof(UseOverlayForAttendanceReminder)} being set to {value}.");
+
                 _attendanceTimerHandler.UseOverlayForAttendanceReminder = value;
 
                 if (!value)
@@ -482,11 +493,15 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     private void StartReadyCheck()
     {
+        Log.Debug($"{LogPrefix} {nameof(StartReadyCheck)} called with {nameof(EnableReadyCheck)} set to {EnableReadyCheck}.");
         if (!EnableReadyCheck)
             return;
 
         if (_zealMessages.RaidInfo.RaidAttendees.Count == 0)
+        {
+            Log.Debug($"{LogPrefix} No raid attendees found from Zeal.  Ending.");
             return;
+        }
 
         Clip.Copy($"/rs {Constants.ReadyCheck}");
 
@@ -498,6 +513,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
             _readyCheckOverlayViewModel.SetInitialCharacterList(charactersInRaid);
         }
+
+        Log.Debug($"{LogPrefix} Showing ReadyCheck overlay.");
 
         _readyCheckOverlayViewModel.Show();
     }
