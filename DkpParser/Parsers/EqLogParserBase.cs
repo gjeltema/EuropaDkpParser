@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// EqLogParserBase.cs Copyright 2024 Craig Gjeltema
+// EqLogParserBase.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -25,9 +25,7 @@ public abstract class EqLogParserBase : IEqLogParser
         foreach (string logLine in File.ReadLines(filename))
         {
             if (!TryExtractEqLogTimeStamp(logLine, out DateTime entryTimeStamp))
-            {
                 continue;
-            }
 
             if (entryTimeStamp > endTime)
                 break;

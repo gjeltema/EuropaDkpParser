@@ -91,6 +91,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 .Where(x => x.ParentAuctionId == auction.Id)
                 .OrderByDescending(x => x.BidAmount)
                 .ThenBy(x => x.Timestamp)
+                .DistinctBy(x => x.CharacterBeingBidFor)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
     }
@@ -241,12 +242,14 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             return filteredBids
                 .OrderBy(x => x.BidAmount)
                 .ThenBy(x => x.Timestamp)
+                .DistinctBy(x => x.CharacterPlacingBid)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
         else
             return filteredBids
                 .OrderByDescending(x => x.BidAmount)
                 .ThenBy(x => x.Timestamp)
+                .DistinctBy(x => x.CharacterPlacingBid)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
     }
