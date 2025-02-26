@@ -206,37 +206,70 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
         RaisePropertyChanged(nameof(SelectedEqLogFiles));
     }
 
-    private async void ArchiveEqLogFiles()
-        => await Task.Run(ArchiveEqLogFilesExecute);
+    private void ArchiveAttendanceFiles(TimeSpan maxAgeOfFile, string fileNamePrefix)
+    {
+        if (!ArchiveBasedOnAge)
+            return;
+
+        IEnumerable<string> logFilesToArchive = Directory.EnumerateFiles(_settings.EqDirectory, fileNamePrefix + "*.txt");
+        foreach (string logFile in logFilesToArchive)
+        {
+            FileInfo fi = new(logFile);
+            if (!fi.Exists)
+                continue;
+
+            if (DateTime.Now.Subtract(fi.LastWriteTime) > maxAgeOfFile)
+            {
+                string newFileLocation = Path.Combine(EqLogArchiveDirectory, fi.Name);
+                MoveFile(fi.FullName, newFileLocation);
+            }
+        }
+    }
+
+    private void ArchiveEqLogFiles()
+        => Task.Run(ArchiveEqLogFilesExecute);
 
     private void ArchiveEqLogFilesExecute()
     {
-        if (string.IsNullOrWhiteSpace(EqLogArchiveDirectory))
+        try
         {
-            MessageBox.Show(Strings.GetString("EqLogDirectoryErrorMessage"), Strings.GetString("EqLogDirectoryError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
-        }
+            if (string.IsNullOrWhiteSpace(EqLogArchiveDirectory))
+            {
+                MessageBox.Show(Strings.GetString("EqLogDirectoryErrorMessage"), Strings.GetString("EqLogDirectoryError"), MessageBoxButton.OK, MessageBoxImage.Error);
+                Log.Error($"{LogPrefix} Error archiving log files - {nameof(EqLogArchiveDirectory)} is null or empty.");
+                return;
+            }
 
-        int maxDays = 0;
-        if (ArchiveBasedOnAge && !int.TryParse(EqLogArchiveFileAge, out maxDays))
+            int maxDays = 0;
+            if (ArchiveBasedOnAge && !int.TryParse(EqLogArchiveFileAge, out maxDays))
+            {
+                MessageBox.Show(Strings.GetString("EqLogAgeErrorMessage"), Strings.GetString("EqLogAgeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+                Log.Error($"{LogPrefix} Error archiving log files - {nameof(EqLogArchiveFileAge)} is not a number.  Value is: {EqLogArchiveFileAge}.");
+                return;
+            }
+
+            TimeSpan maxAgeOfFile = new(maxDays, 0, 0, 0);
+
+            int maxSize = 0;
+            if (ArchiveBasedOnSize && !int.TryParse(EqLogArchiveFileSize, out maxSize))
+            {
+                MessageBox.Show(Strings.GetString("EqLogSizeErrorMessage"), Strings.GetString("EqLogSizeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+                Log.Error($"{LogPrefix} Error archiving log files - {nameof(EqLogArchiveFileSize)} is not a number.  Value is: {EqLogArchiveFileSize}.");
+                return;
+            }
+
+            maxSize = maxSize * 1024 * 1024;
+
+            ArchiveLogFiles(maxAgeOfFile, maxSize);
+
+            ArchiveAttendanceFiles(maxAgeOfFile, Constants.RaidDumpFileNameStart);
+            ArchiveAttendanceFiles(maxAgeOfFile, Constants.RaidListFileNameStart);
+            ArchiveAttendanceFiles(maxAgeOfFile, Constants.ZealAttendanceBasedFileName);
+        }
+        catch (Exception ex)
         {
-            MessageBox.Show(Strings.GetString("EqLogAgeErrorMessage"), Strings.GetString("EqLogAgeError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
+            Log.Error($"{LogPrefix} Error archiving log and attendance files: {ex.ToLogMessage()}");
         }
-        TimeSpan maxAgeOfFile = new(maxDays, 0, 0, 0);
-
-        int maxSize = 0;
-        if (ArchiveBasedOnSize && !int.TryParse(EqLogArchiveFileSize, out maxSize))
-        {
-            MessageBox.Show(Strings.GetString("EqLogSizeErrorMessage"), Strings.GetString("EqLogSizeError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
-        }
-
-        maxSize = maxSize * 1024 * 1024;
-
-        ArchiveLogFiles(maxAgeOfFile, maxSize);
-        ArchiveRaidDump(maxAgeOfFile);
-        ArchiveRaidList(maxAgeOfFile);
     }
 
     private async void ArchiveGeneratedLogFiles()
@@ -244,22 +277,29 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
 
     private void ArchiveGeneratedLogFilesExecute()
     {
-        if (string.IsNullOrWhiteSpace(GeneratedLogsArchiveDirectory))
+        try
         {
-            MessageBox.Show(Strings.GetString("GeneratedDirectoryErrorMessage"), Strings.GetString("GeneratedDirectoryError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
-        }
+            if (string.IsNullOrWhiteSpace(GeneratedLogsArchiveDirectory))
+            {
+                MessageBox.Show(Strings.GetString("GeneratedDirectoryErrorMessage"), Strings.GetString("GeneratedDirectoryError"), MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-        if (!int.TryParse(GeneratedLogsArchiveFileAge, out int maxDays))
+            if (!int.TryParse(GeneratedLogsArchiveFileAge, out int maxDays))
+            {
+                MessageBox.Show(Strings.GetString("GeneratedLogAgeErrorMessage"), Strings.GetString("GeneratedLogAgeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            TimeSpan maxAgeOfFile = new(maxDays, 0, 0, 0);
+            MoveOldFiles(_settings.OutputDirectory, Constants.GeneratedLogFileNamePrefix + "*.txt", maxAgeOfFile, GeneratedLogsArchiveDirectory);
+            MoveOldFiles(_settings.OutputDirectory, Constants.FullGeneratedLogFileNamePrefix + "*.txt", maxAgeOfFile, GeneratedLogsArchiveDirectory);
+            MoveOldFiles(_settings.OutputDirectory, Constants.ConversationFileNamePrefix + "*.txt", maxAgeOfFile, GeneratedLogsArchiveDirectory);
+        }
+        catch (Exception ex)
         {
-            MessageBox.Show(Strings.GetString("GeneratedLogAgeErrorMessage"), Strings.GetString("GeneratedLogAgeError"), MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
+            Log.Error($"{LogPrefix} Error archiving generated log files: {ex.ToLogMessage()}");
         }
-
-        TimeSpan maxAgeOfFile = new(maxDays, 0, 0, 0);
-        MoveOldFiles(_settings.OutputDirectory, Constants.GeneratedLogFileNamePrefix + "*.txt", maxAgeOfFile, GeneratedLogsArchiveDirectory);
-        MoveOldFiles(_settings.OutputDirectory, Constants.FullGeneratedLogFileNamePrefix + "*.txt", maxAgeOfFile, GeneratedLogsArchiveDirectory);
-        MoveOldFiles(_settings.OutputDirectory, Constants.ConversationFileNamePrefix + "*.txt", maxAgeOfFile, GeneratedLogsArchiveDirectory);
     }
 
     private void ArchiveLogFiles(TimeSpan maxAgeOfFile, int maxSize)
@@ -283,46 +323,6 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
             {
                 string newFileName = $"{fi.Name[0..^4]}-{DateTime.Now.ToString(Constants.ArchiveFileNameTimeFormat)}.txt";
                 string newFileLocation = Path.Combine(EqLogArchiveDirectory, newFileName);
-                MoveFile(fi.FullName, newFileLocation);
-            }
-        }
-    }
-
-    private void ArchiveRaidDump(TimeSpan maxAgeOfFile)
-    {
-        if (!ArchiveBasedOnAge)
-            return;
-
-        IEnumerable<string> logFilesToArchive = Directory.EnumerateFiles(_settings.EqDirectory, Constants.RaidDumpFileNameStart + "*.txt");
-        foreach (string logFile in logFilesToArchive)
-        {
-            FileInfo fi = new(logFile);
-            if (!fi.Exists)
-                continue;
-
-            if (DateTime.Now.Subtract(fi.LastWriteTime) > maxAgeOfFile)
-            {
-                string newFileLocation = Path.Combine(EqLogArchiveDirectory, fi.Name);
-                MoveFile(fi.FullName, newFileLocation);
-            }
-        }
-    }
-
-    private void ArchiveRaidList(TimeSpan maxAgeOfFile)
-    {
-        if (!ArchiveBasedOnAge)
-            return;
-
-        IEnumerable<string> logFilesToArchive = Directory.EnumerateFiles(_settings.EqDirectory, Constants.RaidListFileNameStart + "*.txt");
-        foreach (string logFile in logFilesToArchive)
-        {
-            FileInfo fi = new(logFile);
-            if (!fi.Exists)
-                continue;
-
-            if (DateTime.Now.Subtract(fi.LastWriteTime) > maxAgeOfFile)
-            {
-                string newFileLocation = Path.Combine(EqLogArchiveDirectory, fi.Name);
                 MoveFile(fi.FullName, newFileLocation);
             }
         }
