@@ -246,6 +246,7 @@
     <system:String x:Key="GuildText">/gu</system:String>
     <system:String x:Key="JoinRaidText">Join Raid</system:String>
     <system:String x:Key="OocText">/ooc</system:String>
+    <system:String x:Key="GroupText">/group</system:String>
     <system:String x:Key="RaidSayText">/rs</system:String>
     <system:String x:Key="SayText">/say</system:String>
     <system:String x:Key="ShoutText">/shout</system:String>

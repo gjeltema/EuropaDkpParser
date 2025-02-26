@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// GeneralEqLogParser.cs Copyright 2024 Craig Gjeltema
+// GeneralEqLogParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -77,6 +77,11 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         }
         if (settings.Ooc)
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OocTerm));
+        if (settings.Group)
+        {
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.GroupYou));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.GroupOther));
+        }
         if (settings.Shout)
         {
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouShoutTerm));
@@ -377,6 +382,8 @@ public sealed class GeneralEqLogParserSettings
     public bool Dies { get; set; }
 
     public bool FactionStanding { get; set; }
+
+    public bool Group { get; set; }
 
     public bool Guild { get; set; }
 

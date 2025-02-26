@@ -125,6 +125,7 @@
                 <CheckBox IsChecked="{Binding Guild}" Content="{StaticResource GuildText}"/>
                 <CheckBox IsChecked="{Binding JoinRaid}" Content="{StaticResource JoinRaidText}" ToolTip="{StaticResource JoinRaidTooltipText}"/>
                 <CheckBox IsChecked="{Binding Ooc}" Content="{StaticResource OocText}"/>
+                <CheckBox IsChecked="{Binding Group}" Content="{StaticResource GroupText}"/>
                 <CheckBox IsChecked="{Binding RaidSay}" Content="{StaticResource RaidSayText}"/>
                 <CheckBox IsChecked="{Binding Say}" Content="{StaticResource SayText}"/>
                 <CheckBox IsChecked="{Binding Shout}" Content="{StaticResource ShoutText}"/>

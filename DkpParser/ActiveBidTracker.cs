@@ -90,7 +90,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             return _bids
                 .Where(x => x.ParentAuctionId == auction.Id)
                 .OrderByDescending(x => x.BidAmount)
-                .ThenByDescending(x => x.Timestamp)
+                .ThenBy(x => x.Timestamp)
                 .Take(auction.TotalNumberOfItems)
                 .ToList();
     }

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// GeneralEqLogParserDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// GeneralEqLogParserDialogViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -27,6 +27,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
     private bool _dies;
     private string _endTimeText;
     private bool _factionStanding;
+    private bool _group;
     private bool _guild;
     private bool _joinRaid;
     private bool _ooc;
@@ -117,6 +118,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             Dies = value;
             FactionStanding = value;
             Guild = value;
+            Group = value;
             JoinRaid = value;
             Ooc = value;
             RaidSay = value;
@@ -143,6 +145,12 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
     {
         get => _factionStanding;
         set => SetProperty(ref _factionStanding, value);
+    }
+
+    public bool Group
+    {
+        get => _you;
+        set => SetProperty(ref _group, value);
     }
 
     public bool Guild
@@ -266,6 +274,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             Guild = Guild,
             JoinRaid = JoinRaid,
             Ooc = Ooc,
+            Group = Group,
             RaidSay = RaidSay,
             Say = Say,
             Shout = Shout,
@@ -321,6 +330,8 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
     public bool Dies { get; set; }
 
     public bool FactionStanding { get; set; }
+
+    public bool Group { get; set; }
 
     public bool Guild { get; set; }
 

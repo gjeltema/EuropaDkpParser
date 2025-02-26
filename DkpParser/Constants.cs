@@ -34,7 +34,7 @@ public static class Constants
     public const string EqProcessName = "eqgame";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
     public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-eqlog-";
-    public const string GroupOther = " tells the group, '";
+    public const string GroupOther = " tells the group,";
     public const string GroupYou = "You tell your party, '";
     public const string GuildName = "Europa";
     // [Tue Mar 19 20:15:09 2024] Aaeien tells the guild, 'we have 7 rangers and 2 mages... if that helps with the decision-making :)'
@@ -72,8 +72,6 @@ public static class Constants
     // When someone else does an /rs message, it has 2 spaces after the comma (clearly a cosmetic bug in the game itself).
     // Dont add the single quote to this string in case it is "fixed" at some point.
     public const string RaidOther = " tells the raid, ";
-    // Full "tells the raid" message, with double spacing and end '.
-    public const string RaidOtherFull = " tells the raid,  '";
     // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
     public const string RaidYou = "You tell your raid, '";
     public const string RaidYouSearch = $"] {RaidYou}";
@@ -84,7 +82,7 @@ public static class Constants
     public const string Rot = "ROT";
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
     public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";
-    public const string TellsYou = " tells you, '";
+    public const string TellsYou = " tells you,";
     public const string TimePickerDisplayDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TooLongDelimiter = "::::";
     public const string Transfer = "TRANSFER";
