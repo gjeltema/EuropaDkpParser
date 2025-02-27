@@ -58,5 +58,5 @@ public static class EqLogLine
         => $"{ToEqlogTimestamp(timestamp)} There are {playerCount} players in {zoneName}.";
 
     private static string ToEqlogTimestamp(DateTime timeStamp)
-        => timeStamp.ToString(Constants.LogDateTimeFormat, Constants.UsCulture);
+        => timeStamp.ToString(Constants.EqLogDateTimeFormat, Constants.UsCulture);
 }

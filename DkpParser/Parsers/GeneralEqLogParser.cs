@@ -53,7 +53,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         }
 
         string timeEntry = logLine[0..Constants.LogDateTimeLength];
-        return DateTime.TryParseExact(timeEntry, Constants.LogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+        return DateTime.TryParseExact(timeEntry, Constants.EqLogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
     }
 
     private void InitializeEntryParsers(GeneralEqLogParserSettings settings)

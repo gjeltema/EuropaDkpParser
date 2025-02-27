@@ -418,19 +418,19 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(logLineNoTimestamp);
                 string noWhitespaceLogLine = sanitizedLogLine.RemoveAllWhitespace();
 
-                if (noWhitespaceLogLine.Contains(Constants.ReadyCheck))
+                if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter))
                 {
                     _readyCheckInitiated = true;
                     Updated = true;
                     return;
                 }
-                else if (noWhitespaceLogLine.Contains(Constants.Ready, StringComparison.OrdinalIgnoreCase))
+                else if (noWhitespaceLogLine.Contains(Constants.ReadyWithDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = true });
                     Updated = true;
                     return;
                 }
-                else if (noWhitespaceLogLine.Contains(Constants.NotReady, StringComparison.OrdinalIgnoreCase))
+                else if (noWhitespaceLogLine.Contains(Constants.NotReadyWithDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = false });
                     Updated = true;

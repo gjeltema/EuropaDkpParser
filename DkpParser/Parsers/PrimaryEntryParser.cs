@@ -59,14 +59,14 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             AddSpentCall(logLine, entryTimeStamp);
         }
-        else if (logLine.Contains(Constants.RaidYouSearch) || logLine.Contains(Constants.RaidOther))
+        else if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
         {
             EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
 
             if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
             {
                 // Only accept raid attendance calls from yourself into /rs.
-                if (!logLine.Contains(Constants.RaidYouSearch))
+                if (!logLine.Contains(Constants.RaidYou))
                     return;
 
                 _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
@@ -81,7 +81,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
             else
             {
                 string noWhitespaceLogline = logLine.RemoveAllWhitespace();
-                if (noWhitespaceLogline.Contains(Constants.Crashed, StringComparison.OrdinalIgnoreCase))
+                if (noWhitespaceLogline.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     logEntry.EntryType = LogEntryType.Crashed;
                 }

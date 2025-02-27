@@ -521,7 +521,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             return;
         }
 
-        Clip.Copy($"/rs {Constants.ReadyCheck}");
+        Clip.Copy($"/rs {Constants.ReadyCheckWithDelimiter}");
 
         if (!_readyCheckOverlayViewModel.ContentIsVisible)
         {

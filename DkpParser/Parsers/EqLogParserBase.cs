@@ -50,7 +50,7 @@ public abstract class EqLogParserBase : IEqLogParser
         }
 
         ReadOnlySpan<char> timeEntry = logLine.AsSpan()[0..Constants.LogDateTimeLength];
-        return DateTime.TryParseExact(timeEntry, Constants.LogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+        return DateTime.TryParseExact(timeEntry, Constants.EqLogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
     }
 
     protected ICollection<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime, IEnumerable<string> selectedLogFileNames)

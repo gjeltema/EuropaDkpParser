@@ -11,6 +11,7 @@ public static class Constants
     public const string Afk = " AFK ";
     public const string AfkEnd = $"{AttendanceDelimiter}AFKEND{AttendanceDelimiter}";
     public const string AfkStart = $"{AttendanceDelimiter}AFK{AttendanceDelimiter}";
+    public const string AlternateDelimiter = "+";
     public const string AnonWithBrackets = "[ANONYMOUS]";
     /// <summary>
     /// Used in the file-archiving functionality.
@@ -21,15 +22,16 @@ public static class Constants
     // [Wed Mar 13 20:37:58 2024] Musse auctions, 'xxx - CH - Eorderth'
     public const string AuctionOther = " auctions, '";
     public const string AuctionYou = "You auction, '";
-    // [Wed Feb 21 21:58:08 2024] You auction, 'WTS Fire Emerald Platinum Ring 500pp'
-    public const string AuctionYouSearch = $"] {AuctionYou}";
     public const string CommunicationFileNamePrefix = "CommunicationOutput-";
     public const string ConversationFileNamePrefix = "ConversationOutput-";
-    public const string Crashed = $"{AttendanceDelimiter}CRASHED{AttendanceDelimiter}";
+    public const string Crashed = $"CRASHED";
+    public const string CrashedAlternateDelimiter = $"{AlternateDelimiter}{Crashed}{AlternateDelimiter}";
+    public const string CrashedWithDelimiter = $"{AttendanceDelimiter}{Crashed}{AttendanceDelimiter}";
     public const string Dashes = "---------------------------";
     public const string DkpSpent = "SPENT";  // Used to be DKPSPENT, but was changed to SPENT due to typos by users
     public const string DoubleDash = "--";
     public const string EndLootedDashes = ".--";
+    public const string EqLogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string EqLogSearchPattern = "*eqlog*.txt";
     public const string EqProcessName = "eqgame";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
@@ -46,10 +48,11 @@ public static class Constants
     public const string JoinedRaid = " joined the raid.";
     public const string KillCall = "KILL";
     public const string LeftRaid = " has left the raid.";
-    public const string LogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string LootedA = " looted a ";
     public const int MinimumRaidNameLength = 5;
-    public const string NotReady = ":::NOTREADY:::";
+    public const string NotReady = "NOTREADY";
+    public const string NotReadyAlternateDelimiter = $"{AlternateDelimiter}{NotReady}{AlternateDelimiter}";
+    public const string NotReadyWithDelimiter = $"{AttendanceDelimiter}{NotReady}{AttendanceDelimiter}";
     // [Tue Mar 19 20:13:39 2024] Slebog says out of character, '>> an azarack has been SLOWED  <<'
     public const string OocOther = " says out of character, '";
     public const string OocYou = "You say out of character, '";
@@ -74,9 +77,12 @@ public static class Constants
     public const string RaidOther = " tells the raid, ";
     // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
     public const string RaidYou = "You tell your raid, '";
-    public const string RaidYouSearch = $"] {RaidYou}";
-    public const string Ready = ":::READY:::";
-    public const string ReadyCheck = ":::READYCHECK:::";
+    public const string Ready = "READY";
+    public const string ReadyAlternateDelimiter = $"{AlternateDelimiter}{Ready}{AlternateDelimiter}";
+    public const string ReadyCheck = "READYCHECK";
+    public const string ReadyCheckAlternateDelimiter = $"{AlternateDelimiter}{ReadyCheck}{AlternateDelimiter}";
+    public const string ReadyCheckWithDelimiter = $"{AttendanceDelimiter}{ReadyCheck}{AttendanceDelimiter}";
+    public const string ReadyWithDelimiter = $"{AttendanceDelimiter}{Ready}{AttendanceDelimiter}";
     public const string Remove = "REMOVE";
     public const string RollWin = "WINS";
     public const string Rot = "ROT";
@@ -98,10 +104,10 @@ public static class Constants
     /// <summary>
     /// One argument for format: Process ID
     /// </summary>
-    public const string ZealPipeNameFormat = ZealPipePrefix + "_{0}";
-    public const string ZealPipePrefix = "zeal";
+    public const string ZealPipeNameFormat = ZealPipeNamePrefix + "_{0}";
+    public const string ZealPipeNamePrefix = "zeal";
     public const string ZealRaidAttendanceFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(10);
-    public static readonly int LogDateTimeLength = LogDateTimeFormat.Length;
+    public static readonly int LogDateTimeLength = EqLogDateTimeFormat.Length;
     public static readonly CultureInfo UsCulture = new("en-US");
 }
