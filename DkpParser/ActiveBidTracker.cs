@@ -387,7 +387,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         {
             // +1 to remove the following space.
             string logLineNoTimestamp = message[(Constants.LogDateTimeLength + 1)..];
-            string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
 
             string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
             if (bossKilledName != null)
@@ -413,24 +412,27 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (!isValidDkpChannel && channel != EqChannel.Group)
                 return;
 
-            if (TrackReadyCheck && logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter))
+            string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
+            if (TrackReadyCheck && (logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter) || logLineNoTimestamp.Contains(Constants.AlternateDelimiter)))
             {
                 string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(logLineNoTimestamp);
                 string noWhitespaceLogLine = sanitizedLogLine.RemoveAllWhitespace();
 
-                if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter))
+                if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter) || noWhitespaceLogLine.Contains(Constants.ReadyCheckAlternateDelimiter))
                 {
                     _readyCheckInitiated = true;
                     Updated = true;
                     return;
                 }
-                else if (noWhitespaceLogLine.Contains(Constants.ReadyWithDelimiter, StringComparison.OrdinalIgnoreCase))
+                else if (noWhitespaceLogLine.Contains(Constants.ReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                    || noWhitespaceLogLine.Contains(Constants.ReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = true });
                     Updated = true;
                     return;
                 }
-                else if (noWhitespaceLogLine.Contains(Constants.NotReadyWithDelimiter, StringComparison.OrdinalIgnoreCase))
+                else if (noWhitespaceLogLine.Contains(Constants.NotReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                    || noWhitespaceLogLine.Contains(Constants.NotReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = false });
                     Updated = true;

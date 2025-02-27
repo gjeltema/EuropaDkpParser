@@ -33,7 +33,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
         ReadOnlySpan<char> logLineSpan = logLine.AsSpan()[(Constants.LogDateTimeLength + 1)..];
 
         // Check for just '::' first as it's a fast check.  Do more in depth parsing of the line if this is present.
-        if (logLineSpan.IndexOf(Constants.PossibleErrorDelimiter) > 0)
+        if (logLineSpan.IndexOf(Constants.PossibleErrorDelimiter) > 0 || logLineSpan.IndexOf(Constants.AlternateDelimiter) > 0)
         {
             AddDelimiterEntry(logLine, entryTimeStamp);
         }
@@ -81,15 +81,18 @@ internal sealed class PrimaryEntryParser : IParseEntry
             else
             {
                 string noWhitespaceLogline = logLine.RemoveAllWhitespace();
-                if (noWhitespaceLogline.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase))
+                if (noWhitespaceLogline.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                    || noWhitespaceLogline.Contains(Constants.CrashedAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     logEntry.EntryType = LogEntryType.Crashed;
                 }
-                else if (noWhitespaceLogline.Contains(Constants.AfkStart, StringComparison.OrdinalIgnoreCase))
+                else if (noWhitespaceLogline.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                    || noWhitespaceLogline.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     logEntry.EntryType = LogEntryType.AfkStart;
                 }
-                else if (noWhitespaceLogline.Contains(Constants.AfkEnd, StringComparison.OrdinalIgnoreCase))
+                else if (noWhitespaceLogline.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                    || noWhitespaceLogline.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     logEntry.EntryType = LogEntryType.AfkEnd;
                 }

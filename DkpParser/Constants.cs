@@ -9,8 +9,11 @@ using System.Globalization;
 public static class Constants
 {
     public const string Afk = " AFK ";
-    public const string AfkEnd = $"{AttendanceDelimiter}AFKEND{AttendanceDelimiter}";
-    public const string AfkStart = $"{AttendanceDelimiter}AFK{AttendanceDelimiter}";
+    public const string AfkAlternateDelimiter = $"{AlternateDelimiter}{Afk}{AlternateDelimiter}";
+    public const string AfkEnd = "AFKEND";
+    public const string AfkEndAlternateDelimiter = $"{AlternateDelimiter}{AfkEnd}{AlternateDelimiter}";
+    public const string AfkEndWithDelimiter = $"{AttendanceDelimiter}{AfkEnd}{AttendanceDelimiter}";
+    public const string AfkWithDelimiter = $"{AttendanceDelimiter}{Afk}{AttendanceDelimiter}";
     public const string AlternateDelimiter = "+";
     public const string AnonWithBrackets = "[ANONYMOUS]";
     /// <summary>
@@ -24,7 +27,7 @@ public static class Constants
     public const string AuctionYou = "You auction, '";
     public const string CommunicationFileNamePrefix = "CommunicationOutput-";
     public const string ConversationFileNamePrefix = "ConversationOutput-";
-    public const string Crashed = $"CRASHED";
+    public const string Crashed = "CRASHED";
     public const string CrashedAlternateDelimiter = $"{AlternateDelimiter}{Crashed}{AlternateDelimiter}";
     public const string CrashedWithDelimiter = $"{AttendanceDelimiter}{Crashed}{AttendanceDelimiter}";
     public const string Dashes = "---------------------------";

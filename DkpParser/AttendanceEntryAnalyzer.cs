@@ -168,9 +168,9 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::AFK:::'
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::AFKEND:::'
 
-        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.AfkStart.Length + Constants.RaidOther.Length + 5)
+        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.AfkAlternateDelimiter.Length + Constants.RaidOther.Length + 5)
         {
-            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkStart} or {Constants.AfkEnd} entry: {logEntry.LogLine}");
+            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.LogLine}");
             return null;
         }
 
@@ -178,14 +178,14 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         string[] parts = linePastTimestamp.Split(' ');
         if (parts.Length < 4)
         {
-            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkStart} or {Constants.AfkEnd} entry: {logEntry.LogLine}");
+            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.LogLine}");
             return null;
         }
 
         string characterName = parts[0].Trim();
         if (string.IsNullOrEmpty(characterName))
         {
-            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkStart} or {Constants.AfkEnd} entry: {logEntry.LogLine}");
+            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.LogLine}");
             return null;
         }
 
@@ -289,7 +289,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::CRASHED:::'
 
-        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.CrashedWithDelimiter.Length + Constants.RaidOther.Length + 5)
+        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.CrashedAlternateDelimiter.Length + Constants.RaidOther.Length + 5)
         {
             Log.Warning($"{LogPrefix} Unable get character name in CRASHED entry: {logEntry.LogLine}");
             return null;
@@ -413,7 +413,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"{LogPrefix} An unexpected error occurred when analyzing an {Constants.AfkStart} or {Constants.AfkEnd} call: {logEntry.LogLine}{Environment.NewLine}{ex.ToLogMessage()}");
+                    Log.Error($"{LogPrefix} An unexpected error occurred when analyzing an {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} call: {logEntry.LogLine}{Environment.NewLine}{ex.ToLogMessage()}");
                 }
             }
         }
