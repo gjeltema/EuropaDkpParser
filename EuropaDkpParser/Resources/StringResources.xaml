@@ -48,6 +48,8 @@
     <system:String x:Key="SetDir">Set Dir</system:String>
     <system:String x:Key="Move">Move</system:String>
     <system:String x:Key="CopyText">Copy</system:String>
+    <system:String x:Key="CopyRemoveText">Copy Remove</system:String>
+    <system:String x:Key="CopyRemoveSpentTooltip">Copies a REMOVE call for the selected SPENT call to the clipboard.</system:String>
     <system:String x:Key="Auctioneer">Auctioneer</system:String>
     <system:String x:Key="AllAttendanceCalls">All Attendance Calls</system:String>
     <system:String x:Key="Minutes">minutes</system:String>

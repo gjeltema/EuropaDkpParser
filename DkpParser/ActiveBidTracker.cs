@@ -106,6 +106,18 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "60s",
         };
 
+    public string GetRemoveSpentMessageWithLink(SuggestedSpentCall spentCall)
+    {
+        if (spentCall == null)
+            return string.Empty;
+
+        string channel = GetChannelShortcut(spentCall.Channel);
+        string itemLink = _itemLinkValues.GetItemLink(spentCall.ItemName);
+        return spentCall.IsRoll
+            ? $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {spentCall.Winner} rolled {spentCall.DkpSpent} {Constants.RollWin} {Constants.Remove}"
+            : $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {spentCall.Winner} {spentCall.DkpSpent} {Constants.DkpSpent} {Constants.Remove}";
+    }
+
     public ICollection<SuggestedSpentCall> GetSpentInfoForCurrentHighBids(LiveAuctionInfo auction, bool lowRollWins)
     {
         if (auction == null)

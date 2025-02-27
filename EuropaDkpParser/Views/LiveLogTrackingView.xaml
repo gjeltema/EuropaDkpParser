@@ -216,7 +216,15 @@
                             </ListView.ItemContainerStyle>
                         </ListView>
 
-                        <Button Grid.Column="1" Content="{StaticResource CopyText}" Command="{Binding CopySelectedSpentCallToClipboardCommand}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="85" Height="30"/>
+                        <Grid Grid.Column="1" >
+                            <Button Content="{StaticResource CopyRemoveText}" Command="{Binding CopyRemoveSpentMessageToClipboardCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" Width="85" Height="30">
+                                <Button.ToolTip>
+                                    <TextBlock Text="{StaticResource CopyRemoveSpentTooltip}"/>
+                                </Button.ToolTip>
+                            </Button>
+                            <Button Content="{StaticResource CopyText}" Command="{Binding CopySelectedSpentCallToClipboardCommand}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="85" Height="30"/>
+                        </Grid>
+                        
                     </Grid>
 
                 </Grid>

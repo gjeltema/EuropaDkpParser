@@ -72,6 +72,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             .ObservesProperty(() => SelectedSpentMessageToPaste);
         CopySelectedStatusMessageToClipboardCommand = new DelegateCommand(CopySelectedStatusMessageToClipboard, () => AuctionStatusMessageToPaste != null)
             .ObservesProperty(() => AuctionStatusMessageToPaste);
+        CopyRemoveSpentMessageToClipboardCommand = new DelegateCommand(CopyRemoveSelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
+            .ObservesProperty(() => SelectedSpentMessageToPaste);
         ReactivateCompletedAuctionCommand = new DelegateCommand(ReactivateCompletedAuction, () => SelectedCompletedAuction != null)
             .ObservesProperty(() => SelectedCompletedAuction);
         RemoveBidCommand = new DelegateCommand(RemoveBid, () => SelectedBid != null).ObservesProperty(() => SelectedBid);
@@ -114,6 +116,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         get => _completedAuctions;
         private set => SetProperty(ref _completedAuctions, value);
     }
+
+    public DelegateCommand CopyRemoveSpentMessageToClipboardCommand { get; }
 
     public DelegateCommand CopySelectedSpentCallToClipboardCommand { get; }
 
@@ -350,6 +354,16 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             return;
 
         UpdateDisplay();
+    }
+
+    private void CopyRemoveSelectedSpentCallToClipboard()
+    {
+        SuggestedSpentCall selectedSpentCall = SelectedSpentMessageToPaste;
+        if (selectedSpentCall == null)
+            return;
+
+        string spentCallWithLink = _activeBidTracker.GetRemoveSpentMessageWithLink(selectedSpentCall);
+        Clip.Copy(spentCallWithLink);
     }
 
     private void CopySelectedSpentCallToClipboard()
@@ -679,6 +693,8 @@ public interface ILiveLogTrackingViewModel : IWindowViewModel
     DelegateCommand ChangeBidCharacterNameCommand { get; }
 
     ICollection<CompletedAuction> CompletedAuctions { get; }
+
+    DelegateCommand CopyRemoveSpentMessageToClipboardCommand { get; }
 
     DelegateCommand CopySelectedSpentCallToClipboardCommand { get; }
 

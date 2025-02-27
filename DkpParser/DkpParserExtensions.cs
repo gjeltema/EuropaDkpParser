@@ -10,9 +10,6 @@ public static class DkpParserExtensions
 {
     private const string AttendanceCallStart = $"/rs {Constants.AttendanceDelimiter}Raid Attendance Taken{Constants.AttendanceDelimiter}";
 
-    public static bool Contains(this ReadOnlySpan<char> chars, string searchedFor)
-        => chars.Contains(searchedFor, StringComparison.Ordinal);
-
     public static string GetAttendanceCall(this AttendanceCallType callType, string attendanceName)
     {
         if (callType == AttendanceCallType.Time)
