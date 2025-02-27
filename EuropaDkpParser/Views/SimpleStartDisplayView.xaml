@@ -13,30 +13,57 @@
         <Style x:Key="StarterButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Width" Value="150"/>
             <Setter Property="Height" Value="70"/>
-            <Setter Property="Margin" Value="0,0,0,50"/>
+            <Setter Property="Margin" Value="20"/>
         </Style>
     </UserControl.Resources>
-    
-    <Grid Margin="0,40,0,0">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Orientation="Vertical">
-            <Button Content="{StaticResource OpenDkpParser}" Command="{Binding OpenDkpParserCommand}" Style="{StaticResource StarterButton}"/>
-            <Button Content="{StaticResource UploadGeneratedLog}" Command="{Binding UploadGeneratedLogCommand}" Style="{StaticResource StarterButton}"
-                    Visibility="{Binding AbleToUpload, Converter={StaticResource BoolToVisibilityConverter}}">
-                <Button.ToolTip>
-                    <TextBlock Text="{StaticResource UploadGeneratedLogTooltip}"/>
-                </Button.ToolTip>
-            </Button>
-            <Button Content="{StaticResource TrackBids}" Command="{Binding OpenBiddingTrackerDialogCommand}" Style="{StaticResource StarterButton}"/>
-        </StackPanel>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Vertical">
+                <Button Content="{StaticResource OpenDkpParser}" Command="{Binding OpenDkpParserCommand}" Style="{StaticResource StarterButton}"/>
+                <Button Content="{StaticResource UploadGeneratedLog}" Command="{Binding UploadGeneratedLogCommand}" Style="{StaticResource StarterButton}"
+                        Visibility="{Binding AbleToUpload, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Button.ToolTip>
+                        <TextBlock Text="{StaticResource UploadGeneratedLogTooltip}"/>
+                    </Button.ToolTip>
+                </Button>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Vertical">
+                <Button Content="{StaticResource OpenOtherParser}" Command="{Binding OpenOtherParserCommand}"  Style="{StaticResource StarterButton}"/>
+                <Button Content="{StaticResource FileArchive}" Command="{Binding OpenArchiveFilesCommand}" Style="{StaticResource StarterButton}"/>
+                <Button Content="{StaticResource Settings}" Command="{Binding OpenSettingsCommand}" Style="{StaticResource StarterButton}"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="1" Margin="0,5,0,5"/>
         
-        <StackPanel Grid.Column="1" Orientation="Vertical">
-            <Button Content="{StaticResource OpenOtherParser}" Command="{Binding OpenOtherParserCommand}"  Style="{StaticResource StarterButton}"/>
-            <Button Content="{StaticResource FileArchive}" Command="{Binding OpenArchiveFilesCommand}" Style="{StaticResource StarterButton}"/>
-            <Button Content="{StaticResource Settings}" Command="{Binding OpenSettingsCommand}" Style="{StaticResource StarterButton}"/>
-        </StackPanel>
+        <Border Grid.Row="2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <Button Grid.Column="0" Content="{StaticResource MonitorBids}" Command="{Binding OpenSimpleBiddingTrackerDialogCommand}" Style="{StaticResource StarterButton}"
+                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <Button Grid.Column="1" Content="{StaticResource AdminBids}" Command="{Binding OpenAdminBiddingTrackerDialogCommand}" Style="{StaticResource StarterButton}"
+                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Grid>
+        </Border>
     </Grid>
+    
+    
+    
 </UserControl>

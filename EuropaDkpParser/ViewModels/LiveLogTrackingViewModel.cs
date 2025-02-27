@@ -659,6 +659,8 @@ public sealed class LiveAuctionDisplay : EuropaViewModelBase
     public string Auctioneer
         => _liveAuctionInfo.Auctioneer;
 
+    public string FullInfo { get; init; }
+
     public bool HasNewBidsAdded
     {
         get => _liveAuctionInfo.HasNewBidsAdded;

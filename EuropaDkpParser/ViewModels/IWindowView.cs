@@ -15,7 +15,13 @@ public interface ILiveLogTrackingWindow : IWindowView
 {
 }
 
+public interface ISimpleBidTrackerWindow : IWindowView
+{
+}
+
 public interface IWindowViewFactory
 {
     ILiveLogTrackingWindow CreateLiveLogTrackingWindow(ILiveLogTrackingViewModel liveLogTrackingViewModel);
+
+    ISimpleBidTrackerWindow CreateSimpleBidTrackerWindow(ISimpleBidTrackerViewModel simpleBidTrackerViewModel);
 }

@@ -4,6 +4,7 @@
 
 namespace EuropaDkpParser.ViewModels;
 
+using System;
 using System.IO;
 using System.Windows;
 using DkpParser;
@@ -18,7 +19,8 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     private readonly IDkpParserSettings _settings;
     private readonly IWindowFactory _windowFactory;
     private bool _ableToUpload;
-    private ILiveLogTrackingViewModel _biddingDialogVM;
+    private ILiveLogTrackingViewModel _adminBiddingDialogVM;
+    private ISimpleBidTrackerViewModel _simpleBidTrackerVM;
 
     internal SimpleStartDisplayViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IOverlayFactory overlayFactory, IWindowFactory windowFactory)
     {
@@ -32,7 +34,8 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         OpenDkpParserCommand = new DelegateCommand(OpenDkpParserDialog);
         UploadGeneratedLogCommand = new DelegateCommand(UploadGeneratedLog);
         OpenOtherParserCommand = new DelegateCommand(OpenOtherParserDialog);
-        OpenBiddingTrackerDialogCommand = new DelegateCommand(OpenBiddingTrackerDialog);
+        OpenAdminBiddingTrackerDialogCommand = new DelegateCommand(OpenBiddingTrackerDialog, () => _adminBiddingDialogVM == null && _simpleBidTrackerVM == null);
+        OpenSimpleBiddingTrackerDialogCommand = new DelegateCommand(OpenSimpleBidTrackerDialog, () => _adminBiddingDialogVM == null && _simpleBidTrackerVM == null);
 
         _logGenerator = new DkpLogGenerator(settings, dialogFactory);
         AbleToUpload = _settings.IsApiConfigured;
@@ -44,9 +47,9 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         set => SetProperty(ref _ableToUpload, value);
     }
 
-    public DelegateCommand OpenArchiveFilesCommand { get; }
+    public DelegateCommand OpenAdminBiddingTrackerDialogCommand { get; }
 
-    public DelegateCommand OpenBiddingTrackerDialogCommand { get; }
+    public DelegateCommand OpenArchiveFilesCommand { get; }
 
     public DelegateCommand OpenDkpParserCommand { get; }
 
@@ -54,7 +57,21 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     public DelegateCommand OpenSettingsCommand { get; }
 
+    public DelegateCommand OpenSimpleBiddingTrackerDialogCommand { get; }
+
     public DelegateCommand UploadGeneratedLogCommand { get; }
+
+    private void HandleAdminBiddingWindowClosed(object sender, EventArgs e)
+    {
+        _adminBiddingDialogVM = null;
+        RaiseBiddingDialogCommandsCanExecuteChanged();
+    }
+
+    private void HandleSimpleBiddingWindowClosed(object sender, EventArgs e)
+    {
+        _simpleBidTrackerVM = null;
+        RaiseBiddingDialogCommandsCanExecuteChanged();
+    }
 
     private void OpenArchiveFilesDialog()
     {
@@ -67,8 +84,11 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private void OpenBiddingTrackerDialog()
     {
-        _biddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, _dialogFactory, _overlayFactory, _windowFactory);
-        _biddingDialogVM.Show();
+        _adminBiddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, _dialogFactory, _overlayFactory, _windowFactory);
+        _adminBiddingDialogVM.WindowClosing += HandleAdminBiddingWindowClosed;
+        _adminBiddingDialogVM.Show();
+
+        RaiseBiddingDialogCommandsCanExecuteChanged();
     }
 
     private void OpenDkpParserDialog()
@@ -92,6 +112,21 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         settingsDialog.UpdateSettings(_settings);
 
         AbleToUpload = _settings.IsApiConfigured;
+    }
+
+    private void OpenSimpleBidTrackerDialog()
+    {
+        _simpleBidTrackerVM = _windowFactory.CreateSimpleBidTrackerViewModel(_settings);
+        _simpleBidTrackerVM.WindowClosing += HandleSimpleBiddingWindowClosed;
+        _simpleBidTrackerVM.Show();
+
+        RaiseBiddingDialogCommandsCanExecuteChanged();
+    }
+
+    private void RaiseBiddingDialogCommandsCanExecuteChanged()
+    {
+        OpenAdminBiddingTrackerDialogCommand.RaiseCanExecuteChanged();
+        OpenSimpleBiddingTrackerDialogCommand.RaiseCanExecuteChanged();
     }
 
     private async void UploadGeneratedLog()
@@ -122,15 +157,17 @@ public interface ISimpleStartDisplayViewModel : IEuropaViewModel
 {
     bool AbleToUpload { get; set; }
 
-    DelegateCommand OpenArchiveFilesCommand { get; }
+    DelegateCommand OpenAdminBiddingTrackerDialogCommand { get; }
 
-    DelegateCommand OpenBiddingTrackerDialogCommand { get; }
+    DelegateCommand OpenArchiveFilesCommand { get; }
 
     DelegateCommand OpenDkpParserCommand { get; }
 
     DelegateCommand OpenOtherParserCommand { get; }
 
     DelegateCommand OpenSettingsCommand { get; }
+
+    DelegateCommand OpenSimpleBiddingTrackerDialogCommand { get; }
 
     DelegateCommand UploadGeneratedLogCommand { get; }
 }

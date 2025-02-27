@@ -21,6 +21,9 @@ public sealed class WindowFactory : IWindowFactory
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory)
         => new LiveLogTrackingViewModel(_viewFactory, settings, dialogFactory, overlayFactory, windowFactory);
+
+    public ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings)
+        => new SimpleBidTrackerViewModel(_viewFactory, settings);
 }
 
 public interface IWindowFactory
@@ -30,4 +33,6 @@ public interface IWindowFactory
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory);
+
+    ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings);
 }
