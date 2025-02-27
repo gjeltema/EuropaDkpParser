@@ -84,6 +84,7 @@ public static class Constants
     public const string ReadyAlternateDelimiter = $"{AlternateDelimiter}{Ready}{AlternateDelimiter}";
     public const string ReadyCheck = "READYCHECK";
     public const string ReadyCheckAlternateDelimiter = $"{AlternateDelimiter}{ReadyCheck}{AlternateDelimiter}";
+    public const string ReadyCheckChannel = "Eu.readycheck";
     public const string ReadyCheckWithDelimiter = $"{AttendanceDelimiter}{ReadyCheck}{AttendanceDelimiter}";
     public const string ReadyWithDelimiter = $"{AttendanceDelimiter}{Ready}{AttendanceDelimiter}";
     public const string Remove = "REMOVE";

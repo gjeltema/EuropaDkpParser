@@ -25,6 +25,8 @@ internal sealed class ChannelAnalyzer
             return EqChannel.Auction;
         else if (logLine.Contains(Constants.GroupYou) || logLine.Contains(Constants.GroupOther))
             return EqChannel.Group;
+        else if (logLine.Contains(Constants.ReadyCheckChannel) && logLine.Contains(" tell"))
+            return EqChannel.ReadyCheck;
 
         return EqChannel.None;
     }

@@ -408,38 +408,44 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
             bool isValidDkpChannel = _channelAnalyzer.IsValidDkpChannel(channel);
 
+            if (TrackReadyCheck && (isValidDkpChannel || channel == EqChannel.ReadyCheck))
+            {
+                if (logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter) || logLineNoTimestamp.Contains(Constants.AlternateDelimiter))
+                {
+                    string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(logLineNoTimestamp);
+                    string noWhitespaceLogLine = sanitizedLogLine.RemoveAllWhitespace();
+
+                    if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter) || noWhitespaceLogLine.Contains(Constants.ReadyCheckAlternateDelimiter))
+                    {
+                        _readyCheckInitiated = true;
+                        Updated = true;
+                        return;
+                    }
+                    else if (noWhitespaceLogLine.Contains(Constants.ReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                        || noWhitespaceLogLine.Contains(Constants.ReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        string senderName = GetMessageSenderName(logLineNoTimestamp);
+                        _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = true });
+                        Updated = true;
+                        return;
+                    }
+                    else if (noWhitespaceLogLine.Contains(Constants.NotReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                        || noWhitespaceLogLine.Contains(Constants.NotReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+                    {
+
+                        string senderName = GetMessageSenderName(logLineNoTimestamp);
+                        _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = false });
+                        Updated = true;
+                        return;
+                    }
+                }
+            }
+
             // Include Group so that the tool can be used in xp groups
             if (!isValidDkpChannel && channel != EqChannel.Group)
                 return;
 
             string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
-            if (TrackReadyCheck && (logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter) || logLineNoTimestamp.Contains(Constants.AlternateDelimiter)))
-            {
-                string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(logLineNoTimestamp);
-                string noWhitespaceLogLine = sanitizedLogLine.RemoveAllWhitespace();
-
-                if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter) || noWhitespaceLogLine.Contains(Constants.ReadyCheckAlternateDelimiter))
-                {
-                    _readyCheckInitiated = true;
-                    Updated = true;
-                    return;
-                }
-                else if (noWhitespaceLogLine.Contains(Constants.ReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                    || noWhitespaceLogLine.Contains(Constants.ReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
-                {
-                    _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = true });
-                    Updated = true;
-                    return;
-                }
-                else if (noWhitespaceLogLine.Contains(Constants.NotReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                    || noWhitespaceLogLine.Contains(Constants.NotReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
-                {
-                    _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = messageSenderName, IsReady = false });
-                    Updated = true;
-                    return;
-                }
-            }
-
             int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'');
             string messageFromPlayer = logLineNoTimestamp[(indexOfFirstQuote + 1)..^1].Trim();
 

@@ -21,6 +21,7 @@ public enum EqChannel : byte
     Shout,
     Say,
     Tell,
+    ReadyCheck,
     Custom
 }
 
