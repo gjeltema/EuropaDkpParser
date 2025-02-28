@@ -37,7 +37,7 @@ public static class Constants
     public const string EqLogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string EqLogSearchPattern = "*eqlog*.txt";
     public const string EqProcessName = "eqgame";
-    public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-";
+    public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-eqlog-";
     public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-eqlog-";
     public const string GroupOther = " tells the group,";
     public const string GroupYou = "You tell your party, '";

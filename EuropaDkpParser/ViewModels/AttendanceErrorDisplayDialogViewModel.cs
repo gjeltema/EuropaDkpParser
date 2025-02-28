@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceErrorDisplayDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// AttendanceErrorDisplayDialogViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -246,6 +246,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         }
 
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        SelectedErrorEntry = null;
         RaidNameText = string.Empty;
         RemoveDuplicateErrorEntryCommand.RaiseCanExecuteChanged();
         ChangeBossMobNameCommand.RaiseCanExecuteChanged();
@@ -264,7 +265,9 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             ErrorMessageText = Strings.GetString("PossibleDupEntries");
             ErrorAttendances = _raidEntries.AttendanceEntries
                 .Where(x => x.CallName.Equals(_currentEntry.CallName, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.Timestamp)
                 .ToList();
+            SelectedErrorEntry = ErrorAttendances.Last();
         }
         else if (_currentEntry.PossibleError == PossibleError.BossMobNameTypo)
         {
@@ -303,6 +306,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         _currentEntry.CallName = SelectedBossName;
         ErrorAttendances = [_currentEntry];
+        AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
     }
 
     private void RemoveDuplicateErrorEntry()
@@ -311,6 +315,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
         ErrorAttendances = _raidEntries.AttendanceEntries
             .Where(x => x.CallName.Equals(_currentEntry.CallName, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.Timestamp)
             .ToList();
 
         AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();

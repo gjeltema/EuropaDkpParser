@@ -83,6 +83,9 @@ public sealed class DkpServerCharacters
     public bool IsRelatedCharacterInCollection(PlayerCharacter character, IEnumerable<PlayerCharacter> characters)
     {
         DkpUserCharacter dkpCharacter = _userCharacters.FirstOrDefault(x => x.Name.Equals(character.CharacterName, StringComparison.OrdinalIgnoreCase));
+        if (dkpCharacter == null)
+            return false;
+
         List<DkpUserCharacter> associatedCharacters = _userCharacters
                 .Where(x => x.UserId == dkpCharacter.UserId && x.Name != dkpCharacter.Name)
                 .ToList();
