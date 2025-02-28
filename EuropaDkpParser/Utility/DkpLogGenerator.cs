@@ -29,7 +29,7 @@ internal sealed class DkpLogGenerator
 
     public async Task GetRawLogFilesParseAsync(DateTime startTime, DateTime endTime, string outputPath)
     {
-        Log.Debug($"{LogPrefix} Starting {GetRawLogFilesParseAsync}");
+        Log.Debug($"{LogPrefix} Starting {nameof(GetRawLogFilesParseAsync)}");
 
         IFullRaidLogsParser fullLogParser = new FullRaidLogsParser(_settings);
         ICollection<EqLogFile> logFiles = await Task.Run(() => fullLogParser.GetEqLogFiles(startTime, endTime));
@@ -106,7 +106,7 @@ internal sealed class DkpLogGenerator
 
     public async Task StartLogParseAsync(DkpLogGenerationSessionSettings sessionSettings)
     {
-        Log.Debug($"{LogPrefix} Starting {StartLogParseAsync}");
+        Log.Debug($"{LogPrefix} Starting {nameof(StartLogParseAsync)}");
 
         RaidEntries raidEntries = await ParseAndAnalyzeLogFiles(sessionSettings);
 
@@ -190,7 +190,7 @@ internal sealed class DkpLogGenerator
 
     public async Task UploadGeneratedLogFile(string generatedLogFile)
     {
-        Log.Debug($"{LogPrefix} Starting {UploadGeneratedLogFile}");
+        Log.Debug($"{LogPrefix} Starting {nameof(UploadGeneratedLogFile)}");
 
         RaidEntries raidEntries = await ParseGeneratedLogFile(generatedLogFile);
 
