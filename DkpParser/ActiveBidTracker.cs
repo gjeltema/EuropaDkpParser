@@ -275,13 +275,13 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "/rs",
         };
 
-    private string GetMessageSenderName(string logLine)
+    private string GetMessageSenderName(ReadOnlySpan<char> logLine)
     {
         int indexOfSpace = logLine.IndexOf(' ');
         if (indexOfSpace < 3)
             return string.Empty;
 
-        string auctioneerName = logLine[0..indexOfSpace].Trim();
+        string auctioneerName = logLine[0..indexOfSpace].Trim().ToString();
         return auctioneerName;
     }
 
@@ -340,11 +340,11 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         string fileName = string.Format(Constants.ZealAttendanceBasedFileNameFormat, timestamp.ToString(Constants.ZealRaidAttendanceFileNameTimeFormat));
         string fullFilePath = Path.Combine(eqDirectory, fileName);
 
-        string firstLine = $"{raidName}|{zoneName}";
+        string firstLine = ZealRaidAttendanceFile.GetFirstLine(raidName, zoneName);
         IEnumerable<string> characters = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees
             .OrderBy(x => x.Group)
             .ThenBy(x => x.Name)
-            .Select(x => $"{x.Group}|{x.Name}|{x.Class}|{x.Level}|{x.Rank}");
+            .Select(x => ZealRaidAttendanceFile.GetFileLine(x.Group, x.Name, x.Class, x.Level, x.Rank));
 
         IEnumerable<string> fileContents = [firstLine, .. characters];
 
@@ -432,7 +432,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     else if (noWhitespaceLogLine.Contains(Constants.NotReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
                         || noWhitespaceLogLine.Contains(Constants.NotReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                     {
-
                         string senderName = GetMessageSenderName(logLineNoTimestamp);
                         _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = false });
                         Updated = true;
@@ -447,7 +446,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
             string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
             int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'');
-            string messageFromPlayer = logLineNoTimestamp[(indexOfFirstQuote + 1)..^1].Trim();
+            string messageFromPlayer = logLineNoTimestamp.AsSpan()[(indexOfFirstQuote + 1)..^1].Trim().ToString();
 
             ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(messageFromPlayer, channel, timestamp, messageSenderName);
             if (auctionStarts.Count > 0)
@@ -487,7 +486,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} Error processing messages: {ex}");
+            Log.Error($"{LogPrefix} Error processing messages: {ex.ToLogMessage()}");
         }
     }
 
@@ -519,7 +518,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         _spentCalls = _spentCalls.Add(spentCall);
 
-        ICollection<LiveSpentCall> spentCalls = _spentCalls.Where(x => x.AuctionStart.Id == existingAuction.Id).ToList();
+        List<LiveSpentCall> spentCalls = _spentCalls.Where(x => x.AuctionStart.Id == existingAuction.Id).ToList();
 
         if (spentCalls.Count >= existingAuction.TotalNumberOfItems)
         {

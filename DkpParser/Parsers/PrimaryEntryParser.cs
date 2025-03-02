@@ -11,16 +11,14 @@ internal sealed class PrimaryEntryParser : IParseEntry
 {
     private readonly ChannelAnalyzer _channelAnalyzer;
     private readonly EqLogFile _logFile;
+    private readonly IParseEntry _populationListingParser;
+    private readonly IPopulationListingStartEntryParser _populationListingStartParser;
     private readonly ISetEntryParser _setParser;
-    private readonly IDkpParserSettings _settings;
-    private IParseEntry _populationListingParser;
-    private IPopulationListingStartEntryParser _populationListingStartParser;
-    private char[] _tempString = new char[400];
+    private readonly char[] _tempString = new char[400];
 
     internal PrimaryEntryParser(ISetEntryParser setParser, IDkpParserSettings settings, EqLogFile logFile)
     {
         _setParser = setParser;
-        _settings = settings;
         _logFile = logFile;
 
         _channelAnalyzer = new(settings);
@@ -60,8 +58,6 @@ internal sealed class PrimaryEntryParser : IParseEntry
         }
         else if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
         {
-            EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
-
             if (logLine.Contains(Constants.RaidAttendanceTaken, StringComparison.OrdinalIgnoreCase))
             {
                 // Only accept raid attendance calls from yourself into /rs.
@@ -73,9 +69,10 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
                 // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
                 // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
-                logEntry.EntryType = logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase)
+                LogEntryType entryType = logLine.Contains(Constants.KillCall, StringComparison.OrdinalIgnoreCase)
                     ? LogEntryType.Kill
                     : LogEntryType.Attendance;
+                CreateAndAddLogEntry(logLine, entryTimeStamp, entryType);
             }
             else
             {
@@ -85,21 +82,21 @@ internal sealed class PrimaryEntryParser : IParseEntry
                 if (noWhitespaceLogline.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase)
                     || noWhitespaceLogline.Contains(Constants.CrashedAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
-                    logEntry.EntryType = LogEntryType.Crashed;
+                    CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Crashed);
                 }
                 else if (noWhitespaceLogline.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
                     || noWhitespaceLogline.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
-                    logEntry.EntryType = LogEntryType.AfkStart;
+                    CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkStart);
                 }
                 else if (noWhitespaceLogline.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
                     || noWhitespaceLogline.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
-                    logEntry.EntryType = LogEntryType.AfkEnd;
+                    CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkEnd);
                 }
                 else if (logLine.Contains(Constants.Transfer))
                 {
-                    logEntry.EntryType = LogEntryType.Transfer;
+                    CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Transfer);
                 }
             }
         }
@@ -107,9 +104,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
     private void AddLootedEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
-        EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
-        logEntry.EntryType = LogEntryType.CharacterLooted;
-        _logFile.LogEntries.Add(logEntry);
+        EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.CharacterLooted);
     }
 
     private void AddRaidJoinLeaveEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
@@ -122,15 +117,11 @@ internal sealed class PrimaryEntryParser : IParseEntry
 
         if (logLine.EndsWith(Constants.JoinedRaid))
         {
-            EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
-            _logFile.LogEntries.Add(logEntry);
-            logEntry.EntryType = LogEntryType.JoinedRaid;
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.JoinedRaid);
         }
         else if (logLine.EndsWith(Constants.LeftRaid))
         {
-            EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
-            _logFile.LogEntries.Add(logEntry);
-            logEntry.EntryType = LogEntryType.LeftRaid;
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.LeftRaid);
         }
     }
 
@@ -140,18 +131,14 @@ internal sealed class PrimaryEntryParser : IParseEntry
         if (channel == EqChannel.None)
             return;
 
-        EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
-        logEntry.EntryType = entryType;
+        EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp, entryType);
         logEntry.Channel = channel;
     }
 
-    private EqLogEntry CreateAndAddLogEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
+    private EqLogEntry CreateAndAddLogEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp, LogEntryType entryType)
     {
-        EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
+        EqLogEntry logEntry = new() { LogLine = logLine.ToString(), Timestamp = entryTimeStamp, EntryType = entryType };
         _logFile.LogEntries.Add(logEntry);
         return logEntry;
     }
-
-    private EqLogEntry CreateLogEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
-        => new() { LogLine = logLine.ToString(), Timestamp = entryTimeStamp };
 }

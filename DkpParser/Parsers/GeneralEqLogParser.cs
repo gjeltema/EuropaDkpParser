@@ -85,7 +85,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(FactionStandingTerm));
         if (settings.AllTells)
         {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouToldSearch));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouTold));
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.TellsYou));
         }
         if (settings.Channel)
@@ -163,7 +163,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 
         public bool TryParseEntry(string logLine, DateTime entryTimeStamp, out EqLogEntry eqLogEntry)
         {
-            if (!logLine.Contains(Constants.YouToldSearch) && !logLine.Contains(Constants.TellsYou))
+            if (!logLine.Contains(Constants.YouTold) && !logLine.Contains(Constants.TellsYou))
             {
                 eqLogEntry = null;
                 return false;
@@ -174,7 +174,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             // [Thu Oct 24 00:02:39 2024] You told Shaper '[queued], You're in WC.  If you come to EC, I can tag you.'
             foreach (string person in _peopleConversingWith)
             {
-                if (logLine.Contains($"{Constants.YouToldSearch}{person}", StringComparison.OrdinalIgnoreCase)
+                if (logLine.Contains($"{Constants.YouTold}{person}", StringComparison.OrdinalIgnoreCase)
                     || logLine.Contains($"] {person}{Constants.TellsYou}", StringComparison.OrdinalIgnoreCase))
                 {
                     eqLogEntry = new()

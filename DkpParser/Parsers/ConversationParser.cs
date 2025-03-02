@@ -43,14 +43,14 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
             // [Thu Oct 24 00:02:39 2024] You told Shaper '[queued], You're in WC.  If you come to EC, I can tag you.'
             foreach (string person in peopleConversingWith)
             {
-                _conversationSearchStrings.Add($"{Constants.YouToldSearch}{person}");
+                _conversationSearchStrings.Add($"{Constants.YouTold}{person}");
                 _conversationSearchStrings.Add($"] {person}{Constants.TellsYou}");
             }
         }
 
         public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
         {
-            if (!logLine.Contains(Constants.YouToldSearch) && !logLine.Contains(Constants.TellsYou))
+            if (!logLine.Contains(Constants.YouTold) && !logLine.Contains(Constants.TellsYou))
                 return;
 
             // [Fri Mar 01 21:49:34 2024] Klawse tells you, 'need key'

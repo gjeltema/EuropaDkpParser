@@ -17,9 +17,9 @@ internal sealed class ChannelAnalyzer
     {
         if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
             return EqChannel.Raid;
-        else if (logLine.Contains(Constants.GuildYouSearch) || logLine.Contains(Constants.GuildOther))
+        else if (logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.GuildOther))
             return EqChannel.Guild;
-        else if (logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.OocOther))
+        else if (logLine.Contains(Constants.OocYou) || logLine.Contains(Constants.OocOther))
             return EqChannel.Ooc;
         else if (logLine.Contains(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther))
             return EqChannel.Auction;

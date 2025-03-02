@@ -11,6 +11,8 @@ using System.IO;
 [DebuggerDisplay("{DebugDisplay}")]
 public sealed class ZealRaidAttendanceFile
 {
+    private const char Delimiter = '|';
+
     private ZealRaidAttendanceFile(string fullFilePath, string fileName, DateTime fileDateTime)
     {
         FullFilePath = fullFilePath;
@@ -46,4 +48,10 @@ public sealed class ZealRaidAttendanceFile
 
         return new ZealRaidAttendanceFile(fullFilePath, fileName, fileDateTime);
     }
+
+    public static string GetFileLine(string group, string name, string className, string level, string rank)
+        => $"{group}{Delimiter}{name}{Delimiter}{className}{Delimiter}{level}{Delimiter}{rank}";
+
+    public static string GetFirstLine(string raidName, string zoneName)
+        => $"{raidName}{Delimiter}{zoneName}";
 }

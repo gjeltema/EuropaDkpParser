@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DelimiterStringSanitizer.cs Copyright 2024 Craig Gjeltema
+// DelimiterStringSanitizer.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;

@@ -47,7 +47,6 @@ public static class Constants
     public const string GuildTag = $"<{GuildName}>";
     public const string GuildYou = "You say to your guild, '";
     // [Wed Mar 13 20:32:16 2024] You say to your guild, 'Yes, a number of us are LFG at the book for a raid invite.'
-    public const string GuildYouSearch = $"] {GuildYou}";
     public const string JoinedRaid = " joined the raid.";
     public const string KillCall = "KILL";
     public const string LeftRaid = " has left the raid.";
@@ -58,9 +57,8 @@ public static class Constants
     public const string NotReadyWithDelimiter = $"{AttendanceDelimiter}{NotReady}{AttendanceDelimiter}";
     // [Tue Mar 19 20:13:39 2024] Slebog says out of character, '>> an azarack has been SLOWED  <<'
     public const string OocOther = " says out of character, '";
-    public const string OocYou = "You say out of character, '";
     // [Tue Mar 19 20:13:26 2024] You say out of character, 'Attempting to Mezz ----> an azarack <----'
-    public const string OocYouSearch = $"] {OocYou}";
+    public const string OocYou = "You say out of character, '";
     public const string PlayerIn = " player in ";
     /// <summary>
     /// Entry for noting the number of players and zone.  If there is one player returned, it will say "... player in...".<br/>
@@ -101,7 +99,6 @@ public static class Constants
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";
     public const string YouTold = "You told ";
-    public const string YouToldSearch = $"] {YouTold}";
     public const string ZealAttendanceBasedFileName = "ZealRaidAttendance_";
     public const string ZealAttendanceBasedFileNameFormat = ZealAttendanceBasedFileName + "{0}.txt";
     public const int ZealPipeBufferSize = 32768;
