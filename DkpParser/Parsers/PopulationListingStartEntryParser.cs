@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// PopulationListingStartEntryParser.cs Copyright 2024 Craig Gjeltema
+// PopulationListingStartEntryParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -23,7 +23,7 @@ internal sealed class PopulationListingStartEntryParser : IPopulationListingStar
         _populationListingParser = populationListingParser;
     }
 
-    public void ParseEntry(string logLine, DateTime entryTimeStamp)
+    public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
         if (_finishedParse)
         {

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// EqLogFile.cs Copyright 2024 Craig Gjeltema
+// EqLogFile.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -21,10 +21,11 @@ public sealed class EqLogFile
 
     public IEnumerable<string> GetAllLogLines()
     {
-        yield return $"----------------------- {LogFile} Begin --------------------------";
+        DateTime firstTimestamp = LogEntries[0].Timestamp;
+        yield return $"{firstTimestamp.ToString(Constants.EqLogDateTimeFormat)} ----------------------- {LogFile} Begin --------------------------";
 
         foreach (EqLogEntry logEntry in LogEntries)
-            yield return logEntry.LogLine;
+            yield return logEntry.FullLogLine;
 
         yield return "";
         yield return "";

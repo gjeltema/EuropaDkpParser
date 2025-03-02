@@ -15,6 +15,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
     private readonly IDkpParserSettings _settings;
     private IParseEntry _populationListingParser;
     private IPopulationListingStartEntryParser _populationListingStartParser;
+    private char[] _tempString = new char[400];
 
     internal PrimaryEntryParser(ISetEntryParser setParser, IDkpParserSettings settings, EqLogFile logFile)
     {
@@ -28,36 +29,34 @@ internal sealed class PrimaryEntryParser : IParseEntry
         _populationListingStartParser = new PopulationListingStartEntryParser(setParser, this, _populationListingParser);
     }
 
-    public void ParseEntry(string logLine, DateTime entryTimeStamp)
+    public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
-        ReadOnlySpan<char> logLineSpan = logLine.AsSpan()[(Constants.LogDateTimeLength + 1)..];
-
         // Check for just '::' first as it's a fast check.  Do more in depth parsing of the line if this is present.
-        if (logLineSpan.IndexOf(Constants.PossibleErrorDelimiter) > 0 || logLineSpan.IndexOf(Constants.AlternateDelimiter) > 0)
+        if (logLine.Contains(Constants.PossibleErrorDelimiter) || logLine.Contains(Constants.AlternateDelimiter))
         {
             AddDelimiterEntry(logLine, entryTimeStamp);
         }
-        else if (logLineSpan.EndsWith(Constants.EndLootedDashes))
+        else if (logLine.EndsWith(Constants.EndLootedDashes))
         {
             if (logLine.Contains(Constants.LootedA))
                 AddLootedEntry(logLine, entryTimeStamp);
         }
         // Check for just 'raid.' first as it's a fast check. Do more in depth parsing of the line if this is present.
-        else if (logLineSpan.EndsWith(Constants.Raid))
+        else if (logLine.EndsWith(Constants.Raid))
         {
             AddRaidJoinLeaveEntry(logLine, entryTimeStamp);
         }
-        else if (logLineSpan.IndexOf(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase) > 0)
+        else if (logLine.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase))
         {
-            AddSpentCall(logLine, entryTimeStamp, false);
+            AddSpentCall(logLine, entryTimeStamp, LogEntryType.PossibleDkpSpent);
         }
     }
 
-    private void AddDelimiterEntry(string logLine, DateTime entryTimeStamp)
+    private void AddDelimiterEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
         if (logLine.Contains(Constants.DkpSpent, StringComparison.OrdinalIgnoreCase))
         {
-            AddSpentCall(logLine, entryTimeStamp);
+            AddSpentCall(logLine, entryTimeStamp, LogEntryType.DkpSpent);
         }
         else if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
         {
@@ -80,7 +79,9 @@ internal sealed class PrimaryEntryParser : IParseEntry
             }
             else
             {
-                string noWhitespaceLogline = logLine.RemoveAllWhitespace();
+                int numberOfChars = logLine.RemoveAllWhitespace(_tempString);
+                ReadOnlySpan<char> noWhitespaceLogline = _tempString.AsSpan(0, numberOfChars);
+
                 if (noWhitespaceLogline.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase)
                     || noWhitespaceLogline.Contains(Constants.CrashedAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
@@ -104,14 +105,14 @@ internal sealed class PrimaryEntryParser : IParseEntry
         }
     }
 
-    private void AddLootedEntry(string logLine, DateTime entryTimeStamp)
+    private void AddLootedEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
         EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
         logEntry.EntryType = LogEntryType.CharacterLooted;
         _logFile.LogEntries.Add(logEntry);
     }
 
-    private void AddRaidJoinLeaveEntry(string logLine, DateTime entryTimeStamp)
+    private void AddRaidJoinLeaveEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
         // [Tue Feb 27 23:13:23 2024] Orsino has left the raid.
         // [Tue Feb 27 23:14:20 2024] Marco joined the raid.
@@ -133,24 +134,24 @@ internal sealed class PrimaryEntryParser : IParseEntry
         }
     }
 
-    private void AddSpentCall(string logLine, DateTime entryTimeStamp, bool confirmed = true)
+    private void AddSpentCall(ReadOnlySpan<char> logLine, DateTime entryTimeStamp, LogEntryType entryType)
     {
         EqChannel channel = _channelAnalyzer.GetValidDkpChannel(logLine);
         if (channel == EqChannel.None)
             return;
 
         EqLogEntry logEntry = CreateAndAddLogEntry(logLine, entryTimeStamp);
-        logEntry.EntryType = confirmed ? LogEntryType.DkpSpent : LogEntryType.PossibleDkpSpent;
+        logEntry.EntryType = entryType;
         logEntry.Channel = channel;
     }
 
-    private EqLogEntry CreateAndAddLogEntry(string logLine, DateTime entryTimeStamp)
+    private EqLogEntry CreateAndAddLogEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
         EqLogEntry logEntry = CreateLogEntry(logLine, entryTimeStamp);
         _logFile.LogEntries.Add(logEntry);
         return logEntry;
     }
 
-    private EqLogEntry CreateLogEntry(string logLine, DateTime entryTimeStamp)
-        => new() { LogLine = logLine, Timestamp = entryTimeStamp };
+    private EqLogEntry CreateLogEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
+        => new() { LogLine = logLine.ToString(), Timestamp = entryTimeStamp };
 }

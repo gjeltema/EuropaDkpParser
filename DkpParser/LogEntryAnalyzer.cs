@@ -194,36 +194,21 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         entry.Visited = true;
 
-        int indexOfLastBracket = entry.LogLine.IndexOf(']');
-        if (indexOfLastBracket < 0 || entry.LogLine.Length < indexOfLastBracket + 3)
-        {
-            Log.Warning($"{LogPrefix} Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}");
-            return null;
-        }
-
-        string entryMessage = entry.LogLine[(indexOfLastBracket + 2)..];
-        if (string.IsNullOrWhiteSpace(entryMessage))
-        {
-            Log.Warning($"{LogPrefix} Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}");
-            return null;
-        }
-
-        entryMessage = entryMessage.Trim();
-
-        if (entryMessage.Contains("You have "))
+        string logLine = entry.LogLine;
+        if (logLine.Contains("You have "))
             return null;
 
-        int indexOfSpace = entryMessage.IndexOf(' ');
+        int indexOfSpace = logLine.IndexOf(' ');
         if (indexOfSpace < 2)
         {
-            Log.Warning($"{LogPrefix} Unable to validate log entry is a Player Joined/Left raid entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a Player Joined/Left raid entry: {entry.FullLogLine}");
             return null;
         }
 
-        string playerName = entryMessage[0..indexOfSpace];
+        string playerName = logLine[0..indexOfSpace];
         if (string.IsNullOrWhiteSpace(playerName))
         {
-            Log.Warning($"{LogPrefix} Unable to find player name in a Player Joined/Left raid entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to find player name in a Player Joined/Left raid entry: {entry.FullLogLine}");
             return null;
         }
 
@@ -242,37 +227,37 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         // [Wed Feb 21 18:49:31 2024] --Orsino has looted a Part of Tasarin's Grimoire Pg. 24.--
         // [Wed Feb 21 16:34:07 2024] --You have looted a Bloodstained Key.--
         int indexOfFirstDashes = entry.LogLine.IndexOf(Constants.DoubleDash);
-        if (indexOfFirstDashes <= Constants.LogDateTimeLength)
+        if (indexOfFirstDashes < 0)
         {
-            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.FullLogLine}");
             return null;
         }
         int startIndex = indexOfFirstDashes + Constants.DoubleDash.Length;
         int endIndex = entry.LogLine.Length - Constants.EndLootedDashes.Length;
         if (startIndex >= endIndex)
         {
-            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.FullLogLine}");
             return null;
         }
 
         string lootString = entry.LogLine[startIndex..endIndex].Trim();
         if (string.IsNullOrWhiteSpace(lootString))
         {
-            Log.Warning($"{LogPrefix} Unable to extract string after timestamp from player looted entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to extract string after timestamp from player looted entry: {entry.FullLogLine}");
             return null;
         }
 
         int indexOfSpace = lootString.IndexOf(' ');
         if (indexOfSpace < 1)
         {
-            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.FullLogLine}");
             return null;
         }
 
         string playerName = lootString[0..indexOfSpace];
         if (string.IsNullOrWhiteSpace(playerName))
         {
-            Log.Warning($"{LogPrefix} Unable to extract player name from player looted entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to extract player name from player looted entry: {entry.FullLogLine}");
             return null;
         }
 
@@ -280,14 +265,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         int startIndexOfItem = indexOfLooted + Constants.LootedA.Length;
         if (indexOfLooted < 1)
         {
-            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to validate log entry is a player looted entry: {entry.FullLogLine}");
             return null;
         }
 
         string itemName = lootString[startIndexOfItem..];
         if (string.IsNullOrWhiteSpace(itemName))
         {
-            Log.Warning($"{LogPrefix} Unable to extract looted item from player looted entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to extract looted item from player looted entry: {entry.FullLogLine}");
             return null;
         }
 
@@ -296,7 +281,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             PlayerName = playerName,
             ItemLooted = itemName,
             Timestamp = entry.Timestamp,
-            RawLogLine = entry.LogLine
+            RawLogLine = entry.FullLogLine
         };
     }
 
@@ -304,7 +289,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         => from logFile in logParseResults.EqLogFiles
            from entry in logFile.LogEntries
            where !entry.Visited
-           select entry.LogLine;
+           select entry.FullLogLine;
 
     private void PopulateLootedList(LogParseResults logParseResults)
     {
@@ -332,17 +317,17 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             }
         }
 
-        foreach (RaidListFile raidList in logParseResults.RaidListFiles)
+        foreach (ZealRaidAttendanceFile zealRaidList in logParseResults.ZealRaidAttendanceFiles)
         {
-            foreach (PlayerCharacter playerChar in raidList.CharacterNames)
+            foreach (PlayerCharacter playerChar in zealRaidList.CharacterNames)
             {
                 _raidEntries.AddOrMergeInPlayerCharacter(playerChar);
             }
         }
 
-        foreach (ZealRaidAttendanceFile zealRaidList in logParseResults.ZealRaidAttendanceFiles)
+        foreach (RaidListFile raidList in logParseResults.RaidListFiles)
         {
-            foreach (PlayerCharacter playerChar in zealRaidList.CharacterNames)
+            foreach (PlayerCharacter playerChar in raidList.CharacterNames)
             {
                 _raidEntries.AddOrMergeInPlayerCharacter(playerChar);
             }

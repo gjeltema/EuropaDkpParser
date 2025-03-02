@@ -386,7 +386,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         try
         {
             // +1 to remove the following space.
-            string logLineNoTimestamp = message[(Constants.LogDateTimeLength + 1)..];
+            string logLineNoTimestamp = message[(Constants.EqLogDateTimeLength + 1)..];
 
             string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
             if (bossKilledName != null)

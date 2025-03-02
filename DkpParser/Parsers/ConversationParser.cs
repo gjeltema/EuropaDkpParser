@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ConversationParser.cs Copyright 2024 Craig Gjeltema
+// ConversationParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -48,7 +48,7 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
             }
         }
 
-        public void ParseEntry(string logLine, DateTime entryTimeStamp)
+        public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
         {
             if (!logLine.Contains(Constants.YouToldSearch) && !logLine.Contains(Constants.TellsYou))
                 return;
@@ -63,7 +63,7 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
                     EqLogEntry logEntry = new()
                     {
                         EntryType = LogEntryType.Unknown,
-                        LogLine = logLine,
+                        LogLine = logLine.ToString(),
                         Timestamp = entryTimeStamp
                     };
 

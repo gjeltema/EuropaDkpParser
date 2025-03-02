@@ -129,7 +129,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 }
                 catch (Exception ex)
                 {
-                    EuropaDkpParserException eex = new("An unexpected error occurred when analyzing an attendance call.", logEntry.LogLine, ex);
+                    EuropaDkpParserException eex = new("An unexpected error occurred when analyzing an attendance call.", logEntry.FullLogLine, ex);
                     throw eex;
                 }
             }
@@ -168,24 +168,24 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::AFK:::'
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::AFKEND:::'
 
-        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.AfkAlternateDelimiter.Length + Constants.RaidOther.Length + 5)
+        string logLine = logEntry.LogLine;
+        if (logLine.Length < Constants.AfkAlternateDelimiter.Length + Constants.RaidOther.Length + 5)
         {
-            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.LogLine}");
+            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.FullLogLine}");
             return null;
         }
 
-        string linePastTimestamp = logEntry.LogLine[(Constants.LogDateTimeLength + 1)..];
-        string[] parts = linePastTimestamp.Split(' ');
+        string[] parts = logLine.Split(' ');
         if (parts.Length < 4)
         {
-            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.LogLine}");
+            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.FullLogLine}");
             return null;
         }
 
         string characterName = parts[0].Trim();
         if (string.IsNullOrEmpty(characterName))
         {
-            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.LogLine}");
+            Log.Info($"{LogPrefix} Unable get character name in {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} entry: {logEntry.FullLogLine}");
             return null;
         }
 
@@ -203,76 +203,76 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Sat Mar 09 20:23:41 2024]  <LINKDEAD>[50 Rogue] Noggen (Dwarf) <Europa>
         entry.Visited = true;
 
-        string logLineNoTimestamp = entry.LogLine[(Constants.LogDateTimeLength + 1)..];
-        int indexOfLastBracket = logLineNoTimestamp.LastIndexOf(']');
+        string logLine = entry.LogLine;
+        int indexOfLastBracket = logLine.LastIndexOf(']');
         if (indexOfLastBracket < 0)
         {
             // Should not reach here.
-            Debug.Fail($"Reached a place in {nameof(ExtractAttendingCharacter)} that should not be reached. No ']'.  Logline: {entry.LogLine}");
-            Log.Warning($"{LogPrefix} Unable to extract attending character. No ']'.: {entry.LogLine}");
+            Debug.Fail($"Reached a place in {nameof(ExtractAttendingCharacter)} that should not be reached. No ']'.  Logline: {entry.FullLogLine}");
+            Log.Warning($"{LogPrefix} Unable to extract attending character. No ']'.: {entry.FullLogLine}");
             return new CharacterAttend { CharacterName = "UNKNOWN", Timestamp = entry.Timestamp };
         }
 
-        int firstIndexOfEndMarker = logLineNoTimestamp.LastIndexOf('(');
+        int firstIndexOfEndMarker = logLine.LastIndexOf('(');
         if (firstIndexOfEndMarker < 0)
         {
-            firstIndexOfEndMarker = logLineNoTimestamp.LastIndexOf('<');
+            firstIndexOfEndMarker = logLine.LastIndexOf('<');
             if (firstIndexOfEndMarker < 0)
             {
                 // Should not reach here.
-                Debug.Fail($"Reached a place in {nameof(ExtractAttendingCharacter)} that should not be reached. No '(' or '<'.  Logline: {entry.LogLine}");
-                Log.Warning($"{LogPrefix} Unable to extract attending character. No '(' or '<'.: {entry.LogLine}");
+                Debug.Fail($"Reached a place in {nameof(ExtractAttendingCharacter)} that should not be reached. No '(' or '<'.  Logline: {entry.FullLogLine}");
+                Log.Warning($"{LogPrefix} Unable to extract attending character. No '(' or '<'.: {entry.FullLogLine}");
                 return new CharacterAttend { CharacterName = "UNKNOWN", Timestamp = entry.Timestamp };
             }
         }
 
-        string characterName = logLineNoTimestamp[(indexOfLastBracket + 1)..firstIndexOfEndMarker].Trim();
+        string characterName = logLine[(indexOfLastBracket + 1)..firstIndexOfEndMarker].Trim();
         if (string.IsNullOrEmpty(characterName))
         {
-            Log.Warning($"{LogPrefix} Unable to get character name from 'who' entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to get character name from 'who' entry: {entry.FullLogLine}");
             return new CharacterAttend { CharacterName = "UNKNOWN", Timestamp = entry.Timestamp };
         }
 
         PlayerCharacter character = new() { CharacterName = characterName };
 
-        if (logLineNoTimestamp.Contains(Constants.AnonWithBrackets))
+        if (logLine.Contains(Constants.AnonWithBrackets))
         {
             _raidEntries.AddOrMergeInPlayerCharacter(character);
             return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
-        int indexOfLeadingClassBracket = logLineNoTimestamp.LastIndexOf('[');
+        int indexOfLeadingClassBracket = logLine.LastIndexOf('[');
         if (indexOfLeadingClassBracket < 0)
         {
-            Log.Warning($"{LogPrefix} Unable to find leading '[' in 'who' entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to find leading '[' in 'who' entry: {entry.FullLogLine}");
             return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
-        string classLevelString = logLineNoTimestamp[(indexOfLeadingClassBracket + 1)..indexOfLastBracket];
+        string classLevelString = logLine[(indexOfLeadingClassBracket + 1)..indexOfLastBracket];
         if (string.IsNullOrWhiteSpace(classLevelString))
         {
-            Log.Warning($"{LogPrefix} Unable to get class and level in 'who' entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to get class and level in 'who' entry: {entry.FullLogLine}");
             return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
         string[] classAndLevel = classLevelString.Split(' ');
         if (classAndLevel.Length < 2)
         {
-            Log.Warning($"{LogPrefix} Unable to get class and level in 'who' entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to get class and level in 'who' entry: {entry.FullLogLine}");
             return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
-        int indexOfLastParens = logLineNoTimestamp.LastIndexOf(')');
+        int indexOfLastParens = logLine.LastIndexOf(')');
         if (indexOfLastParens < 0)
         {
-            Log.Warning($"{LogPrefix} Unable to find trailing ')' in 'who' entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to find trailing ')' in 'who' entry: {entry.FullLogLine}");
             return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
-        string race = logLineNoTimestamp[(firstIndexOfEndMarker + 1)..indexOfLastParens];
+        string race = logLine[(firstIndexOfEndMarker + 1)..indexOfLastParens];
         if (string.IsNullOrWhiteSpace(race))
         {
-            Log.Warning($"{LogPrefix} Unable to get race in 'who' entry: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable to get race in 'who' entry: {entry.FullLogLine}");
             return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp };
         }
 
@@ -281,7 +281,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         character.Race = race;
         _raidEntries.AddOrMergeInPlayerCharacter(character);
 
-        bool isAfk = logLineNoTimestamp.Contains(Constants.Afk);
+        bool isAfk = logLine.Contains(Constants.Afk);
         return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp, IsAfk = isAfk };
     }
 
@@ -289,24 +289,24 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
     {
         // [Thu Mar 07 21:33:39 2024] Undertree tells the raid,  ':::CRASHED:::'
 
-        if (logEntry.LogLine.Length < Constants.LogDateTimeLength + Constants.CrashedAlternateDelimiter.Length + Constants.RaidOther.Length + 5)
+        string logLine = logEntry.LogLine;
+        if (logLine.Length < Constants.CrashedAlternateDelimiter.Length + Constants.RaidOther.Length + 5)
         {
-            Log.Warning($"{LogPrefix} Unable get character name in CRASHED entry: {logEntry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable get character name in CRASHED entry: {logEntry.FullLogLine}");
             return null;
         }
 
-        string linePastTimestamp = logEntry.LogLine[(Constants.LogDateTimeLength + 1)..];
-        string[] parts = linePastTimestamp.Split(' ');
+        string[] parts = logLine.Split(' ');
         if (parts.Length < 4)
         {
-            Log.Warning($"{LogPrefix} Unable get character name in CRASHED entry: {logEntry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable get character name in CRASHED entry: {logEntry.FullLogLine}");
             return null;
         }
 
         string characterName = parts[0].Trim();
         if (string.IsNullOrEmpty(characterName))
         {
-            Log.Warning($"{LogPrefix} Unable get character name in CRASHED entry: {logEntry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable get character name in CRASHED entry: {logEntry.FullLogLine}");
             return null;
         }
 
@@ -323,7 +323,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         string[] parts = correctedLogLine.Split(Constants.AttendanceDelimiter);
         if (parts.Length < 4)
         {
-            Log.Warning($"{LogPrefix} TRANSFER message when split has too few parts: {logEntry.LogLine}");
+            Log.Warning($"{LogPrefix} TRANSFER message when split has too few parts: {logEntry.FullLogLine}");
             return null;
         }
 
@@ -334,7 +334,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             .FirstOrDefault(x => x.CharacterName.Equals(fromCharacter, StringComparison.OrdinalIgnoreCase));
         if (fromPlayerCharacter == null)
         {
-            Log.Warning($"{LogPrefix} TRANSFER message unable to find FROM character in character listing: {logEntry.LogLine}");
+            Log.Warning($"{LogPrefix} TRANSFER message unable to find FROM character in character listing: {logEntry.FullLogLine}");
             return null;
         }
 
@@ -342,7 +342,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             .FirstOrDefault(x => x.CharacterName.Equals(toCharacter, StringComparison.OrdinalIgnoreCase));
         if (toCharacter == null)
         {
-            Log.Warning($"{LogPrefix} TRANSFER message unable to find TO character in character listing: {logEntry.LogLine}");
+            Log.Warning($"{LogPrefix} TRANSFER message unable to find TO character in character listing: {logEntry.FullLogLine}");
             return null;
         }
 
@@ -361,12 +361,12 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
         // [Tue Mar 19 23:24:25 2024] There are 43 players in Plane of Sky.
         int indexOfPlayersIn = entry.LogLine.IndexOf(Constants.PlayersIn);
-        if (indexOfPlayersIn < Constants.LogDateTimeLength + Constants.PlayersIn.Length)
+        if (indexOfPlayersIn < 0)
         {
             indexOfPlayersIn = entry.LogLine.IndexOf(Constants.PlayerIn);
-            if (indexOfPlayersIn < Constants.LogDateTimeLength + Constants.PlayerIn.Length)
+            if (indexOfPlayersIn < 0)
             {
-                Log.Warning($"{LogPrefix} Unable get zone name: {entry.LogLine}");
+                Log.Warning($"{LogPrefix} Unable get zone name: {entry.FullLogLine}");
                 return null;
             }
 
@@ -374,17 +374,17 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
 
         int playersInLength = isMultiplePlayers ? Constants.PlayersIn.Length : Constants.PlayerIn.Length;
-        int endIndexOfPlayersIn = indexOfPlayersIn + playersInLength;
-        if (endIndexOfPlayersIn + Constants.MinimumRaidNameLength > entry.LogLine.Length)
+        int endIndexOfPlayersIn = indexOfPlayersIn + playersInLength + 1;
+        if (endIndexOfPlayersIn + 5 > entry.LogLine.Length)
         {
-            Log.Warning($"{LogPrefix} Unable get zone name: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable get zone name: {entry.FullLogLine}");
             return null;
         }
 
         string zoneName = entry.LogLine[endIndexOfPlayersIn..^1].Trim();
         if (string.IsNullOrEmpty(zoneName))
         {
-            Log.Warning($"{LogPrefix} Unable get zone name: {entry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable get zone name: {entry.FullLogLine}");
             return null;
         }
 
@@ -407,13 +407,13 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                     if (afkCharacter == null)
                         continue;
 
-                    AfkEntryInfo characterAfkEntry = new() { Character = afkCharacter, EntryType = logEntry.EntryType, Timestamp = logEntry.Timestamp, LogLine = logEntry.LogLine };
+                    AfkEntryInfo characterAfkEntry = new() { Character = afkCharacter, EntryType = logEntry.EntryType, Timestamp = logEntry.Timestamp, LogLine = logEntry.FullLogLine };
 
                     afkCharacterEntries.Add(characterAfkEntry);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"{LogPrefix} An unexpected error occurred when analyzing an {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} call: {logEntry.LogLine}{Environment.NewLine}{ex.ToLogMessage()}");
+                    Log.Error($"{LogPrefix} An unexpected error occurred when analyzing an {Constants.AfkWithDelimiter} or {Constants.AfkEndWithDelimiter} call: {logEntry.FullLogLine}{Environment.NewLine}{ex.ToLogMessage()}");
                 }
             }
         }
@@ -459,7 +459,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                     PlayerCharacter crashedCharacter = ExtractCrashedCharacter(crashedLogEntry);
                     if (crashedCharacter == null)
                     {
-                        Log.Warning($"{LogPrefix} Unable to extract character name when analyzing a CRASHED call: {crashedLogEntry.LogLine}");
+                        Log.Warning($"{LogPrefix} Unable to extract character name when analyzing a CRASHED call: {crashedLogEntry.FullLogLine}");
                         continue;
                     }
 
@@ -491,7 +491,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"{LogPrefix} An unexpected error occurred when analyzing a CRASHED call: {crashedLogEntry.LogLine}{Environment.NewLine}{ex.ToLogMessage()}");
+                    Log.Error($"{LogPrefix} An unexpected error occurred when analyzing a CRASHED call: {crashedLogEntry.FullLogLine}{Environment.NewLine}{ex.ToLogMessage()}");
                 }
             }
         }
@@ -581,14 +581,14 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
             if (splitEntry.Length < 4)
             {
-                Log.Warning($"{LogPrefix} Unable get get raid name from Time attendance entry: {logEntry.LogLine}");
+                Log.Warning($"{LogPrefix} Unable get get raid name from Time attendance entry: {logEntry.FullLogLine}");
                 return;
             }
 
             call.CallName = splitEntry[3].Trim();
             if (string.IsNullOrEmpty(call.CallName))
             {
-                Log.Warning($"{LogPrefix} Unable get get raid name from Time attendance entry: {logEntry.LogLine}");
+                Log.Warning($"{LogPrefix} Unable get get raid name from Time attendance entry: {logEntry.FullLogLine}");
             }
         }
         else
@@ -597,14 +597,14 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
             if (splitEntry.Length < 3)
             {
-                Log.Warning($"{LogPrefix} Unable get get raid name from Kill attendance entry: {logEntry.LogLine}");
+                Log.Warning($"{LogPrefix} Unable get get raid name from Kill attendance entry: {logEntry.FullLogLine}");
                 return;
             }
 
             call.CallName = splitEntry[2].Trim();
             if (string.IsNullOrEmpty(call.CallName))
             {
-                Log.Warning($"{LogPrefix} Unable get get raid name from Kill attendance entry: {logEntry.LogLine}");
+                Log.Warning($"{LogPrefix} Unable get get raid name from Kill attendance entry: {logEntry.FullLogLine}");
             }
         }
     }
@@ -624,7 +624,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         {
             call.PossibleError = PossibleError.NoZoneName;
             call.ZoneName = string.Empty;
-            Log.Warning($"{LogPrefix} Unable get get zone name from attendance entry: {logEntry.LogLine}");
+            Log.Warning($"{LogPrefix} Unable get get zone name from attendance entry: {logEntry.FullLogLine}");
         }
     }
 

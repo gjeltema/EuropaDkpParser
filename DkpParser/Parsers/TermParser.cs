@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// TermParser.cs Copyright 2024 Craig Gjeltema
+// TermParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -45,7 +45,7 @@ public sealed class TermParser : EqLogParserBase, ITermParser
             _searchTerm = searchTerm;
         }
 
-        public void ParseEntry(string logLine, DateTime entryTimeStamp)
+        public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
         {
             if (!logLine.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase))
                 return;
@@ -53,7 +53,7 @@ public sealed class TermParser : EqLogParserBase, ITermParser
             EqLogEntry logEntry = new()
             {
                 EntryType = LogEntryType.Unknown,
-                LogLine = logLine,
+                LogLine = logLine.ToString(),
                 Timestamp = entryTimeStamp
             };
 
@@ -72,7 +72,7 @@ public sealed class TermParser : EqLogParserBase, ITermParser
             _searchTerm = searchTerm;
         }
 
-        public void ParseEntry(string logLine, DateTime entryTimeStamp)
+        public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
         {
             if (!logLine.Contains(_searchTerm))
                 return;
@@ -80,7 +80,7 @@ public sealed class TermParser : EqLogParserBase, ITermParser
             EqLogEntry logEntry = new()
             {
                 EntryType = LogEntryType.Unknown,
-                LogLine = logLine,
+                LogLine = logLine.ToString(),
                 Timestamp = entryTimeStamp
             };
 

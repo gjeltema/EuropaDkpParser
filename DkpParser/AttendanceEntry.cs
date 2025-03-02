@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceEntry.cs Copyright 2024 Craig Gjeltema
+// AttendanceEntry.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -74,7 +74,7 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
         => CallName.GetHashCode() ^ Timestamp.GetHashCode();
 
     public string ToDebugString()
-        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}  {CallName}  {ZoneName} Possible Error: {PossibleError}; Raw Log: {RawHeaderLogLine}";
+        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}  {CallName}  {ZoneName} Possible Error: {PossibleError}; Raw Log: {Timestamp.ToString(Constants.EqLogDateTimeFormat)} {RawHeaderLogLine}";
 
     public string ToDisplayString()
         => $"{Timestamp:HH:mm:ss} {CallName}\t{ZoneName}";

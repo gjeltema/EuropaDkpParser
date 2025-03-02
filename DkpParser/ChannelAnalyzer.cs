@@ -31,11 +31,11 @@ internal sealed class ChannelAnalyzer
         return EqChannel.None;
     }
 
-    public EqChannel GetValidDkpChannel(string logLine)
+    public EqChannel GetValidDkpChannel(ReadOnlySpan<char> logLine)
     {
         if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther))
             return EqChannel.Raid;
-        else if (_settings.DkpspentGuEnabled && (logLine.Contains(Constants.GuildYouSearch) || logLine.Contains(Constants.GuildOther)))
+        else if (_settings.DkpspentGuEnabled && (logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.GuildOther)))
             return EqChannel.Guild;
 
         return EqChannel.None;

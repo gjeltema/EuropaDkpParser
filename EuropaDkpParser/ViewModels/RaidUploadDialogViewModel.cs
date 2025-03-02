@@ -228,7 +228,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         ICollection<string> logEntries = (from log in logFiles
                                           from logEntry in log.LogEntries
                                           orderby logEntry.Timestamp
-                                          select logEntry.LogLine)
+                                          select logEntry.FullLogLine)
                                           .ToList();
 
         if (logEntries.Count == 0)

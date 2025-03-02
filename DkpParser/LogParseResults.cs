@@ -21,4 +21,15 @@ public sealed class LogParseResults
     public IList<RaidListFile> RaidListFiles { get; }
 
     public IList<ZealRaidAttendanceFile> ZealRaidAttendanceFiles { get; }
+
+    public IEnumerable<string> GetAllLines()
+    {
+        foreach (EqLogFile logFile in EqLogFiles)
+        {
+            foreach (string logLine in logFile.GetAllLogLines())
+            {
+                yield return logLine;
+            }
+        }
+    }
 }

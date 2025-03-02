@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// IParseEntry.cs Copyright 2024 Craig Gjeltema
+// IParseEntry.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -9,7 +9,7 @@ namespace DkpParser.Parsers;
 /// </summary>
 public interface IParseEntry
 {
-    void ParseEntry(string logLine, DateTime entryTimeStamp);
+    void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp);
 }
 
 /// <summary>

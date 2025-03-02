@@ -77,39 +77,40 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         {
             entry.Visited = true;
 
-            Log.Debug($"{LogPrefix} Processing {entry.LogLine}");
+            Log.Debug($"{LogPrefix} Processing {entry.FullLogLine}");
 
-            string logLineNoTimestamp = entry.LogLine[(Constants.LogDateTimeLength + 1)..^1];
-            string messageSender = GetMessageSenderName(logLineNoTimestamp);
+            // Trim the end single-quote
+            string logLine = entry.LogLine[..^1];
+            string messageSender = GetMessageSenderName(logLine);
             if (string.IsNullOrEmpty(messageSender))
             {
-                Log.Warning($"{LogPrefix} Unable to extract message sender from: {entry.LogLine}");
+                Log.Warning($"{LogPrefix} Unable to extract message sender from: {entry.FullLogLine}");
                 return null;
             }
 
-            int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'') + 1;
+            int indexOfFirstQuote = logLine.IndexOf('\'') + 1;
             // 12 being a dumb-check value - the "player tells a channel, '" part should be AT LEAST this long
             // (the actual minimum is definitely higher, but this should catch super odd situations)
             if (indexOfFirstQuote < 12)
             {
-                Log.Warning($"{LogPrefix} Index of first quote is too low: {logLineNoTimestamp}");
+                Log.Warning($"{LogPrefix} Index of first quote is too low: {entry.FullLogLine}");
                 return null;
             }
 
-            string logLineAfterQuote = logLineNoTimestamp[indexOfFirstQuote..].Trim();
+            string logLineAfterQuote = logLine[indexOfFirstQuote..].Trim();
 
             DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLineAfterQuote, entry.Channel, entry.Timestamp, messageSender);
-            dkpEntry.RawLogLine = entry.LogLine;
+            dkpEntry.RawLogLine = entry.FullLogLine;
 
             if (dkpEntry.PlayerName == Constants.Rot)
             {
-                Log.Info($"{LogPrefix} DKP call ({entry.LogLine}) is for {Constants.Rot}.");
+                Log.Debug($"{LogPrefix} DKP call ({entry.FullLogLine}) is for {Constants.Rot}.");
                 return null;
             }
 
             if (logLineAfterQuote.IndexOf(Constants.Undo) > 0 || logLineAfterQuote.IndexOf(Constants.Remove) > 0)
             {
-                Log.Info($"{LogPrefix} DKP call ({entry.LogLine}) is an {Constants.Undo} or {Constants.Remove}.");
+                Log.Debug($"{LogPrefix} DKP call ({entry.FullLogLine}) is an {Constants.Undo} or {Constants.Remove}.");
 
                 DkpEntry toBeRemoved = GetAssociatedDkpEntry(_raidEntries, dkpEntry);
                 if (toBeRemoved != null)
@@ -125,7 +126,7 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         }
         catch (Exception ex)
         {
-            EuropaDkpParserException eex = new("An unexpected error occurred when analyzing a DKPSPENT call.", entry.LogLine, ex);
+            EuropaDkpParserException eex = new("An unexpected error occurred when analyzing a DKPSPENT call.", entry.FullLogLine, ex);
             throw eex;
         }
     }
@@ -162,18 +163,17 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
     {
         entry.Visited = true;
 
-        if (entry.LogLine.Length < Constants.LogDateTimeLength + 25)
+        string logLine = entry.LogLine;
+        if (logLine.Length < 25)
         {
-            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Log line is too short: {entry.LogLine}");
+            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Log line is too short: {entry.FullLogLine}");
             return null;
         }
 
-        string logLineNoTimestamp = entry.LogLine[Constants.LogDateTimeLength..];
-
-        string dkpValueText = GetDigits(logLineNoTimestamp);
+        string dkpValueText = GetDigits(logLine);
         if (!int.TryParse(dkpValueText, out int dkpValue))
         {
-            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Unable to parse DKP value from '{dkpValueText}', extracted from {logLineNoTimestamp}");
+            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Unable to parse DKP value from '{dkpValueText}', extracted from {entry.FullLogLine}");
             return null;
         }
 
@@ -186,7 +186,7 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         DkpEntry dkpEntry = new()
         {
             Timestamp = entry.Timestamp,
-            RawLogLine = entry.LogLine,
+            RawLogLine = entry.FullLogLine,
             Channel = entry.Channel,
             DkpSpent = dkpValue,
             PossibleError = PossibleError.MalformedDkpSpentLine

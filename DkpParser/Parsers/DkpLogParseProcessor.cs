@@ -30,8 +30,9 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
     public LogParseResults ParseLogs(DateTime startTime, DateTime endTime)
     {
         IList<RaidDumpFile> raidDumpFiles = _raidParticipationFilesParser.GetParsedRelevantRaidDumpFiles(startTime, endTime);
-        IList<RaidListFile> raidListFiles = _raidParticipationFilesParser.GetParsedRelevantRaidListFiles(startTime, endTime);
         IList<ZealRaidAttendanceFile> zealRaidAttendanceFiles = _raidParticipationFilesParser.GetParsedZealRaidAttendanceFiles(startTime, endTime);
+        IList<RaidListFile> raidListFiles = _raidParticipationFilesParser.GetParsedRelevantRaidListFiles(startTime, endTime);
+
         IList<EqLogFile> logFiles = GetEqLogFiles(startTime, endTime);
 
         LogParseResults results = new(logFiles, raidDumpFiles, raidListFiles, zealRaidAttendanceFiles);

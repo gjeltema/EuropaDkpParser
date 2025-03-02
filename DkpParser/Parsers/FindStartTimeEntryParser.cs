@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// FindStartTimeEntryParser.cs Copyright 2024 Craig Gjeltema
+// FindStartTimeEntryParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -20,7 +20,7 @@ internal sealed class FindStartTimeEntryParser : IParseEntry
         _firstParser = firstParser;
     }
 
-    public void ParseEntry(string logLine, DateTime entryTimeStamp)
+    public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
         if (entryTimeStamp < _startTime)
             return;

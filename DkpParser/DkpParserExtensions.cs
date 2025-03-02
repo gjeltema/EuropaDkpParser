@@ -8,7 +8,10 @@ using DkpParser.Parsers;
 
 public static class DkpParserExtensions
 {
-    private const string AttendanceCallStart = $"/rs {Constants.AttendanceDelimiter}Raid Attendance Taken{Constants.AttendanceDelimiter}";
+    private const string AttendanceCallStart = $"/rs {Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}";
+
+    public static bool Contains(this ReadOnlySpan<char> line, ReadOnlySpan<char> toFind)
+        => line.Contains(toFind, StringComparison.Ordinal);
 
     public static string GetAttendanceCall(this AttendanceCallType callType, string attendanceName)
     {
@@ -35,6 +38,21 @@ public static class DkpParserExtensions
 
     public static string RemoveAllWhitespace(this string uneditedLine)
         => new(uneditedLine.ToCharArray().Where(x => !char.IsWhiteSpace(x)).ToArray());
+
+    public static int RemoveAllWhitespace(this ReadOnlySpan<char> uneditedLine, Span<char> editedLine)
+    {
+        int index = -1;
+        for (int i = 0; i < uneditedLine.Length; i++)
+        {
+            char currentChar = uneditedLine[i];
+            if (!char.IsWhiteSpace(currentChar))
+            {
+                index++;
+                editedLine[index] = currentChar;
+            }
+        }
+        return index;
+    }
 
     public static string ToUsTimestamp(this DateTime timeStamp, string format)
         => timeStamp.ToString(format, Constants.UsCulture);

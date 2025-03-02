@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AllCommunicationParser.cs Copyright 2024 Craig Gjeltema
+// AllCommunicationParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -35,7 +35,7 @@ public sealed class AllCommunicationParser : EqLogParserBase, IAllCommunicationP
             _logFile = logFile;
         }
 
-        public void ParseEntry(string logLine, DateTime entryTimeStamp)
+        public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
         {
             if (!logLine.Contains("You ") && !logLine.Contains(" say") && !logLine.Contains(" tell") && !logLine.Contains(" shout"))
                 return;
@@ -59,7 +59,7 @@ public sealed class AllCommunicationParser : EqLogParserBase, IAllCommunicationP
                 EqLogEntry logEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLine,
+                    LogLine = logLine.ToString(),
                     Timestamp = entryTimeStamp
                 };
 

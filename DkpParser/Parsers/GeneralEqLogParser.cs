@@ -4,7 +4,6 @@
 
 namespace DkpParser.Parsers;
 
-using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -40,20 +39,6 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         }
 
         return logFiles;
-    }
-
-    private static bool TryExtractEqLogTimeStamp(string logLine, out DateTime result)
-    {
-        // [Wed Feb 21 16:34:07 2024] ...
-
-        if (logLine == null || logLine.Length < Constants.LogDateTimeLength)
-        {
-            result = DateTime.MinValue;
-            return false;
-        }
-
-        string timeEntry = logLine[0..Constants.LogDateTimeLength];
-        return DateTime.TryParseExact(timeEntry, Constants.EqLogDateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
     }
 
     private void InitializeEntryParsers(GeneralEqLogParserSettings settings)
@@ -154,7 +139,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 
         foreach (string logLine in File.ReadLines(filename))
         {
-            if (!TryExtractEqLogTimeStamp(logLine, out DateTime entryTimeStamp))
+            if (!logLine.TryExtractEqLogTimeStamp(out DateTime entryTimeStamp))
                 continue;
             else if (entryTimeStamp < startTime)
                 continue;
@@ -195,7 +180,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                     eqLogEntry = new()
                     {
                         EntryType = LogEntryType.Unknown,
-                        LogLine = logLine,
+                        LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
                         Timestamp = entryTimeStamp
                     };
 
@@ -224,7 +209,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 eqLogEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLine,
+                    LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
                     Timestamp = entryTimeStamp
                 };
 
@@ -254,7 +239,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 eqLogEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLine,
+                    LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
                     Timestamp = entryTimeStamp
                 };
 
@@ -280,7 +265,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 return false;
             }
 
-            string logLineWithoutTimestamp = logLine[(Constants.LogDateTimeLength + 1)..];
+            string logLineWithoutTimestamp = logLine[(Constants.EqLogDateTimeLength + 1)..];
             if (logLineWithoutTimestamp.Contains("[ANONYMOUS]")
                 || (logLineWithoutTimestamp.Contains('(') && logLineWithoutTimestamp.Contains(')') && logLineWithoutTimestamp.Contains('[') && logLineWithoutTimestamp.Contains(']'))
                 || logLineWithoutTimestamp.Contains(Constants.Dashes)
@@ -290,7 +275,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 eqLogEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLine,
+                    LogLine = logLineWithoutTimestamp,
                     Timestamp = entryTimeStamp
                 };
 
@@ -320,7 +305,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 eqLogEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLine,
+                    LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
                     Timestamp = entryTimeStamp
                 };
 
@@ -350,7 +335,7 @@ public sealed partial class ChannelMessageEntryParser : IEntryParser
             eqLogEntry = new()
             {
                 EntryType = LogEntryType.Unknown,
-                LogLine = logLine,
+                LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
                 Timestamp = entryTimeStamp
             };
 

@@ -112,6 +112,6 @@ public static class Constants
     public const string ZealPipeNamePrefix = "zeal";
     public const string ZealRaidAttendanceFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
     public static readonly TimeSpan DurationOfSearch = TimeSpan.FromSeconds(10);
-    public static readonly int LogDateTimeLength = EqLogDateTimeFormat.Length;
+    public static readonly int EqLogDateTimeLength = EqLogDateTimeFormat.Length;
     public static readonly CultureInfo UsCulture = new("en-US");
 }

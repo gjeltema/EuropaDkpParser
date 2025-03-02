@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// EqLogEntry.cs Copyright 2024 Craig Gjeltema
+// EqLogEntry.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -15,6 +15,9 @@ public sealed class EqLogEntry
 
     public PossibleError ErrorType { get; set; } = PossibleError.None;
 
+    public string FullLogLine
+        => $"{Timestamp.ToString(Constants.EqLogDateTimeFormat)} {LogLine}";
+
     public string LogLine { get; set; }
 
     public DateTime Timestamp { get; set; }
@@ -25,5 +28,5 @@ public sealed class EqLogEntry
     public bool Visited { get; set; } = false;
 
     private string DebugDisplay
-        => $"{EntryType} {LogLine.Substring(Constants.LogDateTimeLength + 1, 16)}...";
+        => $"{Timestamp:HH:mm:ss} {EntryType} {LogLine.AsSpan()[..10]}...";
 }

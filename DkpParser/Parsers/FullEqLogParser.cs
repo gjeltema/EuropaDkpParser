@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// FullEqLogParser.cs Copyright 2024 Craig Gjeltema
+// FullEqLogParser.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -37,12 +37,12 @@ public sealed class LogEverythingEntryParser : IParseEntry
         _logFile = logFile;
     }
 
-    public void ParseEntry(string logLine, DateTime entryTimeStamp)
+    public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
         EqLogEntry logEntry = new()
         {
             EntryType = LogEntryType.Unknown,
-            LogLine = logLine,
+            LogLine = logLine.ToString(),
             Timestamp = entryTimeStamp
         };
 
