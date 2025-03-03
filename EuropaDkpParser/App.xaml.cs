@@ -27,6 +27,9 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        if (_shellView == null)
+            return;
+
         if (_settings.MainWindowX == _shellView.Left && _settings.MainWindowY == _shellView.Top)
             return;
 
@@ -40,39 +43,30 @@ public partial class App : Application
         DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledExceptionHandler;
 
-        if (!File.Exists(RaidValuesFilePath))
-        {
-            MessageBox.Show(
-                "RaidValues.txt file was not found. Obtain this file and place it in the same folder as this executable.",
-                "RaidValues.txt Not Found",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-
-            Current?.Shutdown(1);
-            return;
-        }
-
         DialogFactory dialogFactory = new(new DialogViewFactory());
         MessageDialog.Initialize(dialogFactory);
 
         _settings = new DkpParserSettings(SettingsFilePath, RaidValuesFilePath, ItemLinkIdsFilePath, DkpCharactersFilePath, ZoneIdMappingFilePath);
 
-        bool success = _settings.LoadBaseSettings();
-        if (!success)
+        _settings.LoadBaseSettings();
+
+        InitializeLogging();
+
+        try
+        {
+            _settings.LoadOtherFileSettings();
+        }
+        catch (FileNotFoundException fnf)
         {
             MessageBox.Show(
-               "RaidValues.txt file was unable to be loaded. Obtain a correct version of this file and place it in the same folder as this executable.",
-               "RaidValues.txt Not Loaded",
+               $"{fnf.FileName} was unable to be loaded. Obtain a correct version of this file and place it in the same folder as this executable.",
+               "Configuration File Not Loaded",
                MessageBoxButton.OK,
                MessageBoxImage.Error);
 
             Current?.Shutdown(1);
             return;
         }
-
-        InitializeLogging();
-
-        _settings.LoadOtherFileSettings();
 
         if (_settings.UseLightMode)
         {

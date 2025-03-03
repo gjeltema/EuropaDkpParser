@@ -358,7 +358,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         if (!File.Exists(_zoneIdMapFileName))
         {
             Log.Error($"{LogPrefix} ZoneID file does not exist: {_zoneIdMapFileName}");
-            return;
+            FileInfo fi = new(_zoneIdMapFileName);
+            throw new FileNotFoundException($"{_zoneIdMapFileName} does not exist.", fi.FullName);
         }
 
         string[] fileContents = File.ReadAllLines(_zoneIdMapFileName);

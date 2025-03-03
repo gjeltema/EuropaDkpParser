@@ -59,7 +59,8 @@ public sealed class RaidValues : IRaidValues
         if (!File.Exists(_raidValuesFileName))
         {
             Log.Error($"{LogPrefix} {_raidValuesFileName} does not exist.");
-            return;
+            FileInfo fi = new(_raidValuesFileName);
+            throw new FileNotFoundException($"{_raidValuesFileName} does not exist.", fi.FullName);
         }
 
         string[] fileContents = File.ReadAllLines(_raidValuesFileName);

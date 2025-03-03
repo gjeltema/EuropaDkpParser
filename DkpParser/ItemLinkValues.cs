@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ItemLinkValues.cs Copyright 2024 Craig Gjeltema
+// ItemLinkValues.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -9,8 +9,8 @@ using Gjeltema.Logging;
 
 public sealed class ItemLinkValues
 {
-    private const string LogPrefix = $"[{nameof(ItemLinkValues)}]";
     private const char Delimiter = '|';
+    private const string LogPrefix = $"[{nameof(ItemLinkValues)}]";
     private readonly Dictionary<string, string> _itemLinkValues;
     private readonly string _itemLinkValuesFileName;
 
@@ -63,7 +63,8 @@ public sealed class ItemLinkValues
         if (!File.Exists(_itemLinkValuesFileName))
         {
             Log.Error($"{LogPrefix} {_itemLinkValuesFileName} does not exist.");
-            return;
+            FileInfo fi = new(_itemLinkValuesFileName);
+            throw new FileNotFoundException($"{_itemLinkValuesFileName} does not exist.", fi.FullName);
         }
 
         IEnumerable<string> fileContents = File.ReadAllLines(_itemLinkValuesFileName);

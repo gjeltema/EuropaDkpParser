@@ -31,7 +31,7 @@
 
             <Label Grid.Row="0" Content="{StaticResource ActiveAuctions}" />
 
-            <ListView Grid.Row="1" x:Name="ActiveAuctionListing" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" DisplayMemberPath="FullInfo" 
+            <ListView Grid.Row="1" x:Name="ActiveAuctionListing" ItemsSource="{Binding ActiveAuctions}" DisplayMemberPath="FullInfo" 
                       Margin="0,0,0,5" FontSize="{Binding FontSize}"/>
 
             <Grid Grid.Row="2">
@@ -49,7 +49,7 @@
 
             <Label Grid.Row="0" Content="{StaticResource CompletedAuctions}" />
 
-            <ListView Grid.Row="1" ItemsSource="{Binding CompletedAuctions}" SelectedItem="{Binding SelectedCompletedAuction}" Margin="0,0,0,5" FontSize="{Binding FontSize}"/>
+            <ListView Grid.Row="1" ItemsSource="{Binding CompletedAuctions}" Margin="0,0,0,5" FontSize="{Binding FontSize}"/>
         </Grid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal">
