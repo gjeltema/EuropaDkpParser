@@ -374,7 +374,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
 
         int playersInLength = isMultiplePlayers ? Constants.PlayersIn.Length : Constants.PlayerIn.Length;
-        int endIndexOfPlayersIn = indexOfPlayersIn + playersInLength + 1;
+        int endIndexOfPlayersIn = indexOfPlayersIn + playersInLength;
         if (endIndexOfPlayersIn + 5 > entry.LogLine.Length)
         {
             Log.Warning($"{LogPrefix} Unable get zone name: {entry.FullLogLine}");
