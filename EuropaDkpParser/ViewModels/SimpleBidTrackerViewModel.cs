@@ -20,10 +20,9 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     private readonly DispatcherTimer _updateTimer;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
     private ICollection<CompletedAuction> _completedAuctions;
-    private int _fontSize;
-    private string _fontSizeSetting;
     private bool _lowRollWins;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
+    private int _selectedFontSize;
     private string _selectedLogFilePath;
 
     public SimpleBidTrackerViewModel(IWindowViewFactory viewFactory, IDkpParserSettings settings)
@@ -38,8 +37,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
 
         SetActiveAuctionsToCompletedCommand = new DelegateCommand(SetActiveAuctionsToCompleted);
 
-        _fontSize = 12;
-        _fontSizeSetting = "12";
+        _selectedFontSize = 12;
     }
 
     public ICollection<LiveAuctionDisplay> ActiveAuctions
@@ -54,24 +52,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
         private set => SetProperty(ref _completedAuctions, value);
     }
 
-    public int FontSize
-    {
-        get => _fontSize;
-        set => SetProperty(ref _fontSize, value);
-    }
-
-    public string FontSizeSetting
-    {
-        get => _fontSizeSetting;
-        set
-        {
-            if (int.TryParse(value, out int finalFontSize))
-            {
-                FontSize = finalFontSize;
-                SetProperty(ref _fontSizeSetting, value);
-            }
-        }
-    }
+    public ICollection<int> FontSizeValues { get; } = [10, 12, 14, 16, 18, 20, 24, 28, 32];
 
     public ICollection<string> LogFileNames { get; }
 
@@ -82,6 +63,12 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     }
 
     public ICollection<LiveAuctionDisplay> SelectedActiveAuctions { get; set; } = [];
+
+    public int SelectedFontSize
+    {
+        get => _selectedFontSize;
+        set => SetProperty(ref _selectedFontSize, value);
+    }
 
     public string SelectedLogFilePath
     {
@@ -184,15 +171,15 @@ public interface ISimpleBidTrackerViewModel : IWindowViewModel
 
     ICollection<CompletedAuction> CompletedAuctions { get; }
 
-    int FontSize { get; set; }
-
-    string FontSizeSetting { get; set; }
+    ICollection<int> FontSizeValues { get; }
 
     ICollection<string> LogFileNames { get; }
 
     bool LowRollWins { get; set; }
 
     ICollection<LiveAuctionDisplay> SelectedActiveAuctions { get; set; }
+
+    int SelectedFontSize { get; set; }
 
     string SelectedLogFilePath { get; set; }
 

@@ -32,7 +32,7 @@
             <Label Grid.Row="0" Content="{StaticResource ActiveAuctions}" />
 
             <ListView Grid.Row="1" x:Name="ActiveAuctionListing" ItemsSource="{Binding ActiveAuctions}" DisplayMemberPath="FullInfo" 
-                      Margin="0,0,0,5" FontSize="{Binding FontSize}"/>
+                      Margin="0,0,0,5" FontSize="{Binding SelectedFontSize}"/>
 
             <Grid Grid.Row="2">
                 <Button Content="{StaticResource MoveAuctionToCompleted}" Command="{Binding SetActiveAuctionsToCompletedCommand}" 
@@ -49,12 +49,13 @@
 
             <Label Grid.Row="0" Content="{StaticResource CompletedAuctions}" />
 
-            <ListView Grid.Row="1" ItemsSource="{Binding CompletedAuctions}" Margin="0,0,0,5" FontSize="{Binding FontSize}"/>
+            <ListView Grid.Row="1" ItemsSource="{Binding CompletedAuctions}" Margin="0,0,0,5" FontSize="{Binding SelectedFontSize}"/>
         </Grid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal">
             <Label Content="{StaticResource FontSizeLabel}"/>
-            <TextBox Text="{Binding FontSizeSetting}" Width="50"/>
+            <!--<TextBox Text="{Binding FontSizeSetting}" Width="50"/>-->
+            <ComboBox Grid.Column="1" ItemsSource="{Binding FontSizeValues}" SelectedItem="{Binding SelectedFontSize}" VerticalContentAlignment="Center" Margin="5,0,20,0"/>
             <CheckBox IsChecked="{Binding LowRollWins}" Content="{StaticResource LowRollWins}" Margin="20,0,0,0" VerticalAlignment="Center"/>
         </StackPanel>
 
