@@ -163,7 +163,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         OverlayFontColor = GetStringValue(fileContents, OverlayFontColorSection, "#CCCCCC");
         OverlayFontSize = GetIntValue(fileContents, OverlayFontSizeSection, 20);
 
-        int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Error);
+        int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Info);
         LoggingLevel = (LogLevel)loggingLevelRaw;
 
         return true;
