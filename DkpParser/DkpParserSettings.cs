@@ -23,7 +23,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const int DefaultWindowLocation = 200;
     private const char Delimiter = '=';
     private const string DkpspentGuildEnableSection = "DKPSPENT_GU_ENABLE";
-    private const string EnableDebugOptionsSection = "ENABLE_DEBUG";
     private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string IncludeTellsInRawLogSection = "INCLUDE_TELLS_IN_RAW_LOG";
@@ -70,8 +69,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public DkpServerCharacters CharactersOnDkpServer { get; private set; }
 
     public bool DkpspentGuEnabled { get; set; }
-
-    public bool EnableDebugOptions { get; set; }
 
     public string EqDirectory { get; set; } = string.Empty;
 
@@ -143,7 +140,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetSimpleArchiveSettings(fileContents);
 
         SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
-        EnableDebugOptions = GetBoolValue(fileContents, EnableDebugOptionsSection);
         ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection);
         if (string.IsNullOrWhiteSpace(ApiReadToken))
             ApiReadToken = "";
@@ -193,7 +189,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
             WindowLocationSection + SectionEnding,
             CreateFileEntry(EqDirectorySection, EqDirectory),
             CreateFileEntry(OutputDirectorySection, OutputDirectory),
-            CreateFileEntry(EnableDebugOptionsSection, EnableDebugOptions),
             CreateFileEntry(ArchiveAllOrSelectedEqLogFileSection, ArchiveAllEqLogFiles),
             CreateFileEntry(ArchiveEqLogFileDirectorySection, EqLogFileArchiveDirectory),
             CreateFileEntry(ArchiveEqLogFileAgeSection, EqLogFileAgeToArchiveInDays),
@@ -431,8 +426,6 @@ public interface IDkpParserSettings
     DkpServerCharacters CharactersOnDkpServer { get; }
 
     bool DkpspentGuEnabled { get; set; }
-
-    bool EnableDebugOptions { get; set; }
 
     string EqDirectory { get; set; }
 

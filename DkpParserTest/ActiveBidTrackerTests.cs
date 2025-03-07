@@ -352,8 +352,6 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool DkpspentGuEnabled { get; set; }
 
-    public bool EnableDebugOptions { get; set; }
-
     public string EqDirectory { get; set; }
 
     public int EqLogFileAgeToArchiveInDays { get; set; }

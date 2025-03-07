@@ -14,7 +14,6 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
 {
     private readonly DkpLogGenerator _logGenerator;
     private readonly IDkpParserSettings _settings;
-    private bool _debugOptionsEnabled;
     private string _endTimeText;
     private string _generatedFile;
     private bool _performingParse = false;
@@ -38,13 +37,6 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
 
         ResetTime();
         SetOutputFile();
-        DebugOptionsEnabled = _settings.EnableDebugOptions;
-    }
-
-    public bool DebugOptionsEnabled
-    {
-        get => _debugOptionsEnabled;
-        set => SetProperty(ref _debugOptionsEnabled, value);
     }
 
     public string EndTimeText
@@ -155,8 +147,6 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
 
 public interface IDkpParseDialogViewModel : IDialogViewModel
 {
-    bool DebugOptionsEnabled { get; }
-
     string EndTimeText { get; set; }
 
     string GeneratedFile { get; set; }

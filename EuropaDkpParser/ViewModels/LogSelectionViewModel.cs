@@ -21,7 +21,6 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private bool _dkpspentGuEnable;
     private string _eqDirectory;
     private bool _includeTellsInRawLog;
-    private bool _isDebugOptionsEnabled;
     private string _logFileMatchPattern;
     private string _outputDirectory;
     private string _overlayFontColor;
@@ -56,7 +55,6 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _eqDirectory = _settings.EqDirectory;
         OutputDirectory = _settings.OutputDirectory;
         SelectedCharacterLogFiles = new List<string>(_settings.SelectedLogFiles);
-        IsDebugOptionsEnabled = _settings.EnableDebugOptions;
         _logFileMatchPattern = _settings.LogFileMatchPattern;
 
         LoggingLevels = [.. Enum.GetNames<LogLevel>()];
@@ -125,12 +123,6 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         set => SetProperty(ref _includeTellsInRawLog, value);
     }
 
-    public bool IsDebugOptionsEnabled
-    {
-        get => _isDebugOptionsEnabled;
-        set => SetProperty(ref _isDebugOptionsEnabled, value);
-    }
-
     public string LogFileMatchPattern
     {
         get => _logFileMatchPattern;
@@ -189,6 +181,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public DelegateCommand SelectOutputDirectoryCommand { get; }
 
+    // Unused for now.  May re-add later if/when I fully implement the AFK Review dialog.
     public bool ShowAfkReview
     {
         get => _showAfkReview;
@@ -215,7 +208,6 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.OutputDirectory = OutputDirectory;
         TryCreateDirectory(_settings.OutputDirectory);
 
-        _settings.EnableDebugOptions = IsDebugOptionsEnabled;
         _settings.ApiUrl = ApiUrl;
         _settings.ApiReadToken = ApiReadToken;
         _settings.ApiWriteToken = ApiWriteToken;
@@ -363,8 +355,6 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string EqDirectory { get; set; }
 
     bool IncludeTellsInRawLog { get; set; }
-
-    bool IsDebugOptionsEnabled { get; set; }
 
     string LogFileMatchPattern { get; set; }
 
