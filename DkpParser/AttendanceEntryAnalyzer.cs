@@ -105,7 +105,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 try
                 {
                     string correctedLogLine = _sanitizer.SanitizeDelimiterString(logEntry.LogLine);
-                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.LogLine };
+                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.FullLogLine};
 
                     SetAttendanceType(logEntry, call, correctedLogLine);
 
