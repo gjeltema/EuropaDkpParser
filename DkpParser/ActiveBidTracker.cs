@@ -369,7 +369,11 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (existingAuction != null)
             {
                 if (!existingAuction.IsRoll)
-                    existingAuction.TotalNumberOfItems = Math.Max(existingAuction.TotalNumberOfItems, newAuction.TotalNumberOfItems);
+                {
+                    int newNumberOfItems = Math.Max(existingAuction.TotalNumberOfItems, newAuction.TotalNumberOfItems);
+                    Log.Debug($"{LogPrefix} Overwiting existing auction [{existingAuction}] {nameof(LiveAuctionInfo.TotalNumberOfItems)} with {newNumberOfItems} due to auction [{newAuction}]");
+                    existingAuction.TotalNumberOfItems = newNumberOfItems;
+                }
 
                 continue;
             }
@@ -392,6 +396,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (bossKilledName != null)
             {
                 _bossKilledName = bossKilledName;
+                Log.Debug($"{LogPrefix} Extracted boss name: {bossKilledName} from line: {message}");
                 Updated = true;
                 return;
             }
@@ -417,6 +422,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
                     if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter) || noWhitespaceLogLine.Contains(Constants.ReadyCheckAlternateDelimiter))
                     {
+                        Log.Debug($"{LogPrefix} Ready Check initiated: {message}");
                         _readyCheckInitiated = true;
                         Updated = true;
                         return;
@@ -426,6 +432,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     {
                         string senderName = GetMessageSenderName(logLineNoTimestamp);
                         _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = true });
+                        Log.Debug($"{LogPrefix} {senderName} is READY: {message}");
                         Updated = true;
                         return;
                     }
@@ -434,6 +441,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     {
                         string senderName = GetMessageSenderName(logLineNoTimestamp);
                         _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = false });
+                        Log.Debug($"{LogPrefix} {senderName} is NOT READY: {message}");
                         Updated = true;
                         return;
                     }
@@ -473,6 +481,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     if (possibleDuplicateBid != null)
                     {
                         _bids = _bids.Remove(possibleDuplicateBid);
+                        Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
                     }
 
                     _bids = _bids.Add(bid);
@@ -499,15 +508,20 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (existingSpentCall != null)
             {
                 _spentCalls.Remove(existingSpentCall);
+                Log.Debug($"{LogPrefix} REMOVE applied to spent call {existingSpentCall}");
                 return true;
             }
 
+            Log.Debug($"{LogPrefix} REMOVE call made, but no associated SPENT call found: {spentCall}");
             return false;
         }
 
         LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x.ItemName == spentCall.ItemName);
         if (existingAuction == null)
+        {
+            Log.Debug($"{LogPrefix} SPENT call made, but no associated auction found: {spentCall}");
             return false;
+        }
 
         spentCall.AuctionStart = existingAuction;
         if (existingAuction.TotalNumberOfItems > 1)
@@ -523,17 +537,18 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (spentCalls.Count >= existingAuction.TotalNumberOfItems)
         {
             _activeAuctions = _activeAuctions.Remove(existingAuction);
-            _completedAuctions = _completedAuctions.Add(new CompletedAuction
+            CompletedAuction newCompletedCall = new()
             {
                 AuctionStart = existingAuction,
                 ItemName = spentCall.ItemName,
                 SpentCalls = spentCalls
-            });
-
-            return true;
+            };
+            Log.Debug($"{LogPrefix} SPENT call made, Completed call created: {newCompletedCall}");
+            _completedAuctions = _completedAuctions.Add(newCompletedCall);
         }
 
-        return false;
+        Log.Debug($"{LogPrefix} SPENT call made, but not enough SPENT calls to complete the auction. SPENT call: {spentCall}; Associated Auction: {existingAuction}");
+        return true;
     }
 
     private bool SpentCallExists(LiveBidInfo bid)

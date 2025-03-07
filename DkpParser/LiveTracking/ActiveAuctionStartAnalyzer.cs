@@ -5,9 +5,11 @@
 namespace DkpParser.LiveTracking;
 
 using System.Text.RegularExpressions;
+using Gjeltema.Logging;
 
 internal sealed partial class ActiveAuctionStartAnalyzer
 {
+    private const string LogPrefix = $"[{nameof(ActiveBiddingAnalyzer)}]";
     private readonly Regex _findMultipleItemsMarker = MultipleItemsAuctionedRegex();
     private readonly Regex _findNumbers = NumbersRegex();
     private readonly DelimiterStringSanitizer _sanitizer = new();
@@ -68,14 +70,16 @@ internal sealed partial class ActiveAuctionStartAnalyzer
             if (lineParts.Length > 1)
             {
                 string itemName = lineParts[0].Trim();
-                return [new LiveAuctionInfo
+                LiveAuctionInfo newAuction = new()
                 {
                     Timestamp = timeStamp,
                     Channel = channel,
                     Auctioneer = messageSender,
                     ItemName = itemName,
                     TotalNumberOfItems = multiplier,
-                }];
+                };
+                Log.Debug($"{LogPrefix} New auction: {newAuction}");
+                return [newAuction];
             }
         }
         else
@@ -126,6 +130,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
             foreach (var auctionGroup in auctionGrouping)
             {
                 auctionGroup.Auction.TotalNumberOfItems = auctionGroup.ItemCount;
+                Log.Debug($"{LogPrefix} New auction: {auctionGroup.Auction}");
                 auctions.Add(auctionGroup.Auction);
             }
 

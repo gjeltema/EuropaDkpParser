@@ -6,9 +6,11 @@ namespace DkpParser.LiveTracking;
 
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Gjeltema.Logging;
 
 internal sealed partial class ActiveBiddingAnalyzer
 {
+    private const string LogPrefix = $"[{nameof(ActiveBiddingAnalyzer)}]";
     private const string MagicDieMessage = "**A Magic Die is rolled by ";
     private const int MinimumCharacterNameLength = 4;
     private const string RollResultMessage = "**It could have been any number from ";
@@ -84,7 +86,7 @@ internal sealed partial class ActiveBiddingAnalyzer
         relatedAuction.HasNewBidsAdded = true;
         relatedAuction.HasBids = true;
 
-        return new LiveBidInfo
+        LiveBidInfo newBid = new()
         {
             Timestamp = timestamp,
             Channel = channel,
@@ -95,6 +97,8 @@ internal sealed partial class ActiveBiddingAnalyzer
             BidAmount = dkpValue,
             CharacterNotOnDkpServer = characterNotOnDkpServer
         };
+        Log.Debug($"{LogPrefix} New bid: {newBid}");
+        return newBid;
     }
 
     public LiveBidInfo GetRollInfo(string logLineNoTimestamp, DateTime timestamp, IEnumerable<LiveAuctionInfo> activeAuctions)
@@ -110,6 +114,7 @@ internal sealed partial class ActiveBiddingAnalyzer
         {
             string characterName = logLineNoTimestamp[MagicDieMessage.Length..^1];
             _currentMagicMessage = new MagicDieRollMessage { CharacterName = characterName, Timestamp = timestamp };
+            Log.Debug($"{LogPrefix} Magic Message: {logLineNoTimestamp}");
             return null;
         }
         else if (_currentMagicMessage != null && logLineNoTimestamp.StartsWith(RollResultMessage))
@@ -123,7 +128,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             if (!int.TryParse(randNumberRaw, out int randNumber))
                 return null;
 
-            string rollResultRaw = messageParts[messageParts.Length - 1];
+            string rollResultRaw = messageParts[^1];
             if (!int.TryParse(rollResultRaw, out int rollResult))
                 return null;
 
@@ -134,7 +139,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             parentAuction.HasNewBidsAdded = true;
             parentAuction.HasBids = true;
 
-            return new LiveBidInfo
+            LiveBidInfo newRoll = new()
             {
                 Timestamp = timestamp,
                 Channel = parentAuction.Channel,
@@ -145,6 +150,8 @@ internal sealed partial class ActiveBiddingAnalyzer
                 BidAmount = rollResult,
                 IsRoll = true
             };
+            Log.Debug($"{LogPrefix} Roll performed: {newRoll}");
+            return newRoll;
         }
 
         return null;
