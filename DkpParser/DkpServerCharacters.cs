@@ -29,6 +29,15 @@ public sealed class DkpServerCharacters
     public bool CharacterConfirmedNotOnDkpServer(string characterName)
         => _userCharacters.Count > 0 && !_userCharacters.Any(x => x.Name == characterName);
 
+    public IEnumerable<DkpUserCharacter> GetAllRelatedCharacters(string characterName)
+    {
+        DkpUserCharacter dkpChar = _userCharacters.FirstOrDefault(x => x.Name == characterName);
+        if (dkpChar == null)
+            return [];
+
+        return GetAllRelatedCharacters(dkpChar);
+    }
+
     public IEnumerable<DkpUserCharacter> GetAllRelatedCharacters(DkpUserCharacter userCharacter)
     {
         if (_userCharacters.Count == 0)

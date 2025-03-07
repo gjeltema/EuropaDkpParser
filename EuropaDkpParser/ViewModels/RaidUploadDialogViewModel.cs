@@ -269,8 +269,14 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         IEnumerable<string> displayLines;
         if (dkpSpentEntriesRemoved.Count > 0)
         {
+            List<DkpUserCharacter> relatedCharacters = _settings.CharactersOnDkpServer.GetAllRelatedCharacters(characterName).ToList();
+            string relatedCharsLine = relatedCharacters.Count > 0
+                ? $"Related characters: {string.Join(", ", relatedCharacters.Select(x => x.Name))}"
+                : string.Empty;
+
             displayLines = [$"{characterName} was removed from all attendances, and had at least one item awarded in a SPENT call."
-                , "The following log entries were found relating to items this player was awarded:"
+                , relatedCharsLine
+                , "The following log entries were found relating to items this character was awarded:"
                 , ..bidLogEntries];
         }
         else
