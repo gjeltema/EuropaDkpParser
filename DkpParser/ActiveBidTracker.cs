@@ -545,6 +545,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             };
             Log.Debug($"{LogPrefix} SPENT call made, Completed call created: {newCompletedCall}");
             _completedAuctions = _completedAuctions.Add(newCompletedCall);
+            return true;
         }
 
         Log.Debug($"{LogPrefix} SPENT call made, but not enough SPENT calls to complete the auction. SPENT call: {spentCall}; Associated Auction: {existingAuction}");
