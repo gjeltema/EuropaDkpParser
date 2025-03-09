@@ -13,6 +13,7 @@ internal sealed class PrimaryEntryParser : IParseEntry
     private readonly EqLogFile _logFile;
     private readonly IParseEntry _populationListingParser;
     private readonly IPopulationListingStartEntryParser _populationListingStartParser;
+    private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly ISetEntryParser _setParser;
     private readonly char[] _tempString = new char[400];
 
@@ -78,19 +79,20 @@ internal sealed class PrimaryEntryParser : IParseEntry
             {
                 int numberOfChars = logLine.RemoveAllWhitespace(_tempString);
                 ReadOnlySpan<char> noWhitespaceLogline = _tempString.AsSpan(0, numberOfChars);
+                string noWhitespaceSanitized = _sanitizer.SanitizeDelimiterString(noWhitespaceLogline.ToString());
 
-                if (noWhitespaceLogline.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                    || noWhitespaceLogline.Contains(Constants.CrashedAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+                if (noWhitespaceSanitized.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                    || noWhitespaceSanitized.Contains(Constants.CrashedAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Crashed);
                 }
-                else if (noWhitespaceLogline.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                    || noWhitespaceLogline.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+                else if (noWhitespaceSanitized.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                    || noWhitespaceSanitized.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkStart);
                 }
-                else if (noWhitespaceLogline.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                    || noWhitespaceLogline.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+                else if (noWhitespaceSanitized.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                    || noWhitespaceSanitized.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
                 {
                     CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkEnd);
                 }
