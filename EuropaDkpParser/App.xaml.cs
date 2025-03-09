@@ -25,19 +25,6 @@ public partial class App : Application
     private IDkpParserSettings _settings;
     private ShellView _shellView;
 
-    protected override void OnExit(ExitEventArgs e)
-    {
-        if (_shellView == null)
-            return;
-
-        if (_settings.MainWindowX == _shellView.Left && _settings.MainWindowY == _shellView.Top)
-            return;
-
-        _settings.MainWindowX = (int)_shellView.Left;
-        _settings.MainWindowY = (int)_shellView.Top;
-        _settings.SaveSettings();
-    }
-
     protected override void OnStartup(StartupEventArgs e)
     {
         DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;

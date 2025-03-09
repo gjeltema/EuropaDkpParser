@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ShellView.xaml.cs Copyright 2024 Craig Gjeltema
+// ShellView.xaml.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Views;
@@ -13,6 +13,16 @@ public partial class ShellView : Window
     {
         DataContext = shellVM;
 
+        Closed += HandleClosed;
+
         InitializeComponent();
+    }
+
+    private void HandleClosed(object sender, EventArgs e)
+    {
+        if (DataContext is ShellViewModel shellVM)
+        {
+            shellVM.HandleClosed((int)Left, (int)Top);
+        }
     }
 }

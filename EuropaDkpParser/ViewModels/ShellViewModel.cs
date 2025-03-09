@@ -9,6 +9,7 @@ using EuropaDkpParser.Resources;
 
 internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 {
+    private readonly IDkpParserSettings _settings;
     private int _windowLocationX;
     private int _windowLocationY;
 
@@ -20,6 +21,7 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
 
         WindowLocationX = settings.MainWindowX;
         WindowLocationY = settings.MainWindowY;
+        _settings = settings;
     }
 
     public ISimpleStartDisplayViewModel SimpleStartDisplayVM { get; }
@@ -38,6 +40,16 @@ internal sealed class ShellViewModel : EuropaViewModelBase, IShellViewModel
     {
         get => _windowLocationY;
         set => SetProperty(ref _windowLocationY, value);
+    }
+
+    public void HandleClosed(int left, int top)
+    {
+        if (_settings.MainWindowX == left && _settings.MainWindowY == top)
+            return;
+
+        _settings.MainWindowX = left;
+        _settings.MainWindowY = top;
+        _settings.SaveSettings();
     }
 }
 
