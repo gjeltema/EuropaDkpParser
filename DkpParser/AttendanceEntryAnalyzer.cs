@@ -105,7 +105,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 try
                 {
                     string correctedLogLine = _sanitizer.SanitizeDelimiterString(logEntry.LogLine);
-                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.FullLogLine};
+                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.FullLogLine };
 
                     SetAttendanceType(logEntry, call, correctedLogLine);
 
@@ -144,6 +144,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 .Where(x => x.EntryType == LogEntryType.AfkEnd)
                 .Where(x => afkStartEntry.Timestamp < x.Timestamp)
                 .Where(x => x.Character.CharacterName == afkStartEntry.Character.CharacterName)
+                .OrderBy(x => x.Timestamp)
                 .FirstOrDefault();
 
             if (endEntry == null)

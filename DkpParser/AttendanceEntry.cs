@@ -74,7 +74,7 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
         => CallName.GetHashCode() ^ Timestamp.GetHashCode();
 
     public string ToDebugString()
-        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}  {CallName}  {ZoneName} Possible Error: {PossibleError}; Raw Log: {Timestamp.ToString(Constants.EqLogDateTimeFormat)} {RawHeaderLogLine}";
+        => $"{Timestamp:HH:mm:ss} {AttendanceCallType}  {CallName}  {ZoneName} Possible Error: {PossibleError}; Raw Log: {Timestamp.ToEqLogTimestamp()} {RawHeaderLogLine}";
 
     public string ToDisplayString()
         => $"{Timestamp:HH:mm:ss} {CallName}\t{ZoneName}";

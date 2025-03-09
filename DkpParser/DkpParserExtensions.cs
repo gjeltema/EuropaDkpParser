@@ -54,6 +54,9 @@ public static class DkpParserExtensions
         return index;
     }
 
+    public static string ToEqLogTimestamp(this DateTime timeStamp)
+        => timeStamp.ToUsTimestamp(Constants.EqLogDateTimeFormat);
+
     public static string ToUsTimestamp(this DateTime timeStamp, string format)
         => timeStamp.ToString(format, Constants.UsCulture);
 

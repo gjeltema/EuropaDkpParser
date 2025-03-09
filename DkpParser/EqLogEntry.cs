@@ -16,7 +16,7 @@ public sealed class EqLogEntry
     public PossibleError ErrorType { get; set; } = PossibleError.None;
 
     public string FullLogLine
-        => $"{Timestamp.ToString(Constants.EqLogDateTimeFormat)} {LogLine}";
+        => $"{Timestamp.ToEqLogTimestamp()} {LogLine}";
 
     public string LogLine { get; set; }
 

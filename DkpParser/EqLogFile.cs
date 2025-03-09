@@ -22,7 +22,7 @@ public sealed class EqLogFile
     public IEnumerable<string> GetAllLogLines()
     {
         DateTime firstTimestamp = LogEntries[0].Timestamp;
-        yield return $"{firstTimestamp.ToString(Constants.EqLogDateTimeFormat)} ----------------------- {LogFile} Begin --------------------------";
+        yield return $"{firstTimestamp.ToEqLogTimestamp()} ----------------------- {LogFile} Begin --------------------------";
 
         foreach (EqLogEntry logEntry in LogEntries)
             yield return logEntry.FullLogLine;
