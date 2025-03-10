@@ -144,7 +144,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         if (string.IsNullOrWhiteSpace(ApiReadToken))
             ApiReadToken = "";
         ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
-        ApiUrl = GetStringValue(fileContents, ApiUrlSection);
+
+        SetApiUrl(fileContents);
         if (string.IsNullOrWhiteSpace(ApiUrl))
             ApiUrl = "";
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
@@ -332,7 +333,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         if (settingValue == key + SectionEnding)
             return defaultValue;
 
-        return settingValue;
+        return settingValue.Trim();
     }
 
     private int GetWindowLoc(string setting)
@@ -371,6 +372,19 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     private bool IsValidIndex(int indexOfSection, ICollection<string> fileContents)
         => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
+
+    private void SetApiUrl(string[] fileContents)
+    {
+        string rawApiUrl = GetStringValue(fileContents, ApiUrlSection);
+        if (string.IsNullOrEmpty(rawApiUrl))
+            return;
+
+        // People keep forgetting to add the ? at the end of the URL, so just adding it
+        if (rawApiUrl.Contains("http://", StringComparison.OrdinalIgnoreCase) && !rawApiUrl.EndsWith('?'))
+            rawApiUrl += '?';
+
+        ApiUrl = rawApiUrl;
+    }
 
     private void SetDirectories(string[] fileContents)
     {

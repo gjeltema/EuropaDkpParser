@@ -159,10 +159,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             {
                 StartTailingFile(value);
                 string characterName = ExtractCharacterNameFromLogFile(value);
-                Log.Debug($"{LogPrefix} {nameof(FilePath)} being set to {value}.");
+                Log.Info($"{LogPrefix} {nameof(FilePath)} being set to {value}, characterName is {characterName}.");
                 if (!string.IsNullOrEmpty(characterName))
                 {
-                    Log.Debug($"{LogPrefix} {nameof(_currentCharacterName)} set to {characterName}.");
                     _currentCharacterName = characterName;
                     _zealMessages.StartMessageProcessing(characterName);
                 }

@@ -19,7 +19,7 @@ public sealed class TailFile : IMessageProvider
 
     public void StartMessages(string filePath, Action<string> lineHandler)
     {
-        Log.Debug($"{LogPrefix} Starting {nameof(StartMessages)} with file: {filePath}");
+        Log.Info($"{LogPrefix} Entering {nameof(StartMessages)} with file: {filePath}");
 
         if (string.IsNullOrWhiteSpace(filePath))
             return;
@@ -38,7 +38,7 @@ public sealed class TailFile : IMessageProvider
 
     public void StopMessages()
     {
-        Log.Debug($"{LogPrefix} Entering {nameof(StopMessages)}.");
+        Log.Info($"{LogPrefix} Entering {nameof(StopMessages)}.");
 
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
@@ -48,11 +48,12 @@ public sealed class TailFile : IMessageProvider
 
     private void ReadFile(CancellationToken cancelToken)
     {
+        string filePath = _filePath;
         try
         {
-            Log.Debug($"{LogPrefix} Starting {nameof(ReadFile)}.");
+            Log.Info($"{LogPrefix} Starting {nameof(ReadFile)} with filepath: {filePath}.");
 
-            using FileStream fileStream = new(_filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using StreamReader reader = new(fileStream);
 
             long lastOffset = reader.BaseStream.Length;
@@ -63,7 +64,7 @@ public sealed class TailFile : IMessageProvider
 
                 if (cancelToken.IsCancellationRequested)
                 {
-                    Log.Debug($"{LogPrefix} Cancellation Token cancel requested.");
+                    Log.Info($"{LogPrefix} Cancellation Token cancel requested.");
                     break;
                 }
 
@@ -96,7 +97,7 @@ public sealed class TailFile : IMessageProvider
             Log.Error($"{LogPrefix} Error encountered when processing messages: Error: {ex.ToLogMessage()}");
         }
 
-        Log.Info($"{LogPrefix} Leaving {nameof(ReadFile)}");
+        Log.Info($"{LogPrefix} Leaving {nameof(ReadFile)} for filepath: {filePath}");
     }
 }
 

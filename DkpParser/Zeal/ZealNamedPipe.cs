@@ -22,6 +22,8 @@ public sealed class ZealNamedPipe
 
     public void StartListening(string characterName, IZealMessageUpdater messageUpdater)
     {
+        Log.Info($"{LogPrefix} In {nameof(StartListening)}, with character name {characterName}.");
+
         if (_cancelTokenSource != null)
         {
             StopListening();
@@ -37,13 +39,15 @@ public sealed class ZealNamedPipe
 
             Thread messageListenerThread = new(() => ProcessZealPipeMessages(pipeName, messageUpdater, _cancelTokenSource.Token));
             messageListenerThread.IsBackground = true;
+
+            Log.Info($"{LogPrefix} Spawning thread to listen to pipe, pipe name {pipeName}, set character name {_characterName}.");
             messageListenerThread.Start();
         }
     }
 
     public void StopListening()
     {
-        Log.Debug($"{LogPrefix} StopListening() called.");
+        Log.Info($"{LogPrefix} StopListening() called.");
 
         _cancelTokenSource?.Cancel();
         _cancelTokenSource?.Dispose();
@@ -54,7 +58,7 @@ public sealed class ZealNamedPipe
     {
         try
         {
-            Log.Debug($"{LogPrefix} Starting Zeal Pipe listener.");
+            Log.Info($"{LogPrefix} Starting Zeal Pipe listener, pipe name {pipeName}.");
 
             ZealMessageProcessor messageProcessor = new(messageUpdater);
 
