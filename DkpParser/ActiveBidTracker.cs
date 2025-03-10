@@ -307,7 +307,19 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         if (ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count == 0)
         {
-            Log.Debug($"{LogPrefix} No values in {nameof(ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees)}, ending processing of AttendanceCall: {messageFromPlayer}.");
+            Log.Info($"{LogPrefix} No values in {nameof(ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees)}, ending processing of AttendanceCall: {messageFromPlayer}.");
+            return;
+        }
+
+        if (ZealAttendanceMessageProvider.Instance.RaidInfo.IsDataStale)
+        {
+            Log.Info($"{LogPrefix} Data in {nameof(ZealAttendanceMessageProvider.Instance.RaidInfo)} is stale. Ending processing of AttendanceCall: {messageFromPlayer}.");
+            return;
+        }
+
+        if (ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale)
+        {
+            Log.Info($"{LogPrefix} Data in {nameof(ZealAttendanceMessageProvider.Instance.CharacterInfo)} is stale. Ending processing of AttendanceCall: {messageFromPlayer}.");
             return;
         }
 

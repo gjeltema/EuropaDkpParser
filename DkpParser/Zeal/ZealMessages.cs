@@ -10,6 +10,13 @@ using System.Text.Json.Serialization;
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class ZealRaidInfo
 {
+    private readonly TimeSpan _threshold = TimeSpan.FromSeconds(4);
+
+    public bool IsDataStale
+        => (DateTime.Now - LastUpdate) > _threshold;
+
+    public DateTime LastUpdate { get; set; } = DateTime.MinValue;
+
     public PipeMessageType MessageType
         => PipeMessageType.Raid;
 
@@ -72,8 +79,15 @@ public sealed class ZealVector3d
 [DebuggerDisplay("{DebugText,nq}")]
 public class ZealCharacterInfo
 {
+    private readonly TimeSpan _threshold = TimeSpan.FromSeconds(4);
+
     [JsonPropertyName("heading")]
     public float Heading { get; set; }
+
+    public bool IsDataStale
+        => (DateTime.Now - LastUpdate) > _threshold;
+
+    public DateTime LastUpdate { get; set; } = DateTime.MinValue;
 
     [JsonPropertyName("location")]
     public ZealVector3d Position { get; set; }

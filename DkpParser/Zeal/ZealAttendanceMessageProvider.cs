@@ -26,10 +26,16 @@ public sealed class ZealAttendanceMessageProvider : IZealMessageUpdater, IZealMe
         => PipeError?.Invoke(this, new ZealPipeErrorEventArgs { ErrorMessage = errorMessage, ErrorException = errorException });
 
     public void SetCharacterInfo(ZealCharacterInfo zealCharacterInfo)
-        => CharacterInfo = zealCharacterInfo;
+    {
+        CharacterInfo = zealCharacterInfo;
+        CharacterInfo.LastUpdate = DateTime.Now;
+    }
 
     public void SetRaidAttendees(List<ZealRaidCharacter> raidCharacters)
-        => RaidInfo.InternalAttendees = raidCharacters;
+    {
+        RaidInfo.InternalAttendees = raidCharacters;
+        RaidInfo.LastUpdate = DateTime.Now;
+    }
 
     public void StartMessageProcessing(string characterName)
     {
