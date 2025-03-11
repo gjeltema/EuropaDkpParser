@@ -6,7 +6,7 @@ namespace DkpParser;
 
 public sealed class DkpDataRetriever : IDkpDataRetriever
 {
-    private const int EmptyResponsesThreshold = 30;
+    private const int EmptyResponsesThreshold = 20;
     private readonly IDkpServer _server;
 
     public DkpDataRetriever(IDkpParserSettings settings)
@@ -37,6 +37,14 @@ public sealed class DkpDataRetriever : IDkpDataRetriever
         return allUserCharacters;
     }
 
+    public async Task<int> GetUserDkp(string characterName)
+    {
+        if (string.IsNullOrWhiteSpace(characterName))
+            return int.MinValue;
+
+        return await _server.GetUserDkp(characterName);
+    }
+
     public async Task<int> GetUserDkp(DkpUserCharacter userCharacter)
     {
         if (userCharacter == null || userCharacter.UserId < 2)
@@ -49,6 +57,12 @@ public sealed class DkpDataRetriever : IDkpDataRetriever
 public interface IDkpDataRetriever
 {
     Task<ICollection<DkpUserCharacter>> GetUserCharacters();
+
+    /// <summary>
+    /// Gets the DKP amount for the character name from the DKP server.</br>
+    /// If unable to retrieve the DKP amount, returns <see cref="int.MinValue"/>.
+    /// </summary>
+    Task<int> GetUserDkp(string characterName);
 
     /// <summary>
     /// Gets the DKP amount for the user account from the DKP server.</br>

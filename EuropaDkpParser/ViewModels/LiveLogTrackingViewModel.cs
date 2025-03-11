@@ -83,7 +83,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
         AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
             .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
-        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken) && _settings.CharactersOnDkpServer.CharacterConfirmedExistsOnDkpServer(SelectedBid.CharacterBeingBidFor))
+        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken))
             .ObservesProperty(() => SelectedBid);
         ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
             .ObservesProperty(() => SelectedBid).ObservesProperty(() => SelectedBidCharacterName);
@@ -420,21 +420,25 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         if (SelectedBid == null)
             return;
 
-        DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(SelectedBid.CharacterBeingBidFor);
-        if (dkpCharacter == null)
+        string characterName = SelectedBid.CharacterBeingBidFor;
+        if (string.IsNullOrWhiteSpace(characterName))
         {
-            MessageDialog.ShowDialog($"{dkpCharacter.Name} does not exist on DKP server.", "Unable To Retrieve DKP");
+            MessageDialog.ShowDialog($"Character name is invalid.", "Unable To Retrieve DKP");
             return;
         }
 
-        int userDkp = await _dkpDataRetriever.GetUserDkp(dkpCharacter);
-        if (userDkp == int.MinValue)
+        DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(characterName);
+        int userDkp = dkpCharacter == null
+            ? await _dkpDataRetriever.GetUserDkp(characterName)
+            : await _dkpDataRetriever.GetUserDkp(dkpCharacter);
+
+        if (userDkp < -100000)
         {
-            MessageDialog.ShowDialog($"Unable to retrieve DKP for {dkpCharacter.Name}", "Unable To Retrieve DKP");
+            MessageDialog.ShowDialog($"Unable to retrieve DKP for {characterName}, likely does not exist on server.", "Unable To Retrieve DKP");
         }
         else
         {
-            MessageDialog.ShowDialog($"{dkpCharacter.Name} has {userDkp} DKP", "DKP Amount", fontSize: DkpDisplayFontSize);
+            MessageDialog.ShowDialog($"{characterName} has {userDkp} DKP", "DKP Amount", fontSize: DkpDisplayFontSize);
         }
     }
 

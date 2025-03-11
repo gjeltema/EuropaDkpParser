@@ -56,7 +56,7 @@ public sealed class DkpServer : IDkpServer
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} Error encountered in user_char call: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {GetUserCharacters} Error encountered in getting users for user ID: {userId}: {ex.ToLogMessage()}");
         }
 
         return null;
@@ -75,9 +75,27 @@ public sealed class DkpServer : IDkpServer
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} Error encountered in Points call: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(GetUserDkp)} Error encountered in retrieving DKP for user ID {userId}: {ex.ToLogMessage()}");
         }
 
+        return int.MinValue;
+    }
+
+    public async Task<int> GetUserDkp(string characterName)
+    {
+        try
+        {
+            int characterId = await GetCharacterIdFromServer(characterName);
+            if (characterId < 0)
+                return int.MinValue;
+
+            int userDkp = await GetUserDkpFromCharacterId(characterId);
+            return userDkp;
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogPrefix} {nameof(GetUserDkp)} Error encountered retrieving character ID or DKP for {characterName}: {ex.ToLogMessage()}");
+        }
         return int.MinValue;
     }
 
@@ -292,6 +310,15 @@ public sealed class DkpServer : IDkpServer
         return userChars;
     }
 
+    private async Task<int> GetUserDkpFromCharacterId(int characterId)
+    {
+        string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=points&filter=character&filterid={characterId}";
+        XDocument responseDoc = await MakeGetCall(uri);
+
+        int userDkp = GetUserDkpFromResponse(responseDoc);
+        return userDkp;
+    }
+
     private int GetUserDkpFromResponse(XDocument responseDoc)
     {
         XElement currentPointsElement = responseDoc.Root.Descendants("points_current_with_twink").FirstOrDefault();
@@ -371,6 +398,8 @@ public interface IDkpServer
     Task<ICollection<DkpUserCharacter>> GetUserCharacters(int userId);
 
     Task<int> GetUserDkp(int userId);
+
+    Task<int> GetUserDkp(string characterName);
 
     Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
 
