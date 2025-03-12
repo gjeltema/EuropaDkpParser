@@ -175,7 +175,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             foreach (string person in _peopleConversingWith)
             {
                 if (logLine.Contains($"{Constants.YouTold}{person}", StringComparison.OrdinalIgnoreCase)
-                    || logLine.Contains($"] {person}{Constants.TellsYou}", StringComparison.OrdinalIgnoreCase))
+                    || logLine.Contains($"{person}{Constants.TellsYou}", StringComparison.OrdinalIgnoreCase))
                 {
                     eqLogEntry = new()
                     {

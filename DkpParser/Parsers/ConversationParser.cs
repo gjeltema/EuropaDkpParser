@@ -44,7 +44,7 @@ public sealed class ConversationParser : EqLogParserBase, IConversationParser
             foreach (string person in peopleConversingWith)
             {
                 _conversationSearchStrings.Add($"{Constants.YouTold}{person}");
-                _conversationSearchStrings.Add($"] {person}{Constants.TellsYou}");
+                _conversationSearchStrings.Add($"{person}{Constants.TellsYou}");
             }
         }
 
