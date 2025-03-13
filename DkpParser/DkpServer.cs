@@ -334,11 +334,11 @@ public sealed class DkpServer : IDkpServer
 
         using HttpResponseMessage response = await LocalHttpClient.GetAsync(url);
 
-        Log.Debug($"{LogPrefix} GET response received.  Response object: {response}");
+        Log.Trace($"{LogPrefix} GET response received.  Response object: {response}");
 
         string responseText = await response.Content.ReadAsStringAsync();
 
-        Log.Debug($"{LogPrefix} GET response text:{Environment.NewLine}{responseText}");
+        Log.Trace($"{LogPrefix} GET response text:{Environment.NewLine}{responseText}");
 
         response.EnsureSuccessStatusCode();
 
@@ -354,7 +354,7 @@ public sealed class DkpServer : IDkpServer
 
     private async Task<string> UploadMessage(string function, string content)
     {
-        Log.Debug($"{LogPrefix} Uploading with POST body:{Environment.NewLine}{content}");
+        Log.Trace($"{LogPrefix} Uploading with POST body:{Environment.NewLine}{content}");
 
         using HttpContent postContent = GetPostContent(content);
         postContent.Headers.ContentType = _mediaHeader;
@@ -364,11 +364,11 @@ public sealed class DkpServer : IDkpServer
 
         using HttpResponseMessage response = await LocalHttpClient.PostAsync(uri, postContent);
 
-        Log.Debug($"{LogPrefix} Received response.  Response object:{Environment.NewLine}{response}");
+        Log.Trace($"{LogPrefix} Received response.  Response object:{Environment.NewLine}{response}");
 
         string text = await response.Content.ReadAsStringAsync();
 
-        Log.Debug($"{LogPrefix} Response:{Environment.NewLine}{text}");
+        Log.Trace($"{LogPrefix} Response:{Environment.NewLine}{text}");
 
         response.EnsureSuccessStatusCode();
 
