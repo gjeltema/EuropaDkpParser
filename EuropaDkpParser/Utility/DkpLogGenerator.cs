@@ -85,6 +85,8 @@ internal sealed class DkpLogGenerator
             await TryCopyFile(raidDumpFile.FullFilePath, Path.Combine(directoryForFiles, raidDumpFile.FileName));
         }
 
+        await TryCopyApplicationLogFiles(directoryForFiles);
+
         string zipFullFilePath = Path.Combine(outputPath, directoryName + ".zip");
 
         if (!await TryCreateZip(directoryForFiles, zipFullFilePath))
@@ -373,6 +375,27 @@ internal sealed class DkpLogGenerator
             Log.Error($"{LogPrefix} Unexpected parse error: {e.ToLogMessage()}");
             MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
+        }
+    }
+
+    private async Task TryCopyApplicationLogFiles(string destinationDirectory)
+    {
+        try
+        {
+            string currentDirectory = AppContext.BaseDirectory;
+            string applicationLogDirectory = Path.Combine(currentDirectory, "Logs");
+            for (int i = 0; i < 3; i++)
+            {
+                DateTime currentTime = DateTime.Now;
+                string logFileName = $"{currentTime.AddDays(-i):MMdd}_ParserLog.txt";
+                string logFileSourcePath = Path.Combine(applicationLogDirectory, logFileName);
+                string logFileDestinationPath = Path.Combine(destinationDirectory, logFileName);
+                await TryCopyFile(logFileSourcePath, logFileDestinationPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogPrefix} Error copying application log files to {destinationDirectory}: {ex.ToLogMessage()}");
         }
     }
 
