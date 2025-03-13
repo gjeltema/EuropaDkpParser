@@ -16,7 +16,7 @@ using Prism.Commands;
 internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTrackingViewModel
 {
     private const int DkpDisplayFontSize = 16;
-    private const string LogPrefix = $"{nameof(LiveLogTrackingViewModel)}";
+    private const string LogPrefix = $"[{nameof(LiveLogTrackingViewModel)}]";
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly AttendanceTimerHandler _attendanceTimerHandler;
     private readonly IDkpDataRetriever _dkpDataRetriever;

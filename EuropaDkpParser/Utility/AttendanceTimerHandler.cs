@@ -20,7 +20,7 @@ internal sealed class AttendanceTimerHandler
         Positioning
     }
 
-    private const string LogPrefix = $"{nameof(AttendanceTimerHandler)}";
+    private const string LogPrefix = $"[{nameof(AttendanceTimerHandler)}]";
     private readonly IDialogFactory _dialogFactory;
     private readonly IOverlayFactory _overlayFactory;
     private readonly Queue<PendingOverlay> _pendingOverlays = [];
@@ -101,10 +101,10 @@ internal sealed class AttendanceTimerHandler
 
     public void RemindForKillAttendance(string bossName)
     {
-        Log.Debug($"{LogPrefix} {nameof(RemindForKillAttendance)} called for {bossName}.  {nameof(RemindAttendances)} is {RemindAttendances}.");
-
         if (!RemindAttendances || string.IsNullOrEmpty(bossName))
             return;
+
+        Log.Debug($"{LogPrefix} {nameof(RemindForKillAttendance)} called for {bossName}.  {nameof(RemindAttendances)} is {RemindAttendances}.");
 
         if (_overlayTypeShowing != OverlayType.None)
         {
@@ -117,7 +117,7 @@ internal sealed class AttendanceTimerHandler
 
         if (UseOverlayForAttendanceReminder)
         {
-            Log.Debug($"{LogPrefix} Showing reminder overlay.");
+            Log.Info($"{LogPrefix} Showing reminder overlay for boss name {bossName}.");
             _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
             _attendanceOverlayViewModel.Show(bossName);
             _overlayTypeShowing = OverlayType.Kill;
@@ -127,7 +127,7 @@ internal sealed class AttendanceTimerHandler
             string statusMessageFormat = Strings.GetString("KillAttendanceReminderMessageFormat");
             string statusMessage = string.Format(statusMessageFormat, bossName);
 
-            Log.Debug($"{LogPrefix} Showing reminder dialog.");
+            Log.Info($"{LogPrefix} Showing reminder dialog for boss name {bossName}.");
 
             IReminderDialogViewModel reminder = GetReminderDialog(statusMessage, AttendanceCallType.Kill);
             reminder.AttendanceName = bossName;
@@ -160,7 +160,7 @@ internal sealed class AttendanceTimerHandler
 
         if (_overlayTypeShowing != OverlayType.None)
         {
-            Log.Debug($"{LogPrefix} Overlay already showing. Adding to queue.");
+            Log.Info($"{LogPrefix} Overlay already showing. Adding time reminder for time call index {_timeCallIndex} to queue.");
             _pendingOverlays.Enqueue(new PendingOverlay { OverlayType = OverlayType.Time });
             return;
         }
@@ -170,7 +170,7 @@ internal sealed class AttendanceTimerHandler
 
         if (UseOverlayForAttendanceReminder)
         {
-            Log.Debug($"{LogPrefix} Showing reminder overlay.");
+            Log.Info($"{LogPrefix} Showing reminder overlay for time call index {_timeCallIndex}.");
             _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
             _attendanceOverlayViewModel.Show(_timeCallIndex);
             _overlayTypeShowing = OverlayType.Time;
@@ -182,7 +182,7 @@ internal sealed class AttendanceTimerHandler
             IReminderDialogViewModel reminder = GetReminderDialog(Strings.GetString("TimeAttendanceReminderMessage"), AttendanceCallType.Time);
             reminder.SetTimeCallIndex(_timeCallIndex);
 
-            Log.Debug($"{LogPrefix} Showing reminder dialog.");
+            Log.Info($"{LogPrefix} Showing reminder dialog for time call index {_timeCallIndex}.");
 
             bool ok = reminder.ShowDialog() == true;
             nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);

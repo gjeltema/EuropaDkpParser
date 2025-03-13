@@ -25,6 +25,9 @@ public partial class App : Application
     private IDkpParserSettings _settings;
     private ShellView _shellView;
 
+    protected override void OnExit(ExitEventArgs e)
+        => Log.Info($"Exiting application.");
+
     protected override void OnStartup(StartupEventArgs e)
     {
         DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;
@@ -50,6 +53,8 @@ public partial class App : Application
                "Configuration File Not Loaded",
                MessageBoxButton.OK,
                MessageBoxImage.Error);
+
+            Log.Critical($"Unable to locate necessary configuration file {fnf.FileName}.  Exiting application. Exception: {fnf.ToLogMessage()}");
 
             Current?.Shutdown(1);
             return;

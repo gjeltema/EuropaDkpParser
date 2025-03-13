@@ -8,7 +8,7 @@ using Gjeltema.Logging;
 
 internal static class Clip
 {
-    private const string LogPrefix = $"{nameof(Clip)}";
+    private const string LogPrefix = $"[{nameof(Clip)}]";
 
     public static void Copy(string text)
     {

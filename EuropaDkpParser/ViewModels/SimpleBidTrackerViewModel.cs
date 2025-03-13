@@ -13,7 +13,7 @@ using Prism.Commands;
 
 internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBidTrackerViewModel
 {
-    private const string LogPrefix = $"{nameof(SimpleBidTrackerViewModel)}";
+    private const string LogPrefix = $"[{nameof(SimpleBidTrackerViewModel)}]";
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
