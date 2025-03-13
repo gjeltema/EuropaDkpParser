@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// Strings.cs Copyright 2024 Craig Gjeltema
+// Strings.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Resources;
@@ -17,6 +17,9 @@ public class Strings
             Source = new Uri("Resources/StringResources.xaml", UriKind.RelativeOrAbsolute)
         };
     }
+
+    public static string ApplicationVersion
+        => GetString("Version");
 
     public static string GetString(string resourceKey)
         => (string)stringResourceDictionary[resourceKey];

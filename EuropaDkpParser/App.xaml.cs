@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using DkpParser;
+using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
 using EuropaDkpParser.ViewModels;
 using EuropaDkpParser.Views;
@@ -41,6 +42,8 @@ public partial class App : Application
         _settings.LoadBaseSettings();
 
         InitializeLogging();
+
+        Log.Info($"Application Version: {Strings.ApplicationVersion}");
 
         try
         {
