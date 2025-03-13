@@ -21,7 +21,7 @@ public partial class App : Application
     private const string SettingsFilePath = "Settings.txt";
     private const string ZoneIdMappingFilePath = "Zones.txt";
     private static readonly LogFormatter LogFormatter =
-         (logLevel, message) => $"{DateTime.Now:HH:mm:ss} {logLevel.ToString().ToUpper()} {message}";
+         (logLevel, message) => $"{DateTime.Now:HH:mm:ss} {logLevel.ToUpperString()} {message}";
     private IDkpParserSettings _settings;
     private ShellView _shellView;
 

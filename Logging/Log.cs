@@ -12,14 +12,29 @@ using System.Runtime.CompilerServices;
 /// </summary>
 public static class Log
 {
-    private static readonly IDictionary<string, LogLevel> TextToLogLevelMapping = new Dictionary<string, LogLevel>
+    private const string CriticalText = "CRITICAL";
+    private const string DebugText = "DEBUG";
+    private const string ErrorText = "ERROR";
+    private const string InfoText = "INFO";
+    private const string TraceText = "TRACE";
+    private const string WarningText = "WARNING";
+    private static readonly Dictionary<LogLevel, string> LogLevelToTextMapping = new Dictionary<LogLevel, string>
     {
-        { "CRITICAL", LogLevel.Critical },
-        { "ERROR", LogLevel.Error },
-        { "WARNING", LogLevel.Warning },
-        { "INFO", LogLevel.Info },
-        { "DEBUG", LogLevel.Debug },
-        { "TRACE", LogLevel.Trace },
+        { LogLevel.Critical, CriticalText },
+        { LogLevel.Error, ErrorText },
+        { LogLevel.Warning , WarningText },
+        { LogLevel.Info , InfoText },
+        { LogLevel.Debug , DebugText },
+        { LogLevel.Trace , TraceText },
+    };
+    private static readonly Dictionary<string, LogLevel> TextToLogLevelMapping = new Dictionary<string, LogLevel>
+    {
+        { CriticalText, LogLevel.Critical },
+        { ErrorText, LogLevel.Error },
+        { WarningText, LogLevel.Warning },
+        { InfoText, LogLevel.Info },
+        { DebugText, LogLevel.Debug },
+        { TraceText, LogLevel.Trace },
     };
 
     static Log()
@@ -163,6 +178,9 @@ public static class Log
         if (message.CreatedLogMessage)
             logTarget.Log(LogLevel.Info, message.ToStringAndClear());
     }
+
+    public static string ToUpperString(this LogLevel logLevel)
+        => LogLevelToTextMapping[logLevel];
 
     /// <summary>
     ///     Logs a trace message to the default log target.
