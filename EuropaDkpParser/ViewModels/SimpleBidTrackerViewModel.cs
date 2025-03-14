@@ -77,8 +77,8 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
         {
             if (SetProperty(ref _selectedLogFilePath, value))
             {
+                Log.Info($"{LogPrefix} {nameof(SelectedLogFilePath)} being set to {value}.");
                 StartTailingFile(value);
-                Log.Debug($"{LogPrefix} {nameof(SelectedLogFilePath)} being set to {value}.");
             }
         }
     }
@@ -90,6 +90,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
 
     protected override sealed void HandleClosing()
     {
+        Log.Info($"{LogPrefix} {nameof(HandleClosing)} called.");
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
     }
@@ -125,7 +126,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
 
     private void SetActiveAuctionsToCompleted()
     {
-        if (SelectedActiveAuctions.Count == 0)
+        if (SelectedActiveAuctions == null || SelectedActiveAuctions.Count == 0)
             return;
 
         ICollection<LiveAuctionDisplay> selectedAuctions = [.. SelectedActiveAuctions];
@@ -141,10 +142,16 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     private void StartTailingFile(string fileToTail)
     {
         if (string.IsNullOrWhiteSpace(fileToTail))
+        {
+            Log.Info($"{LogPrefix} Selected log file '{fileToTail}' is null or whitespace - not tailing file.");
             return;
+        }
 
         if (!File.Exists(fileToTail))
+        {
+            Log.Info($"{LogPrefix} Selected log file {fileToTail} does not exist - not tailing file.");
             return;
+        }
 
         _activeBidTracker.StopTracking();
         _activeBidTracker.StartTracking(fileToTail);

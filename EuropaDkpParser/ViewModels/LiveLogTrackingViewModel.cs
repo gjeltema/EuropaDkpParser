@@ -157,9 +157,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         {
             if (SetProperty(ref _filePath, value))
             {
-                StartTailingFile(value);
                 string characterName = ExtractCharacterNameFromLogFile(value);
                 Log.Info($"{LogPrefix} {nameof(FilePath)} being set to {value}, characterName is {characterName}.");
+                StartTailingFile(value);
+
                 if (!string.IsNullOrEmpty(characterName))
                 {
                     _currentCharacterName = characterName;
