@@ -29,7 +29,7 @@ public abstract class EqLogParserBase : IEqLogParser
         using FileStream fileStream = new(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BufferSize * 2, FileOptions.SequentialScan);
         using StreamReader reader = new(fileStream, bufferSize: BufferSize * 2);
 
-        int charsRead = reader.Read(fileReadBuffer, remainderLength, BufferSize - remainderLength);
+        int charsRead = reader.Read(fileReadBuffer, 0, BufferSize);
 
         while (charsRead > 0)
         {
