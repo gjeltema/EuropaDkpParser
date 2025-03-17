@@ -83,12 +83,13 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
     public override int GetHashCode()
         => ItemName.GetHashCode();
 
-    public void SetStatusUpdate(string auctioneer, DateTime timestamp)
+    public void SetStatusUpdate(string auctioneer, DateTime timestamp, string updateState)
     {
         _lastStatusUpdate = new StatusUpdateInfo
         {
             Auctioneer = auctioneer,
-            Timestamp = timestamp
+            Timestamp = timestamp,
+            UpdateState = updateState
         };
     }
 
@@ -113,7 +114,7 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
         else
             timeSinceUpdateText = "very long";
 
-        return $" (Update {timeSinceUpdateText} ago by {_lastStatusUpdate.Auctioneer})";
+        return $" (Update {timeSinceUpdateText} ago by {_lastStatusUpdate.Auctioneer} {_lastStatusUpdate.UpdateState})";
     }
 
     private sealed class StatusUpdateInfo
@@ -121,6 +122,8 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
         public string Auctioneer { get; init; }
 
         public DateTime Timestamp { get; init; }
+
+        public string UpdateState { get; init; }
     }
 }
 

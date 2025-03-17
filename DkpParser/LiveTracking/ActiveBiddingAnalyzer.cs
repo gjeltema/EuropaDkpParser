@@ -30,7 +30,7 @@ internal sealed partial class ActiveBiddingAnalyzer
         // Zygon tells the raid,  'Left Eye of Xygoz zygon 60 dkp'
         // Aknok tells the raid,  'Eye of Xygoz Aknok 10 DKP'
         // Futtrup tells the raid,  'Left Eye of Xygoz - psychoblast - 70 dkp'
-        // Tepla tells the raid,  ':::Left Eye of Xygoz::: Psychoblast 70dkp 15sec '
+        // Tepla tells the raid,  ':::Left Eye of Xygoz::: Psychoblast 70dkp 10s '
         // Tepla tells the raid,  ':::Left Eye of Xygoz::: Psychoblast 70 SPENT '
         // Tepla tells the raid,  ':::Eye of Xygoz::: Aknok 10dkp 15sec '
         // Tepla tells the raid,  ':::Eye of Xygoz::: Aknok 10 SPENT '
@@ -48,7 +48,17 @@ internal sealed partial class ActiveBiddingAnalyzer
         if (messageFromPlayer.Contains(Constants.PossibleErrorDelimiter)
             && (messageFromPlayer.Contains("60s") || messageFromPlayer.Contains("30s") || messageFromPlayer.Contains("10s") || messageFromPlayer.Contains("COMPLETED")))
         {
-            relatedAuction.SetStatusUpdate(messageSenderName, timestamp);
+            string updateState = "Unknown";
+            if (messageFromPlayer.Contains("10s"))
+                updateState = "10s";
+            else if (messageFromPlayer.Contains("30s"))
+                updateState = "30s";
+            else if (messageFromPlayer.Contains("60s"))
+                updateState = "60s";
+            else if (messageFromPlayer.Contains("COMPLETED"))
+                updateState = "COMP";
+
+            relatedAuction.SetStatusUpdate(messageSenderName, timestamp, updateState);
             return null;
         }
 

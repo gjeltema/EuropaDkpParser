@@ -520,24 +520,24 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (existingSpentCall != null)
             {
                 _spentCalls.Remove(existingSpentCall);
-                Log.Debug($"{LogPrefix} REMOVE applied to spent call {existingSpentCall}");
+                Log.Info($"{LogPrefix} REMOVE applied to spent call {existingSpentCall}");
                 return true;
             }
 
-            Log.Debug($"{LogPrefix} REMOVE call made, but no associated SPENT call found: {spentCall}");
+            Log.Info($"{LogPrefix} REMOVE call made, but no associated SPENT call found: {spentCall}");
             return false;
         }
 
         LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x.ItemName == spentCall.ItemName);
         if (existingAuction == null)
         {
-            Log.Debug($"{LogPrefix} SPENT call made, but no associated auction found: {spentCall}");
+            Log.Info($"{LogPrefix} SPENT call made, but no associated auction found: {spentCall}");
             return false;
         }
 
         spentCall.AuctionStart = existingAuction;
         if (existingAuction.TotalNumberOfItems > 1)
-            existingAuction.SetStatusUpdate(spentCall.Auctioneer, spentCall.Timestamp);
+            existingAuction.SetStatusUpdate(spentCall.Auctioneer, spentCall.Timestamp, "SPENT");
 
         LiveBidInfo bid = _bids.FirstOrDefault(x => x.CharacterBeingBidFor == spentCall.Winner);
         spentCall.CharacterPlacingBid = bid?.CharacterPlacingBid ?? spentCall.Winner;
