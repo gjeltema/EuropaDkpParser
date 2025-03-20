@@ -177,9 +177,9 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             return null;
         }
 
-        if (entry.Channel != EqChannel.Raid || entry.Channel != EqChannel.Guild)
+        if (entry.Channel != EqChannel.Raid && entry.Channel != EqChannel.Guild)
         {
-            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Possible entry not in valid channel: {entry.Channel}");
+            Log.Info($"{LogPrefix} {nameof(ProcessPossibleDkpspentCalls)} Possible entry not in valid channel: {entry.FullLogLine}");
             return null;
         }
 

@@ -10,6 +10,7 @@ using Gjeltema.Logging;
 
 internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 {
+    private const string AfkFlag = " AFK ";
     private const string LogPrefix = $"[{nameof(AttendanceEntryAnalyzer)}]";
     private static readonly TimeSpan crashedLeftRaidThresholdInMinutes = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan defaultCrashedThresholdInMinutes = TimeSpan.FromMinutes(10);
@@ -282,7 +283,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         character.Race = race;
         _raidEntries.AddOrMergeInPlayerCharacter(character);
 
-        bool isAfk = logLine.Contains(Constants.Afk);
+        bool isAfk = logLine.Contains(AfkFlag);
         return new CharacterAttend { CharacterName = characterName, Timestamp = entry.Timestamp, IsAfk = isAfk };
     }
 
@@ -646,7 +647,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
     }
 
-    [DebuggerDisplay("{DebugDisplay}")]
+    [DebuggerDisplay("{DebugText}")]
     private sealed class AfkEntryInfo
     {
         public PlayerCharacter Character { get; init; }

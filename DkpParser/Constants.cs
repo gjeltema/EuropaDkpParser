@@ -8,7 +8,7 @@ using System.Globalization;
 
 public static class Constants
 {
-    public const string Afk = " AFK ";
+    public const string Afk = "AFK";
     public const string AfkAlternateDelimiter = $"{AlternateDelimiter}{Afk}{AlternateDelimiter}";
     public const string AfkEnd = "AFKEND";
     public const string AfkEndAlternateDelimiter = $"{AlternateDelimiter}{AfkEnd}{AlternateDelimiter}";

@@ -389,8 +389,11 @@ internal sealed class DkpLogGenerator
                 DateTime currentTime = DateTime.Now;
                 string logFileName = $"{currentTime.AddDays(-i):MMdd}_ParserLog.txt";
                 string logFileSourcePath = Path.Combine(applicationLogDirectory, logFileName);
-                string logFileDestinationPath = Path.Combine(destinationDirectory, logFileName);
-                await TryCopyFile(logFileSourcePath, logFileDestinationPath);
+                if (File.Exists(logFileSourcePath))
+                {
+                    string logFileDestinationPath = Path.Combine(destinationDirectory, logFileName);
+                    await TryCopyFile(logFileSourcePath, logFileDestinationPath);
+                }
             }
         }
         catch (Exception ex)
