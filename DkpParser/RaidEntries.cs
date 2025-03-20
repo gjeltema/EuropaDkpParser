@@ -154,6 +154,11 @@ public sealed class RaidEntries
         return firstTimeCallAfter ?? AttendanceEntries.Last();
     }
 
+    public bool IsPlayerAfkFlagged(PlayerCharacter character, DateTime timestamp)
+        => AfkEntries
+            .Where(x => x.Character == character)
+            .Any(x => x.IsTimeWithinAfkPeriod(timestamp));
+
     public void RemoveAttendance(AttendanceEntry toBeRemoved)
     {
         List<PlayerPossibleLinkdead> possibleLinkdeadsToRemove = PossibleLinkdeads.Where(x => x.AttendanceMissingFrom == toBeRemoved).ToList();

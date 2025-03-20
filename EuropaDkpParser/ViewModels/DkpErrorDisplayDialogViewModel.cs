@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpErrorDisplayDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// DkpErrorDisplayDialogViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -467,6 +467,7 @@ GOTO_NEXT_ENTRY:
     {
         DuplicateDkpspentEntries = _raidEntries.DkpEntries
             .Where(x => x.PlayerName.Equals(_currentEntry.PlayerName, StringComparison.OrdinalIgnoreCase) && x.Item == _currentEntry.Item && x.DkpSpent == _currentEntry.DkpSpent)
+            .OrderBy(x => x.Timestamp)
             .ToList();
     }
 

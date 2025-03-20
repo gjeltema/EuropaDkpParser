@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AfkEntry.cs Copyright 2024 Craig Gjeltema
+// AfkEntry.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -19,6 +19,9 @@ public sealed class AfkEntry
 
     private string DebugDisplay
         => $"{Character} {StartTime:HH:mm:ss} {EndTime:HH:mm:ss}";
+
+    public bool IsTimeWithinAfkPeriod(DateTime time)
+        => StartTime <= time && time <= EndTime;
 
     public string ToDisplayString()
         => $"{Character} Start AFK:{StartTime:HH:mm:ss}, End AFK:{EndTime:HH:mm:ss}";

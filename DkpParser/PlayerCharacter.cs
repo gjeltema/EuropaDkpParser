@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// PlayerCharacter.cs Copyright 2024 Craig Gjeltema
+// PlayerCharacter.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -31,6 +31,12 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
 
     public static bool Equals(PlayerCharacter a, PlayerCharacter b)
     {
+        if (ReferenceEquals(a, b))
+            return true;
+
+        if (a is null && b is null)
+            return true;
+
         if (a is null || b is null)
             return false;
 

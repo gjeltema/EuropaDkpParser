@@ -325,7 +325,7 @@ internal sealed class DkpLogGenerator
             LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(sessionSettings.StartTime, sessionSettings.EndTime));
             timer.Stop();
             Log.Info($"{LogPrefix} {nameof(parseProcessor.ParseLogs)} elapsed time: {(int)timer.Elapsed.TotalMilliseconds}ms");
-            Log.Trace($"{LogPrefix} Parse results:{Environment.NewLine}{string.Join(Environment.NewLine, results.GetAllLines())}");
+            Log.Debug($"{LogPrefix} Parse results:{Environment.NewLine}{string.Join(Environment.NewLine, results.GetAllLines())}");
 
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
 
@@ -334,7 +334,7 @@ internal sealed class DkpLogGenerator
             RaidEntries raidEntries = await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));
             timer.Stop();
             Log.Info($"{LogPrefix} {nameof(logEntryAnalyzer.AnalyzeRaidLogEntries)} elapsed time: {(int)timer.Elapsed.TotalMilliseconds}ms");
-            Log.Trace($"{LogPrefix} Analysis results:{Environment.NewLine}{string.Join(Environment.NewLine, raidEntries.GetAllEntries())}");
+            Log.Debug($"{LogPrefix} Analysis results:{Environment.NewLine}{string.Join(Environment.NewLine, raidEntries.GetAllEntries())}");
 
             return raidEntries;
         }

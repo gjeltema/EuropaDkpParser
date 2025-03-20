@@ -91,14 +91,14 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         // For each player in the raid, find any attendances they're missing from.
         List<AttendanceEntry> orderedAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
-        foreach (PlayerCharacter player in _raidEntries.AllCharactersInRaid)
+        foreach (PlayerCharacter playerCharacter in _raidEntries.AllCharactersInRaid)
         {
-            IEnumerable<AttendanceEntry> attendancesMissingFrom = _raidEntries.AttendanceEntries.Where(x => !x.Characters.Contains(player));
+            IEnumerable<AttendanceEntry> attendancesMissingFrom = _raidEntries.AttendanceEntries.Where(x => !x.Characters.Contains(playerCharacter));
 
             // Check in between a Joined and Left call to see if the player is missing from any of the attendances in between.  Limit the time between
             // Joined and Left calls to 15 minutes.
             IEnumerable<CharacterJoinRaidEntry> playerJoinedOrLeftCalls = _raidEntries.CharacterJoinCalls
-                .Where(x => x.CharacterName == player.CharacterName)
+                .Where(x => x.CharacterName == playerCharacter.CharacterName)
                 .OrderBy(x => x.Timestamp);
 
             CharacterJoinRaidEntry lastLeft = null;
@@ -108,11 +108,12 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                 {
                     lastLeft = playerJoinedOrLeft;
                 }
+                else if (lastLeft == null)
+                {
+                    continue;
+                }
                 else // Player Joined message
                 {
-                    if (lastLeft == null)
-                        continue;
-
                     try
                     {
                         if (playerJoinedOrLeft.Timestamp - lastLeft.Timestamp <= JoinedTimeLimit)
@@ -121,13 +122,16 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                                 .Where(x => lastLeft.Timestamp <= x.Timestamp && x.Timestamp <= playerJoinedOrLeft.Timestamp);
                             foreach (AttendanceEntry missingAttendance in missingAttendancesInBetween)
                             {
+                                if (_raidEntries.IsPlayerAfkFlagged(playerCharacter, missingAttendance.Timestamp))
+                                    continue;
+
                                 // Check to see if a possible linkdead for this character in this attendance was already entered from the earlier foreach.
                                 PlayerPossibleLinkdead existingLinkdeadEntry = _raidEntries.PossibleLinkdeads
-                                    .FirstOrDefault(x => x.Player.CharacterName == player.CharacterName && x.AttendanceMissingFrom == missingAttendance);
+                                    .FirstOrDefault(x => x.Player.CharacterName == playerCharacter.CharacterName && x.AttendanceMissingFrom == missingAttendance);
                                 if (existingLinkdeadEntry == null)
                                 {
-                                    if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(player, missingAttendance.Characters))
-                                        _raidEntries.PossibleLinkdeads.Add(new() { Player = player, AttendanceMissingFrom = missingAttendance });
+                                    if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(playerCharacter, missingAttendance.Characters))
+                                        _raidEntries.PossibleLinkdeads.Add(new() { Player = playerCharacter, AttendanceMissingFrom = missingAttendance });
                                 }
                             }
                         }
