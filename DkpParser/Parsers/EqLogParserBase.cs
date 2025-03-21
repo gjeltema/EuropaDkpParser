@@ -5,10 +5,13 @@
 namespace DkpParser.Parsers;
 
 using System.IO;
+using Gjeltema.Logging;
 
 public abstract class EqLogParserBase : IEqLogParser
 {
     private const int BufferSize = 16384;
+    private const string LogPrefix = $"[{nameof(EqLogParserBase)}]";
+    private const long SearchThreshold = BufferSize * 50;
     private IParseEntry _currentEntryParser;
 
     public EqLogFile ParseLogFile(string filename, DateTime startTime, DateTime endTime)
@@ -27,8 +30,12 @@ public abstract class EqLogParserBase : IEqLogParser
         InitializeEntryParsers(logFile, startTime, endTime);
 
         using FileStream fileStream = new(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BufferSize * 2, FileOptions.SequentialScan);
-        using StreamReader reader = new(fileStream, bufferSize: BufferSize * 2);
 
+        bool validFile = InitializeStreamReader(fileStream, startTime, endTime, out StreamReader initializedReader);
+        if (!validFile)
+            return logFile;
+
+        using StreamReader reader = initializedReader;
         int charsRead = reader.Read(fileReadBuffer, 0, BufferSize);
 
         while (charsRead > 0)
@@ -157,6 +164,95 @@ public abstract class EqLogParserBase : IEqLogParser
                 return 7;
             else //(MemoryExtensions.Equals(monthPiece, "Aug", StringComparison.Ordinal))
                 return 8;
+        }
+    }
+
+    private DateTime GetTimestamp(StreamReader reader)
+    {
+        reader.ReadLine();
+        for (int i = 0; i < 8; i++)
+        {
+            string line = reader.ReadLine();
+            if (TryExtractEqLogTimeStamp(line, out DateTime timestamp))
+            {
+                return timestamp;
+            }
+        }
+
+        return DateTime.MaxValue;
+    }
+
+    private bool InitializeStreamReader(FileStream fileStream, DateTime startTime, DateTime endTime, out StreamReader reader)
+    {
+        reader = new(fileStream, bufferSize: BufferSize * 2);
+        long endBound = fileStream.Length;
+        if (endBound < BufferSize * 1000)
+            return true;
+
+        // Perform binary search to get "close enough" - doesnt need to be exact.  Just set the fileStream position to a point that is 
+        // close to the startTime timestamp, skipping most of a file.  Purely a performance optimization for large files.
+        try
+        {
+            DateTime startTimestamp = GetTimestamp(reader);
+            if (startTimestamp > endTime)
+                return false;
+
+            long currentPosition = endBound - 1500;
+            fileStream.Seek(-1000, SeekOrigin.End);
+            reader = new(fileStream, bufferSize: BufferSize * 2);
+
+            DateTime currentTimestamp = GetTimestamp(reader);
+            if (currentTimestamp < startTime)
+                return false;
+
+            long beginBound = 0;
+            long offset;
+
+            while (true)
+            {
+                if (currentTimestamp < startTime)
+                {
+                    beginBound = currentPosition;
+                    offset = (endBound - currentPosition) / 2;
+                }
+                else
+                {
+                    endBound = currentPosition;
+                    offset = -((currentPosition - beginBound) / 2);
+                }
+
+                currentPosition += offset;
+
+                fileStream.Seek(offset, SeekOrigin.Current);
+                reader = new(fileStream, bufferSize: BufferSize * 2);
+
+                currentTimestamp = GetTimestamp(reader);
+
+                if (Math.Abs(offset) < SearchThreshold)
+                {
+                    if (currentTimestamp < startTime)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        fileStream.Seek(beginBound, SeekOrigin.Begin);
+                        reader = new(fileStream, bufferSize: BufferSize * 2);
+
+                        reader.ReadLine();
+                        return true;
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            fileStream.Seek(0, SeekOrigin.Begin);
+            reader = new(fileStream, bufferSize: BufferSize * 2);
+
+            Log.Warning($"{LogPrefix} Error searching for position to start parsing in file {fileStream.Name}; Start Time: {startTime:yyyy-MM-dd HH:mm:ss}, End Time: {endTime:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}{e.ToLogMessage()}");
+
+            return true;
         }
     }
 }

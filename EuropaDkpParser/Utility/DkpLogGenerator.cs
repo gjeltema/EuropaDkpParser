@@ -266,7 +266,7 @@ internal sealed class DkpLogGenerator
         catch (Exception ex)
         {
             Log.Error($"{LogPrefix} {nameof(CreateFile)} failed to create {fileToWriteTo}: {ex.ToLogMessage()}");
-            MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.ToString(), Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.Message, Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }
     }
@@ -348,7 +348,7 @@ internal sealed class DkpLogGenerator
         catch (Exception e)
         {
             Log.Error($"{LogPrefix} Unexpected parse/analysis error: {e.ToLogMessage()}");
-            MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Unexpected failure parsing: {e.Message}", Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }
     }
@@ -373,7 +373,7 @@ internal sealed class DkpLogGenerator
         catch (Exception e)
         {
             Log.Error($"{LogPrefix} Unexpected parse error: {e.ToLogMessage()}");
-            MessageBox.Show(e.Message, Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Unexpected failure parsing: {e.Message}", Strings.GetString("UnexpectedError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return null;
         }
     }
@@ -410,12 +410,23 @@ internal sealed class DkpLogGenerator
             await Task.Run(() => File.Copy(sourceFilePath, destinationFilePath));
             return true;
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Log.Error($"{LogPrefix} Failed to copy file from {sourceFilePath} to {destinationFilePath}: {ex.ToLogMessage()}");
-            string errorMessage = $"Failed to copy file from {sourceFilePath} to {destinationFilePath}: {ex}";
-            MessageBox.Show(errorMessage, "Failed to Copy File", MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
+            Log.Error($"{LogPrefix} Failed to copy file from {sourceFilePath} to {destinationFilePath}, first attempt: {e.ToLogMessage()}");
+
+            try
+            {
+                Log.Debug($"{LogPrefix} Copying {sourceFilePath} to {destinationFilePath}, second attempt.");
+                await Task.Run(() => File.Copy(sourceFilePath, destinationFilePath));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{LogPrefix} Failed to copy file from {sourceFilePath} to {destinationFilePath}, second attempt: {ex.ToLogMessage()}");
+                string errorMessage = $"Failed to copy file from {sourceFilePath} to {destinationFilePath}: {ex.Message}";
+                MessageBox.Show(errorMessage, "Failed to Copy File", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
     }
 
@@ -423,15 +434,26 @@ internal sealed class DkpLogGenerator
     {
         try
         {
-            Log.Debug($"{LogPrefix} Creating directory {directoryName}");
+            Log.Debug($"{LogPrefix} Creating directory {directoryName}, first attempt.");
             await Task.Run(() => Directory.CreateDirectory(directoryName));
             return true;
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Log.Error($"{LogPrefix} Unable to create directory at {directoryName}: {ex.ToLogMessage()}");
-            MessageBox.Show($"Unable to create directory at {directoryName}: " + ex.ToString(), "Unable to create directory", MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
+            Log.Error($"{LogPrefix} Unable to create directory at {directoryName}, first attempt: {e.ToLogMessage()}");
+
+            try
+            {
+                Log.Debug($"{LogPrefix} Creating directory {directoryName}, second attempt.");
+                await Task.Run(() => Directory.CreateDirectory(directoryName));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{LogPrefix} Unable to create directory at {directoryName}, second attempt: {ex.ToLogMessage()}");
+                MessageBox.Show($"Unable to create directory at {directoryName}: " + ex.Message, "Unable to create directory", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
     }
 
@@ -439,16 +461,27 @@ internal sealed class DkpLogGenerator
     {
         try
         {
-            Log.Debug($"{LogPrefix} Creating zip {zipFullFilePath} using {sourceDirectory}");
+            Log.Debug($"{LogPrefix} Creating zip {zipFullFilePath} using {sourceDirectory}, first attempt.");
             await Task.Run(() => ZipFile.CreateFromDirectory(sourceDirectory, zipFullFilePath));
             return true;
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            Log.Error($"{LogPrefix} Failed to create zip {zipFullFilePath} using {sourceDirectory}: {ex.ToLogMessage()}");
-            string errorMessage = $"Failed to create zip {zipFullFilePath} using {sourceDirectory}: {ex}";
-            MessageBox.Show(errorMessage, "Failed to Create Zip", MessageBoxButton.OK, MessageBoxImage.Error);
-            return false;
+            Log.Error($"{LogPrefix} Failed to create zip {zipFullFilePath} using {sourceDirectory}, first attempt: {e.ToLogMessage()}");
+
+            try
+            {
+                Log.Debug($"{LogPrefix} Creating zip {zipFullFilePath} using {sourceDirectory}, second attempt.");
+                await Task.Run(() => ZipFile.CreateFromDirectory(sourceDirectory, zipFullFilePath));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{LogPrefix} Failed to create zip {zipFullFilePath} using {sourceDirectory}, second attempt: {ex.ToLogMessage()}");
+                string errorMessage = $"Failed to create zip {zipFullFilePath} using {sourceDirectory}: {ex.Message}";
+                MessageBox.Show(errorMessage, "Failed to Create Zip", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
     }
 }
