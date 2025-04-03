@@ -385,6 +385,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     int newNumberOfItems = Math.Max(existingAuction.TotalNumberOfItems, newAuction.TotalNumberOfItems);
                     Log.Debug($"{LogPrefix} Overwiting existing auction [{existingAuction}] {nameof(LiveAuctionInfo.TotalNumberOfItems)} with {newNumberOfItems} due to auction [{newAuction}]");
                     existingAuction.TotalNumberOfItems = newNumberOfItems;
+                    existingAuction.Channel = newAuction.Channel;
                 }
 
                 continue;

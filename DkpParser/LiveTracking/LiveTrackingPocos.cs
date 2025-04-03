@@ -19,7 +19,7 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
 
     public string Auctioneer { get; init; }
 
-    public EqChannel Channel { get; init; }
+    public EqChannel Channel { get; set; }
 
     public bool HasBids { get; set; }
 
