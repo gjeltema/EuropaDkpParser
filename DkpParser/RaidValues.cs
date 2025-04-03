@@ -148,7 +148,7 @@ public sealed class RaidValues : IRaidValues
     private void LoadBossSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, BossSection);
-        if (entries.Count > 0)
+        if (entries.Count == 0)
         {
             Log.Warning($"{LogPrefix} No entries found for section {BossSection}.");
             return;
@@ -188,7 +188,7 @@ public sealed class RaidValues : IRaidValues
     private void LoadZoneAliasSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, AliasSection);
-        if (entries.Count > 0)
+        if (entries.Count == 0)
         {
             Log.Warning($"{LogPrefix} No entries found for section {AliasSection}.");
             return;
@@ -207,7 +207,7 @@ public sealed class RaidValues : IRaidValues
     private void LoadZoneSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, ZoneValueSection);
-        if (entries.Count > 0)
+        if (entries.Count == 0)
         {
             Log.Warning($"{LogPrefix} No entries found for section {ZoneValueSection}.");
             return;
