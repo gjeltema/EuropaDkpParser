@@ -141,6 +141,12 @@ public sealed class RaidValues : IRaidValues
     private void LoadBossSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, BossSection);
+        if (entries.Count > 0)
+        {
+            Log.Warning($"{LogPrefix} No entries found for section {BossSection}.");
+            return;
+        }
+
         foreach (string entry in entries)
         {
             string[] values = entry.Split(Delimiter);
@@ -162,6 +168,12 @@ public sealed class RaidValues : IRaidValues
     private void LoadTierSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, TierSection);
+        if (entries.Count > 0)
+        {
+            Log.Warning($"{LogPrefix} No entries found for section {TierSection}.");
+            return;
+        }
+
         foreach (string entry in entries)
         {
             string[] values = entry.Split(Delimiter);
@@ -175,6 +187,12 @@ public sealed class RaidValues : IRaidValues
     private void LoadZoneAliasSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, AliasSection);
+        if (entries.Count > 0)
+        {
+            Log.Warning($"{LogPrefix} No entries found for section {AliasSection}.");
+            return;
+        }
+
         foreach (string entry in entries)
         {
             string[] values = entry.Split(Delimiter);
@@ -188,6 +206,12 @@ public sealed class RaidValues : IRaidValues
     private void LoadZoneSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, ZoneValueSection);
+        if (entries.Count > 0)
+        {
+            Log.Warning($"{LogPrefix} No entries found for section {ZoneValueSection}.");
+            return;
+        }
+
         foreach (string entry in entries)
         {
             string[] values = entry.Split(Delimiter);
