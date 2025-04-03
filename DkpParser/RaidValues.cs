@@ -113,10 +113,17 @@ public sealed class RaidValues : IRaidValues
             return boss.OverrideValue;
 
         int tierValue = boss.Tier >= 0
-            ? _tiers[boss.Tier]
+            ? GetTierValue(boss.Tier)
             : GetTimeBasedValue(zoneName);
 
         return tierValue;
+    }
+
+    private int GetTierValue(int tier)
+    {
+        if (_tiers.TryGetValue(tier, out int configuredTierValue))
+            return configuredTierValue;
+        return tier;
     }
 
     private int GetTimeBasedValue(string zoneName)
@@ -129,7 +136,7 @@ public sealed class RaidValues : IRaidValues
         if (zone.UseOverrideValue)
             return zone.OverrideValue;
 
-        int tierValue = _tiers[zone.Tier];
+        int tierValue = GetTierValue(zone.Tier);
         return tierValue;
     }
 
@@ -168,12 +175,6 @@ public sealed class RaidValues : IRaidValues
     private void LoadTierSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, TierSection);
-        if (entries.Count > 0)
-        {
-            Log.Warning($"{LogPrefix} No entries found for section {TierSection}.");
-            return;
-        }
-
         foreach (string entry in entries)
         {
             string[] values = entry.Split(Delimiter);
