@@ -31,6 +31,12 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
     private string DebugText
         => $"{CallName} {AttendanceCallType}";
 
+    public static bool operator ==(AttendanceEntry a, AttendanceEntry b)
+        => Equals(a, b);
+
+    public static bool operator !=(AttendanceEntry a, AttendanceEntry b)
+        => !Equals(a, b);
+
     public static bool Equals(AttendanceEntry a, AttendanceEntry b)
     {
         if (a is null && b is null)

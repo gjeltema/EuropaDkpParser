@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// UploadRaidInfo.cs Copyright 2024 Craig Gjeltema
+// UploadRaidInfo.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Uploading;
@@ -29,23 +29,24 @@ public sealed class UploadRaidInfo
         ICollection<DkpUploadInfo> dkpUploadInfo = raidEntries.DkpEntries.Select(x => new DkpUploadInfo
         {
             Timestamp = x.Timestamp,
-            CharacterName = ConvertTransfer(x.PlayerName, raidEntries.Transfers),
+            CharacterName = x.PlayerName,
             Item = x.Item,
             DkpSpent = x.DkpSpent,
             AssociatedAttendanceCall = raidEntries.GetAssociatedAttendance(x)
         }).ToList();
 
-        IEnumerable<string> allCharacterNames = raidEntries.AllCharactersInRaid
+        ICollection<string> allCharacterNames = raidEntries.AllCharactersInRaid
             .Select(x => x.CharacterName)
-            .Union(raidEntries.DkpEntries.Select(x => x.PlayerName));
-
-        ICollection<string> charactersToBeUploaded = ConvertTransfers(allCharacterNames, raidEntries.Transfers);
+            .Union(raidEntries.DkpEntries.Select(x => x.PlayerName))
+            .Union(raidEntries.Transfers.Select(x => x.ToCharacterName))
+            .Order()
+            .ToList();
 
         return new UploadRaidInfo
         {
             AttendanceInfo = attendanceUploadInfo,
             DkpInfo = dkpUploadInfo,
-            CharacterNames = charactersToBeUploaded
+            CharacterNames = allCharacterNames
         };
     }
 
@@ -68,37 +69,10 @@ public sealed class UploadRaidInfo
         };
     }
 
-    private static string ConvertTransfer(string characterName, ICollection<DkpTransfer> transfers)
-    {
-        if (transfers.Count == 0)
-            return characterName;
-
-        DkpTransfer transferCharacter = transfers.FirstOrDefault(x => x.FromCharacter.CharacterName.Equals(characterName, StringComparison.OrdinalIgnoreCase));
-        return transferCharacter == null ? characterName : transferCharacter.ToCharacter.CharacterName;
-    }
-
     private static PlayerCharacter ConvertTransfer(PlayerCharacter character, ICollection<DkpTransfer> transfers)
     {
-        if (transfers.Count == 0)
-            return character;
-
         DkpTransfer transferCharacter = transfers.FirstOrDefault(x => x.FromCharacter == character);
-        return transferCharacter == null ? character : transferCharacter.ToCharacter;
-    }
-
-    private static ICollection<string> ConvertTransfers(IEnumerable<string> characterNameList, ICollection<DkpTransfer> transfers)
-    {
-        if (transfers.Count == 0)
-            return characterNameList.ToList();
-
-        ICollection<string> newList = [];
-        foreach (string playerCharacterName in characterNameList)
-        {
-            string charToAdd = ConvertTransfer(playerCharacterName, transfers);
-            newList.Add(charToAdd);
-        }
-
-        return newList;
+        return transferCharacter == null ? character : new PlayerCharacter { CharacterName = transferCharacter.ToCharacterName };
     }
 
     private static ICollection<PlayerCharacter> ConvertTransfers(IEnumerable<PlayerCharacter> characterList, ICollection<DkpTransfer> transfers)
@@ -106,13 +80,13 @@ public sealed class UploadRaidInfo
         if (transfers.Count == 0)
             return characterList.ToList();
 
-        ICollection<PlayerCharacter> newList = [];
+        List<PlayerCharacter> newList = [];
         foreach (PlayerCharacter playerCharacter in characterList)
         {
             PlayerCharacter charToAdd = ConvertTransfer(playerCharacter, transfers);
             newList.Add(charToAdd);
         }
 
-        return newList;
+        return newList.OrderBy(x => x.CharacterName).ToList();
     }
 }

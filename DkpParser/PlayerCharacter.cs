@@ -7,7 +7,7 @@ namespace DkpParser;
 using System.Diagnostics;
 
 [DebuggerDisplay("{DebugText}")]
-public sealed class PlayerCharacter : IComparable<PlayerCharacter>
+public sealed class PlayerCharacter : IEquatable<PlayerCharacter>
 {
     private string _characterName;
 
@@ -29,6 +29,12 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
     private string DebugText
         => IsAnonymous ? $"{CharacterName} ANON" : $"{CharacterName} {ClassName} {Level}";
 
+    public static bool operator ==(PlayerCharacter a, PlayerCharacter b)
+        => Equals(a, b);
+
+    public static bool operator !=(PlayerCharacter a, PlayerCharacter b)
+        => !Equals(a, b);
+
     public static bool Equals(PlayerCharacter a, PlayerCharacter b)
     {
         if (ReferenceEquals(a, b))
@@ -46,11 +52,11 @@ public sealed class PlayerCharacter : IComparable<PlayerCharacter>
         return true;
     }
 
-    public int CompareTo(PlayerCharacter other)
-        => Equals(this, other) ? 1 : -1;
-
     public override bool Equals(object obj)
         => Equals(this, obj as PlayerCharacter);
+
+    public bool Equals(PlayerCharacter other)
+        => Equals(this, other);
 
     public override int GetHashCode()
         => CharacterName.GetHashCode();
