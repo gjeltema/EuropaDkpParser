@@ -220,7 +220,9 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         _currentEntry = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).FirstOrDefault(x => x.PossibleError != PossibleError.None);
         if (_currentEntry == null)
         {
-            MultipleCharsOnAttendanceError multipleCharsError = _raidEntries.MultipleCharsInAttendanceErrors.FirstOrDefault(x => !x.Reviewed);
+            MultipleCharsOnAttendanceError multipleCharsError = _raidEntries.MultipleCharsInAttendanceErrors
+                .OrderBy(x => x.Attendance.Timestamp)
+                .FirstOrDefault(x => !x.Reviewed);
             if (multipleCharsError == null)
             {
                 CloseOk();
@@ -284,6 +286,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
 
             ErrorMessageText = _currentEntry.PossibleError == PossibleError.NoZoneName ? Strings.GetString("NoZoneNameErrorText") : Strings.GetString("InvalidZoneNameErrorText");
             ErrorAttendances = [_currentEntry];
+            SetSelectedZoneName();
         }
         else if (_currentEntry.PossibleError == PossibleError.RaidNameTooShort)
         {
@@ -345,7 +348,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         string callName = _currentEntry.CallName.Replace("<", string.Empty);
         for (int i = 8; i > 0; i--)
         {
-            if (_currentEntry.CallName.Length < i)
+            if (callName.Length < i)
                 continue;
 
             string startOfBossName = callName[..i];
@@ -361,6 +364,35 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             if (approvedBossNameWithThe != null)
             {
                 SelectedBossName = approvedBossNameWithThe;
+                break;
+            }
+        }
+    }
+
+    private void SetSelectedZoneName()
+    {
+        string callZone = _currentEntry.ZoneName;
+        if (string.IsNullOrWhiteSpace(callZone))
+            return;
+
+        for (int i = 8; i > 0; i--)
+        {
+            if (callZone.Length < i)
+                continue;
+
+            string startOfZoneName = callZone[..i];
+            string approvedZone = ZoneNames.FirstOrDefault(x => x.StartsWith(startOfZoneName));
+            if (approvedZone != null)
+            {
+                SelectedZoneName = approvedZone;
+                break;
+            }
+
+            string zoneNameWithThe = "The " + startOfZoneName;
+            string approvedBossNameWithThe = ZoneNames.FirstOrDefault(x => x.StartsWith(zoneNameWithThe));
+            if (approvedBossNameWithThe != null)
+            {
+                SelectedZoneName = approvedBossNameWithThe;
                 break;
             }
         }

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// PossibleLinkdeadErrorDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// PossibleLinkdeadErrorDialogViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -97,7 +97,7 @@ internal sealed class PossibleLinkdeadErrorDialogViewModel : DialogViewModelBase
         SetNextButtonText();
 
         // Initialize next error
-        _currentEntry = _raidEntries.PossibleLinkdeads.FirstOrDefault(x => !x.Addressed);
+        _currentEntry = _raidEntries.PossibleLinkdeads.OrderBy(x => x.AttendanceMissingFrom.Timestamp).FirstOrDefault(x => !x.Addressed);
         if (_currentEntry == null)
         {
             CloseOk();

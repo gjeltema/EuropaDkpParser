@@ -20,7 +20,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
         {
             if (currentTransfer != null && currentTransfer.Timestamp <= attendance.Timestamp)
             {
-                yield return currentTransfer.LogLine;
+                yield return EqLogLine.LogMessage(currentTransfer.Timestamp, currentTransfer.LogLine);
                 currentTransferIndex++;
                 currentTransfer = GetNextTransfer(transfers, currentTransferIndex);
             }
@@ -40,7 +40,7 @@ public sealed class FileOutputGenerator : IOutputGenerator
             {
                 if (currentTransfer != null && currentTransfer.Timestamp <= dkpEntryWithAttendance.Dkp.Timestamp)
                 {
-                    yield return currentTransfer.LogLine;
+                    yield return EqLogLine.LogMessage(currentTransfer.Timestamp, currentTransfer.LogLine);
                     currentTransferIndex++;
                     currentTransfer = GetNextTransfer(transfers, currentTransferIndex);
                 }
