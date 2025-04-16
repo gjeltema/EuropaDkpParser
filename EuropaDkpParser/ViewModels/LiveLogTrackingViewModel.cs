@@ -521,11 +521,11 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         if (_zealMessages.RaidInfo.RaidAttendees.Count == 0)
         {
-            Log.Debug($"{LogPrefix} No raid attendees found from Zeal.  Ending.");
+            Log.Info($"{LogPrefix} No raid attendees found from Zeal.  Ending ready check.");
             return;
         }
 
-        Clip.Copy($"/rs {Constants.ReadyCheckWithDelimiter}");
+        Clip.Copy($"/rs {Constants.ReadyCheckWithDelimiter} {Constants.ReadyCheckRespondMessage}");
 
         if (!_readyCheckOverlayViewModel.ContentIsVisible)
         {
