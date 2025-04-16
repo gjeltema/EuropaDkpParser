@@ -1,15 +1,23 @@
 ﻿// -----------------------------------------------------------------------
-// FileOutputGenerator.cs Copyright 2024 Craig Gjeltema
+// FileOutputGenerator.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
 
 public sealed class FileOutputGenerator : IOutputGenerator
 {
+    private const string Delim = Constants.AttendanceDelimiter;
+
     public IEnumerable<string> GenerateOutput(RaidEntries raidEntries, Func<string, string> getZoneRaidAlias)
     {
-        var dkpEntries = raidEntries.DkpEntries.Select(x => new { AssociatedAttendance = raidEntries.GetAssociatedAttendance(x), Dkp = x }).ToList();
+        DateTime firstTimestamp = raidEntries.AttendanceEntries.Min(x => x.Timestamp).AddSeconds(-10);
+        foreach (DkpTransfer transfer in raidEntries.Transfers)
+        {
+            string transferLogLine = $"{Delim}{transfer.FromCharacter.CharacterName}{Delim}{transfer.ToCharacterName}{Delim}{Constants.Transfer}{Delim}";
+            yield return EqLogLine.YouTellRaid(firstTimestamp, transferLogLine);
+        }
 
+        var dkpEntries = raidEntries.DkpEntries.Select(x => new { AssociatedAttendance = raidEntries.GetAssociatedAttendance(x), Dkp = x }).ToList();
         string currentRaidZone = string.Empty;
         foreach (AttendanceEntry attendance in raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp))
         {
@@ -45,8 +53,8 @@ public sealed class FileOutputGenerator : IOutputGenerator
         */
 
         string header = call.AttendanceCallType == AttendanceCallType.Time
-            ? $"{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{Constants.Attendance}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}"
-            : $"{Constants.AttendanceDelimiter}{Constants.RaidAttendanceTaken}{Constants.AttendanceDelimiter}{call.CallName}{Constants.AttendanceDelimiter}{Constants.KillCall}{Constants.AttendanceDelimiter}";
+            ? $"{Delim}{Constants.RaidAttendanceTaken}{Delim}{Constants.Attendance}{Delim}{call.CallName}{Delim}"
+            : $"{Delim}{Constants.RaidAttendanceTaken}{Delim}{call.CallName}{Delim}{Constants.KillCall}{Delim}";
 
         yield return EqLogLine.YouTellRaid(call.Timestamp, header);
         yield return EqLogLine.LogMessage(call.Timestamp, Constants.PlayersOnEverquest);

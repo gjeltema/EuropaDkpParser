@@ -48,7 +48,7 @@ public sealed class DkpServerCharacters
 
     public IEnumerable<MutipleCharactersOnAccount> GetMultipleCharactersOnAccount(IEnumerable<PlayerCharacter> characters)
     {
-        List<PlayerCharacter> playerCharacters = new(characters);
+        List<PlayerCharacter> playerCharacters = [.. characters];
         List<MutipleCharactersOnAccount> multipleChars = [];
         for (int i = 0; i < playerCharacters.Count; i++)
         {

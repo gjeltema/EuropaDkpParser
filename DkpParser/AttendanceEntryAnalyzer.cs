@@ -36,8 +36,8 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         AnalyzeLogFilesAttendanceCalls(logParseResults);
         HandleCrashedEntries(logParseResults);
         HandleAfkTags(logParseResults);
-        IdentifyMultipleCharactersOnOneAccount();
         HandleTransfers(logParseResults);
+        IdentifyMultipleCharactersOnOneAccount();
     }
 
     private void AddCharactersFromCharactersAttending(EqLogEntry logEntry, AttendanceEntry call)
@@ -521,11 +521,20 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void IdentifyMultipleCharactersOnOneAccount()
     {
+        List<string> tranferFromCharacters = _raidEntries.Transfers.Select(x => x.FromCharacter.CharacterName).ToList();
+        List<PlayerCharacter> transferToCharacters = _raidEntries.Transfers
+            .Select(x => x.ToCharacterName)
+            .Select(x => new PlayerCharacter { CharacterName = x }).ToList();
+
         List<MultipleCharsOnAttendanceError> multipleChars = [];
         foreach (AttendanceEntry attendance in _raidEntries.AttendanceEntries)
         {
-            IEnumerable<MutipleCharactersOnAccount> multipleCharacters = _settings.CharactersOnDkpServer.GetMultipleCharactersOnAccount(attendance.Characters);
-            IEnumerable<MultipleCharsOnAttendanceError> multipleCharsErrorsToAdd = multipleCharacters
+            IEnumerable<PlayerCharacter> charactersInAttendanceAndTransferChars = attendance.Characters.Union(transferToCharacters);
+            IEnumerable<MutipleCharactersOnAccount> multipleCharacters = _settings.CharactersOnDkpServer.GetMultipleCharactersOnAccount(charactersInAttendanceAndTransferChars);
+            IEnumerable<MutipleCharactersOnAccount> multipleCharactersNotTransfer = multipleCharacters
+                .Where(x => !tranferFromCharacters.Contains(x.FirstCharacter.Name) && !tranferFromCharacters.Contains(x.SecondCharacter.Name));
+
+            IEnumerable<MultipleCharsOnAttendanceError> multipleCharsErrorsToAdd = multipleCharactersNotTransfer
                 .Select(x => new MultipleCharsOnAttendanceError { Attendance = attendance, MultipleCharsInAttendance = x });
             multipleChars.AddRange(multipleCharsErrorsToAdd);
         }
