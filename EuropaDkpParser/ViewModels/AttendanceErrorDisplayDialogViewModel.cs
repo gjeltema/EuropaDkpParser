@@ -217,7 +217,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         SetNextButtonText();
 
         // Initialize next error
-        _currentEntry = _raidEntries.AttendanceEntries.FirstOrDefault(x => x.PossibleError != PossibleError.None);
+        _currentEntry = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).FirstOrDefault(x => x.PossibleError != PossibleError.None);
         if (_currentEntry == null)
         {
             MultipleCharsOnAttendanceError multipleCharsError = _raidEntries.MultipleCharsInAttendanceErrors.FirstOrDefault(x => !x.Reviewed);
@@ -245,7 +245,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             return;
         }
 
-        AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        UpdateAllAttendances();
         SelectedErrorEntry = null;
         RaidNameText = string.Empty;
         RemoveDuplicateErrorEntryCommand.RaiseCanExecuteChanged();
@@ -306,7 +306,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
     {
         _currentEntry.CallName = SelectedBossName;
         ErrorAttendances = [_currentEntry];
-        AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        UpdateAllAttendances();
     }
 
     private void RemoveDuplicateErrorEntry()
@@ -318,7 +318,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
             .OrderBy(x => x.Timestamp)
             .ToList();
 
-        AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+        UpdateAllAttendances();
         SetNextButtonText();
     }
 
@@ -366,10 +366,14 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         }
     }
 
+    private void UpdateAllAttendances()
+        => AllAttendances = _raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).ToList();
+
     private void UpdateRaidName()
     {
         _currentEntry.CallName = RaidNameText;
         ErrorAttendances = [_currentEntry];
+        UpdateAllAttendances();
     }
 
     private void UpdateSelectedRaidName()
@@ -378,12 +382,14 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
         AttendanceEntry selectedAttendance = SelectedErrorEntry;
         selectedAttendance.CallName = RaidNameText;
         ErrorAttendances = [.. attendances];
+        UpdateAllAttendances();
     }
 
     private void UpdateZoneName()
     {
         _currentEntry.ZoneName = SelectedZoneName;
         ErrorAttendances = [_currentEntry];
+        UpdateAllAttendances();
     }
 }
 
