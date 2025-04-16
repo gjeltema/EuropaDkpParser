@@ -9,9 +9,13 @@ using System.Diagnostics;
 [DebuggerDisplay("{DebugText}")]
 public sealed class DkpTransfer
 {
-    public PlayerCharacter FromCharacter { get; set; }
+    public PlayerCharacter FromCharacter { get; init; }
 
-    public string ToCharacterName { get; set; }
+    public string LogLine { get; init; }
+
+    public DateTime Timestamp { get; init; }
+
+    public string ToCharacterName { get; init; }
 
     private string DebugText
         => $"From:{FromCharacter.CharacterName} To:{ToCharacterName}";

@@ -355,7 +355,9 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return new DkpTransfer
         {
             FromCharacter = fromPlayerCharacter,
-            ToCharacterName = toCharacter
+            ToCharacterName = toCharacter,
+            Timestamp = logEntry.Timestamp,
+            LogLine = correctedLogLine,
         };
     }
 

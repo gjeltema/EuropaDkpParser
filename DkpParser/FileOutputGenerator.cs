@@ -10,17 +10,21 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
     public IEnumerable<string> GenerateOutput(RaidEntries raidEntries, Func<string, string> getZoneRaidAlias)
     {
-        DateTime firstTimestamp = raidEntries.AttendanceEntries.Min(x => x.Timestamp).AddSeconds(-10);
-        foreach (DkpTransfer transfer in raidEntries.Transfers)
-        {
-            string transferLogLine = $"{Delim}{transfer.FromCharacter.CharacterName}{Delim}{transfer.ToCharacterName}{Delim}{Constants.Transfer}{Delim}";
-            yield return EqLogLine.YouTellRaid(firstTimestamp, transferLogLine);
-        }
+        int currentTransferIndex = -1;
+        List<DkpTransfer> transfers = [.. raidEntries.Transfers];
+        DkpTransfer currentTransfer = GetNextTransfer(transfers, currentTransferIndex);
 
         var dkpEntries = raidEntries.DkpEntries.Select(x => new { AssociatedAttendance = raidEntries.GetAssociatedAttendance(x), Dkp = x }).ToList();
         string currentRaidZone = string.Empty;
         foreach (AttendanceEntry attendance in raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp))
         {
+            if (currentTransfer != null && currentTransfer.Timestamp <= attendance.Timestamp)
+            {
+                yield return currentTransfer.LogLine;
+                currentTransferIndex++;
+                currentTransfer = GetNextTransfer(transfers, currentTransferIndex);
+            }
+
             string attendanceRaidZone = getZoneRaidAlias(attendance.ZoneName);
             if (currentRaidZone != attendanceRaidZone)
             {
@@ -34,6 +38,13 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
             foreach (var dkpEntryWithAttendance in dkpEntries.Where(x => x.AssociatedAttendance == attendance).OrderBy(x => x.Dkp.Timestamp))
             {
+                if (currentTransfer != null && currentTransfer.Timestamp <= dkpEntryWithAttendance.Dkp.Timestamp)
+                {
+                    yield return currentTransfer.LogLine;
+                    currentTransferIndex++;
+                    currentTransfer = GetNextTransfer(transfers, currentTransferIndex);
+                }
+
                 yield return dkpEntryWithAttendance.Dkp.ToLogString();
             }
         }
@@ -66,6 +77,15 @@ public sealed class FileOutputGenerator : IOutputGenerator
         }
 
         yield return EqLogLine.ZonePlayers(call.Timestamp, call.Characters.Count, call.ZoneName);
+    }
+
+    private static DkpTransfer GetNextTransfer(List<DkpTransfer> transfers, int currentIndex)
+    {
+        int nextIndex = currentIndex + 1;
+        if (nextIndex >= transfers.Count)
+            return null;
+
+        return transfers[nextIndex];
     }
 }
 
