@@ -17,7 +17,7 @@ public sealed class UploadRaidInfo
 
     public static UploadRaidInfo Create(RaidEntries raidEntries, Func<string, string> getZoneRaidAlias)
     {
-        ICollection<AttendanceUploadInfo> attendanceUploadInfo = raidEntries.AttendanceEntries.Select(x => new AttendanceUploadInfo
+        ICollection<AttendanceUploadInfo> attendanceUploadInfo = raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).Select(x => new AttendanceUploadInfo
         {
             Timestamp = x.Timestamp,
             CallName = x.CallName,
@@ -26,7 +26,7 @@ public sealed class UploadRaidInfo
             Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
         }).ToList();
 
-        ICollection<DkpUploadInfo> dkpUploadInfo = raidEntries.DkpEntries.Select(x => new DkpUploadInfo
+        ICollection<DkpUploadInfo> dkpUploadInfo = raidEntries.DkpEntries.OrderBy(x => x.Timestamp).Select(x => new DkpUploadInfo
         {
             Timestamp = x.Timestamp,
             CharacterName = x.PlayerName,
@@ -56,7 +56,7 @@ public sealed class UploadRaidInfo
 
         return new UploadRaidInfo
         {
-            AttendanceInfo = attendances.Select(x => new AttendanceUploadInfo
+            AttendanceInfo = attendances.OrderBy(x => x.Timestamp).Select(x => new AttendanceUploadInfo
             {
                 AttendanceCallType = x.AttendanceCallType,
                 CallName = x.CallName,

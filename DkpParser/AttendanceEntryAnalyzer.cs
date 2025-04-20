@@ -332,18 +332,19 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         string fromCharacter = parts[1];
         string toCharacter = parts[2];
 
-        if (string.IsNullOrEmpty(fromCharacter))
+        if (string.IsNullOrWhiteSpace(fromCharacter))
         {
             Log.Warning($"{LogPrefix} TRANSFER message unable to extract FROM character in log line: {logEntry.FullLogLine}");
             return null;
         }
 
-        if (string.IsNullOrEmpty(toCharacter))
+        if (string.IsNullOrWhiteSpace(toCharacter))
         {
             Log.Warning($"{LogPrefix} TRANSFER message unable to extract TO character in log line: {logEntry.FullLogLine}");
             return null;
         }
 
+        fromCharacter = fromCharacter.NormalizeName();
         PlayerCharacter fromPlayerCharacter = _raidEntries.AllCharactersInRaid
             .FirstOrDefault(x => x.CharacterName.Equals(fromCharacter, StringComparison.OrdinalIgnoreCase));
         if (fromPlayerCharacter == null)
@@ -355,7 +356,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         return new DkpTransfer
         {
             FromCharacter = fromPlayerCharacter,
-            ToCharacterName = toCharacter,
+            ToCharacterName = toCharacter.NormalizeName(),
             Timestamp = logEntry.Timestamp,
             LogLine = correctedLogLine,
         };
