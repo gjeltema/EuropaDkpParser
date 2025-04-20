@@ -8,16 +8,9 @@ using System.IO;
 
 public sealed class RaidParticipationFilesParser
 {
-    private readonly IDkpParserSettings _settings;
-
-    public RaidParticipationFilesParser(IDkpParserSettings settings)
+    public IList<RaidDumpFile> GetParsedRelevantRaidDumpFiles(string sourceDirectory, DateTime startTime, DateTime endTime)
     {
-        _settings = settings;
-    }
-
-    public IList<RaidDumpFile> GetParsedRelevantRaidDumpFiles(DateTime startTime, DateTime endTime)
-    {
-        List<RaidDumpFile> relevantRaidDumpFiles = GetRelevantRaidDumpFiles(startTime, endTime).ToList();
+        List<RaidDumpFile> relevantRaidDumpFiles = GetRelevantRaidDumpFiles(sourceDirectory, startTime, endTime).ToList();
         foreach (RaidDumpFile raidDumpFile in relevantRaidDumpFiles)
         {
             ParseRaidDump(raidDumpFile);
@@ -26,9 +19,9 @@ public sealed class RaidParticipationFilesParser
         return relevantRaidDumpFiles;
     }
 
-    public IList<RaidListFile> GetParsedRelevantRaidListFiles(DateTime startTime, DateTime endTime)
+    public IList<RaidListFile> GetParsedRelevantRaidListFiles(string sourceDirectory, DateTime startTime, DateTime endTime)
     {
-        List<RaidListFile> relevantRaidListFiles = GetRelevantRaidListFiles(startTime, endTime).ToList();
+        List<RaidListFile> relevantRaidListFiles = GetRelevantRaidListFiles(sourceDirectory, startTime, endTime).ToList();
         foreach (RaidListFile raidListFile in relevantRaidListFiles)
         {
             ParseRaidList(raidListFile);
@@ -37,9 +30,9 @@ public sealed class RaidParticipationFilesParser
         return relevantRaidListFiles;
     }
 
-    public IList<ZealRaidAttendanceFile> GetParsedZealRaidAttendanceFiles(DateTime startTime, DateTime endTime)
+    public IList<ZealRaidAttendanceFile> GetParsedZealRaidAttendanceFiles(string sourceDirectory, DateTime startTime, DateTime endTime)
     {
-        List<ZealRaidAttendanceFile> relevantZealAttendanceFiles = GetRelevantZealRaidAttendanceFiles(startTime, endTime).ToList();
+        List<ZealRaidAttendanceFile> relevantZealAttendanceFiles = GetRelevantZealRaidAttendanceFiles(sourceDirectory, startTime, endTime).ToList();
         foreach (ZealRaidAttendanceFile zealAttendanceFile in relevantZealAttendanceFiles)
         {
             ParseZealAttendance(zealAttendanceFile);
@@ -48,26 +41,26 @@ public sealed class RaidParticipationFilesParser
         return relevantZealAttendanceFiles.Where(x => x.CharacterNames.Count > 0).ToList();
     }
 
-    public IEnumerable<RaidDumpFile> GetRelevantRaidDumpFiles(DateTime startTime, DateTime endTime)
+    public IEnumerable<RaidDumpFile> GetRelevantRaidDumpFiles(string sourceDirectory, DateTime startTime, DateTime endTime)
     {
         string fileNameSearchString = Constants.RaidDumpFileNameStart + "*.txt";
-        return Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString)
+        return Directory.EnumerateFiles(sourceDirectory, fileNameSearchString)
             .Select(RaidDumpFile.CreateRaidDumpFile)
             .Where(x => startTime <= x.FileDateTime && x.FileDateTime <= endTime);
     }
 
-    public IEnumerable<RaidListFile> GetRelevantRaidListFiles(DateTime startTime, DateTime endTime)
+    public IEnumerable<RaidListFile> GetRelevantRaidListFiles(string sourceDirectory, DateTime startTime, DateTime endTime)
     {
         string fileNameSearchString = Constants.RaidListFileNameStart + "*.txt";
-        return Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString)
+        return Directory.EnumerateFiles(sourceDirectory, fileNameSearchString)
             .Select(RaidListFile.CreateRaidListFile)
             .Where(x => startTime <= x.FileDateTime && x.FileDateTime <= endTime);
     }
 
-    public IEnumerable<ZealRaidAttendanceFile> GetRelevantZealRaidAttendanceFiles(DateTime startTime, DateTime endTime)
+    public IEnumerable<ZealRaidAttendanceFile> GetRelevantZealRaidAttendanceFiles(string sourceDirectory, DateTime startTime, DateTime endTime)
     {
         string fileNameSearchString = Constants.ZealAttendanceBasedFileName + "*.txt";
-        return Directory.EnumerateFiles(_settings.EqDirectory, fileNameSearchString)
+        return Directory.EnumerateFiles(sourceDirectory, fileNameSearchString)
             .Select(ZealRaidAttendanceFile.CreateZealRaidAttendanceFile)
             .Where(x => startTime <= x.FileDateTime && x.FileDateTime <= endTime);
     }

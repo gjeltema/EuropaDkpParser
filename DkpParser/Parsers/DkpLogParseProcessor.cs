@@ -15,7 +15,7 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
     public DkpLogParseProcessor(IDkpParserSettings settings)
     {
         _settings = settings;
-        _raidParticipationFilesParser = new(_settings);
+        _raidParticipationFilesParser = new();
     }
 
     public LogParseResults ParseGeneratedLog(string generatedLogFile)
@@ -27,23 +27,26 @@ public sealed class DkpLogParseProcessor : IDkpLogParseProcessor
         return results;
     }
 
-    public LogParseResults ParseLogs(DateTime startTime, DateTime endTime)
+    public LogParseResults ParseLogs(DkpLogGenerationSessionSettings sessionSettings)
     {
-        IList<RaidDumpFile> raidDumpFiles = _raidParticipationFilesParser.GetParsedRelevantRaidDumpFiles(startTime, endTime);
-        IList<ZealRaidAttendanceFile> zealRaidAttendanceFiles = _raidParticipationFilesParser.GetParsedZealRaidAttendanceFiles(startTime, endTime);
-        IList<RaidListFile> raidListFiles = _raidParticipationFilesParser.GetParsedRelevantRaidListFiles(startTime, endTime);
+        IList<RaidDumpFile> raidDumpFiles =
+            _raidParticipationFilesParser.GetParsedRelevantRaidDumpFiles(sessionSettings.SourceDirectory, sessionSettings.StartTime, sessionSettings.EndTime);
+        IList<ZealRaidAttendanceFile> zealRaidAttendanceFiles =
+            _raidParticipationFilesParser.GetParsedZealRaidAttendanceFiles(sessionSettings.SourceDirectory, sessionSettings.StartTime, sessionSettings.EndTime);
+        IList<RaidListFile> raidListFiles =
+            _raidParticipationFilesParser.GetParsedRelevantRaidListFiles(sessionSettings.SourceDirectory, sessionSettings.StartTime, sessionSettings.EndTime);
 
-        IList<EqLogFile> logFiles = GetEqLogFiles(startTime, endTime);
+        List<EqLogFile> logFiles = GetEqLogFiles(sessionSettings.FilesToParse, sessionSettings.StartTime, sessionSettings.EndTime);
 
         LogParseResults results = new(logFiles, raidDumpFiles, raidListFiles, zealRaidAttendanceFiles);
         return results;
     }
 
-    private IList<EqLogFile> GetEqLogFiles(DateTime startTime, DateTime endTime)
+    private List<EqLogFile> GetEqLogFiles(IEnumerable<string> logFilesToParse, DateTime startTime, DateTime endTime)
     {
         List<EqLogFile> logFiles = [];
         EqLogDkpParser parser = new(_settings);
-        foreach (string logFileName in _settings.SelectedLogFiles)
+        foreach (string logFileName in logFilesToParse)
         {
             EqLogFile parsedFile = parser.ParseLogFile(logFileName, startTime, endTime);
             if (parsedFile.LogEntries.Count > 0)
@@ -61,5 +64,5 @@ public interface IDkpLogParseProcessor
 {
     LogParseResults ParseGeneratedLog(string generatedLogFile);
 
-    LogParseResults ParseLogs(DateTime startTime, DateTime endTime);
+    LogParseResults ParseLogs(DkpLogGenerationSessionSettings sessionSettings);
 }

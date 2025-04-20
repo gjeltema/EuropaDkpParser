@@ -54,7 +54,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
         _eqDirectory = _settings.EqDirectory;
         OutputDirectory = _settings.OutputDirectory;
-        SelectedCharacterLogFiles = new List<string>(_settings.SelectedLogFiles);
+        SelectedCharacterLogFiles = [.. _settings.SelectedLogFiles];
         _logFileMatchPattern = _settings.LogFileMatchPattern;
 
         LoggingLevels = [.. Enum.GetNames<LogLevel>()];

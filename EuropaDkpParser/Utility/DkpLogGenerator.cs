@@ -57,9 +57,9 @@ internal sealed class DkpLogGenerator
             await CreateFile(fullLogOutputFullPath, logFile.GetAllLogLines());
         }
 
-        RaidParticipationFilesParser listFilesParser = new(_settings);
+        RaidParticipationFilesParser listFilesParser = new();
 
-        IEnumerable<RaidListFile> raidListFiles = listFilesParser.GetRelevantRaidListFiles(startTime, endTime);
+        IEnumerable<RaidListFile> raidListFiles = listFilesParser.GetRelevantRaidListFiles(_settings.EqDirectory, startTime, endTime);
         foreach (RaidListFile raidListFile in raidListFiles)
         {
             if (!await TryCopyFile(raidListFile.FullFilePath, Path.Combine(directoryForFiles, raidListFile.FileName)))
@@ -69,7 +69,7 @@ internal sealed class DkpLogGenerator
             }
         }
 
-        IEnumerable<ZealRaidAttendanceFile> zealRaidFiles = listFilesParser.GetRelevantZealRaidAttendanceFiles(startTime, endTime);
+        IEnumerable<ZealRaidAttendanceFile> zealRaidFiles = listFilesParser.GetRelevantZealRaidAttendanceFiles(_settings.EqDirectory, startTime, endTime);
         foreach (ZealRaidAttendanceFile zealRaidFile in zealRaidFiles)
         {
             if (!await TryCopyFile(zealRaidFile.FullFilePath, Path.Combine(directoryForFiles, zealRaidFile.FileName)))
@@ -79,7 +79,7 @@ internal sealed class DkpLogGenerator
             }
         }
 
-        IEnumerable<RaidDumpFile> raidDumpFiles = listFilesParser.GetRelevantRaidDumpFiles(startTime, endTime);
+        IEnumerable<RaidDumpFile> raidDumpFiles = listFilesParser.GetRelevantRaidDumpFiles(_settings.EqDirectory, startTime, endTime);
         foreach (RaidDumpFile raidDumpFile in raidDumpFiles)
         {
             await TryCopyFile(raidDumpFile.FullFilePath, Path.Combine(directoryForFiles, raidDumpFile.FileName));
@@ -322,7 +322,8 @@ internal sealed class DkpLogGenerator
 
             Stopwatch timer = new Stopwatch();
             timer.Start();
-            LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(sessionSettings.StartTime, sessionSettings.EndTime));
+            LogParseResults results = await Task.Run(() => parseProcessor.ParseLogs(sessionSettings));
+
             timer.Stop();
             Log.Info($"{LogPrefix} {nameof(parseProcessor.ParseLogs)} elapsed time: {(int)timer.Elapsed.TotalMilliseconds}ms");
             Log.Debug($"{LogPrefix} Parse results:{Environment.NewLine}{string.Join(Environment.NewLine, results.GetAllLines())}");
@@ -484,17 +485,4 @@ internal sealed class DkpLogGenerator
             }
         }
     }
-}
-
-internal sealed class DkpLogGenerationSessionSettings
-{
-    public DateTime EndTime { get; init; }
-
-    public string GeneratedFile { get; init; }
-
-    public string OutputDirectory { get; init; }
-
-    public string OutputPath { get; init; }
-
-    public DateTime StartTime { get; init; }
 }

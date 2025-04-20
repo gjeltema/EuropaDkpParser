@@ -202,7 +202,7 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
             return;
 
         SelectedEqLogFiles.Add(SelectedEqLogFileToAdd);
-        SelectedEqLogFiles = new List<string>(SelectedEqLogFiles.Order());
+        SelectedEqLogFiles = [.. SelectedEqLogFiles.Order()];
         RaisePropertyChanged(nameof(SelectedEqLogFiles));
     }
 

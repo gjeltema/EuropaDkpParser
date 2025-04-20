@@ -17,7 +17,7 @@ public interface IParseEntry
 /// </summary>
 public interface IEqLogParser : ISetEntryParser
 {
-    EqLogFile ParseLogFile(string filename, DateTime startTime, DateTime endTime);
+    EqLogFile ParseLogFile(string fullFilePath, DateTime startTime, DateTime endTime);
 }
 
 /// <summary>

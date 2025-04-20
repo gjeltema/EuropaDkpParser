@@ -14,7 +14,7 @@ public abstract class EqLogParserBase : IEqLogParser
     private const long SearchThreshold = BufferSize * 50;
     private IParseEntry _currentEntryParser;
 
-    public EqLogFile ParseLogFile(string filename, DateTime startTime, DateTime endTime)
+    public EqLogFile ParseLogFile(string fullFilePath, DateTime startTime, DateTime endTime)
     {
         // This essentially does a half-assed state machine, switching around among other 'EntryParsers',
         // having the parser calls be polymorphic to avoid 'if-hell'.  Could/should just create an actual
@@ -25,11 +25,11 @@ public abstract class EqLogParserBase : IEqLogParser
         char[] fileReadBuffer = new char[BufferSize];
         int remainderLength = 0;
 
-        EqLogFile logFile = new() { LogFile = filename };
+        EqLogFile logFile = new() { LogFile = fullFilePath };
 
         InitializeEntryParsers(logFile, startTime, endTime);
 
-        using FileStream fileStream = new(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BufferSize * 2, FileOptions.SequentialScan);
+        using FileStream fileStream = new(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BufferSize * 2, FileOptions.SequentialScan);
 
         bool validFile = InitializeStreamReader(fileStream, startTime, endTime, out StreamReader initializedReader);
         if (!validFile)

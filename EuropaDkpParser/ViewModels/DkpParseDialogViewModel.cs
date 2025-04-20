@@ -134,6 +134,8 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
         {
             StartTime = startTime,
             EndTime = endTime,
+            SourceDirectory = _settings.EqDirectory,
+            FilesToParse = _settings.SelectedLogFiles,
             OutputDirectory = _settings.OutputDirectory,
             GeneratedFile = GeneratedFile,
             OutputPath = GetOutputPath()
