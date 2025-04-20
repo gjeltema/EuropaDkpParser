@@ -97,6 +97,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
         // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
 
+        List<AttendanceEntry> calls = [];
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
             foreach (EqLogEntry logEntry in log.LogEntries.Where(x => x.EntryType == LogEntryType.Attendance || x.EntryType == LogEntryType.Kill))
@@ -126,7 +127,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                     SetZoneName(logEntry, call);
 
                     if (call.Characters.Count > 1)
-                        _raidEntries.AttendanceEntries.Add(call);
+                        calls.Add(call);
                 }
                 catch (Exception ex)
                 {
@@ -134,6 +135,11 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                     throw eex;
                 }
             }
+        }
+
+        foreach (AttendanceEntry attendance in calls.OrderBy(x => x.Timestamp))
+        {
+            _raidEntries.AttendanceEntries.Add(attendance);
         }
     }
 
