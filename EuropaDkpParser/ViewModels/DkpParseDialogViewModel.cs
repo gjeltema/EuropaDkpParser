@@ -5,6 +5,7 @@
 namespace EuropaDkpParser.ViewModels;
 
 using System.IO;
+using System.Windows;
 using DkpParser;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
@@ -32,6 +33,8 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
         StartLogParseCommand = new DelegateCommand(StartLogParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(GeneratedFile))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => GeneratedFile);
         GetRawLogFileCommand = new DelegateCommand(GetRawLogFilesParse, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText);
+        ParseSelectedFileCommand = new DelegateCommand(ParseSelectedFile, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText);
         ResetTimeCommand = new DelegateCommand(ResetTime);
 
@@ -61,6 +64,8 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
     }
 
     public DelegateCommand GetRawLogFileCommand { get; }
+
+    public DelegateCommand ParseSelectedFileCommand { get; }
 
     public DelegateCommand ResetTimeCommand { get; }
 
@@ -104,6 +109,40 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
     private async Task GetRawLogFilesParseAsync(DateTime startTime, DateTime endTime)
         => await _logGenerator.GetRawLogFilesParseAsync(startTime, endTime, GetOutputPath());
 
+    private async void ParseSelectedFile()
+        => await ExecuteParse(ParseSelectedFileAsync);
+
+    private async Task ParseSelectedFileAsync(DateTime startTime, DateTime endTime)
+    {
+        Microsoft.Win32.OpenFileDialog fileDialog = new();
+        fileDialog.InitialDirectory = _settings.EqDirectory;
+        fileDialog.Title = "Select Log File to Parse";
+        if (fileDialog.ShowDialog() != true)
+            return;
+
+        string fileToParse = fileDialog.FileName;
+        if (!File.Exists(fileToParse))
+        {
+            MessageBox.Show($"{fileToParse} does not exist.", "File Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        string directory = Path.GetDirectoryName(fileToParse);
+
+        DkpLogGenerationSessionSettings sessionSettings = new()
+        {
+            StartTime = startTime,
+            EndTime = endTime,
+            SourceDirectory = directory,
+            FilesToParse = [fileToParse],
+            GeneratedFile = GeneratedFile,
+        };
+
+        await _logGenerator.StartLogParseAsync(sessionSettings);
+
+        SetOutputFile();
+    }
+
     private void RefreshCommands()
     {
         StartLogParseCommand.RaiseCanExecuteChanged();
@@ -136,9 +175,7 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
             EndTime = endTime,
             SourceDirectory = _settings.EqDirectory,
             FilesToParse = _settings.SelectedLogFiles,
-            OutputDirectory = _settings.OutputDirectory,
             GeneratedFile = GeneratedFile,
-            OutputPath = GetOutputPath()
         };
 
         await _logGenerator.StartLogParseAsync(sessionSettings);
@@ -154,6 +191,8 @@ public interface IDkpParseDialogViewModel : IDialogViewModel
     string GeneratedFile { get; set; }
 
     DelegateCommand GetRawLogFileCommand { get; }
+
+    DelegateCommand ParseSelectedFileCommand { get; }
 
     DelegateCommand ResetTimeCommand { get; }
 

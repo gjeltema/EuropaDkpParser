@@ -149,9 +149,12 @@
     <system:String x:Key="OutputRawAnalyzerResults">Output Raw Analyzer Results</system:String>
     <system:String x:Key="OutputDirectory">Output Directory</system:String>
     <system:String x:Key="GenerateLogFile">Generate Log File</system:String>
+    <system:String x:Key="GenerateLogFileToolTip">Perform a normal log parse and upload of a night's raid attendances. This is the normal process to use.</system:String>
     <system:String x:Key="OutputFile">Output File</system:String>
     <system:String x:Key="RawDump">Raw Raid Log</system:String>
-    <system:String x:Key="RawDumpToolTip">Gets ALL the log entries from the log files for the specified time period except /tells, as well as the Raid Tick files, and zips them up. (Can configure to also get /tells in Settings).</system:String>
+    <system:String x:Key="RawDumpToolTip">Use when asked for a Raw Raid Log by the dev for an investigation into an issue. Gets ALL the log entries from the log files for the specified time period except /tells, as well as the Raid Tick files, and zips them up. (Can configure to also get /tells in Settings).</system:String>
+    <system:String x:Key="ParseSelectedFile">Parse Selected</system:String>
+    <system:String x:Key="ParseSelectedFileToolTip">Specialty use only - use Generate Log if doing a normal night's parse and upload. Parses only a selected file and uses all the tick files (/out raidlist, etc.) from the directory that log file is in. Useful for Raw Raid Logs.</system:String>
     <system:String x:Key="ParseConversation">Parse conversation with:</system:String>
     <system:String x:Key="StartConversationParse">Get Convo</system:String>
     <system:String x:Key="NoConversationFoundTitle">No conversation found.</system:String>

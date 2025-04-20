@@ -12,10 +12,6 @@ public sealed class DkpLogGenerationSessionSettings
 
     public string GeneratedFile { get; init; }
 
-    public string OutputDirectory { get; init; }
-
-    public string OutputPath { get; init; }
-
     public string SourceDirectory { get; init; }
 
     public DateTime StartTime { get; init; }

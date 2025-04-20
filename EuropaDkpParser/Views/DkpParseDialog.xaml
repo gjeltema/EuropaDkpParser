@@ -57,13 +57,25 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="{StaticResource RawDump}" Command="{Binding GetRawLogFileCommand}" Width="130" Height="35">
+            <StackPanel Orientation="Vertical" Grid.Column="0">
+                <Button Content="{StaticResource ParseSelectedFile}" Command="{Binding ParseSelectedFileCommand}" Width="130" Height="35" Margin="0,0,0,10">
+                    <Button.ToolTip>
+                        <TextBlock Text="{StaticResource ParseSelectedFileToolTip}"/>
+                    </Button.ToolTip>
+                </Button>
+
+                <Button Content="{StaticResource RawDump}" Command="{Binding GetRawLogFileCommand}" Width="130" Height="35">
+                    <Button.ToolTip>
+                        <TextBlock Text="{StaticResource RawDumpToolTip}"/>
+                    </Button.ToolTip>
+                </Button>
+            </StackPanel>
+
+            <Button Grid.Column="1" Content="{StaticResource StartLogGeneration}" Command="{Binding StartLogParseCommand}" VerticalAlignment="Bottom" Width="130" Height="35">
                 <Button.ToolTip>
-                    <TextBlock Text="{StaticResource RawDumpToolTip}"/>
+                    <TextBlock Text="{StaticResource GenerateLogFileToolTip}"/>
                 </Button.ToolTip>
             </Button>
-
-            <Button Grid.Column="1" Content="{StaticResource StartLogGeneration}" Command="{Binding StartLogParseCommand}" Width="130" Height="35"/>
         </Grid>
     </Grid>
 </UserControl>
