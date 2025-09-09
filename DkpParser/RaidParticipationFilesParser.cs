@@ -67,93 +67,22 @@ public sealed class RaidParticipationFilesParser
 
     private void ParseRaidDump(RaidDumpFile dumpFile)
     {
-        /*
-/raiddump
-1	Kassandra	50	Bard	Raid Leader	
-2	Lucismule	1	Warrior	Group Leader	
-        */
-
-        foreach (string line in File.ReadAllLines(dumpFile.FullFilePath))
-        {
-            string[] characterEntry = line.Split('\t');
-            string characterName = characterEntry[1];
-            int level = int.Parse(characterEntry[2]);
-            string className = characterEntry[3];
-
-            PlayerCharacter character = new()
-            {
-                CharacterName = characterName,
-                Level = level,
-                ClassName = className,
-            };
-
-            dumpFile.Characters.Add(character);
-        }
+        string[] contents = File.ReadAllLines(dumpFile.FullFilePath);
+        dumpFile.ParseContents(contents);
     }
 
     private void ParseRaidList(RaidListFile raidListFile)
     {
-        /*
-/out raidlist
-Player	Level	Class	Timestamp	Points
-Cinu	50	Ranger	2024-03-22_09-47-32	3
-Tester	37	Magician	2024-03-22_09-47-32	
-        */
-
-        foreach (string line in File.ReadAllLines(raidListFile.FullFilePath).Skip(1))
-        {
-
-            string[] characterEntry = line.Split('\t');
-            string characterName = characterEntry[0];
-            int level = int.Parse(characterEntry[1]);
-            string className = characterEntry[2];
-
-            PlayerCharacter character = new()
-            {
-                CharacterName = characterName,
-                Level = level,
-                ClassName = className,
-            };
-
-            raidListFile.CharacterNames.Add(character);
-        }
+        string[] contents = File.ReadAllLines(raidListFile.FullFilePath);
+        raidListFile.ParseContents(contents);
     }
 
     private void ParseZealAttendance(ZealRaidAttendanceFile zealAttendanceFile)
     {
-        /*
-First Call|Veeshans Peak
-1|Kassandra|Bard|60|Raid Leader	
-2|Lucismule|Warrior|1|Group Leader	
-        */
-
         string[] fileContents = File.ReadAllLines(zealAttendanceFile.FullFilePath);
         if (fileContents.Length < 2)
             return;
 
-        string firstLine = fileContents[0];
-        string[] firstLineSplit = firstLine.Split('|');
-        if (firstLineSplit.Length < 2)
-            return;
-
-        zealAttendanceFile.RaidName = firstLineSplit[0];
-        zealAttendanceFile.ZoneName = firstLineSplit[1];
-
-        foreach (string line in fileContents.Skip(1))
-        {
-            string[] characterEntry = line.Split('|');
-            string characterName = characterEntry[1];
-            string className = characterEntry[2];
-            int level = int.Parse(characterEntry[3]);
-
-            PlayerCharacter character = new()
-            {
-                CharacterName = characterName,
-                Level = level,
-                ClassName = className,
-            };
-
-            zealAttendanceFile.CharacterNames.Add(character);
-        }
+        zealAttendanceFile.ParseZealAttendance(fileContents);
     }
 }

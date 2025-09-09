@@ -61,7 +61,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _dkpDataRetriever = new DkpDataRetriever(settings);
         _activeBidTracker = new(settings, new TailFile());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
-        _attendanceTimerHandler = new AttendanceTimerHandler(settings, overlayFactory, dialogFactory);
+        _attendanceTimerHandler = new AttendanceTimerHandler(settings, this, overlayFactory, dialogFactory);
 
         _zealMessages = ZealAttendanceMessageProvider.Instance;
         _zealMessages.PipeError += HandleZealPipeError;
@@ -303,6 +303,20 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
                 if (!value)
                     _attendanceTimerHandler.CloseOverlays();
             }
+        }
+    }
+
+    public void TakeAttendanceSnapshot(string raidName, AttendanceCallType callType)
+    {
+        try
+        {
+            _activeBidTracker.TakeAttendanceSnapshot(raidName, callType);
+        }
+        catch (InvalidZealAttendanceData)
+        {
+            MessageDialog.ShowDialog(
+                $"Error when taking Zeal attendance.{Environment.NewLine}You should do a normal attendance call, and try to reconnect to Zeal (set log file to monitor).",
+                "Zeal Attendance Error");
         }
     }
 
@@ -688,7 +702,7 @@ public sealed class LiveAuctionDisplay : EuropaViewModelBase
         => _liveAuctionInfo.ToString();
 }
 
-public interface ILiveLogTrackingViewModel : IWindowViewModel
+public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewModel
 {
     ICollection<LiveAuctionDisplay> ActiveAuctions { get; }
 
@@ -759,4 +773,9 @@ public interface ILiveLogTrackingViewModel : IWindowViewModel
     bool UseAudioReminder { get; set; }
 
     bool UseOverlayForAttendanceReminder { get; set; }
+}
+
+public interface IAttendanceSnapshot
+{
+    void TakeAttendanceSnapshot(string raidName, AttendanceCallType callType);
 }

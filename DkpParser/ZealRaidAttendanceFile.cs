@@ -22,6 +22,8 @@ public sealed class ZealRaidAttendanceFile
         CharacterNames = [];
     }
 
+    public AttendanceCallType CallType { get; private set; }
+
     public ICollection<PlayerCharacter> CharacterNames { get; }
 
     public DateTime FileDateTime { get; }
@@ -30,12 +32,12 @@ public sealed class ZealRaidAttendanceFile
 
     public string FullFilePath { get; }
 
-    public string RaidName { get; set; }
+    public string RaidName { get; private set; }
 
-    public string ZoneName { get; set; }
+    public string ZoneName { get; private set; }
 
     private string DebugDisplay
-        => $"{FileDateTime:HH:mm:ss} {CharacterNames.Count}";
+        => $"{FileDateTime:HH:mm:ss} {RaidName} {CharacterNames.Count}";
 
     public static ZealRaidAttendanceFile CreateZealRaidAttendanceFile(string fullFilePath)
     {
@@ -52,6 +54,51 @@ public sealed class ZealRaidAttendanceFile
     public static string GetFileLine(string group, string name, string className, string level, string rank)
         => $"{group}{Delimiter}{name}{Delimiter}{className}{Delimiter}{level}{Delimiter}{rank}";
 
-    public static string GetFirstLine(string raidName, string zoneName)
-        => $"{raidName}{Delimiter}{zoneName}";
+    public static string GetFirstLine(string raidName, string zoneName, AttendanceCallType callType)
+        => $"{raidName}{Delimiter}{zoneName}{Delimiter}{callType}";
+
+    public void ParseZealAttendance(IEnumerable<string> contents)
+    {
+        /*
+First Call|Veeshans Peak
+1|Kassandra|Bard|60|Raid Leader	
+2|Lucismule|Warrior|1|Group Leader	
+        */
+
+        string firstLine = contents.FirstOrDefault();
+        if (firstLine == null || string.IsNullOrWhiteSpace(firstLine))
+            return;
+
+        string[] firstLineSplit = firstLine.Split(Delimiter);
+        if (firstLineSplit.Length < 3)
+            return;
+
+        RaidName = firstLineSplit[0];
+        ZoneName = firstLineSplit[1];
+
+        string callTypeRaw = firstLineSplit[2];
+        if (!Enum.TryParse(callTypeRaw, out AttendanceCallType callType))
+        {
+            callType = AttendanceCallType.Time;
+        }
+
+        CallType = callType;
+
+        foreach (string line in contents.Skip(1))
+        {
+            string[] characterEntry = line.Split(Delimiter);
+            string characterName = characterEntry[1];
+            string className = characterEntry[2];
+            int level = int.Parse(characterEntry[3]);
+
+            PlayerCharacter character = new()
+            {
+                CharacterName = characterName,
+                Level = level,
+                ClassName = className,
+            };
+
+            CharacterNames.Add(character);
+        }
+    }
 }

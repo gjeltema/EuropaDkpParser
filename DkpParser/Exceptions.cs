@@ -25,9 +25,17 @@ public sealed class EuropaDkpParserException : Exception
     public string LogLine { get; } = string.Empty;
 }
 
-public class ZealMessageProcessingException : Exception
+public sealed class ZealMessageProcessingException : Exception
 {
     public ZealMessageProcessingException(string message)
+        : base(message)
+    {
+    }
+}
+
+public sealed class InvalidZealAttendanceData : Exception
+{
+    public InvalidZealAttendanceData(string message)
         : base(message)
     {
     }

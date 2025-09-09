@@ -11,6 +11,7 @@ using Prism.Commands;
 
 internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDialogViewModel
 {
+    private readonly IAttendanceSnapshot _attendanceSnapshot;
     private readonly List<string> _timeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
             , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call", "Thirteenth Call", "Fourteenth Call"];
     private string _attendanceName;
@@ -18,12 +19,14 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
     private string _reminderText;
     private int _timeCallIndex = 0;
 
-    public ReminderDialogViewModel(IDialogViewFactory viewFactory)
+    public ReminderDialogViewModel(IDialogViewFactory viewFactory, IAttendanceSnapshot attendanceSnapshot)
         : base(viewFactory)
     {
         Title = Strings.GetString("ReminderDialogTitleText");
         Height = 220;
         Width = 400;
+
+        _attendanceSnapshot = attendanceSnapshot;
 
         ReminderInterval = 3;
 
@@ -82,6 +85,7 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
     {
         string message = AttendanceType.GetAttendanceCall(AttendanceName);
         Clip.Copy(message);
+        _attendanceSnapshot.TakeAttendanceSnapshot(AttendanceName, AttendanceType);
     }
 }
 

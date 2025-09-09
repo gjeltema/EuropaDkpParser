@@ -15,8 +15,8 @@ internal sealed class OverlayFactory : IOverlayFactory
         _viewFactory = viewFactory;
     }
 
-    public IAttendanceOverlayViewModel CreateAttendanceOverlayViewModel(IDkpParserSettings settings)
-        => new AttendanceOverlayViewModel(_viewFactory, settings);
+    public IAttendanceOverlayViewModel CreateAttendanceOverlayViewModel(IDkpParserSettings settings, IAttendanceSnapshot attendanceSnapshot)
+        => new AttendanceOverlayViewModel(_viewFactory, settings, attendanceSnapshot);
 
     public IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings)
         => new OverlayPositioningViewModel(_viewFactory, settings);
@@ -27,7 +27,7 @@ internal sealed class OverlayFactory : IOverlayFactory
 
 public interface IOverlayFactory
 {
-    IAttendanceOverlayViewModel CreateAttendanceOverlayViewModel(IDkpParserSettings settings);
+    IAttendanceOverlayViewModel CreateAttendanceOverlayViewModel(IDkpParserSettings settings, IAttendanceSnapshot attendanceSnapshot);
 
     IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings);
 

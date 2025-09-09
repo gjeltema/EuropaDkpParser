@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidDumpFile.cs Copyright 2024 Craig Gjeltema
+// RaidDumpFile.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -41,5 +41,31 @@ public sealed class RaidDumpFile
         DateTime fileDateTime = DateTime.ParseExact(dumpFileTimeStamp, Constants.RaidDumpFileNameTimeFormat, CultureInfo.InvariantCulture);
 
         return new RaidDumpFile(fullFilePath, fileName, fileDateTime);
+    }
+
+    public void ParseContents(IEnumerable<string> contents)
+    {
+        /*
+/raiddump
+1	Kassandra	50	Bard	Raid Leader	
+2	Lucismule	1	Warrior	Group Leader	
+        */
+
+        foreach (string line in contents)
+        {
+            string[] characterEntry = line.Split('\t');
+            string characterName = characterEntry[1];
+            int level = int.Parse(characterEntry[2]);
+            string className = characterEntry[3];
+
+            PlayerCharacter character = new()
+            {
+                CharacterName = characterName,
+                Level = level,
+                ClassName = className,
+            };
+
+            Characters.Add(character);
+        }
     }
 }

@@ -242,6 +242,51 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     public void StopTracking()
         => _messageProvider.StopMessages();
 
+    public void TakeAttendanceSnapshot(string raidName, AttendanceCallType callType)
+    {
+        string eqDirectory = _settings.EqDirectory;
+        if (string.IsNullOrEmpty(eqDirectory))
+            return;
+
+        if (ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count == 0)
+        {
+            Log.Info($"{LogPrefix} No values in Zeal {nameof(ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees)}, ending processing of AttendanceCall: {raidName} {callType}.");
+            throw new InvalidZealAttendanceData("No attendandees in Zeal.");
+        }
+
+        if (ZealAttendanceMessageProvider.Instance.RaidInfo.IsDataStale)
+        {
+            Log.Info($"{LogPrefix} Data in Zeal {nameof(ZealAttendanceMessageProvider.Instance.RaidInfo)} is stale. Ending processing of AttendanceCall: {raidName} {callType}.");
+            throw new InvalidZealAttendanceData("Zeal attendees list is stale.");
+        }
+
+        if (ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale)
+        {
+            Log.Info($"{LogPrefix} Data in Zeal {nameof(ZealAttendanceMessageProvider.Instance.CharacterInfo)} is stale. Ending processing of AttendanceCall: {raidName} {callType}.");
+            throw new InvalidZealAttendanceData("Zeal character data is stale.");
+        }
+
+        int zoneId = ZealAttendanceMessageProvider.Instance.CharacterInfo.ZoneId;
+        if (!_settings.ZoneIdMapping.TryGetValue(zoneId, out string zoneName))
+        {
+            Log.Debug($"{LogPrefix} Zone mapping not found for Zone ID {zoneId} in attendance call, ending processing of AttendanceCall: {raidName} {callType}.");
+            throw new InvalidZealAttendanceData("Invalid Zeal Zone ID.");
+        }
+
+        string fileName = string.Format(Constants.ZealAttendanceBasedFileNameFormat, DateTime.Now.ToString(Constants.ZealRaidAttendanceFileNameTimeFormat));
+        string fullFilePath = Path.Combine(eqDirectory, fileName);
+
+        string firstLine = ZealRaidAttendanceFile.GetFirstLine(raidName, zoneName, callType);
+        IEnumerable<string> characters = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees
+            .OrderBy(x => x.Group)
+            .ThenBy(x => x.Name)
+            .Select(x => ZealRaidAttendanceFile.GetFileLine(x.Group, x.Name, x.Class, x.Level, x.Rank));
+
+        IEnumerable<string> fileContents = [firstLine, .. characters];
+
+        WriteToFile(fullFilePath, fileContents);
+    }
+
     public bool TryGetReadyCheckStatus(out CharacterReadyCheckStatus readyStatus)
         => _readyCheckStatus.TryDequeue(out readyStatus);
 
@@ -294,74 +339,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             StatusMarker.SixtySeconds => "60s",
             _ => "60s",
         };
-
-    private void HandleAttendanceCall(DateTime timestamp, string messageFromPlayer, string messageSenderName)
-    {
-        // :::Raid Attendance Taken:::Attendance:::Fifth Call:::
-        // :::Raid Attendance Taken:::Sister of the Spire:::Kill:::
-
-        if (messageSenderName != "You"
-            || !messageFromPlayer.Contains(Constants.PossibleErrorDelimiter)
-            || !messageFromPlayer.Contains(Constants.RaidAttendanceTaken))
-            return;
-
-        if (ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count == 0)
-        {
-            Log.Info($"{LogPrefix} No values in {nameof(ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees)}, ending processing of AttendanceCall: {messageFromPlayer}.");
-            return;
-        }
-
-        if (ZealAttendanceMessageProvider.Instance.RaidInfo.IsDataStale)
-        {
-            Log.Info($"{LogPrefix} Data in {nameof(ZealAttendanceMessageProvider.Instance.RaidInfo)} is stale. Ending processing of AttendanceCall: {messageFromPlayer}.");
-            return;
-        }
-
-        if (ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale)
-        {
-            Log.Info($"{LogPrefix} Data in {nameof(ZealAttendanceMessageProvider.Instance.CharacterInfo)} is stale. Ending processing of AttendanceCall: {messageFromPlayer}.");
-            return;
-        }
-
-        string eqDirectory = _settings.EqDirectory;
-        if (string.IsNullOrEmpty(eqDirectory))
-            return;
-
-        string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(messageFromPlayer);
-        string[] lineParts = sanitizedLogLine.Split(Constants.AttendanceDelimiter, StringSplitOptions.RemoveEmptyEntries);
-        if (lineParts.Length < 3)
-        {
-            Log.Debug($"{LogPrefix} Malformed attendance call, ending processing of AttendanceCall: {messageFromPlayer}.");
-            return;
-        }
-
-        string raidName = lineParts[1] == Constants.Attendance ? lineParts[2] : lineParts[1];
-        if (string.IsNullOrEmpty(raidName))
-        {
-            Log.Debug($"{LogPrefix} No raid name in attendance call, ending processing of AttendanceCall: {messageFromPlayer}.");
-            return;
-        }
-
-        int zoneId = ZealAttendanceMessageProvider.Instance.CharacterInfo.ZoneId;
-        if (!_settings.ZoneIdMapping.TryGetValue(zoneId, out string zoneName))
-        {
-            Log.Debug($"{LogPrefix} Zone mapping not found for Zone ID {zoneId} in attendance call, ending processing of AttendanceCall: {messageFromPlayer}.");
-            return;
-        }
-
-        string fileName = string.Format(Constants.ZealAttendanceBasedFileNameFormat, timestamp.ToString(Constants.ZealRaidAttendanceFileNameTimeFormat));
-        string fullFilePath = Path.Combine(eqDirectory, fileName);
-
-        string firstLine = ZealRaidAttendanceFile.GetFirstLine(raidName, zoneName);
-        IEnumerable<string> characters = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees
-            .OrderBy(x => x.Group)
-            .ThenBy(x => x.Name)
-            .Select(x => ZealRaidAttendanceFile.GetFileLine(x.Group, x.Name, x.Class, x.Level, x.Rank));
-
-        IEnumerable<string> fileContents = [firstLine, .. characters];
-
-        WriteToFile(fullFilePath, fileContents);
-    }
 
     private void HandleRollByPlayer(LiveBidInfo rollInfo)
     {
@@ -502,8 +479,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     Updated = true;
                     return;
                 }
-
-                HandleAttendanceCall(timestamp, messageFromPlayer, messageSenderName);
             }
         }
         catch (Exception ex)
@@ -580,6 +555,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         catch (Exception ex)
         {
             Log.Error($"{LogPrefix} Error writing out Zeal attendance info: {ex.ToLogMessage()}");
+            throw new InvalidZealAttendanceData("Unable to write out Zeal attendance data to a file.");
         }
     }
 }
@@ -621,4 +597,6 @@ public interface IActiveBidTracker
     void StartTracking(string fileName);
 
     void StopTracking();
+
+    void TakeAttendanceSnapshot(string raidName, AttendanceCallType callType);
 }

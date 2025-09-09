@@ -6,6 +6,7 @@ namespace DkpParser;
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Gjeltema.Logging;
 
 internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
@@ -82,11 +83,11 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void AddZealRaidMembers(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
     {
-        ZealRaidAttendanceFile zealRaidList = logParseResults.ZealRaidAttendanceFiles.FirstOrDefault(x => x.FileDateTime.IsWithinDurationOfPopulationThreshold(logEntry.Timestamp));
-        if (zealRaidList == null)
+        ZealRaidAttendanceFile zealAttendance = logParseResults.ZealRaidAttendanceFiles.FirstOrDefault(x => x.RaidName == call.CallName);
+        if (zealAttendance == null)
             return;
 
-        foreach (PlayerCharacter character in zealRaidList.CharacterNames)
+        foreach (PlayerCharacter character in zealAttendance.CharacterNames)
         {
             call.AddOrMergeInPlayerCharacter(character);
         }
@@ -97,46 +98,10 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         // [Sun Mar 17 22:15:31 2024] You tell your raid, ':::Raid Attendance Taken:::Attendance:::Fifth Call:::'
         // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
 
-        List<AttendanceEntry> calls = [];
-        foreach (EqLogFile log in logParseResults.EqLogFiles)
-        {
-            foreach (EqLogEntry logEntry in log.LogEntries.Where(x => x.EntryType == LogEntryType.Attendance || x.EntryType == LogEntryType.Kill))
-            {
-                logEntry.Visited = true;
+        List<AttendanceEntry> logCalls = GetLogBasedAttendanceCalls(logParseResults);
+        IEnumerable<AttendanceEntry> zealCalls = GetZealAttendanceCalls(logParseResults, logCalls);
 
-                try
-                {
-                    string correctedLogLine = _sanitizer.SanitizeDelimiterString(logEntry.LogLine);
-                    AttendanceEntry call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.FullLogLine };
-
-                    SetAttendanceType(logEntry, call, correctedLogLine);
-
-                    if (IsRemoveCall(logEntry, call, correctedLogLine))
-                        continue;
-
-                    AddRaidListMembers(logParseResults, logEntry, call);
-
-                    AddZealRaidMembers(logParseResults, logEntry, call);
-
-                    AddRaidDumpMembers(logParseResults, logEntry, call);
-
-                    AddCharactersFromCharactersAttending(logEntry, call);
-
-                    UpdateCharacterInfo(call);
-
-                    SetZoneName(logEntry, call);
-
-                    if (call.Characters.Count > 1)
-                        calls.Add(call);
-                }
-                catch (Exception ex)
-                {
-                    EuropaDkpParserException eex = new("An unexpected error occurred when analyzing an attendance call.", logEntry.FullLogLine, ex);
-                    throw eex;
-                }
-            }
-        }
-
+        IEnumerable<AttendanceEntry> calls = logCalls.Concat(zealCalls);
         foreach (AttendanceEntry attendance in calls.OrderBy(x => x.Timestamp))
         {
             _raidEntries.AttendanceEntries.Add(attendance);
@@ -442,6 +407,73 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             .Where(x => x.Timestamp < call.Timestamp && x.CallName == call.CallName && x.AttendanceCallType == call.AttendanceCallType)
             .OrderBy(x => x.Timestamp)
             .MaxBy(x => x.Timestamp);
+
+    private List<AttendanceEntry> GetLogBasedAttendanceCalls(LogParseResults logParseResults)
+    {
+        List<AttendanceEntry> calls = [];
+        foreach (EqLogFile log in logParseResults.EqLogFiles)
+        {
+            foreach (EqLogEntry logEntry in log.LogEntries.Where(x => x.EntryType == LogEntryType.Attendance || x.EntryType == LogEntryType.Kill))
+            {
+                logEntry.Visited = true;
+                AttendanceEntry call;
+
+                try
+                {
+                    string correctedLogLine = _sanitizer.SanitizeDelimiterString(logEntry.LogLine);
+                    call = new() { Timestamp = logEntry.Timestamp, RawHeaderLogLine = logEntry.FullLogLine };
+
+                    SetAttendanceType(logEntry, call, correctedLogLine);
+
+                    if (IsRemoveCall(logEntry, call, correctedLogLine))
+                        continue;
+
+                    AddRaidListMembers(logParseResults, logEntry, call);
+
+                    AddZealRaidMembers(logParseResults, logEntry, call);
+
+                    AddRaidDumpMembers(logParseResults, logEntry, call);
+
+                    AddCharactersFromCharactersAttending(logEntry, call);
+
+                    UpdateCharacterInfo(call);
+
+                    SetZoneName(logEntry, call);
+
+                    if (call.Characters.Count > 1)
+                        calls.Add(call);
+                }
+                catch (Exception ex)
+                {
+                    EuropaDkpParserException eex = new("An unexpected error occurred when analyzing an attendance call.", logEntry.FullLogLine, ex);
+                    throw eex;
+                }
+            }
+        }
+
+        return calls;
+    }
+
+    private IEnumerable<AttendanceEntry> GetZealAttendanceCalls(LogParseResults logParseResults, IEnumerable<AttendanceEntry> logCalls)
+    {
+        foreach (ZealRaidAttendanceFile zealAttendance in logParseResults.ZealRaidAttendanceFiles)
+        {
+            if (logCalls.Any(x => x.CallName == zealAttendance.RaidName))
+                continue;
+
+            AttendanceEntry attendance = new()
+            {
+                AttendanceCallType = zealAttendance.CallType,
+                CallName = zealAttendance.RaidName,
+                Timestamp = zealAttendance.FileDateTime,
+                ZoneName = zealAttendance.ZoneName,
+                Characters = zealAttendance.CharacterNames,
+                RawHeaderLogLine = string.Empty
+            };
+
+            yield return attendance;
+        }
+    }
 
     private void HandleAfkTags(LogParseResults logParseResults)
     {

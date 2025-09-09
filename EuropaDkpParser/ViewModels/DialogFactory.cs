@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DialogFactory.cs Copyright 2024 Craig Gjeltema
+// DialogFactory.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -54,8 +54,8 @@ internal sealed class DialogFactory : IDialogFactory
     public IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, IDkpParserSettings settings)
         => new RaidUploadDialogViewModel(_viewFactory, raidEntries, settings);
 
-    public IReminderDialogViewModel CreateReminderDialogViewModel()
-        => new ReminderDialogViewModel(_viewFactory);
+    public IReminderDialogViewModel CreateReminderDialogViewModel(IAttendanceSnapshot attendanceSnapshot)
+        => new ReminderDialogViewModel(_viewFactory, attendanceSnapshot);
 
     public ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings)
         => new LogSelectionViewModel(_viewFactory, settings);
@@ -92,7 +92,7 @@ public interface IDialogFactory
 
     IRaidUploadDialogViewModel CreateRaidUploadDialogViewModel(IDialogFactory dialogFactory, RaidEntries raidEntries, IDkpParserSettings settings);
 
-    IReminderDialogViewModel CreateReminderDialogViewModel();
+    IReminderDialogViewModel CreateReminderDialogViewModel(IAttendanceSnapshot attendanceSnapshot);
 
     ILogSelectionViewModel CreateSettingsViewDialogViewModel(IDkpParserSettings settings);
 

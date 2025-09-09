@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidListFile.cs Copyright 2024 Craig Gjeltema
+// RaidListFile.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -41,6 +41,33 @@ public sealed class RaidListFile
         DateTime fileDateTime = DateTime.ParseExact(raidListFileTimeStamp, Constants.RaidListFileNameTimeFormat, CultureInfo.InvariantCulture);
 
         return new RaidListFile(fullFilePath, fileName, fileDateTime);
+    }
+
+    public void ParseContents(IEnumerable<string> contents)
+    {
+        /*
+/out raidlist
+Player	Level	Class	Timestamp	Points
+Cinu	50	Ranger	2024-03-22_09-47-32	3
+Tester	37	Magician	2024-03-22_09-47-32	
+        */
+
+        foreach (string line in contents.Skip(1))
+        {
+            string[] characterEntry = line.Split('\t');
+            string characterName = characterEntry[0];
+            int level = int.Parse(characterEntry[1]);
+            string className = characterEntry[2];
+
+            PlayerCharacter character = new()
+            {
+                CharacterName = characterName,
+                Level = level,
+                ClassName = className,
+            };
+
+            CharacterNames.Add(character);
+        }
     }
 }
 

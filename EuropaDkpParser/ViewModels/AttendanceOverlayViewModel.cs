@@ -10,6 +10,7 @@ using Prism.Commands;
 
 internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttendanceOverlayViewModel
 {
+    private readonly IAttendanceSnapshot _attendanceSnapshot;
     private readonly IDkpParserSettings _settings;
     private readonly List<string> _timeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
             , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call"];
@@ -18,11 +19,11 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
     private bool _isTimeCall;
     private int _timeCallIndex = -1;
 
-    public AttendanceOverlayViewModel(IOverlayViewFactory viewFactory, IDkpParserSettings settings)
+    public AttendanceOverlayViewModel(IOverlayViewFactory viewFactory, IDkpParserSettings settings, IAttendanceSnapshot attendanceSnapshot)
         : base(viewFactory)
     {
         _settings = settings;
-
+        _attendanceSnapshot = attendanceSnapshot;
         XPos = _settings.OverlayLocationX;
         YPos = _settings.OverlayLocationY;
 
@@ -110,6 +111,7 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
         string message = AttendanceType.GetAttendanceCall(AttendanceName);
         Clip.Copy(message);
         HideOverlay();
+        _attendanceSnapshot.TakeAttendanceSnapshot(AttendanceName, AttendanceType);
     }
 }
 

@@ -25,6 +25,7 @@ internal sealed class AttendanceTimerHandler
     private readonly IOverlayFactory _overlayFactory;
     private readonly Queue<PendingOverlay> _pendingOverlays = [];
     private readonly IDkpParserSettings _settings;
+    private readonly IAttendanceSnapshot _attendanceSnapshot;
     private IAttendanceOverlayViewModel _attendanceOverlayViewModel;
     private DispatcherTimer _attendanceReminderTimer;
     private DispatcherTimer _killCallReminderTimer;
@@ -34,9 +35,10 @@ internal sealed class AttendanceTimerHandler
     private int _timeCallIndex = 0;
     private bool _useOverlayForAttendanceReminder;
 
-    public AttendanceTimerHandler(IDkpParserSettings settings, IOverlayFactory overlayFactory, IDialogFactory dialogFactory)
+    public AttendanceTimerHandler(IDkpParserSettings settings, IAttendanceSnapshot attendanceSnapshot, IOverlayFactory overlayFactory, IDialogFactory dialogFactory)
     {
         _settings = settings;
+        _attendanceSnapshot = attendanceSnapshot;
         _overlayFactory = overlayFactory;
         _dialogFactory = dialogFactory;
     }
@@ -118,7 +120,7 @@ internal sealed class AttendanceTimerHandler
         if (UseOverlayForAttendanceReminder)
         {
             Log.Info($"{LogPrefix} Showing reminder overlay for boss name {bossName}.");
-            _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
+            _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings, _attendanceSnapshot);
             _attendanceOverlayViewModel.Show(bossName);
             _overlayTypeShowing = OverlayType.Kill;
         }
@@ -171,7 +173,7 @@ internal sealed class AttendanceTimerHandler
         if (UseOverlayForAttendanceReminder)
         {
             Log.Info($"{LogPrefix} Showing reminder overlay for time call index {_timeCallIndex}.");
-            _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
+            _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings, _attendanceSnapshot);
             _attendanceOverlayViewModel.Show(_timeCallIndex);
             _overlayTypeShowing = OverlayType.Time;
 
@@ -264,7 +266,7 @@ internal sealed class AttendanceTimerHandler
 
     private IReminderDialogViewModel GetReminderDialog(string reminderDisplayText, AttendanceCallType callType)
     {
-        IReminderDialogViewModel reminderDialogViewModel = _dialogFactory.CreateReminderDialogViewModel();
+        IReminderDialogViewModel reminderDialogViewModel = _dialogFactory.CreateReminderDialogViewModel(_attendanceSnapshot);
         reminderDialogViewModel.ReminderText = reminderDisplayText;
         reminderDialogViewModel.AttendanceType = callType;
 
@@ -307,7 +309,7 @@ internal sealed class AttendanceTimerHandler
     {
         if (_attendanceOverlayViewModel == null)
         {
-            _attendanceOverlayViewModel = _overlayFactory.CreateAttendanceOverlayViewModel(_settings);
+            _attendanceOverlayViewModel = _overlayFactory.CreateAttendanceOverlayViewModel(_settings, _attendanceSnapshot);
             _attendanceOverlayViewModel.SetHideHandler(HandleOverlayHide);
         }
     }
