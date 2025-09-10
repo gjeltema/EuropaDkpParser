@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v3.0.5</system:String>
+    <system:String x:Key="Version">v3.0.6</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -54,6 +54,9 @@
     <system:String x:Key="AllAttendanceCalls">All Attendance Calls</system:String>
     <system:String x:Key="Minutes">minutes</system:String>
     <system:String x:Key="Remind">Remind</system:String>
+    <system:String x:Key="TimeText">Time</system:String>
+    <system:String x:Key="KillText">Kill</system:String>
+    <system:String x:Key="BossNameText">Boss Name</system:String>
 
     <!-- DkpErrorDisplay -->
     <system:String x:Key="AllPlayerLootedEntries">All Player Looted Entries</system:String>
@@ -288,7 +291,8 @@
     <system:String x:Key="MessageToPostToChat">Status Message To Post To Chat</system:String>
     <system:String x:Key="SpentCallsToPostToChat">SPENT Calls To Post To Chat</system:String>
     <system:String x:Key="LogFileToMonitor">Log File To Monitor</system:String>
-    <system:String x:Key="RemindAttendances">Remind About Attendances</system:String>
+    <system:String x:Key="RemindAttendances">Prompt for Attendances</system:String>
+    <system:String x:Key="TakeAttendanceNow">Take Attendance Now</system:String>
     <system:String x:Key="LowRollWins">Low Roll Wins</system:String>
     <system:String x:Key="SetFile">Set File</system:String>
     <system:String x:Key="GetUserDkp">Get DKP</system:String>
@@ -297,7 +301,7 @@
     <system:String x:Key="ShowOverlayForMoving">Show Overlay For Moving</system:String>
     <system:String x:Key="AudioReminder">Audio Reminder</system:String>
     <system:String x:Key="AttendanceReminderGroupBoxLabel">Attendance Reminder</system:String>
-    <system:String x:Key="TimeNow">Time Now</system:String>
+    <system:String x:Key="TakeAttendance">Take Attendance</system:String>
     <system:String x:Key="EnableReadyCheckMonitoring">Enable Ready Check Monitor</system:String>
     <system:String x:Key="FontSizeLabel">Font Size</system:String>
 

@@ -26,6 +26,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly DispatcherTimer _updateTimer;
     private readonly IZealMessageProvider _zealMessages;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
+    private string _attendanceNowBossName;
+    private bool _attendanceNowKillCall;
+    private bool _attendanceNowTimeCall;
     private string _auctionStatusMessageToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
     private ICollection<LiveBidInfo> _currentBids;
@@ -77,7 +80,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         ReactivateCompletedAuctionCommand = new DelegateCommand(ReactivateCompletedAuction, () => SelectedCompletedAuction != null)
             .ObservesProperty(() => SelectedCompletedAuction);
         RemoveBidCommand = new DelegateCommand(RemoveBid, () => SelectedBid != null).ObservesProperty(() => SelectedBid);
-        SelectFileToTailCommand = new DelegateCommand(SelectFileToTail);
         SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted, () => SelectedActiveAuction != null)
             .ObservesProperty(() => SelectedActiveAuction);
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
@@ -87,12 +89,14 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             .ObservesProperty(() => SelectedBid);
         ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
             .ObservesProperty(() => SelectedBid).ObservesProperty(() => SelectedBidCharacterName);
-        SpawnTimeAttendanceCall = new DelegateCommand(SpawnTimeAttendanceCallNow, () => RemindAttendances).ObservesProperty(() => RemindAttendances);
+        SpawnAttendanceCall = new DelegateCommand(SpawnAttendanceCallNow, () => RemindAttendances).ObservesProperty(() => RemindAttendances);
         StartReadyCheckCommand = new DelegateCommand(StartReadyCheck, () => EnableReadyCheck).ObservesProperty(() => EnableReadyCheck);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
 
         LogFileNames = [.. _settings.SelectedLogFiles];
+
+        AttendanceNowTimeCall = true;
     }
 
     public ICollection<LiveAuctionDisplay> ActiveAuctions
@@ -102,6 +106,24 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     }
 
     public DelegateCommand AddItemLinkIdCommand { get; }
+
+    public string AttendanceNowBossName
+    {
+        get => _attendanceNowBossName;
+        set => SetProperty(ref _attendanceNowBossName, value);
+    }
+
+    public bool AttendanceNowKillCall
+    {
+        get => _attendanceNowKillCall;
+        set => SetProperty(ref _attendanceNowKillCall, value);
+    }
+
+    public bool AttendanceNowTimeCall
+    {
+        get => _attendanceNowTimeCall;
+        set => SetProperty(ref _attendanceNowTimeCall, value);
+    }
 
     public string AuctionStatusMessageToPaste
     {
@@ -265,11 +287,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         set => SetProperty(ref _selectedSpentMessageToPaste, value);
     }
 
-    public DelegateCommand SelectFileToTailCommand { get; }
-
     public DelegateCommand SetActiveAuctionToCompletedCommand { get; }
 
-    public DelegateCommand SpawnTimeAttendanceCall { get; }
+    public DelegateCommand SpawnAttendanceCall { get; }
 
     public ICollection<SuggestedSpentCall> SpentMessagesToPaste
     {
@@ -316,7 +336,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         {
             MessageDialog.ShowDialog(
                 $"Error when taking Zeal attendance.{Environment.NewLine}You should do a normal attendance call, and try to reconnect to Zeal (set log file to monitor).",
-                "Zeal Attendance Error");
+                "Zeal Attendance Error",
+                170);
         }
     }
 
@@ -487,23 +508,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         UpdateActiveAuctionSelected();
     }
 
-    private void SelectFileToTail()
-    {
-        // Switched to using configured files. Leaving this here for now in case I change my mind.
-        //OpenFileDialog fileDialog = new()
-        //{
-        //    Title = "Select Log File to Monitor",
-        //    InitialDirectory = _settings.EqDirectory,
-        //    DefaultDirectory = _settings.EqDirectory
-        //};
-
-        //if (fileDialog.ShowDialog() != true)
-        //    return;
-
-        //string logFile = fileDialog.FileName;
-        //FilePath = logFile;
-    }
-
     private void SetActiveAuctionToCompleted()
     {
         if (SelectedActiveAuctions.Count == 0)
@@ -524,8 +528,13 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction?.Auction, marker, LowRollWins);
     }
 
-    private void SpawnTimeAttendanceCallNow()
-        => _attendanceTimerHandler.ShowTimeAttendanceReminder();
+    private void SpawnAttendanceCallNow()
+    {
+        if (AttendanceNowTimeCall)
+            _attendanceTimerHandler.ShowTimeAttendanceReminder();
+        else
+            _attendanceTimerHandler.RemindForKillAttendance(AttendanceNowBossName);
+    }
 
     private void StartReadyCheck()
     {
@@ -708,6 +717,12 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
 
     DelegateCommand AddItemLinkIdCommand { get; }
 
+    string AttendanceNowBossName { get; set; }
+
+    bool AttendanceNowKillCall { get; set; }
+
+    bool AttendanceNowTimeCall { get; set; }
+
     string AuctionStatusMessageToPaste { get; set; }
 
     DelegateCommand ChangeBidCharacterNameCommand { get; }
@@ -760,11 +775,9 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
 
     SuggestedSpentCall SelectedSpentMessageToPaste { get; set; }
 
-    DelegateCommand SelectFileToTailCommand { get; }
-
     DelegateCommand SetActiveAuctionToCompletedCommand { get; }
 
-    DelegateCommand SpawnTimeAttendanceCall { get; }
+    DelegateCommand SpawnAttendanceCall { get; }
 
     ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; }
 

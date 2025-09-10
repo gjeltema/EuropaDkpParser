@@ -85,6 +85,7 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
     {
         string message = AttendanceType.GetAttendanceCall(AttendanceName);
         Clip.Copy(message);
+        CloseOkCommand.Execute();
         _attendanceSnapshot.TakeAttendanceSnapshot(AttendanceName, AttendanceType);
     }
 }

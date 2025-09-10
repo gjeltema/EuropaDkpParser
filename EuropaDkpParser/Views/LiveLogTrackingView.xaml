@@ -235,8 +235,9 @@
 
         <Border Grid.Row="1" BorderBrush="DarkGray" BorderThickness="1" Margin="0,5,0,5"/>
 
-        <Grid Grid.Row="2" Margin="0,5,0,0">
+        <Grid Grid.Row="2" Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -244,38 +245,74 @@
 
             <Border Grid.Column="0" BorderThickness="1" BorderBrush="DarkGray" Padding="5">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    
-                    <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <CheckBox Grid.Row="0" IsChecked="{Binding RemindAttendances}" Content="{StaticResource RemindAttendances}"/>
+
+                    <Grid Grid.Row="1" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <CheckBox Grid.Row="0" IsChecked="{Binding RemindAttendances}" Content="{StaticResource RemindAttendances}"/>
-
-                        <Grid Grid.Row="1"  Margin="0,5,0,0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-
-                            <CheckBox Grid.Row="0" IsChecked="{Binding UseOverlayForAttendanceReminder}" Content="{StaticResource UseOverlay}" IsEnabled="{Binding RemindAttendances}"
-                              Margin="20,0,0,5"/>
-                            <CheckBox Grid.Row="1" IsChecked="{Binding UseAudioReminder}" Content="{StaticResource AudioReminder}" Margin="20,0,0,0"/>
-                        </Grid>
-                    </Grid>
-
-                    <Grid Grid.Column="1" Margin="10,0,0,0">
-                        <Button Grid.Column="1" Content="{StaticResource TimeNow}" Command="{Binding SpawnTimeAttendanceCall}" Width="85" Height="30"/>
+                        <CheckBox Grid.Row="0" IsChecked="{Binding UseOverlayForAttendanceReminder}" Content="{StaticResource UseOverlay}" 
+                                      IsEnabled="{Binding RemindAttendances}" Margin="20,0,0,5"/>
+                        <CheckBox Grid.Row="1" IsChecked="{Binding UseAudioReminder}" Content="{StaticResource AudioReminder}" Margin="20,0,0,0"/>
                     </Grid>
                 </Grid>
             </Border>
 
-            <Grid Grid.Column="1" Margin="30,0,0,0">
+            <Border Grid.Column="1" BorderThickness="1" BorderBrush="DarkGray" Padding="5,0,5,5" Margin="5,0,0,0"
+                    Visibility="{Binding RemindAttendances, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Content="{StaticResource TakeAttendanceNow}" Margin="0,5,0,0"/>
+
+                        <Button Grid.Column="1" Content="{StaticResource TakeAttendance}" Command="{Binding SpawnAttendanceCall}" Width="120" Height="25"
+                                HorizontalAlignment="Right" Margin="5,5,0,0"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0">
+                            <StackPanel Orientation="Vertical">
+                                <RadioButton IsChecked="{Binding AttendanceNowTimeCall}" Content="{StaticResource TimeText}" Margin="0,0,0,5"/>
+                                <RadioButton IsChecked="{Binding AttendanceNowKillCall}" Content="{StaticResource KillText}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Grid.Column="1" Margin="5,0,0,0" Visibility="{Binding AttendanceNowKillCall, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Label Grid.Column="0" Content="{StaticResource BossNameText}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding AttendanceNowBossName}" Width="120" Height="30"/>
+                        </Grid>
+                    </Grid>
+                </Grid>
+               
+            </Border>
+
+            <Grid Grid.Column="2" Margin="30,5,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
@@ -287,7 +324,7 @@
                 <CheckBox Grid.Row="2" IsChecked="{Binding EnableReadyCheck}" Content="{StaticResource EnableReadyCheckMonitoring}"/>
             </Grid>
 
-            <Button Grid.Column="2" Content="Ready Check" Command="{Binding StartReadyCheckCommand}" Width="85" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+            <Button Grid.Column="3" Content="Ready Check" Command="{Binding StartReadyCheckCommand}" Width="85" Height="30" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
         </Grid>
 
         <!-- File path -->
