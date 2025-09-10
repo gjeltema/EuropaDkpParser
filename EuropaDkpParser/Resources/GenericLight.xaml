@@ -3,8 +3,6 @@
 
     <SolidColorBrush x:Key="DefaultBackgroundColor">#FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="DefaultForegroundColor">#000000</SolidColorBrush>
-    <SolidColorBrush x:Key="BidTrackingForegroundOkBrush">Green</SolidColorBrush>
-    <SolidColorBrush x:Key="BidTrackingForegroundAlertBrush">Red</SolidColorBrush>
 
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
         <Setter Property="VerticalContentAlignment" Value="Center"/>

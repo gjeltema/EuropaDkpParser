@@ -7,4 +7,47 @@
     <utilities:InverseBoolConverter x:Key="InverseBoolConverter" />
     <utilities:StringToBrushConverter x:Key="StringToBrushConverter" />
 
+    <SolidColorBrush x:Key="BidTrackingForegroundOkBrush">LightGreen</SolidColorBrush>
+    <SolidColorBrush x:Key="BidTrackingForegroundAlertBrush">Red</SolidColorBrush>
+
+    <Viewbox x:Key="SuccessCheckIcon" x:Shared="False" Width="16" Height="16">
+        <Grid>
+            <Path Fill="#2BC467" Data="M7.82222222,15.6444444 C3.50212818,15.6444444 5.29058934e-16,12.1423163 0,7.82222222 C-5.29058934e-16,3.50212818 3.50212818,3.15692568e-16 7.82222222,-4.73796349e-16 C9.28776623,-0.0107921512 10.7259737,0.396741093 
+              11.968,1.17475556 L11.2142222,2.38364444 C10.1980229,1.74704919 9.02132147,1.41352711 7.82222222,1.42222222 C4.28759982,1.42222222 1.42222222,4.28759982 1.42222222,7.82222222 C1.42222222,11.3568446 4.28759982,14.2222222 7.82222222,14.2222222 
+              C11.3568446,14.2222222 14.2222222,11.3568446 14.2222222,7.82222222 C14.225695,7.25761184 14.1612319,6.69463385 14.0302222,6.14542222 L15.4097778,5.80124444 C15.5689319,6.46302541 15.6477226,7.14158036 15.6444444,7.82222222 C15.6393504,12.1402045 
+              12.1402045,15.6393504 7.82222222,15.6444444 Z"/>
+            <Path Fill="#2BC467" Data="M7.82222222,9.95555556 C7.63363924,9.95551528 7.45279483,9.88056844 7.31946667,9.7472 L3.97226667,6.4 L4.97777778,5.39448889 L7.82222222,8.23893333 L15.6444444,0.416711111 L16.6499556,1.42222222 L8.32497778,9.7472 C8.19164961,9.88056844 
+              8.0108052,9.95551528 7.82222222,9.95555556 Z"/>
+        </Grid>
+    </Viewbox>
+
+    <Style x:Key="CloseIconStyle" TargetType="Path">
+        <Setter Property="Data" Value="M13.4142136,12 L18.363961,16.9497475 L16.9497475,18.363961 L12,13.4142136 L7.05025253,18.363961 L5.63603897,16.9497475 L10.5857864,12 L5.63603897,7.05025253 
+            L7.05025253,5.63603897 L12,10.5857864 L16.9497475,5.63603897 L18.363961,7.05025253 L13.4142136,12 Z"/>
+        <Setter Property="Fill" Value="{StaticResource LightTextBrush}"/>
+    </Style>
+
+    <Viewbox x:Key="CloseIcon" Height="18" Width="18" x:Shared="False" Stretch="UniformToFill" >
+        <Path Style="{StaticResource CloseIconStyle}"/>
+    </Viewbox>
+
+    <Rectangle x:Key="RedXIconRect" x:Shared="False" Width="16" Height="16">
+        <Rectangle.Fill>
+            <DrawingBrush>
+                <DrawingBrush.Drawing>
+                    <DrawingGroup>
+                        <DrawingGroup.Children>
+                            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,8C16,12.418 12.418,16 8,16 3.582,16 0,12.418 0,8 0,3.582 3.582,0 8,0 12.418,0 16,3.582 16,8" />
+                            <GeometryDrawing Brush="#FFE41400" Geometry="F1M12.4141,11L11.0001,12.414 8.0001,9.414 5.0001,12.414 3.5861,11 6.5861,8 3.5861,5 5.0001,3.586 8.0001,6.586 11.0001,3.586 12.4141,5 9.4141,8z M8.0001,1C4.1341,1 1.0001,4.135 1.0001,8 1.0001,11.865 4.1341,15 8.0001,15 11.8651,15 15.0001,11.865 15.0001,8 15.0001,4.135 11.8651,1 8.0001,1" />
+                            <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M9.4141,8L12.4141,11 11.0001,12.414 8.0001,9.414 5.0001,12.414 3.5861,11 6.5861,8 3.5861,5 5.0001,3.586 8.0001,6.586 11.0001,3.586 12.4141,5z" />
+                        </DrawingGroup.Children>
+                    </DrawingGroup>
+                </DrawingBrush.Drawing>
+            </DrawingBrush>
+        </Rectangle.Fill>
+    </Rectangle>
+    <Viewbox x:Key="RedXIcon16" x:Shared="False" Width="16" Height="16" Stretch="UniformToFill" Child="{StaticResource RedXIconRect}"/>
+    <Viewbox x:Key="RedXIcon32" x:Shared="False" Width="32" Height="32" Stretch="UniformToFill" Child="{StaticResource RedXIconRect}"/>
+    
 </ResourceDictionary>

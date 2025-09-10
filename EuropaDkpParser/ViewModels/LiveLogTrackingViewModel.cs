@@ -38,6 +38,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private string _filePath;
     private bool _forceShowOverlay;
     private ICollection<LiveBidInfo> _highBids;
+    private bool _isZealConnected;
     private string _itemLinkIdToAdd;
     private bool _lowRollWins;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
@@ -214,6 +215,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         get => _highBids;
         private set => SetProperty(ref _highBids, value);
+    }
+
+    public bool IsZealConnected
+    {
+        get => _isZealConnected;
+        set => SetProperty(ref _isZealConnected, value);
     }
 
     public string ItemLinkIdToAdd
@@ -667,6 +674,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             }
         }
 
+        _isZealConnected = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count > 6
+            && !ZealAttendanceMessageProvider.Instance.RaidInfo.IsDataStale
+            && !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
+
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }
 }
@@ -750,6 +761,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     DelegateCommand GetUserDkpCommand { get; }
 
     ICollection<LiveBidInfo> HighBids { get; }
+
+    bool IsZealConnected { get; set; }
 
     string ItemLinkIdToAdd { get; set; }
 

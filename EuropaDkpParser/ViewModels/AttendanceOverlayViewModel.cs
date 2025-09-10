@@ -13,7 +13,7 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
     private readonly IAttendanceSnapshot _attendanceSnapshot;
     private readonly IDkpParserSettings _settings;
     private readonly List<string> _timeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
-            , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call"];
+            , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call", "Thirteenth Call", "Fourteenth Call"];
     private string _attendanceName;
     private string _displayMessage;
     private bool _isTimeCall;

@@ -304,6 +304,7 @@
     <system:String x:Key="TakeAttendance">Take Attendance</system:String>
     <system:String x:Key="EnableReadyCheckMonitoring">Enable Ready Check Monitor</system:String>
     <system:String x:Key="FontSizeLabel">Font Size</system:String>
+    <system:String x:Key="ZealConnected">Zeal Connected</system:String>
 
     <!-- ReminderDialog -->
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>

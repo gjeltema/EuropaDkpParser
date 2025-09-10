@@ -9,8 +9,6 @@
     <SolidColorBrush x:Key="DefaultControlBackgroundColor">#707070</SolidColorBrush>
     <SolidColorBrush x:Key="HoverBackgroundColor">#909090</SolidColorBrush>
     <SolidColorBrush x:Key="DefaultForegroundColor">LightGray</SolidColorBrush>
-    <SolidColorBrush x:Key="BidTrackingForegroundOkBrush">LightGreen</SolidColorBrush>
-    <SolidColorBrush x:Key="BidTrackingForegroundAlertBrush">Red</SolidColorBrush>
 
     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Height" Value="30"/>
