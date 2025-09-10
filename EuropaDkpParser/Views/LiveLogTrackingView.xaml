@@ -336,7 +336,8 @@
                     <ContentControl Content="{StaticResource RedXIcon16}" Visibility="{Binding IsZealConnected, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                 </StackPanel>
 
-                <Button Grid.Row="1" Content="Ready Check" Command="{Binding StartReadyCheckCommand}" Width="85" Height="30" HorizontalAlignment="Right"/>
+                <Button Grid.Row="1" Content="Ready Check" Command="{Binding StartReadyCheckCommand}" Width="85" Height="30" HorizontalAlignment="Right"
+                        Visibility="{Binding EnableReadyCheck, Converter={StaticResource BoolToVisibilityConverter}}"/>
             </Grid>
             
         </Grid>
