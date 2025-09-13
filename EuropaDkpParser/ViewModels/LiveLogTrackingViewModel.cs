@@ -674,9 +674,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             }
         }
 
-        _isZealConnected = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count > 6
+        IsZealConnected = !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale
             && !ZealAttendanceMessageProvider.Instance.RaidInfo.IsDataStale
-            && !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
+            && ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count > 6;
 
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }

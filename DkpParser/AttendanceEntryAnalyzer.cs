@@ -471,6 +471,11 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 RawHeaderLogLine = string.Empty
             };
 
+            if (!_settings.RaidValue.AllValidRaidZoneNames.Contains(attendance.ZoneName))
+            {
+                attendance.PossibleError = PossibleError.InvalidZoneName;
+            }
+
             yield return attendance;
         }
     }
