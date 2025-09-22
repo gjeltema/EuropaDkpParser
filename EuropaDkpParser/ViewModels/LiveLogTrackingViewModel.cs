@@ -38,6 +38,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private string _filePath;
     private bool _forceShowOverlay;
     private ICollection<LiveBidInfo> _highBids;
+    private bool _isReadyToTakeZealAttendance;
     private bool _isZealConnected;
     private string _itemLinkIdToAdd;
     private bool _lowRollWins;
@@ -215,6 +216,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         get => _highBids;
         private set => SetProperty(ref _highBids, value);
+    }
+
+    public bool IsReadyToTakeZealAttendance
+    {
+        get => _isReadyToTakeZealAttendance;
+        set => SetProperty(ref _isReadyToTakeZealAttendance, value);
     }
 
     public bool IsZealConnected
@@ -674,7 +681,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             }
         }
 
-        IsZealConnected = !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale
+        IsZealConnected = !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
+
+        IsReadyToTakeZealAttendance = !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale
             && !ZealAttendanceMessageProvider.Instance.RaidInfo.IsDataStale
             && ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count > 6;
 
@@ -761,6 +770,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     DelegateCommand GetUserDkpCommand { get; }
 
     ICollection<LiveBidInfo> HighBids { get; }
+
+    bool IsReadyToTakeZealAttendance { get; set; }
 
     bool IsZealConnected { get; set; }
 
