@@ -66,7 +66,7 @@ First Call|Veeshans Peak
         */
 
         string firstLine = contents.FirstOrDefault();
-        if (firstLine == null || string.IsNullOrWhiteSpace(firstLine))
+        if (string.IsNullOrWhiteSpace(firstLine))
             return;
 
         string[] firstLineSplit = firstLine.Split(Delimiter);

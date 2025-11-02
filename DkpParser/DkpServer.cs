@@ -113,6 +113,12 @@ public sealed class DkpServer : IDkpServer
         Log.Debug($"{LogPrefix} ------- Completed retrieval of IDs -------");
     }
 
+    public async Task UploadAdjustment(AdjustmentUploadInfo adjustment)
+    {
+        string postBody = CraftAdjustmentString(adjustment);
+        await UploadMessage("add_adjustment", postBody);
+    }
+
     public async Task UploadAttendance(AttendanceUploadInfo attendanceEntry)
     {
         string postBody = CraftAttendanceString(attendanceEntry);
@@ -130,6 +136,22 @@ public sealed class DkpServer : IDkpServer
     {
         string postBody = CraftDkpString(dkpEntry);
         await UploadMessage("add_item", postBody);
+    }
+
+    private string CraftAdjustmentString(AdjustmentUploadInfo adjustment)
+    {
+        var adjustmentContent =
+            new XElement("request",
+                new XElement("adjustment_date", adjustment.Timestamp.ToUsTimestamp(ServerTimeFormat)),
+                new XElement("adjustment_value", adjustment.DkpAmount),
+                new XElement("adjustment_reason", SanitizeString(adjustment.AdjustmentReason)),
+                new XElement("adjustment_raid_id", adjustment.RaidId),
+                new XElement("adjustment_members",
+                    new XElement("member", adjustment.CharacterId),
+                    new XElement("member"))
+            );
+
+        return adjustmentContent.ToString();
     }
 
     private string CraftAttendanceString(AttendanceUploadInfo attendanceEntry)
@@ -354,7 +376,7 @@ public sealed class DkpServer : IDkpServer
 
     private async Task<string> UploadMessage(string function, string content)
     {
-        Log.Trace($"{LogPrefix} Uploading with POST body:{Environment.NewLine}{content}");
+        Log.Trace($"{LogPrefix} Uploading to function '{function}' with POST body:{Environment.NewLine}{content}");
 
         using HttpContent postContent = GetPostContent(content);
         postContent.Headers.ContentType = _mediaHeader;
@@ -402,6 +424,8 @@ public interface IDkpServer
     Task<int> GetUserDkp(string characterName);
 
     Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
+
+    Task UploadAdjustment(AdjustmentUploadInfo adjustment);
 
     Task UploadAttendance(AttendanceUploadInfo attendanceEntry);
 

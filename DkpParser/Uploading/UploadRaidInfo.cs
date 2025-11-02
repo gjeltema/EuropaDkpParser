@@ -9,6 +9,8 @@ public sealed class UploadRaidInfo
     private UploadRaidInfo()
     { }
 
+    public ICollection<AdjustmentUploadInfo> Adjustments { get; init; }
+
     public ICollection<AttendanceUploadInfo> AttendanceInfo { get; init; }
 
     public ICollection<string> CharacterNames { get; init; }
@@ -50,6 +52,17 @@ public sealed class UploadRaidInfo
         };
     }
 
+    private static ICollection<AdjustmentUploadInfo> CalculateAdjustments()
+    {
+        //** Need to figure out configuration settings
+        // Class affected : Bonus amount
+        // Need to pass in configuration info
+        return null;
+    }
+
+    /// <summary>
+    /// Used for uploading only select attendances, assumes zone names are already sanitized.
+    /// </summary>
     public static UploadRaidInfo Create(IEnumerable<AttendanceEntry> attendances, RaidEntries raidEntries)
     {
         IEnumerable<PlayerCharacter> charactersToBeUploaded = ConvertTransfers(raidEntries.AllCharactersInRaid, raidEntries.Transfers);

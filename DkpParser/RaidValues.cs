@@ -14,6 +14,7 @@ public sealed class RaidValues : IRaidValues
     private const string AliasSection = "ZONE_ALIAS_SECTION";
     private const string BonusZonesSection = "BONUS_ZONES_SECTION";
     private const string BossSection = "BOSS_SECTION";
+    private const string ClassBonusSection = "CLASS_BONUS_SECTION";
     private const string Comment = "#";
     private const char Delimiter = '\t';
     private const string LogPrefix = $"[{nameof(RaidValues)}]";
@@ -36,6 +37,7 @@ public sealed class RaidValues : IRaidValues
         => _bossKillValues.Select(x => x.BossName).ToList();
 
     public ICollection<string> AllValidRaidZoneNames { get; private set; }
+    public IEnumerable<ClassBonus> ClassBonuses { get; private set; }
 
     public int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry)
     {
@@ -69,6 +71,7 @@ public sealed class RaidValues : IRaidValues
         LoadZoneSection(fileContents);
         LoadZoneAliasSection(fileContents);
         LoadBonusZones(fileContents);
+        LoadClassBonusSection(fileContents);
 
         AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).Union(_zoneRaidAliases.Keys).Order().ToList();
     }
@@ -172,6 +175,11 @@ public sealed class RaidValues : IRaidValues
         }
     }
 
+    private void LoadClassBonusSection(string[] fileContents)
+    {
+
+    }
+
     private void LoadTierSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, TierSection);
@@ -258,6 +266,16 @@ public sealed class RaidValues : IRaidValues
     }
 }
 
+public sealed class ClassBonus
+{
+    public string ClassName { get; init; }
+
+    /// <summary>
+    /// Returns e.g. 0.25 for a 25% bonus.
+    /// </summary>
+    public double PercentBonus { get; init; }
+}
+
 public interface IRaidValues
 {
     ICollection<string> AllBossMobNames { get; }
@@ -265,6 +283,8 @@ public interface IRaidValues
     ICollection<string> AllValidRaidZoneNames { get; }
 
     int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry);
+
+    IEnumerable<ClassBonus> ClassBonuses { get; }
 
     string GetZoneRaidAlias(string zoneName);
 
