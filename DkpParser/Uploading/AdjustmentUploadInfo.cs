@@ -27,6 +27,3 @@ public sealed class AdjustmentUploadInfo
     public override string ToString()
         => DebugText;
 }
-
-
-

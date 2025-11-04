@@ -28,19 +28,7 @@
                 </Grid.RowDefinitions>
 
                 <Label Grid.Row="0" Content="{StaticResource AllAttendanceCalls}"/>
-                <ListView Grid.Row="1" ItemsSource="{Binding AllAttendances}" SelectedItem="{Binding SelectedAttendanceEntry}">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="{x:Type ListViewItem}">
-                            <Setter Property="ToolTip">
-                                <Setter.Value>
-                                    <UniformGrid Columns="1">
-                                        <TextBlock Text="{Binding RawHeaderLogLine}"/>
-                                    </UniformGrid>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                </ListView>
+                <ListView Grid.Row="1" ItemsSource="{Binding AllAttendances}" SelectedItem="{Binding SelectedAttendanceEntry}"/>
             </Grid>
 
             <Grid Grid.Column="1" Margin="5,22,0,10">

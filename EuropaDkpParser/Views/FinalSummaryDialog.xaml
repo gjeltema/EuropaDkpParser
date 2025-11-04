@@ -27,19 +27,7 @@
             </Grid.RowDefinitions>
 
             <Label Content="{StaticResource AttendanceCalls}" Grid.Row="0"/>
-            <ListView ItemsSource="{Binding AttendanceCalls}" Grid.Row="1">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListViewItem}">
-                        <Setter Property="ToolTip">
-                            <Setter.Value>
-                                <UniformGrid Columns="1">
-                                    <TextBlock Text="{Binding RawHeaderLogLine}"/>
-                                </UniformGrid>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListView.ItemContainerStyle>
-            </ListView>
+            <ListView ItemsSource="{Binding AttendanceCalls}" Grid.Row="1"/>
         </Grid>
 
         <Grid Grid.Row="0" Grid.Column="1">
