@@ -8,8 +8,8 @@ using Gjeltema.Logging;
 
 internal sealed class ActiveAuctionEndAnalyzer
 {
-    private readonly DkpSpentAnalyzer _dkpSpentAnalyzer;
     private const string LogPrefix = $"[{nameof(ActiveAuctionEndAnalyzer)}]";
+    private readonly DkpSpentAnalyzer _dkpSpentAnalyzer;
 
     public ActiveAuctionEndAnalyzer()
     {
