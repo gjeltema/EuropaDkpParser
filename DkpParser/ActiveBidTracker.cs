@@ -455,6 +455,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 return;
             }
 
+            Log.Debug($"{LogPrefix} Message from player: '{messageFromPlayer}'");
             LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(messageFromPlayer, channel, timestamp, messageSenderName);
             if (spentCall != null)
             {
