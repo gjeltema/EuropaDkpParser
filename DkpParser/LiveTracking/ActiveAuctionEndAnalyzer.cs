@@ -31,7 +31,7 @@ internal sealed class ActiveAuctionEndAnalyzer
                 return null;
             }
 
-            string itemName = parts[0];
+            string itemName = parts[0].Trim();
             string[] remainingParts = parts[1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (remainingParts.Length != 4)
             {
@@ -39,8 +39,8 @@ internal sealed class ActiveAuctionEndAnalyzer
                 return null;
             }
 
-            string winner = remainingParts[0];
-            string winningRollString = remainingParts[2];
+            string winner = remainingParts[0].Trim();
+            string winningRollString = remainingParts[2].Trim();
             if (!int.TryParse(winningRollString, out int winningRoll))
             {
                 Log.Warning($"{LogPrefix} Unable to get the winning roll from WINS call from: {messageFromPlayer}");
