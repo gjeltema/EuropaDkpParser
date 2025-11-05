@@ -109,6 +109,7 @@
     <system:String x:Key="AddModify">Add/Modify</system:String>
     <system:String x:Key="UploadToServerText">Upload to DKP server</system:String>
     <system:String x:Key="AddModifyTooltip">Opens a dialog to add or modify the attendance calls.</system:String>
+    <system:String x:Key="EditAttendees">Change Attendees</system:String>
     
     <!-- LogSelectionDialog -->
     <system:String x:Key="EqLogDir">Everquest Log Directory</system:String>
@@ -317,5 +318,9 @@
     
     <!-- Overlays -->
     <system:String x:Key="OverlayMoveMessage">Drag Me</system:String>
+
+    <!-- AttendeesModifierDialog -->
+    <system:String x:Key="Attendees">Attendees</system:String>
+    <system:String x:Key="SelectACharacter">Select a character</system:String>
 
 </ResourceDictionary>

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// FinalSummaryDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// FinalSummaryDialogViewModel.cs Copyright 2025 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -37,6 +37,7 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
 
         AddOrModifyAttendanceEntryCommand = new DelegateCommand(AddOrModifyAttendanceEntry);
         EditDkpSpentCommand = new DelegateCommand(EditDkpSpent, () => SelectedDkpspent != null).ObservesProperty(() => SelectedDkpspent);
+        EditAttendeesCommand = new DelegateCommand(EditAttendees);
         RemoveDkpSpentCommand = new DelegateCommand(RemoveDkpspent, () => SelectedDkpspent != null).ObservesProperty(() => SelectedDkpspent);
     }
 
@@ -53,6 +54,8 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
         get => _dkpSpentCalls;
         private set => SetProperty(ref _dkpSpentCalls, value);
     }
+
+    public DelegateCommand EditAttendeesCommand { get; }
 
     public DelegateCommand EditDkpSpentCommand { get; }
 
@@ -78,6 +81,12 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
         modifier.ShowDialog();
 
         AttendanceCalls = new List<AttendanceEntry>(_raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp));
+    }
+
+    private void EditAttendees()
+    {
+        IAttendeesModifierDialogViewModel modifier = _dialogFactory.CreateAttendeesModifierDialogViewModel(_raidEntries);
+        modifier.ShowDialog();
     }
 
     private void EditDkpSpent()
@@ -120,6 +129,8 @@ public interface IFinalSummaryDialogViewModel : IDialogViewModel
     ICollection<AttendanceEntry> AttendanceCalls { get; }
 
     ICollection<DkpEntry> DkpSpentCalls { get; }
+
+    DelegateCommand EditAttendeesCommand { get; }
 
     DelegateCommand EditDkpSpentCommand { get; }
 
