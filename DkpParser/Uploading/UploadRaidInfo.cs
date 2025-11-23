@@ -52,14 +52,6 @@ public sealed class UploadRaidInfo
         };
     }
 
-    private static ICollection<AdjustmentUploadInfo> CalculateAdjustments()
-    {
-        //** Need to figure out configuration settings
-        // Class affected : Bonus amount
-        // Need to pass in configuration info
-        return null;
-    }
-
     /// <summary>
     /// Used for uploading only select attendances, assumes zone names are already sanitized.
     /// </summary>
