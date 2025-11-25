@@ -77,30 +77,12 @@ internal sealed class PrimaryEntryParser : IParseEntry
             }
             else
             {
-                int numberOfChars = logLine.RemoveAllWhitespace(_tempString);
-                ReadOnlySpan<char> noWhitespaceLogline = _tempString.AsSpan(0, numberOfChars);
-                string noWhitespaceSanitized = _sanitizer.SanitizeDelimiterString(noWhitespaceLogline.ToString());
-
-                if (noWhitespaceSanitized.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                    || noWhitespaceSanitized.Contains(Constants.CrashedAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
-                {
-                    CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Crashed);
-                }
-                else if (noWhitespaceSanitized.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                    || noWhitespaceSanitized.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
-                {
-                    CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkStart);
-                }
-                else if (noWhitespaceSanitized.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                    || noWhitespaceSanitized.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
-                {
-                    CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkEnd);
-                }
-                else if (logLine.Contains(Constants.Transfer))
-                {
-                    CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Transfer);
-                }
+                HandleUserCommands(logLine, entryTimeStamp);
             }
+        }
+        else if (logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.GuildOther))
+        {
+            HandleUserCommands(logLine, entryTimeStamp);
         }
     }
 
@@ -142,5 +124,32 @@ internal sealed class PrimaryEntryParser : IParseEntry
         EqLogEntry logEntry = new() { LogLine = logLine.ToString(), Timestamp = entryTimeStamp, EntryType = entryType };
         _logFile.LogEntries.Add(logEntry);
         return logEntry;
+    }
+
+    private void HandleUserCommands(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
+    {
+        int numberOfChars = logLine.RemoveAllWhitespace(_tempString);
+        ReadOnlySpan<char> noWhitespaceLogline = _tempString.AsSpan(0, numberOfChars);
+        string noWhitespaceSanitized = _sanitizer.SanitizeDelimiterString(noWhitespaceLogline.ToString());
+
+        if (noWhitespaceSanitized.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase)
+            || noWhitespaceSanitized.Contains(Constants.CrashedAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Crashed);
+        }
+        else if (noWhitespaceSanitized.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
+            || noWhitespaceSanitized.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkStart);
+        }
+        else if (noWhitespaceSanitized.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
+            || noWhitespaceSanitized.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkEnd);
+        }
+        else if (logLine.Contains(Constants.Transfer))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Transfer);
+        }
     }
 }
