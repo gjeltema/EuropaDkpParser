@@ -14,9 +14,9 @@ public sealed class RaidValues : IRaidValues
     private const string AliasSection = "ZONE_ALIAS_SECTION";
     private const string BonusZonesSection = "BONUS_ZONES_SECTION";
     private const string BossSection = "BOSS_SECTION";
-    private const string ClassBonusSection = "CLASS_BONUS_SECTION";
     private const string Comment = "#";
     private const char Delimiter = '\t';
+    private const string DkpDiscountsSection = "DKP_DISCOUNTS_SECTION";
     private const string LogPrefix = $"[{nameof(RaidValues)}]";
     private const string SectionEnding = "_END";
     private const string TierSection = "TIER_SECTION";
@@ -37,7 +37,8 @@ public sealed class RaidValues : IRaidValues
         => _bossKillValues.Select(x => x.BossName).ToList();
 
     public ICollection<string> AllValidRaidZoneNames { get; private set; }
-    public IEnumerable<ClassBonus> ClassBonuses { get; private set; }
+
+    public IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; private set; }
 
     public int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry)
     {
@@ -71,7 +72,7 @@ public sealed class RaidValues : IRaidValues
         LoadZoneSection(fileContents);
         LoadZoneAliasSection(fileContents);
         LoadBonusZones(fileContents);
-        LoadClassBonusSection(fileContents);
+        LoadDkpDiscountsSection(fileContents);
 
         AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).Union(_zoneRaidAliases.Keys).Order().ToList();
     }
@@ -175,9 +176,31 @@ public sealed class RaidValues : IRaidValues
         }
     }
 
-    private void LoadClassBonusSection(string[] fileContents)
+    private void LoadDkpDiscountsSection(string[] fileContents)
     {
+        // Classname    DiscountZoneOrBoss  RAThreshold DiscountFraction
+        List<DkpDiscountConfiguration> configurations = [];
+        List<string> entries = GetAllEntriesInSection(fileContents, DkpDiscountsSection);
+        foreach (string entry in entries)
+        {
+            string[] values = entry.Split(Delimiter);
+            string className = values[0];
+            string zoneOrBoss = values[1];
+            int raThreshold = int.Parse(values[2]);
+            int discountFraction = int.Parse(values[3]);
 
+            DkpDiscountConfiguration config = new()
+            {
+                ClassName = className,
+                DiscountZoneOrBoss = zoneOrBoss,
+                MinimumRAThreshold = raThreshold,
+                DiscountFraction = discountFraction
+            };
+
+            configurations.Add(config);
+        }
+
+        DkpDiscounts = configurations;
     }
 
     private void LoadTierSection(string[] fileContents)
@@ -282,9 +305,9 @@ public interface IRaidValues
 
     ICollection<string> AllValidRaidZoneNames { get; }
 
-    int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry);
+    IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; }
 
-    IEnumerable<ClassBonus> ClassBonuses { get; }
+    int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry);
 
     string GetZoneRaidAlias(string zoneName);
 

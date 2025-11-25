@@ -93,7 +93,7 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
     {
         DkpEntry dkpSpentCall = SelectedDkpspent;
         IEditDkpspentDialogViewModel dkpspentEditor = _dialogFactory.CreateEditDkpspentDialogViewModel();
-        dkpspentEditor.PlayerName = dkpSpentCall.PlayerName;
+        dkpspentEditor.PlayerName = dkpSpentCall.CharacterName;
         dkpspentEditor.ItemName = dkpSpentCall.Item;
         dkpspentEditor.DkpSpent = dkpSpentCall.DkpSpent.ToString();
 
@@ -105,7 +105,7 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
             MessageBox.Show(string.Format(Strings.GetString("DkpSpentErrorFormatText"), dkpspentEditor.DkpSpent.ToString()), Strings.GetString("DkpSpentError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
-        dkpSpentCall.PlayerName = dkpspentEditor.PlayerName;
+        dkpSpentCall.CharacterName = dkpspentEditor.PlayerName;
         dkpSpentCall.Item = dkpspentEditor.ItemName;
         dkpSpentCall.DkpSpent = parsedDkp;
 

@@ -171,7 +171,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             RaidUploadResults uploadResults = await server.UploadRaid(raidsToUpload);
 
             _raidEntries.DkpUploadErrors = uploadResults.DkpFailures.Select(
-                x => _raidEntries.DkpEntries.FirstOrDefault(z => z.Timestamp == x.Dkp.Timestamp && z.Item == x.Dkp.Item && z.PlayerName == x.Dkp.CharacterName))
+                x => _raidEntries.DkpEntries.FirstOrDefault(z => z.Timestamp == x.Dkp.Timestamp && z.Item == x.Dkp.Item && z.CharacterName == x.Dkp.CharacterName))
                 .ToList();
 
             ErrorMessages = SetDisplayedErrorMessages(uploadResults).ToList();

@@ -9,8 +9,6 @@ public sealed class UploadRaidInfo
     private UploadRaidInfo()
     { }
 
-    public ICollection<AdjustmentUploadInfo> Adjustments { get; init; }
-
     public ICollection<AttendanceUploadInfo> AttendanceInfo { get; init; }
 
     public ICollection<string> CharacterNames { get; init; }
@@ -19,6 +17,8 @@ public sealed class UploadRaidInfo
 
     public static UploadRaidInfo Create(RaidEntries raidEntries, Func<string, string> getZoneRaidAlias)
     {
+        //** Need: Ability to get RA for character, DKP Discount configurations
+
         ICollection<AttendanceUploadInfo> attendanceUploadInfo = raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).Select(x => new AttendanceUploadInfo
         {
             Timestamp = x.Timestamp,
@@ -31,7 +31,7 @@ public sealed class UploadRaidInfo
         ICollection<DkpUploadInfo> dkpUploadInfo = raidEntries.DkpEntries.OrderBy(x => x.Timestamp).Select(x => new DkpUploadInfo
         {
             Timestamp = x.Timestamp,
-            CharacterName = x.PlayerName,
+            CharacterName = x.CharacterName,
             Item = x.Item,
             DkpSpent = x.DkpSpent,
             AssociatedAttendanceCall = raidEntries.GetAssociatedAttendance(x)
@@ -39,7 +39,7 @@ public sealed class UploadRaidInfo
 
         ICollection<string> allCharacterNames = raidEntries.AllCharactersInRaid
             .Select(x => x.CharacterName)
-            .Union(raidEntries.DkpEntries.Select(x => x.PlayerName))
+            .Union(raidEntries.DkpEntries.Select(x => x.CharacterName))
             .Union(raidEntries.Transfers.Select(x => x.ToCharacterName))
             .Order()
             .ToList();

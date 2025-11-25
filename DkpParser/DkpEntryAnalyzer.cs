@@ -53,14 +53,14 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
         if (dkpEntry.PossibleError != PossibleError.None)
             return;
 
-        foreach (PlayerLooted playerLootedEntry in _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName.Equals(dkpEntry.PlayerName, StringComparison.OrdinalIgnoreCase)))
+        foreach (PlayerLooted playerLootedEntry in _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName.Equals(dkpEntry.CharacterName, StringComparison.OrdinalIgnoreCase)))
         {
             if (playerLootedEntry.ItemLooted == dkpEntry.Item)
                 return;
         }
 
-        bool characterNameFound = _serverCharacters.CharacterConfirmedExistsOnDkpServer(dkpEntry.PlayerName)
-            || _raidEntries.AllCharactersInRaid.Any(x => x.CharacterName.Equals(dkpEntry.PlayerName, StringComparison.OrdinalIgnoreCase));
+        bool characterNameFound = _serverCharacters.CharacterConfirmedExistsOnDkpServer(dkpEntry.CharacterName)
+            || _raidEntries.AllCharactersInRaid.Any(x => x.CharacterName.Equals(dkpEntry.CharacterName, StringComparison.OrdinalIgnoreCase));
         if (!characterNameFound)
         {
             dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
@@ -102,7 +102,7 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
             DkpEntry dkpEntry = _dkpSpentAnalyzer.ExtractDkpSpentInfo(logLineAfterQuote, entry.Channel, entry.Timestamp, messageSender);
             dkpEntry.RawLogLine = entry.FullLogLine;
 
-            if (dkpEntry.PlayerName == Constants.Rot)
+            if (dkpEntry.CharacterName == Constants.Rot)
             {
                 Log.Debug($"{LogPrefix} DKP call ({entry.FullLogLine}) is for {Constants.Rot}.");
                 return null;
@@ -134,7 +134,7 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
     private DkpEntry GetAssociatedDkpEntry(RaidEntries raidEntries, DkpEntry dkpEntry)
     {
         DkpEntry associatedEntry = raidEntries.DkpEntries
-            .Where(x => x.Timestamp < dkpEntry.Timestamp && x.PlayerName == dkpEntry.PlayerName && x.Item == dkpEntry.Item)
+            .Where(x => x.Timestamp < dkpEntry.Timestamp && x.CharacterName == dkpEntry.CharacterName && x.Item == dkpEntry.Item)
             .MaxBy(x => x.Timestamp);
 
         return associatedEntry;

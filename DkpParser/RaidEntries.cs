@@ -172,7 +172,7 @@ public sealed class RaidEntries
 
     public ICollection<DkpEntry> RemoveCharacter(string characterName)
     {
-        ICollection<DkpEntry> dkpSpentsToRemove = DkpEntries.Where(x => x.PlayerName.Equals(characterName, StringComparison.OrdinalIgnoreCase)).ToList();
+        ICollection<DkpEntry> dkpSpentsToRemove = DkpEntries.Where(x => x.CharacterName.Equals(characterName, StringComparison.OrdinalIgnoreCase)).ToList();
         foreach (DkpEntry dkpToRemove in dkpSpentsToRemove)
         {
             DkpEntries.Remove(dkpToRemove);

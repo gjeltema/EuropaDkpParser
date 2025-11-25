@@ -17,11 +17,11 @@ public sealed class DkpEntry
 
     public EqChannel Channel { get; set; }
 
+    public string CharacterName { get; set; } = string.Empty;
+
     public int DkpSpent { get; set; } = 0;
 
     public string Item { get; set; } = string.Empty;
-
-    public string PlayerName { get; set; } = string.Empty;
 
     public PossibleError PossibleError { get; set; } = PossibleError.None;
 
@@ -30,13 +30,13 @@ public sealed class DkpEntry
     public DateTime Timestamp { get; set; }
 
     public string ToDebugString()
-        => $"Extracted info: {Timestamp:HH:mm:ss} {Channel} {PlayerName}  {Item}  {DkpSpent} DKP, Error:{PossibleError}; Raw log line: {RawLogLine}";
+        => $"Extracted info: {Timestamp:HH:mm:ss} {Channel} {CharacterName}  {Item}  {DkpSpent} DKP, Error:{PossibleError}; Raw log line: {RawLogLine}";
 
     public string ToLogString()
     {
         // Remove backticks so that the output doesnt screw up displays that use markdown, such as Discord
         string itemName = Item.Replace('`', '\'');
-        string message = $"{Constants.AttendanceDelimiter}{itemName}{Constants.AttendanceDelimiter} {PlayerName} {DkpSpent} {Constants.DkpSpent}";
+        string message = $"{Constants.AttendanceDelimiter}{itemName}{Constants.AttendanceDelimiter} {CharacterName} {DkpSpent} {Constants.DkpSpent}";
 
         if (Channel == EqChannel.Raid)
             return Auctioneer == You
@@ -54,11 +54,11 @@ public sealed class DkpEntry
     }
 
     public override string ToString()
-        => $"{Timestamp:HH:mm:ss} {PlayerName}  {Item}  {DkpSpent} DKP";
+        => $"{Timestamp:HH:mm:ss} {CharacterName}  {Item}  {DkpSpent} DKP";
 
     public string ToSummaryDisplay()
     {
         string itemName = Item.Replace('`', '\'');
-        return $"{Timestamp:HH:mm:ss} {PlayerName} {itemName} {DkpSpent} DKP";
+        return $"{Timestamp:HH:mm:ss} {CharacterName} {itemName} {DkpSpent} DKP";
     }
 }

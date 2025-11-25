@@ -37,6 +37,8 @@ internal sealed class ChannelAnalyzer
             return EqChannel.Raid;
         else if (_settings.DkpspentGuEnabled && (logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.GuildOther)))
             return EqChannel.Guild;
+        else if (logLine.Contains(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther))
+            return EqChannel.Guild;
 
         return EqChannel.None;
     }
@@ -45,6 +47,7 @@ internal sealed class ChannelAnalyzer
         => channel switch
         {
             EqChannel.Raid => true,
+            EqChannel.Auction => true,
             EqChannel.Guild => _settings.DkpspentGuEnabled,
             _ => false,
         };

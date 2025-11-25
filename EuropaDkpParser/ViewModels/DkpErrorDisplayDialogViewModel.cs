@@ -157,7 +157,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
             }
 
             IsFilterByItemChecked = false;
-            PlayerLootedEntries = _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName == _currentEntry.PlayerName).OrderBy(x => x.Timestamp).ToList();
+            PlayerLootedEntries = _raidEntries.PlayerLootedEntries.Where(x => x.PlayerName == _currentEntry.CharacterName).OrderBy(x => x.Timestamp).ToList();
         }
     }
 
@@ -285,7 +285,7 @@ GOTO_NEXT_ENTRY:
             return;
         }
 
-        PlayerName = _currentEntry.PlayerName;
+        PlayerName = _currentEntry.CharacterName;
         ItemName = _currentEntry.Item;
         DkpSpent = _currentEntry.DkpSpent.ToString();
         ItemNameAndDkp = $"{_currentEntry.Item}, DKP: {_currentEntry.DkpSpent}";
@@ -317,10 +317,10 @@ GOTO_NEXT_ENTRY:
 
             for (int i = 8; i > 0; i--)
             {
-                if (_currentEntry.PlayerName.Length < i)
+                if (_currentEntry.CharacterName.Length < i)
                     continue;
 
-                string startOfPlayerName = _currentEntry.PlayerName[..i];
+                string startOfPlayerName = _currentEntry.CharacterName[..i];
                 string playerInRaidName = AllPlayers.FirstOrDefault(x => x.StartsWith(startOfPlayerName));
                 if (playerInRaidName != null)
                 {
@@ -364,7 +364,7 @@ GOTO_NEXT_ENTRY:
             return;
         }
 
-        _currentEntry.PlayerName = PlayerName;
+        _currentEntry.CharacterName = PlayerName;
         _currentEntry.Item = ItemName;
         _currentEntry.DkpSpent = parsedDkp;
         _currentEntry.Auctioneer = Auctioneer;
@@ -381,7 +381,7 @@ GOTO_NEXT_ENTRY:
             MessageBox.Show(string.Format(Strings.GetString("DkpSpentErrorFormatText"), DkpSpent.ToString()), Strings.GetString("DkpSpentError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
-        _currentEntry.PlayerName = PlayerName;
+        _currentEntry.CharacterName = PlayerName;
         _currentEntry.Item = ItemName;
         _currentEntry.DkpSpent = parsedDkp;
 
@@ -397,7 +397,7 @@ GOTO_NEXT_ENTRY:
             MessageBox.Show(Strings.GetString("PlayerLootNotSelectedMessage"), Strings.GetString("PlayerLootNotSelected"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
-        _currentEntry.PlayerName = _selectedPlayerLooted.PlayerName;
+        _currentEntry.CharacterName = _selectedPlayerLooted.PlayerName;
         _currentEntry.Item = _selectedPlayerLooted.ItemLooted;
 
         _currentEntry.PossibleError = PossibleError.None;
@@ -414,7 +414,7 @@ GOTO_NEXT_ENTRY:
             return;
         }
 
-        _currentEntry.PlayerName = PlayerName;
+        _currentEntry.CharacterName = PlayerName;
 
         _currentEntry.PossibleError = PossibleError.None;
 
@@ -423,8 +423,8 @@ GOTO_NEXT_ENTRY:
 
     private void FixPlayerTypoUsingSelection()
     {
-        _currentEntry.PlayerName = SelectedPlayerName;
-        PlayerName = _currentEntry.PlayerName;
+        _currentEntry.CharacterName = SelectedPlayerName;
+        PlayerName = _currentEntry.CharacterName;
 
         _currentEntry.PossibleError = PossibleError.None;
 
@@ -466,7 +466,7 @@ GOTO_NEXT_ENTRY:
     private void SetDuplicateDkpSpentEntries()
     {
         DuplicateDkpspentEntries = _raidEntries.DkpEntries
-            .Where(x => x.PlayerName.Equals(_currentEntry.PlayerName, StringComparison.OrdinalIgnoreCase) && x.Item == _currentEntry.Item && x.DkpSpent == _currentEntry.DkpSpent)
+            .Where(x => x.CharacterName.Equals(_currentEntry.CharacterName, StringComparison.OrdinalIgnoreCase) && x.Item == _currentEntry.Item && x.DkpSpent == _currentEntry.DkpSpent)
             .OrderBy(x => x.Timestamp)
             .ToList();
     }

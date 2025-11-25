@@ -74,7 +74,7 @@ internal sealed class ActiveAuctionEndAnalyzer
             Auctioneer = dkpEntry.Auctioneer,
             ItemName = dkpEntry.Item,
             DkpSpent = dkpEntry.DkpSpent,
-            Winner = dkpEntry.PlayerName,
+            Winner = dkpEntry.CharacterName,
             IsRemoveCall = messageFromPlayer.Contains(" " + Constants.Remove)
         };
     }

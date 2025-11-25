@@ -6,6 +6,7 @@ namespace DkpParser;
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Xml.Linq;
@@ -40,6 +41,37 @@ public sealed class DkpServer : IDkpServer
         //LocalHttpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en");
     }
 
+    public async Task<int> GetCharacterId(string characterName)
+    {
+        try
+        {
+            return await GetCharacterIdFromServer(characterName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogPrefix} Error encountered retrieving character ID for {characterName}: {ex.ToLogMessage()}");
+            return -1;
+        }
+    }
+
+    public async Task<ICollection<PreviousRaid>> GetPriorRaids(int numbeOfRaids)
+    {
+        try
+        {
+            string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=raids&number={numbeOfRaids}";
+
+            XDocument responseDoc = await MakeGetCall(uri);
+
+            ICollection<PreviousRaid> userCharacters = GetPriorRaidsFromResponse(responseDoc);
+            return userCharacters;
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogPrefix} {nameof(GetPriorRaids)} Error encountered in getting previous raids: {ex.ToLogMessage()}");
+            return [];
+        }
+    }
+
     public async Task<ICollection<DkpUserCharacter>> GetUserCharacters(int userId)
     {
         try
@@ -56,7 +88,7 @@ public sealed class DkpServer : IDkpServer
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {GetUserCharacters} Error encountered in getting users for user ID: {userId}: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(GetUserCharacters)} Error encountered in getting users for user ID: {userId}: {ex.ToLogMessage()}");
         }
 
         return null;
@@ -224,21 +256,21 @@ public sealed class DkpServer : IDkpServer
         return characterId;
     }
 
-    private async Task GetCharacterIdFromServer(string playerName, RaidUploadResults results)
+    private async Task GetCharacterIdFromServer(string characterName, RaidUploadResults results)
     {
         try
         {
-            await GetCharacterIdFromServer(playerName);
+            await GetCharacterIdFromServer(characterName);
         }
         catch (Exception ex)
         {
             CharacterIdFailure fail = new()
             {
-                CharacterName = playerName,
+                CharacterName = characterName,
                 Error = ex
             };
             results.FailedCharacterIdRetrievals.Add(fail);
-            Log.Error($"{LogPrefix} Error encountered retrieving character ID for {playerName}: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} Error encountered retrieving character ID for {characterName}: {ex.ToLogMessage()}");
         }
     }
 
@@ -307,6 +339,28 @@ public sealed class DkpServer : IDkpServer
 
     private HttpContent GetPostContent(string postBody)
         => new StringContent(postBody);
+
+    private ICollection<PreviousRaid> GetPriorRaidsFromResponse(XDocument responseDoc)
+    {
+        List<PreviousRaid> raids = [];
+        IEnumerable<XElement> raidNodes = responseDoc.Descendants("raid");
+        foreach (XElement raidNode in raidNodes)
+        {
+            string raidTimeRaw = (string)raidNode.Element("date");
+            DateTime raidTime = DateTime.ParseExact(raidTimeRaw, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+
+            XElement raidAttendeesElement = raidNode.Element("raid_attendees");
+            ICollection<int> characterIds = raidAttendeesElement.Descendants().Select(x => (int)x).ToList();
+
+            raids.Add(new PreviousRaid
+            {
+                CharacterIds = characterIds,
+                RaidTime = raidTime
+            });
+        }
+
+        return raids;
+    }
 
     private ICollection<DkpUserCharacter> GetUserCharactersFromResponse(XDocument response, int userId)
     {
@@ -417,6 +471,10 @@ public sealed class DkpUserCharacter
 
 public interface IDkpServer
 {
+    Task<int> GetCharacterId(string characterName);
+
+    Task<ICollection<PreviousRaid>> GetPriorRaids(int numbeOfRaids);
+
     Task<ICollection<DkpUserCharacter>> GetUserCharacters(int userId);
 
     Task<int> GetUserDkp(int userId);

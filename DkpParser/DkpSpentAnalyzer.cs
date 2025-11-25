@@ -53,7 +53,7 @@ internal sealed partial class DkpSpentAnalyzer
                 Channel = channel,
                 Auctioneer = messageSender,
                 Item = itemName,
-                PlayerName = ProcessName(afterItemSection.TrimEnd('\'').Trim().ToString()),
+                CharacterName = ProcessName(afterItemSection.TrimEnd('\'').Trim().ToString()),
                 PossibleError = PossibleError.MalformedDkpSpentLine
             };
         }
@@ -62,7 +62,7 @@ internal sealed partial class DkpSpentAnalyzer
 
         DkpEntry dkpEntry = new()
         {
-            PlayerName = ProcessName(playerName),
+            CharacterName = ProcessName(playerName),
             Item = itemName,
             Timestamp = timestamp,
             RawLogLine = messageFromSender,

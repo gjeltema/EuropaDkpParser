@@ -74,7 +74,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     private void CheckDuplicateDkpEntries()
     {
         var grouped = from d in _raidEntries.DkpEntries
-                      group d by new { PlayerName = d.PlayerName.ToUpper(), d.Item, d.DkpSpent } into de
+                      group d by new { PlayerName = d.CharacterName.ToUpper(), d.Item, d.DkpSpent } into de
                       where de.Count() > 1
                       select new { DkpEntries = de };
 
