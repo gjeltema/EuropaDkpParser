@@ -6,7 +6,7 @@ namespace DkpParser;
 
 using System.Diagnostics;
 
-[DebuggerDisplay("{PlayerName,nq}, {Item,nq} {DkpSpent,nq}")]
+[DebuggerDisplay("{CharacterName,nq}, {Item,nq} {DkpSpent,nq}")]
 public sealed class DkpEntry
 {
     private const string You = "You";

@@ -11,6 +11,9 @@ public sealed class DkpDiscountConfiguration
 {
     public string ClassName { get; init; }
 
+    public string DebugText
+        => $"{ClassName}, Zone or Boss:{DiscountZoneOrBoss}, Discount: {DiscountFraction}, RA:{MinimumRAThreshold}%";
+
     /// <summary>
     /// The fraction to multiple the won amount with to get the final DKP value.  e.g. if the discount is 15%, then this fraction would be 0.85
     /// </summary>
@@ -22,7 +25,4 @@ public sealed class DkpDiscountConfiguration
     /// Minimum Raid Attendance that the class must have to be eligible for the discount, in %. e.g. 10
     /// </summary>
     public int MinimumRAThreshold { get; init; }
-
-    private string DebugText
-        => $"{ClassName}, Zone or Boss:{DiscountZoneOrBoss}, Discount: {DiscountFraction}, RA:{MinimumRAThreshold}%";
 }

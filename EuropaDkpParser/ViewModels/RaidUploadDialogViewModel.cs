@@ -29,6 +29,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private bool _uploadButtonEnabled;
     private bool _uploadInProgress = false;
     private bool _uploadSelectedAttendances;
+    private readonly IDkpAdjustments _dkpAdjustments;
 
     public RaidUploadDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries, IDkpParserSettings settings)
         : base(viewFactory)
@@ -36,6 +37,8 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         Title = Strings.GetString("RaidUploadDialogTitleText");
         _raidEntries = raidEntries;
         _settings = settings;
+
+        _dkpAdjustments = new DkpAdjustmentProcessor(new DkpServer(settings), settings.CharactersOnDkpServer, settings.RaidValue.DkpDiscounts);
 
         StatusMessage = Strings.GetString("BeginStatus");
 
@@ -164,7 +167,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             }
             else
             {
-                raidsToUpload = UploadRaidInfo.Create(_raidEntries, _settings.RaidValue.GetZoneRaidAlias);
+                raidsToUpload = await UploadRaidInfo.Create(_dkpAdjustments, _raidEntries);
             }
 
             RaidUploader server = new(_settings);

@@ -187,7 +187,7 @@ public sealed class RaidValues : IRaidValues
             string className = values[0];
             string zoneOrBoss = values[1];
             int raThreshold = int.Parse(values[2]);
-            int discountFraction = int.Parse(values[3]);
+            double discountFraction = int.Parse(values[3]) / 100.0;
 
             DkpDiscountConfiguration config = new()
             {

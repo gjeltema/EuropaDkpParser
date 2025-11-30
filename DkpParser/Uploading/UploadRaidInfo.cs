@@ -15,27 +15,21 @@ public sealed class UploadRaidInfo
 
     public ICollection<DkpUploadInfo> DkpInfo { get; init; }
 
-    public static UploadRaidInfo Create(RaidEntries raidEntries, Func<string, string> getZoneRaidAlias)
+    public async static Task<UploadRaidInfo> Create(IDkpAdjustments dkpAdjustments, RaidEntries raidEntries)
     {
-        //** Need: Ability to get RA for character, DKP Discount configurations
+        ICollection<AttendanceUploadInfo> attendanceUploadInfo = raidEntries.AttendanceEntries
+            .OrderBy(x => x.Timestamp)
+            .Select(x => new AttendanceUploadInfo
+            {
+                Timestamp = x.Timestamp,
+                CallName = x.CallName,
+                ZoneName = x.ZoneName,
+                AttendanceCallType = x.AttendanceCallType,
+                Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
+            }).ToList();
 
-        ICollection<AttendanceUploadInfo> attendanceUploadInfo = raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp).Select(x => new AttendanceUploadInfo
-        {
-            Timestamp = x.Timestamp,
-            CallName = x.CallName,
-            ZoneName = x.ZoneName,
-            AttendanceCallType = x.AttendanceCallType,
-            Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
-        }).ToList();
-
-        ICollection<DkpUploadInfo> dkpUploadInfo = raidEntries.DkpEntries.OrderBy(x => x.Timestamp).Select(x => new DkpUploadInfo
-        {
-            Timestamp = x.Timestamp,
-            CharacterName = x.CharacterName,
-            Item = x.Item,
-            DkpSpent = x.DkpSpent,
-            AssociatedAttendanceCall = raidEntries.GetAssociatedAttendance(x)
-        }).ToList();
+        IOrderedEnumerable<DkpEntry> dkpEntries = raidEntries.DkpEntries.OrderBy(x => x.Timestamp);
+        ICollection<DkpUploadInfo> dkpUploadInfo = await GetDkpInfo(dkpEntries, raidEntries, dkpAdjustments);
 
         ICollection<string> allCharacterNames = raidEntries.AllCharactersInRaid
             .Select(x => x.CharacterName)
@@ -93,5 +87,45 @@ public sealed class UploadRaidInfo
         }
 
         return newList.OrderBy(x => x.CharacterName).ToList();
+    }
+
+    private async static Task<ICollection<DkpUploadInfo>> GetDkpInfo(IEnumerable<DkpEntry> dkpEntries, RaidEntries raidEntries, IDkpAdjustments dkpAdjustments)
+    {
+        List<DkpUploadInfo> dkpUploadInfos = [];
+        foreach (DkpEntry dkpEntry in dkpEntries)
+        {
+            AttendanceEntry associatedCall = raidEntries.GetAssociatedAttendance(dkpEntry);
+            PlayerCharacter character = raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == dkpEntry.CharacterName);
+            int dkpAmount = dkpEntry.DkpSpent;
+            if (character != null)
+            {
+                dkpAmount = await dkpAdjustments.GetDkpDiscountedAmount(dkpEntry, character.ClassName, associatedCall);
+            }
+
+            if (dkpAmount != dkpEntry.DkpSpent)
+            {
+                DiscountApplied discount = new()
+                {
+                    CharacterName = dkpEntry.CharacterName,
+                    Item = dkpEntry.Item,
+                    AttendanceName = associatedCall.CallName,
+                    AttendanceZone = associatedCall.ZoneName,
+                    OriginalSpent = dkpEntry.DkpSpent,
+                    AfterDiscountSpent = dkpAmount
+                };
+                raidEntries.Discounts.Add(discount);
+            }
+
+            dkpUploadInfos.Add(new DkpUploadInfo
+            {
+                AssociatedAttendanceCall = associatedCall,
+                CharacterName = dkpEntry.CharacterName,
+                DkpSpent = dkpEntry.DkpSpent,
+                Item = dkpEntry.Item,
+                Timestamp = dkpEntry.Timestamp
+            });
+        }
+
+        return dkpUploadInfos;
     }
 }

@@ -295,6 +295,13 @@ internal sealed class DkpLogGenerator
             summaryDisplay.AppendLine(string.Join(Environment.NewLine, raidEntries.RemovedPlayerCharacters));
         }
 
+        if (raidEntries.Discounts.Count > 0)
+        {
+            summaryDisplay.AppendLine();
+            summaryDisplay.AppendLine("-------------- Discounts Applied --------------");
+            summaryDisplay.AppendLine(string.Join(Environment.NewLine, raidEntries.Discounts.Select(x => x.ToDisplayString())));
+        }
+
         if (raidEntries.RemovedDkpEntries.Count > 0)
         {
             summaryDisplay.AppendLine();

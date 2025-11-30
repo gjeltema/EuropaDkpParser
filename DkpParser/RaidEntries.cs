@@ -19,6 +19,8 @@ public sealed class RaidEntries
 
     public ICollection<CharacterJoinRaidEntry> CharacterJoinCalls { get; set; } = new List<CharacterJoinRaidEntry>();
 
+    public ICollection<DiscountApplied> Discounts { get; init; } = new List<DiscountApplied>();
+
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
 
     public ICollection<DkpEntry> DkpUploadErrors { get; set; } = new List<DkpEntry>();
@@ -123,6 +125,10 @@ public sealed class RaidEntries
         foreach (MultipleCharsOnAttendanceError multipleChars in MultipleCharsInAttendanceErrors)
             yield return
                 $"{multipleChars.MultipleCharsInAttendance.FirstCharacter} and {multipleChars.MultipleCharsInAttendance.FirstCharacter} in {multipleChars.Attendance.ToDisplayString()}";
+
+        yield return "-------------------- DKP Discounts -------------------";
+        foreach (DiscountApplied discount in Discounts)
+            yield return discount.ToDisplayString();
 
         yield return "";
     }
