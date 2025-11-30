@@ -139,7 +139,7 @@ public sealed class RaidEntries
             return null;
 
         // Add 10 minutes to get any Kill calls that were made a bit after the actual kill time, after the item was already awarded.
-        DateTime referenceTime = dkpEntry.Timestamp.AddMinutes(10);
+        DateTime referenceTime = dkpEntry.Timestamp.AddMinutes(5);
         AttendanceEntry killCallPrior = AttendanceEntries
             .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && x.Timestamp < referenceTime)
             .MaxBy(x => x.Timestamp);
