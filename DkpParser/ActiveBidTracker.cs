@@ -28,6 +28,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private ImmutableList<LiveBidInfo> _bids;
     private string _bossKilledName;
     private ImmutableList<CompletedAuction> _completedAuctions;
+    private ImmutableList<string> _currentAfks;
     private bool _readyCheckInitiated;
     private ImmutableList<LiveSpentCall> _spentCalls;
 
@@ -47,6 +48,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _spentCalls = [];
         _completedAuctions = [];
         _bids = [];
+        _currentAfks = [];
     }
 
     public IEnumerable<LiveAuctionInfo> ActiveAuctions
@@ -57,6 +59,9 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     public IEnumerable<CompletedAuction> CompletedAuctions
         => _completedAuctions;
+
+    public IEnumerable<string> CurrentAfks
+        => _currentAfks;
 
     public bool ReadyCheckInitiated
     {
@@ -443,6 +448,22 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 return;
 
             string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
+
+            if (!_currentAfks.Contains(messageSenderName) && (logLineNoTimestamp.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                || logLineNoTimestamp.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
+            {
+                _currentAfks.Add(messageSenderName);
+                Updated = true;
+                return;
+            }
+            if (_currentAfks.Contains(messageSenderName) && (logLineNoTimestamp.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                || logLineNoTimestamp.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
+            {
+                _currentAfks.Remove(messageSenderName);
+                Updated = true;
+                return;
+            }
+
             int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'');
             string messageFromPlayer = logLineNoTimestamp.AsSpan()[(indexOfFirstQuote + 1)..^1].Trim().ToString();
 
@@ -568,6 +589,8 @@ public interface IActiveBidTracker
     IEnumerable<LiveBidInfo> Bids { get; }
 
     IEnumerable<CompletedAuction> CompletedAuctions { get; }
+
+    IEnumerable<string> CurrentAfks { get; }
 
     bool ReadyCheckInitiated { get; }
 

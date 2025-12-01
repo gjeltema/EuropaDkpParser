@@ -31,6 +31,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private bool _attendanceNowTimeCall;
     private string _auctionStatusMessageToPaste;
     private ICollection<CompletedAuction> _completedAuctions;
+    private ICollection<string> _currentAfks;
     private ICollection<LiveBidInfo> _currentBids;
     private string _currentCharacterName = string.Empty;
     private string _currentStatusMarker;
@@ -146,6 +147,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     public DelegateCommand CopySelectedSpentCallToClipboardCommand { get; }
 
     public DelegateCommand CopySelectedStatusMessageToClipboardCommand { get; }
+
+    public ICollection<string> CurrentAfks
+    {
+        get => _currentAfks;
+        private set => SetProperty(ref _currentAfks, value);
+    }
 
     public ICollection<LiveBidInfo> CurrentBids
     {
@@ -660,7 +667,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         UpdateActiveAuctionSelected(selectedBid, selectedSpent);
 
         CompletedAuction selectedCompleted = SelectedCompletedAuction;
-        CompletedAuctions = new List<CompletedAuction>(_activeBidTracker.CompletedAuctions.OrderByDescending(GetSortingTimestamp));
+        CompletedAuctions = [.. _activeBidTracker.CompletedAuctions.OrderByDescending(GetSortingTimestamp)];
         if (selectedCompleted != null)
         {
             CompletedAuction matchingCompleted = CompletedAuctions.FirstOrDefault(x => x.AuctionStart.Id == selectedCompleted.AuctionStart.Id);
@@ -686,6 +693,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         IsReadyToTakeZealAttendance = !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale
             && !ZealAttendanceMessageProvider.Instance.RaidInfo.IsDataStale
             && ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count > 6;
+
+        CurrentAfks = [.. _activeBidTracker.CurrentAfks.Order()];
 
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }
@@ -754,6 +763,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     DelegateCommand CopySelectedSpentCallToClipboardCommand { get; }
 
     DelegateCommand CopySelectedStatusMessageToClipboardCommand { get; }
+
+    ICollection<string> CurrentAfks { get; }
 
     ICollection<LiveBidInfo> CurrentBids { get; }
 

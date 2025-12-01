@@ -9,9 +9,9 @@
              d:DataContext="{d:DesignInstance Type=viewmodels:LiveLogTrackingViewModel}"
              WindowStartupLocation="CenterOwner"
              ShowInTaskbar="False"
-             Width="900" Height="750"
+             Width="1000" Height="750"
              Title="{StaticResource LiveLogTrackingDialogTitleText}"
-             d:DesignHeight="450" d:DesignWidth="800"
+             d:DesignHeight="750" d:DesignWidth="1000"
              Background="{StaticResource DefaultBackgroundColor}"
              Foreground="{StaticResource DefaultForegroundColor}">
     
@@ -154,14 +154,32 @@
 
                 <!-- High Bids -->
                 <Grid Grid.Row="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                    <Label Grid.Row="0" Content="{StaticResource CurrentHighBids}" />
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                    <ListView Grid.Row="1" ItemsSource="{Binding HighBids}" Margin="0,0,0,5"/>
+                        <Label Grid.Row="0" Content="{StaticResource CurrentHighBids}" />
+
+                        <ListView Grid.Row="1" ItemsSource="{Binding HighBids}"/>
+                    </Grid>
+
+                    <Grid Grid.Column="1" MinWidth="120">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Content="{StaticResource CurrentAFKCommand}" />
+
+                        <ListView Grid.Row="1" ItemsSource="{Binding CurrentAfks}" Margin="5,0,0,0"/>
+                    </Grid>
                 </Grid>
 
                 <!-- Bids to copy-paste -->
