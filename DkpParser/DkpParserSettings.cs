@@ -20,6 +20,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string ArchiveGeneratedLogFileDirectorySection = "ARCHIVE_GEN_LOG_DIRECTORY";
     private const string ArchiveSelectedFilesToArchiveSection = "ARCHIVE_SELECTED_EQ_LOG_FILES";
     private const string DefaultMatchPattern = "*eqlog*.txt";
+    private const string DefaultOverlayFontColor = "#CCCCCC";
     private const int DefaultWindowLocation = 200;
     private const char Delimiter = '=';
     private const string DkpspentGuildEnableSection = "DKPSPENT_GU_ENABLE";
@@ -64,11 +65,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool ArchiveAllEqLogFiles { get; set; }
 
-    public ICollection<string> BossMobs { get; private set; } = [];
-
     public DkpServerCharacters CharactersOnDkpServer { get; private set; }
 
-    public bool DkpspentGuEnabled { get; set; }
+    public bool DkpspentGuEnabled { get; set; } = true;
 
     public string EqDirectory { get; set; } = string.Empty;
 
@@ -91,9 +90,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public ItemLinkValues ItemLinkIds { get; private set; }
 
-    public string LogFileMatchPattern { get; set; }
+    public string LogFileMatchPattern { get; set; } = DefaultMatchPattern;
 
-    public LogLevel LoggingLevel { get; set; }
+    public LogLevel LoggingLevel { get; set; } = LogLevel.Info;
 
     public int MainWindowX { get; set; } = DefaultWindowLocation;
 
@@ -101,7 +100,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public string OutputDirectory { get; set; }
 
-    public string OverlayFontColor { get; set; }
+    public string OverlayFontColor { get; set; } = DefaultOverlayFontColor;
 
     public int OverlayFontSize { get; set; }
 
@@ -157,7 +156,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         OverlayLocationX = GetIntValue(fileContents, OverlayLocationXSection, 100);
         OverlayLocationY = GetIntValue(fileContents, OverlayLocationYSection, 100);
-        OverlayFontColor = GetStringValue(fileContents, OverlayFontColorSection, "#CCCCCC");
+        OverlayFontColor = GetStringValue(fileContents, OverlayFontColorSection, DefaultOverlayFontColor);
         OverlayFontSize = GetIntValue(fileContents, OverlayFontSizeSection, 20);
 
         int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Info);
@@ -324,7 +323,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
         string[] split = setting.Split(Delimiter);
         if (split.Length > 1)
         {
-            return split[1];
+            string rawValue = split[1];
+            if (string.IsNullOrWhiteSpace(rawValue))
+                return defaultValue;
+            return rawValue;
         }
 
         index++;
