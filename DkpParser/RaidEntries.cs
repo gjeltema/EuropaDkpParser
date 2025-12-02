@@ -9,7 +9,8 @@ using System.Diagnostics;
 [DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllCharactersInRaid.Count}")]
 public sealed class RaidEntries
 {
-    private static readonly TimeSpan MaxTimeThresholdForKillCall = TimeSpan.FromMinutes(20);
+    private static readonly TimeSpan KillCallToClose = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan MaxTimeThresholdForKillCall = TimeSpan.FromMinutes(15);
 
     public ICollection<AfkEntry> AfkEntries { get; } = new List<AfkEntry>();
 
@@ -138,8 +139,12 @@ public sealed class RaidEntries
         if (AttendanceEntries == null || AttendanceEntries.Count == 0)
             return null;
 
-        // Add 10 minutes to get any Kill calls that were made a bit after the actual kill time, after the item was already awarded.
-        DateTime referenceTime = dkpEntry.Timestamp.AddMinutes(5);
+        // Find the most prior kill call.  If it's within the time threshold to the SPENT call, check if it's *too* close.
+        // If it's very close, search for the kill call prior to that one.  If that one is in range, use it.  If not, just
+        // use the most prior kill call.  This should handle multiple boss kills in quick succession.
+        // If no kill calls are within range prior, use the next Time call - assume it's a drop from trash.
+
+        DateTime referenceTime = dkpEntry.Timestamp;
         AttendanceEntry killCallPrior = AttendanceEntries
             .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && x.Timestamp < referenceTime)
             .MaxBy(x => x.Timestamp);
@@ -147,6 +152,19 @@ public sealed class RaidEntries
         if (killCallPrior != null)
         {
             TimeSpan timeDifference = referenceTime - killCallPrior.Timestamp;
+            if (timeDifference <= KillCallToClose)
+            {
+                AttendanceEntry killCallSecondPrior = AttendanceEntries
+                    .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && x.Timestamp < killCallPrior.Timestamp)
+                    .MaxBy(x => x.Timestamp);
+
+                TimeSpan timeDifferenceToSecond = referenceTime - killCallSecondPrior.Timestamp;
+                if (timeDifferenceToSecond <= MaxTimeThresholdForKillCall)
+                {
+                    return killCallSecondPrior;
+                }
+            }
+
             if (timeDifference <= MaxTimeThresholdForKillCall)
             {
                 return killCallPrior;
