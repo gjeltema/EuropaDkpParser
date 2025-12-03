@@ -15,7 +15,7 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
     private readonly List<DkpDiscountConfiguration> _discounts;
     private readonly IDkpServer _dkpServer;
     private readonly Dictionary<string, int> _raidAttendance = [];
-    private static ICollection<PreviousRaid> _previousRaids = null;
+    private static ICollection<PreviousRaid> _previousRaids = [];
 
     public DkpAdjustmentProcessor(IDkpServer dkpServer, DkpServerCharacters charactersOnDkpServer, IEnumerable<DkpDiscountConfiguration> discounts)
     {
@@ -94,11 +94,11 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
         if (_raidAttendance.TryGetValue(characterName, out int ra))
             return ra;
 
-        _previousRaids ??= await _dkpServer.GetPriorRaids(NumberOfRaids);
-
         int characterId = await GetCharacterId(characterName);
         if (characterId < 1)
             return 0;
+
+        await SetPriorRaidsForAttendance();
 
         int numberOfRaidsAttended = _previousRaids.Count(x => x.CharacterIds.Contains(characterId));
         if (numberOfRaidsAttended == 0)
@@ -108,6 +108,16 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
         _raidAttendance[characterName] = raidAtt;
 
         return raidAtt;
+    }
+
+    private async Task SetPriorRaidsForAttendance()
+    {
+        if(_previousRaids.Count > 0) 
+            return;
+
+        DateTime thirtyDaysAgo = DateTime.Now.AddDays(-30);
+        ICollection<PreviousRaid> priorRaids = await _dkpServer.GetPriorRaids(NumberOfRaids);
+        _previousRaids = priorRaids.Where(x => x.RaidTime > thirtyDaysAgo).OrderBy(x => x.RaidTime).ToList();
     }
 }
 

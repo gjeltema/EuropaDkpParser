@@ -99,7 +99,9 @@ public sealed class UploadRaidInfo
             int dkpAmount = dkpEntry.DkpSpent;
             if (character != null)
             {
-                dkpAmount = await dkpAdjustments.GetDkpDiscountedAmount(dkpEntry, character.ClassName, associatedCall);
+                int numberOfAttendances = raidEntries.AttendanceEntries.Where(x => x.Characters.Contains(character)).Take(3).Count();
+                if (numberOfAttendances > 2)
+                    dkpAmount = await dkpAdjustments.GetDkpDiscountedAmount(dkpEntry, character.ClassName, associatedCall);
             }
 
             if (dkpAmount != dkpEntry.DkpSpent)

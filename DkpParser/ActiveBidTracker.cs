@@ -452,7 +452,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (!_currentAfks.Contains(messageSenderName) && (logLineNoTimestamp.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
                 || logLineNoTimestamp.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
             {
-                Log.Debug($"{LogPrefix} Added {messageSenderName} to the +AFK+ list.");
+                Log.Info($"{LogPrefix} Added {messageSenderName} to the +AFK+ list.");
                 _currentAfks = _currentAfks.Add(messageSenderName);
                 Updated = true;
                 return;
@@ -460,7 +460,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (_currentAfks.Contains(messageSenderName) && (logLineNoTimestamp.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
                 || logLineNoTimestamp.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
             {
-                Log.Debug($"{LogPrefix} Removed {messageSenderName} from the +AFK+ list.");
+                Log.Info($"{LogPrefix} Removed {messageSenderName} from the +AFK+ list.");
                 _currentAfks = _currentAfks.Remove(messageSenderName);
                 Updated = true;
                 return;
