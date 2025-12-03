@@ -120,7 +120,7 @@ internal sealed class AttendanceTimerHandler
         if (UseOverlayForAttendanceReminder)
         {
             Log.Info($"{LogPrefix} Showing reminder overlay for boss name {bossName}.");
-            _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings, _attendanceSnapshot);
+            InitializeAttendanceOverlay();
             _attendanceOverlayViewModel.Show(bossName);
             _overlayTypeShowing = OverlayType.Kill;
         }
@@ -173,7 +173,7 @@ internal sealed class AttendanceTimerHandler
         if (UseOverlayForAttendanceReminder)
         {
             Log.Info($"{LogPrefix} Showing reminder overlay for time call index {_timeCallIndex}.");
-            _attendanceOverlayViewModel ??= _overlayFactory.CreateAttendanceOverlayViewModel(_settings, _attendanceSnapshot);
+            InitializeAttendanceOverlay();
             _attendanceOverlayViewModel.Show(_timeCallIndex);
             _overlayTypeShowing = OverlayType.Time;
 
@@ -235,6 +235,10 @@ internal sealed class AttendanceTimerHandler
                     _settings.OverlayLocationX = newXPosition;
                     _settings.OverlayLocationY = newYPosition;
                     _settings.SaveSettings();
+
+                    // Have to recreate the VM/window as Windows wont accept the position changes if they shift the window
+                    // to another monitor.
+                    _attendanceOverlayViewModel = null;
                 }
 
                 _movingOverlay.Close();
