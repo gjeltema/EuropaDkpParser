@@ -438,7 +438,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
                     UpdateCharacterInfo(call);
 
-                    SetZoneName(logEntry, call);
+                    SetZoneName(logParseResults, logEntry, call);
 
                     if (call.Characters.Count > 1)
                         calls.Add(call);
@@ -627,10 +627,6 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
             _zonePerAttendance.AddRange(zones);
         }
-
-        IEnumerable<ZoneNameInfo> zealZones = logParseResults.ZealRaidAttendanceFiles
-            .Select(x => new ZoneNameInfo { ZoneName = x.ZoneName, Timestamp = x.FileDateTime });
-        _zonePerAttendance.AddRange(zealZones);
     }
 
     private void SetAttendanceType(EqLogEntry logEntry, AttendanceEntry call, string logLine)
@@ -670,7 +666,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
     }
 
-    private void SetZoneName(EqLogEntry logEntry, AttendanceEntry call)
+    private void SetZoneName(LogParseResults logParseResults, EqLogEntry logEntry, AttendanceEntry call)
     {
         ZoneNameInfo zoneLogEntry = _zonePerAttendance.FirstOrDefault(x => x.Timestamp.IsWithinDurationOfPopulationThreshold(logEntry.Timestamp));
         if (zoneLogEntry != null)
@@ -686,6 +682,30 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             call.PossibleError = PossibleError.NoZoneName;
             call.ZoneName = string.Empty;
             Log.Warning($"{LogPrefix} Unable get get zone name from attendance entry: {logEntry.FullLogLine}");
+        }
+
+        if (call.PossibleError == PossibleError.InvalidZoneName || call.PossibleError == PossibleError.NoZoneName)
+        {
+            ZealRaidAttendanceFile zealAttendance = logParseResults.ZealRaidAttendanceFiles.FirstOrDefault(x => x.RaidName == call.CallName);
+            if (zealAttendance != null)
+            {
+                string zoneName = zealAttendance.ZoneName;
+                if (string.IsNullOrWhiteSpace(zoneName))
+                    return;
+
+                if (string.IsNullOrWhiteSpace(call.ZoneName))
+                    call.ZoneName = zoneName;
+
+                if (_settings.RaidValue.AllValidRaidZoneNames.Contains(zoneName))
+                {
+                    call.ZoneName = zoneName;
+                    call.PossibleError = PossibleError.None;
+                }
+                else
+                {
+                    call.PossibleError = PossibleError.InvalidZoneName;
+                }
+            }
         }
     }
 

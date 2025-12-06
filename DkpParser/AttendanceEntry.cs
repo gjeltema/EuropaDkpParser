@@ -26,7 +26,7 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
 
     public DateTime Timestamp { get; set; }
 
-    public string ZoneName { get; set; }
+    public string ZoneName { get; set; } = string.Empty;
 
     private string DebugText
         => $"{CallName} {AttendanceCallType}";

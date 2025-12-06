@@ -158,10 +158,13 @@ public sealed class RaidEntries
                     .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && x.Timestamp < killCallPrior.Timestamp)
                     .MaxBy(x => x.Timestamp);
 
-                TimeSpan timeDifferenceToSecond = referenceTime - killCallSecondPrior.Timestamp;
-                if (timeDifferenceToSecond <= MaxTimeThresholdForKillCall)
+                if (killCallSecondPrior != null)
                 {
-                    return killCallSecondPrior;
+                    TimeSpan timeDifferenceToSecond = referenceTime - killCallSecondPrior.Timestamp;
+                    if (timeDifferenceToSecond <= MaxTimeThresholdForKillCall)
+                    {
+                        return killCallSecondPrior;
+                    }
                 }
             }
 
