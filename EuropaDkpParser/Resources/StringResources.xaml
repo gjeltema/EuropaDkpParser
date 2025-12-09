@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v3.2.1</system:String>
+    <system:String x:Key="Version">v3.2.2</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -206,6 +206,9 @@
     <system:String x:Key="SelectedFiles">Archive Selected Files</system:String>
     <system:String x:Key="ArchivesEqLogFilesMessage">(Archives EQ Log files larger than specified size)</system:String>
     <system:String x:Key="ArchivesRaidDumpsMessage">(Archives RaidDump and RaidList files older than specified age)</system:String>
+    <system:String x:Key="AddInventory">Add Inventory Dir</system:String>
+    <system:String x:Key="AggregateInventory">Aggregate Inv</system:String>
+    <system:String x:Key="SelectInventoryDirectory">Select Inventory Directory</system:String>
     
     <!-- AttendanceEntryModifierDialog -->
     <system:String x:Key="NoSelectedAttendanceEntryErrorMessage">Must select an Attendance Entry to serve as a baseline (for Add) or to be moved (for Move).</system:String>

@@ -368,6 +368,8 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool IncludeTellsInRawLog { get; set; }
 
+    public ICollection<string> InventoryDirectories { get; }
+
     public bool IsApiConfigured { get; }
 
     public ItemLinkValues ItemLinkIds { get; }

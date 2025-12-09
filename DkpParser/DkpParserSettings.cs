@@ -27,6 +27,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string IncludeTellsInRawLogSection = "INCLUDE_TELLS_IN_RAW_LOG";
+    private const string InventoryDirectoriesSection = "INVENTORY_DIRECTORIES";
     private const string LogLevelSection = "LOG_LEVEL";
     private const string LogMatchPatternSection = "LOG_MATCH_PATTERN";
     private const string LogPrefix = $"[{nameof(DkpParserSettings)}]";
@@ -85,6 +86,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool IncludeTellsInRawLog { get; set; }
 
+    public ICollection<string> InventoryDirectories { get; private set; }
+
     public bool IsApiConfigured
         => !string.IsNullOrEmpty(ApiUrl) && !string.IsNullOrEmpty(ApiReadToken) && !string.IsNullOrEmpty(ApiWriteToken);
 
@@ -138,7 +141,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetDirectories(fileContents);
         SetSimpleArchiveSettings(fileContents);
 
+        InventoryDirectories = GetAllEntriesInSection(fileContents, InventoryDirectoriesSection);
         SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
+
         ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection);
         if (string.IsNullOrWhiteSpace(ApiReadToken))
             ApiReadToken = "";
@@ -214,6 +219,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
 
         AddCollection(settingsFileContent, EqLogFilesToArchive, ArchiveSelectedFilesToArchiveSection);
+
+        AddCollection(settingsFileContent, InventoryDirectories, InventoryDirectoriesSection);
 
         try
         {
@@ -458,6 +465,8 @@ public interface IDkpParserSettings
     string GeneratedLogFilesArchiveDirectory { get; set; }
 
     bool IncludeTellsInRawLog { get; set; }
+
+    ICollection<string> InventoryDirectories { get; }
 
     bool IsApiConfigured { get; }
 

@@ -6,8 +6,10 @@ namespace EuropaDkpParser.ViewModels;
 
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using DkpParser;
+using DkpParser.Parsers;
 using EuropaDkpParser.Resources;
 using Gjeltema.Logging;
 using Prism.Commands;
@@ -15,6 +17,7 @@ using Prism.Commands;
 internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArchiveDialogViewModel
 {
     private const string LogPrefix = $"[{nameof(FileArchiveDialogViewModel)}]";
+    private readonly CharacterInventoryParser _inventoryParser;
     private readonly IDkpParserSettings _settings;
     private bool _archiveBasedOnAge;
     private bool _archiveBasedOnSize;
@@ -49,6 +52,9 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
             .ObservesProperty(() => SelectedEqLogFileToAdd);
         RemoveSelectedEqLogFileCommand = new DelegateCommand(RemoveSelectedEqLogFile, () => !string.IsNullOrWhiteSpace(SelectedEqLogFileToRemove))
             .ObservesProperty(() => SelectedEqLogFileToRemove);
+        AddInventoryDirCommand = new DelegateCommand(AddInventoryDirectory);
+        AggregateInventoriesCommand = new DelegateCommand(AggregateInventoryFiles);
+        OpenInventoryGeneratedFileDirectoryCommand = new DelegateCommand(OpenInventoryGeneratedDirectory);
 
         EqLogArchiveDirectory = _settings.EqLogFileArchiveDirectory;
         EqLogArchiveFileAge = _settings.EqLogFileAgeToArchiveInDays.ToString();
@@ -63,10 +69,16 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
 
         IsAllLogsArchived = true;
 
+        _inventoryParser = new();
+
         PopulateAllLogFiles();
     }
 
+    public DelegateCommand AddInventoryDirCommand { get; }
+
     public DelegateCommand AddSelectedEqLogFileToArchiveCommand { get; }
+
+    public DelegateCommand AggregateInventoriesCommand { get; }
 
     public bool ArchiveBasedOnAge
     {
@@ -129,6 +141,8 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
     public DelegateCommand OpenEqLogArchiveDirectoryCommand { get; }
 
     public DelegateCommand OpenGeneratedLogArchiveDirectoryCommand { get; }
+
+    public DelegateCommand OpenInventoryGeneratedFileDirectoryCommand { get; }
 
     public ICollection<string> PossibleEqLogFiles { get; private set; }
 
@@ -193,6 +207,33 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
         }
     }
 
+    private void AddInventoryDirectory()
+    {
+        using var folderDialog = new System.Windows.Forms.FolderBrowserDialog()
+        {
+            Description = Strings.GetString("SelectInventoryDirectory"),
+            UseDescriptionForTitle = true,
+        };
+
+        if (!string.IsNullOrWhiteSpace(_settings.EqDirectory))
+        {
+            folderDialog.SelectedPath = _settings.EqDirectory;
+        }
+
+        if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            string selectedPath = folderDialog.SelectedPath;
+            if (!selectedPath.EndsWith('\\'))
+                selectedPath = selectedPath + "\\";
+
+            if (!_settings.InventoryDirectories.Contains(selectedPath))
+            {
+                _settings.InventoryDirectories.Add(selectedPath);
+                _settings.SaveSettings();
+            }
+        }
+    }
+
     private void AddSelectedEqLogFileToArchive()
     {
         if (string.IsNullOrWhiteSpace(SelectedEqLogFileToAdd))
@@ -204,6 +245,16 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
         SelectedEqLogFiles.Add(SelectedEqLogFileToAdd);
         SelectedEqLogFiles = [.. SelectedEqLogFiles.Order()];
         RaisePropertyChanged(nameof(SelectedEqLogFiles));
+    }
+
+    private async void AggregateInventoryFiles()
+        => await AggregateInventoryFilesExecute();
+
+    private async Task AggregateInventoryFilesExecute()
+    {
+        Log.Debug($"{LogPrefix} Aggregating Inventory log files.");
+        string fileName = Path.Combine(_settings.OutputDirectory, $"AggregatedInventory-{DateTime.Now:HH:mm:ss}.txt");
+        await _inventoryParser.AggregateInventoryFromDirectories(_settings.InventoryDirectories, fileName);
     }
 
     private void ArchiveAttendanceFiles(TimeSpan maxAgeOfFile, string fileNamePrefix)
@@ -349,6 +400,9 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
         Process.Start("explorer.exe", directory);
     }
 
+    private void OpenInventoryGeneratedDirectory()
+        => Process.Start("explorer.exe", _settings.OutputDirectory);
+
     private void PopulateAllLogFiles()
     {
         if (string.IsNullOrWhiteSpace(_settings.EqDirectory))
@@ -422,7 +476,11 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
 
 public interface IFileArchiveDialogViewModel : IDialogViewModel
 {
+    DelegateCommand AddInventoryDirCommand { get; }
+
     DelegateCommand AddSelectedEqLogFileToArchiveCommand { get; }
+
+    DelegateCommand AggregateInventoriesCommand { get; }
 
     bool ArchiveBasedOnAge { get; set; }
 
@@ -449,6 +507,8 @@ public interface IFileArchiveDialogViewModel : IDialogViewModel
     DelegateCommand OpenEqLogArchiveDirectoryCommand { get; }
 
     DelegateCommand OpenGeneratedLogArchiveDirectoryCommand { get; }
+
+    DelegateCommand OpenInventoryGeneratedFileDirectoryCommand { get; }
 
     ICollection<string> PossibleEqLogFiles { get; }
 
