@@ -32,6 +32,9 @@ public sealed class CharacterInventoryParser
     public async Task<ICollection<string>> GetAggregateInventoryFilesContents(IEnumerable<string> inventoryFilePaths)
     {
         List<string> fileContents = [];
+        fileContents.Add($"{"Name",-37} {"Count",-3} {"Loc",-17} {"Slots",-3} {"ID",-2}");
+        fileContents.Add(string.Empty);
+
         foreach (string inventoryFilePath in inventoryFilePaths)
         {
             fileContents.Add(inventoryFilePath);
@@ -132,8 +135,8 @@ public sealed class InventoryItem
     public string ToAggregateFileString()
     {
         if (Name == "Currency")
-            return $"{Name,-20} {NumberInStack,21}c Loc:{Location,-20} Slots:{NumberOfSlotsIfContainer,-2} ID:{ItemId}";
+            return $"{Name,-20} {NumberInStack,21}c {Location,-20} {NumberOfSlotsIfContainer,-2} {ItemId}";
         else
-            return $"{Name,-40} #{NumberInStack,-2} Loc:{Location,-20} Slots:{NumberOfSlotsIfContainer,-2} ID:{ItemId}";
+            return $"{Name,-40} {NumberInStack,-2} {Location,-20} {NumberOfSlotsIfContainer,-2} {ItemId}";
     }
 }
