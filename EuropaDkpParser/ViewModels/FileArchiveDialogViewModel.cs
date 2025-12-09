@@ -253,7 +253,7 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
     private async Task AggregateInventoryFilesExecute()
     {
         Log.Debug($"{LogPrefix} Aggregating Inventory log files.");
-        string fileName = Path.Combine(_settings.OutputDirectory, $"AggregatedInventory-{DateTime.Now:HH:mm:ss}.txt");
+        string fileName = Path.Combine(_settings.OutputDirectory, $"AggregatedInventory-{DateTime.Now:HHmmss}.txt");
         await _inventoryParser.AggregateInventoryFromDirectories(_settings.InventoryDirectories, fileName);
     }
 
