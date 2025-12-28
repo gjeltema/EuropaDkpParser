@@ -10,7 +10,7 @@ using System.IO.Pipes;
 using System.Text;
 using Gjeltema.Logging;
 
-public sealed class ZealNamedPipe
+internal sealed class ZealNamedPipe
 {
     private const string LogPrefix = $"[{nameof(ZealNamedPipe)}]";
     private CancellationTokenSource _cancelTokenSource;

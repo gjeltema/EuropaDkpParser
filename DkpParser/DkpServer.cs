@@ -346,6 +346,8 @@ public sealed class DkpServer : IDkpServer
         IEnumerable<XElement> raidNodes = responseDoc.Descendants("raid");
         foreach (XElement raidNode in raidNodes)
         {
+            string raidName = (string)raidNode.Element("note");
+
             string raidTimeRaw = (string)raidNode.Element("date");
             DateTime raidTime = DateTime.ParseExact(raidTimeRaw, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
 
@@ -354,6 +356,7 @@ public sealed class DkpServer : IDkpServer
 
             raids.Add(new PreviousRaid
             {
+                RaidName = raidName,
                 CharacterIds = characterIds,
                 RaidTime = raidTime
             });

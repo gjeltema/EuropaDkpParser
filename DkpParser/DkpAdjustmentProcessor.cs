@@ -95,29 +95,35 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
             return ra;
 
         int characterId = await GetCharacterId(characterName);
+        Log.Debug($"{LogPrefix} CharacterID obtained: {characterId}.");
         if (characterId < 1)
             return 0;
 
         await SetPriorRaidsForAttendance();
 
         int numberOfRaidsAttended = _previousRaids.Count(x => x.CharacterIds.Contains(characterId));
+        Log.Debug($"{LogPrefix} Character raids/Total raids: {numberOfRaidsAttended}/{_previousRaids.Count}.");
         if (numberOfRaidsAttended == 0)
             return 0;
 
         int raidAtt = numberOfRaidsAttended * 100 / _previousRaids.Count;
         _raidAttendance[characterName] = raidAtt;
 
+        Log.Debug($"{LogPrefix} Calculated RA for ID {characterId}: {raidAtt}.");
+
         return raidAtt;
     }
 
     private async Task SetPriorRaidsForAttendance()
     {
-        if(_previousRaids.Count > 0) 
+        if (_previousRaids.Count > 0)
             return;
 
         DateTime thirtyDaysAgo = DateTime.Now.AddDays(-30);
         ICollection<PreviousRaid> priorRaids = await _dkpServer.GetPriorRaids(NumberOfRaids);
         _previousRaids = priorRaids.Where(x => x.RaidTime > thirtyDaysAgo).OrderBy(x => x.RaidTime).ToList();
+
+        Log.Debug($"{LogPrefix} Last 30 days of raids:{Environment.NewLine}{string.Join(Environment.NewLine, _previousRaids.Select(x => x.ToString()))}");
     }
 }
 
