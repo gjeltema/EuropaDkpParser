@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ActiveBidTracker.cs Copyright 2025 Craig Gjeltema
+// ActiveBidTracker.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -449,16 +449,17 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
             string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
 
-            if (!_currentAfks.Contains(messageSenderName) && (logLineNoTimestamp.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                || logLineNoTimestamp.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
+            string noWhitespaceLogline = logLineNoTimestamp.RemoveAllWhitespace();
+            if (!_currentAfks.Contains(messageSenderName) && (noWhitespaceLogline.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                || noWhitespaceLogline.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
             {
                 Log.Info($"{LogPrefix} Added {messageSenderName} to the +AFK+ list.");
                 _currentAfks = _currentAfks.Add(messageSenderName);
                 Updated = true;
                 return;
             }
-            if (_currentAfks.Contains(messageSenderName) && (logLineNoTimestamp.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                || logLineNoTimestamp.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
+            if (_currentAfks.Contains(messageSenderName) && (noWhitespaceLogline.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
+                || noWhitespaceLogline.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
             {
                 Log.Info($"{LogPrefix} Removed {messageSenderName} from the +AFK+ list.");
                 _currentAfks = _currentAfks.Remove(messageSenderName);
