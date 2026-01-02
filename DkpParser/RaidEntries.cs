@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidEntries.cs Copyright 2025 Craig Gjeltema
+// RaidEntries.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -126,10 +126,6 @@ public sealed class RaidEntries
         foreach (MultipleCharsOnAttendanceError multipleChars in MultipleCharsInAttendanceErrors)
             yield return
                 $"{multipleChars.MultipleCharsInAttendance.FirstCharacter} and {multipleChars.MultipleCharsInAttendance.FirstCharacter} in {multipleChars.Attendance.ToDisplayString()}";
-
-        yield return "-------------------- DKP Discounts -------------------";
-        foreach (DiscountApplied discount in Discounts)
-            yield return discount.ToDisplayString();
 
         yield return "";
     }

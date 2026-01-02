@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpAdjustmentProcessor.cs Copyright 2025 Craig Gjeltema
+// DkpAdjustmentProcessor.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -49,6 +49,7 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
             return dkpEntry.DkpSpent;
         }
 
+        Log.Debug($"{LogPrefix} Evaluating {dkpEntry} for possible discount.");
         int raidAttendance = await GetRaidAttendance(dkpEntry.CharacterName);
         Log.Debug($"Calculated Raid Attendance for {dkpEntry.CharacterName}: {raidAttendance}%");
 
