@@ -4,6 +4,7 @@
 
 namespace DkpParser.LiveTracking;
 
+using System;
 using System.Text.RegularExpressions;
 using Gjeltema.Logging;
 
@@ -11,6 +12,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
 {
     private const string LogPrefix = $"[{nameof(ActiveBiddingAnalyzer)}]";
     private readonly Regex _findMultipleItemsMarker = MultipleItemsAuctionedRegex();
+    private readonly Regex _findMultipleItemsParensMarker = MultipleItemsAuctionedParensRegex();
     private readonly Regex _findNumbers = NumbersRegex();
     private readonly DelimiterStringSanitizer _sanitizer = new();
 
@@ -31,19 +33,34 @@ internal sealed partial class ActiveAuctionStartAnalyzer
     [GeneratedRegex("x\\d", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
     private static partial Regex MultipleItemsAuctionedRegex();
 
+    [GeneratedRegex("\\(\\d\\)", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
+    private static partial Regex MultipleItemsAuctionedParensRegex();
+
     [GeneratedRegex("\\d+", RegexOptions.Compiled)]
     private static partial Regex NumbersRegex();
 
-    private int GetMultiplier(string logLine, out string multiplierDeclaration)
+    private int GetMultiplier(string itemString, out string multiplierDeclaration)
     {
-        Match m = _findMultipleItemsMarker.Match(logLine);
-        multiplierDeclaration = m.Value;
-        string multiplierAsText = multiplierDeclaration.Replace("x", "", StringComparison.OrdinalIgnoreCase);
-        if (int.TryParse(multiplierAsText, out int multiplier))
+        // A Glowing Orb of Luclinite (6)
+        Match mWithParen = _findMultipleItemsParensMarker.Match(itemString);
+        multiplierDeclaration = mWithParen.Value;
+        Match numberFromParen = _findNumbers.Match(multiplierDeclaration);
+        string multiplierAsTextParen = numberFromParen.Value;
+        if (int.TryParse(multiplierAsTextParen, out int multiplierParen))
         {
-            return multiplier;
+            return multiplierParen;
         }
 
+        // Ring of the Depths x2
+        Match mWithX = _findMultipleItemsMarker.Match(itemString);
+        multiplierDeclaration = mWithX.Value;
+        string multiplierAsTextX = multiplierDeclaration.Replace("x", "", StringComparison.OrdinalIgnoreCase);
+        if (int.TryParse(multiplierAsTextX, out int multiplierX))
+        {
+            return multiplierX;
+        }
+
+        multiplierDeclaration = string.Empty;
         return 1;
     }
 
@@ -61,10 +78,13 @@ internal sealed partial class ActiveAuctionStartAnalyzer
 
     private ICollection<LiveAuctionInfo> HandleOpen(string playerMessage, EqChannel channel, DateTime timeStamp, string messageSender)
     {
-        int multiplier = GetMultiplier(playerMessage, out string multiplierDeclaration);
+        // [Thu Jan 01 23:09:16 2026] You tell your raid, 'A Glowing Orb of Luclinite | A Glowing Orb of Luclinite | Brilliant Stone Ring | Ring of Living Ore | Ring of Living Ore | Ring of the Depths OPEN'
+        // [Thu Jan 01 23:09:16 2026] You tell your raid, 'A Glowing Orb of Luclinite (6) | Brilliant Stone Ring | Ring of Living Ore (2) | Ring of the Depths OPEN'
+        // [Thu Jan 01 23:09:16 2026] You tell your raid, 'Ring of the Depths x2 OPEN'
 
         if (playerMessage.Contains(Constants.PossibleErrorDelimiter))
         {
+            int multiplier = GetMultiplier(playerMessage, out string multiplierDeclaration);
             string auctionLine = _sanitizer.SanitizeDelimiterString(playerMessage);
             string[] lineParts = auctionLine.Split(Constants.AttendanceDelimiter, StringSplitOptions.RemoveEmptyEntries);
             if (lineParts.Length > 1)
@@ -84,40 +104,28 @@ internal sealed partial class ActiveAuctionStartAnalyzer
         }
         else
         {
-            string playerMessageWithoutMultiplier = playerMessage;
-            if (multiplier > 1)
-                playerMessageWithoutMultiplier = playerMessageWithoutMultiplier.Replace(multiplierDeclaration, "");
-
-            int endIndex = playerMessageWithoutMultiplier.Length - 1;
-            int indexOfOpen = playerMessageWithoutMultiplier.IndexOf("OPEN");
-            int indexOfBids = playerMessageWithoutMultiplier.IndexOf("BIDS");
-            if (indexOfBids < indexOfOpen)
-            {
-                int possibleEndIndex = indexOfBids < 1 ? indexOfOpen : indexOfBids;
-                if (possibleEndIndex > 0)
-                    endIndex = possibleEndIndex;
-            }
-            else
-            {
-                int possibleEndIndex = indexOfOpen < 1 ? indexOfBids : indexOfOpen;
-                if (possibleEndIndex > 0)
-                    endIndex = possibleEndIndex;
-            }
-
-            string itemsString = playerMessageWithoutMultiplier[0..endIndex];
-
+            int indexOfOpen = playerMessage.IndexOf("OPEN");
+            string itemsString = playerMessage[0..(indexOfOpen - 1)];
             char delimiter = itemsString.Contains('|') ? '|' : ',';
             string[] itemNames = itemsString.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
+
+            if (itemNames.Length == 0)
+                return [];
 
             List<LiveAuctionInfo> auctions = new(itemNames.Length);
             foreach (string itemName in itemNames)
             {
+                int multiplier = GetMultiplier(itemName, out string multiplierDeclaration);
+                string itemNameWithoutMultiplier = itemName;
+                if (multiplier > 1)
+                    itemNameWithoutMultiplier = itemNameWithoutMultiplier.Replace(multiplierDeclaration, "");
+
                 auctions.Add(new LiveAuctionInfo
                 {
                     Timestamp = timeStamp,
                     Channel = channel,
                     Auctioneer = messageSender,
-                    ItemName = itemName.Trim(),
+                    ItemName = itemNameWithoutMultiplier.Trim(),
                     TotalNumberOfItems = multiplier,
                 });
             }
@@ -129,7 +137,8 @@ internal sealed partial class ActiveAuctionStartAnalyzer
             auctions.Clear();
             foreach (var auctionGroup in auctionGrouping)
             {
-                auctionGroup.Auction.TotalNumberOfItems = auctionGroup.ItemCount;
+                //if(auctionGroup.ItemCount > 1)
+                    auctionGroup.Auction.TotalNumberOfItems = auctionGroup.ItemCount;
                 Log.Debug($"{LogPrefix} New auction: {auctionGroup.Auction}");
                 auctions.Add(auctionGroup.Auction);
             }
