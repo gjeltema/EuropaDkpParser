@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// Enums.cs Copyright 2025 Craig Gjeltema
+// Enums.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -41,7 +41,8 @@ public enum LogEntryType : byte
     Crashed,
     AfkStart,
     AfkEnd,
-    Transfer
+    Transfer,
+    HitSquad
 }
 
 public enum PossibleError : byte

@@ -104,7 +104,7 @@ public sealed class UploadRaidInfo
             AttendanceEntry associatedCall = raidEntries.GetAssociatedAttendance(dkpEntry);
             PlayerCharacter character = raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == dkpEntry.CharacterName);
             int dkpAmount = dkpEntry.DkpSpent;
-            if (character != null)
+            if (character != null && !raidEntries.IsHitSquad)
             {
                 // Verify that the character was present for more than 2 attendance calls, to ensure they were not just popping in to loot
                 int numberOfAttendances = raidEntries.AttendanceEntries.Where(x => x.Characters.Contains(character)).Take(3).Count();

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// Constants.cs Copyright 2025 Craig Gjeltema
+// Constants.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -46,6 +46,9 @@ public static class Constants
     public const string GuildOther = " tells the guild, '";
     public const string GuildTag = $"<{GuildName}>";
     public const string GuildYou = "You say to your guild, '";
+    public const string HitSquad = "HITSQUAD";
+    public const string HitSquadWithAlternateDelimiter = $"{AlternateDelimiter}{HitSquad}{AlternateDelimiter}";
+    public const string HitSquadWithDelimiter = $"{AttendanceDelimiter}{HitSquad}{AttendanceDelimiter}";
     // [Wed Mar 13 20:32:16 2024] You say to your guild, 'Yes, a number of us are LFG at the book for a raid invite.'
     public const string JoinedRaid = " joined the raid.";
     public const string KillCall = "KILL";

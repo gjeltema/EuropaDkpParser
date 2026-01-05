@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// FileOutputGenerator.cs Copyright 2025 Craig Gjeltema
+// FileOutputGenerator.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -62,6 +62,12 @@ public sealed class FileOutputGenerator : IOutputGenerator
     [Tue Mar 19 21:35:23 2024] [ANONYMOUS] Luciania  <Europa>
     [Tue Mar 19 21:35:23 2024] There are 51 players in Plane of Sky.
         */
+
+        if (call.IsHitSquad)
+        {
+            yield return call.RawHeaderLogLine;
+            yield break;
+        }
 
         string header = call.AttendanceCallType == AttendanceCallType.Time
             ? $"{Delim}{Constants.RaidAttendanceTaken}{Delim}{Constants.Attendance}{Delim}{call.CallName}{Delim}"

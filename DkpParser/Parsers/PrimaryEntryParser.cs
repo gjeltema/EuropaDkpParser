@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// PrimaryEntryParser.cs Copyright 2025 Craig Gjeltema
+// PrimaryEntryParser.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -150,6 +150,11 @@ internal sealed class PrimaryEntryParser : IParseEntry
         else if (logLine.Contains(Constants.Transfer))
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Transfer);
+        }
+        else if (noWhitespaceSanitized.Contains(Constants.HitSquadWithDelimiter, StringComparison.OrdinalIgnoreCase)
+            || noWhitespaceSanitized.Contains(Constants.HitSquadWithAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.HitSquad);
         }
     }
 }

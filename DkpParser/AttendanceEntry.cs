@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceEntry.cs Copyright 2025 Craig Gjeltema
+// AttendanceEntry.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -19,6 +19,8 @@ public sealed class AttendanceEntry : IEquatable<AttendanceEntry>
     public string CallName { get; set; }
 
     public ICollection<PlayerCharacter> Characters { get; set; } = new HashSet<PlayerCharacter>();
+
+    public bool IsHitSquad { get; init; } = false;
 
     public PossibleError PossibleError { get; set; }
 

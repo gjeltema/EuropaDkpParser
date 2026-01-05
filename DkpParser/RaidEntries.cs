@@ -26,9 +26,11 @@ public sealed class RaidEntries
 
     public ICollection<DkpEntry> DkpUploadErrors { get; set; } = new List<DkpEntry>();
 
+    public bool IsHitSquad { get; set; } = false;
+
     public ICollection<MultipleCharsOnAttendanceError> MultipleCharsInAttendanceErrors { get; set; } = new List<MultipleCharsOnAttendanceError>();
 
-    public ICollection<PlayerLooted> PlayerLootedEntries { get; set; }
+    public ICollection<PlayerLooted> PlayerLootedEntries { get; set; } = [];
 
     public ICollection<PlayerPossibleLinkdead> PossibleLinkdeads { get; } = new List<PlayerPossibleLinkdead>();
 

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpLogGenerator.cs Copyright 2025 Craig Gjeltema
+// DkpLogGenerator.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Utility;

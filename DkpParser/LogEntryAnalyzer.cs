@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// LogEntryAnalyzer.cs Copyright 2025 Craig Gjeltema
+// LogEntryAnalyzer.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -24,6 +24,15 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         Log.Debug($"{LogPrefix} Beginning {nameof(AnalyzeRaidLogEntries)}");
 
+        EqLogEntry hitSquadEntry = GetHitSquadEntry(logParseResults);
+        if (hitSquadEntry != null)
+        {
+            AddHitSquadAttendance(hitSquadEntry);
+            AnalyzeLootCalls(logParseResults);
+            CheckDuplicateDkpEntries();
+            return _raidEntries;
+        }
+
         PopulateMemberLists(logParseResults);
         PopulateLootedList(logParseResults);
         PopulateRaidJoin(logParseResults);
@@ -36,6 +45,32 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         ErrorPostAnalysis();
 
         return _raidEntries;
+    }
+
+    private void AddHitSquadAttendance(EqLogEntry hitSquadEntry)
+    {
+        Log.Debug($"{LogPrefix} Crafting a Hit Squad attendance based on: {hitSquadEntry.FullLogLine}");
+
+        AttendanceEntry call = new()
+        {
+            Timestamp = hitSquadEntry.Timestamp,
+            RawHeaderLogLine = hitSquadEntry.FullLogLine,
+            AttendanceCallType = AttendanceCallType.Time,
+            CallName = "Hit Squad",
+            ZoneName = "Kedge Keep", // Worth 0 DKP
+            PossibleError = PossibleError.None,
+            IsHitSquad = true
+        };
+
+        // Dummy values so the DKP server is happy
+        PlayerCharacter firstDummy = new PlayerCharacter { CharacterName = "Mephisto", ClassName = "Enchanter", Level = 1, Race = "Human" };
+        PlayerCharacter secondDummy = new PlayerCharacter { CharacterName = "Dathlyr", ClassName = "Cleric", Level = 1, Race = "Human" };
+        call.AddOrMergeInPlayerCharacter(firstDummy);
+        call.AddOrMergeInPlayerCharacter(secondDummy);
+        _raidEntries.AddOrMergeInPlayerCharacter(firstDummy);
+        _raidEntries.AddOrMergeInPlayerCharacter(secondDummy);
+
+        _raidEntries.AttendanceEntries.Add(call);
     }
 
     private void AddUnvisitedEntries(LogParseResults logParseResults)
@@ -288,6 +323,12 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             RawLogLine = entry.FullLogLine
         };
     }
+
+    private EqLogEntry GetHitSquadEntry(LogParseResults logParseResults)
+        => (from logFile in logParseResults.EqLogFiles
+            from logEntry in logFile.LogEntries
+            select logEntry)
+            .FirstOrDefault(x => x.EntryType == LogEntryType.HitSquad);
 
     private IEnumerable<string> GetUnvisitedEntries(LogParseResults logParseResults)
         => from logFile in logParseResults.EqLogFiles
