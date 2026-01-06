@@ -86,7 +86,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool IncludeTellsInRawLog { get; set; }
 
-    public ICollection<string> InventoryDirectories { get; private set; }
+    public ICollection<string> InventoryDirectories { get; private set; } = [];
 
     public bool IsApiConfigured
         => !string.IsNullOrEmpty(ApiUrl) && !string.IsNullOrEmpty(ApiReadToken) && !string.IsNullOrEmpty(ApiWriteToken);
