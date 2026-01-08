@@ -41,7 +41,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private ICollection<LiveBidInfo> _highBids;
     private bool _isReadyToTakeZealAttendance;
     private bool _isZealConnected;
-    private string _itemLinkIdToAdd;
     private bool _lowRollWins;
     private ICollection<MezBreak> _mezBreaks;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
@@ -87,8 +86,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted, () => SelectedActiveAuction != null)
             .ObservesProperty(() => SelectedActiveAuction);
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
-        AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
-            .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
         GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken))
             .ObservesProperty(() => SelectedBid);
         ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
@@ -108,8 +105,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         get => _activeAuctions;
         private set => SetProperty(ref _activeAuctions, value);
     }
-
-    public DelegateCommand AddItemLinkIdCommand { get; }
 
     public string AttendanceNowBossName
     {
@@ -236,12 +231,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         get => _isZealConnected;
         set => SetProperty(ref _isZealConnected, value);
-    }
-
-    public string ItemLinkIdToAdd
-    {
-        get => _itemLinkIdToAdd;
-        set => SetProperty(ref _itemLinkIdToAdd, value);
     }
 
     public ICollection<string> LogFileNames { get; }
@@ -379,17 +368,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _activeBidTracker.StopTracking();
         _zealMessages.StopMessageProcessing();
         _readyCheckOverlayViewModel?.Close();
-    }
-
-    private void AddItemLinkId()
-    {
-        if (string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
-            return;
-
-        if (SelectedActiveAuction == null)
-            return;
-
-        _settings.ItemLinkIds.AddAndSaveItemId(SelectedActiveAuction.ItemName, ItemLinkIdToAdd);
     }
 
     private void ChangeBidCharacterName()
@@ -753,8 +731,6 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
 {
     ICollection<LiveAuctionDisplay> ActiveAuctions { get; }
 
-    DelegateCommand AddItemLinkIdCommand { get; }
-
     string AttendanceNowBossName { get; set; }
 
     bool AttendanceNowKillCall { get; set; }
@@ -794,8 +770,6 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     bool IsReadyToTakeZealAttendance { get; set; }
 
     bool IsZealConnected { get; set; }
-
-    string ItemLinkIdToAdd { get; set; }
 
     ICollection<string> LogFileNames { get; }
 
