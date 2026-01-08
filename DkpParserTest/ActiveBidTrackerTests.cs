@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ActiveBidTrackerTests.cs Copyright 2025 Craig Gjeltema
+// ActiveBidTrackerTests.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParserTest;
@@ -381,6 +381,8 @@ internal sealed class SettingsMock : IDkpParserSettings
     public int MainWindowX { get; set; }
 
     public int MainWindowY { get; set; }
+
+    public int MezBreaksToShow { get; set; }
 
     public string OutputDirectory { get; set; } = "C:\\";
 

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpParserSettings.cs Copyright 2025 Craig Gjeltema
+// DkpParserSettings.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -31,6 +31,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string LogLevelSection = "LOG_LEVEL";
     private const string LogMatchPatternSection = "LOG_MATCH_PATTERN";
     private const string LogPrefix = $"[{nameof(DkpParserSettings)}]";
+    private const string MezBreaksToShowSection = "MEZ_BREAKS_TO_SHOW";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
     private const string OverlayFontColorSection = "OVERLAY_FONT_COLOR";
     private const string OverlayFontSizeSection = "OVERLAY_FONT_SIZE";
@@ -101,6 +102,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public int MainWindowY { get; set; } = DefaultWindowLocation;
 
+    public int MezBreaksToShow { get; set; }
+
     public string OutputDirectory { get; set; }
 
     public string OverlayFontColor { get; set; } = DefaultOverlayFontColor;
@@ -167,6 +170,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Info);
         LoggingLevel = (LogLevel)loggingLevelRaw;
 
+        MezBreaksToShow = GetIntValue(fileContents, MezBreaksToShowSection, 4);
+
         return true;
     }
 
@@ -213,6 +218,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(OverlayLocationYSection, OverlayLocationY),
             CreateFileEntry(OverlayFontColorSection, OverlayFontColor),
             CreateFileEntry(OverlayFontSizeSection, OverlayFontSize),
+            CreateFileEntry(MezBreaksToShowSection, MezBreaksToShow),
             CreateFileEntry(LogLevelSection, (int)LoggingLevel),
         };
 
@@ -479,6 +485,8 @@ public interface IDkpParserSettings
     int MainWindowX { get; set; }
 
     int MainWindowY { get; set; }
+
+    int MezBreaksToShow { get; set; }
 
     string OutputDirectory { get; set; }
 

@@ -30,11 +30,12 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Active/Complete Auctions listings-->
+            <!-- Active/Complete Auctions listings, and Mez break -->
             <Grid Grid.Column="0" Margin="0,0,5,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Active Listings -->
@@ -102,6 +103,18 @@
                     </ListView>
 
                     <Button Grid.Row="2" Content="{StaticResource ReactivateCompletedAuction}" Command="{Binding ReactivateCompletedAuctionCommand}" HorizontalAlignment="Right" Width="120" Height="30"/>
+                </Grid>
+
+                <!-- Mez Breaks -->
+                <Grid Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Content="{StaticResource MezBreaks}" />
+
+                    <ListView Grid.Row="1" ItemsSource="{Binding MezBreaks}" Height="84"/>
                 </Grid>
             </Grid>
 

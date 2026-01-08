@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// LogSelectionViewModel.cs Copyright 2025 Craig Gjeltema
+// LogSelectionViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -22,6 +22,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     private string _eqDirectory;
     private bool _includeTellsInRawLog;
     private string _logFileMatchPattern;
+    private int _mezBreaksToShow;
     private string _outputDirectory;
     private string _overlayFontColor;
     private string _overlayFontSize;
@@ -73,6 +74,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         OverlayFontColor = _settings.OverlayFontColor;
 
         SelectedLoggingLevel = _settings.LoggingLevel.ToString();
+
+        MezBreaksToShow = _settings.MezBreaksToShow;
 
         SetAllCharacterLogFiles();
     }
@@ -134,6 +137,12 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
     }
 
     public ICollection<string> LoggingLevels { get; }
+
+    public int MezBreaksToShow
+    {
+        get => _mezBreaksToShow;
+        set => SetProperty(ref _mezBreaksToShow, value);
+    }
 
     public string OutputDirectory
     {
@@ -222,6 +231,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
             _settings.OverlayFontSize = fontSize;
         }
 
+        _settings.MezBreaksToShow = MezBreaksToShow;
         _settings.LoggingLevel = Log.ConvertToLogLevel(SelectedLoggingLevel);
         Log.Logger.Default.LoggingLevel = _settings.LoggingLevel;
 
@@ -359,6 +369,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string LogFileMatchPattern { get; set; }
 
     ICollection<string> LoggingLevels { get; }
+
+    int MezBreaksToShow { get; set; }
 
     string OutputDirectory { get; set; }
 

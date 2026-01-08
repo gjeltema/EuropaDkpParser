@@ -14,6 +14,7 @@ using Gjeltema.Logging;
 public sealed class ActiveBidTracker : IActiveBidTracker
 {
     private const string LogPrefix = $"[{nameof(ActiveBidTracker)}]";
+    private const string MezBreakIdentifier = " is no longer mezzed. (";
     private readonly ActiveBiddingAnalyzer _activeBiddingAnalyzer;
     private readonly ActiveBossKillAnalyzer _activeBossKillAnalyzer;
     private readonly ActiveAuctionEndAnalyzer _auctionEndAnalyzer;
@@ -29,6 +30,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private string _bossKilledName;
     private ImmutableList<CompletedAuction> _completedAuctions;
     private ImmutableList<string> _currentAfks;
+    private ImmutableList<MezBreak> _mezBreaks;
     private bool _readyCheckInitiated;
     private ImmutableList<LiveSpentCall> _spentCalls;
 
@@ -49,6 +51,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _completedAuctions = [];
         _bids = [];
         _currentAfks = [];
+        _mezBreaks = [];
     }
 
     public IEnumerable<LiveAuctionInfo> ActiveAuctions
@@ -62,6 +65,9 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     public IEnumerable<string> CurrentAfks
         => _currentAfks;
+
+    public IEnumerable<MezBreak> MezBreaks
+        => _mezBreaks;
 
     public bool ReadyCheckInitiated
     {
@@ -335,6 +341,36 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         return auctioneerName;
     }
 
+    private MezBreak GetMezBreak(string logLineNoTimestamp, DateTime timestamp)
+    {
+        // [Fri Dec 05 20:02:17 2025] a fetid fiend is no longer mezzed. (Haight - melee)
+        // [Fri Dec 12 20:20:13 2025] Amygdalan knight is no longer mezzed. (Naddin - Upheaval)
+
+        if (!logLineNoTimestamp.Contains(MezBreakIdentifier))
+            return null;
+
+        string[] mezBreakInfo = logLineNoTimestamp.Split(MezBreakIdentifier);
+        if (mezBreakInfo.Length != 2)
+            return null;
+
+        string mobName = mezBreakInfo[0];
+        string characterAndReason = mezBreakInfo[1];
+        int indexOfDash = characterAndReason.IndexOf('-');
+        if (indexOfDash < 5)
+            return null;
+
+        string characterName = characterAndReason[0..(indexOfDash - 1)];
+        string reason = characterAndReason[(indexOfDash + 2)..(characterAndReason.Length - 1)];
+
+        return new MezBreak
+        {
+            CharacterName = characterName,
+            MobName = mobName,
+            Reason = reason,
+            TimeOfBreak = timestamp
+        };
+    }
+
     private string GetStatusString(StatusMarker statusMarker)
         => statusMarker switch
         {
@@ -386,6 +422,13 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         {
             // +1 to remove the following space.
             string logLineNoTimestamp = message[(Constants.EqLogDateTimeLength + 1)..];
+
+            MezBreak mezBreak = GetMezBreak(logLineNoTimestamp, timestamp);
+            if (mezBreak != null)
+            {
+                UpdateMezBreaks(mezBreak, message);
+                return;
+            }
 
             string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
             if (bossKilledName != null)
@@ -571,6 +614,13 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 && x.ItemName == bid.ItemName
                 && x.Winner.Equals(bid.CharacterBeingBidFor, StringComparison.OrdinalIgnoreCase));
 
+    private void UpdateMezBreaks(MezBreak mezBreak, string message)
+    {
+        _mezBreaks = _mezBreaks.Add(mezBreak);
+        Log.Debug($"{LogPrefix} Added Mez Break: [{mezBreak}] from line: {message}");
+        Updated = true;
+    }
+
     private void WriteToFile(string fileToWriteTo, IEnumerable<string> fileContents)
     {
         try
@@ -594,6 +644,8 @@ public interface IActiveBidTracker
     IEnumerable<CompletedAuction> CompletedAuctions { get; }
 
     IEnumerable<string> CurrentAfks { get; }
+
+    IEnumerable<MezBreak> MezBreaks { get; }
 
     bool ReadyCheckInitiated { get; }
 

@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v3.2.2</system:String>
+    <system:String x:Key="Version">v3.2.3</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -122,6 +122,7 @@
     <system:String x:Key="ApiUrlLabel">API URL:</system:String>
     <system:String x:Key="ApiReadTokenLabel">API Read Token:</system:String>
     <system:String x:Key="ApiWriteTokenLabel">API Write Token:</system:String>
+    <system:String x:Key="MezBreaksToShowLabel">Mez Breaks to Show:</system:String>
     <system:String x:Key="UseLightModeLabel">Use Light Mode</system:String>
     <system:String x:Key="ShowAfkReviewLabel">Show AFK Review Dialog</system:String>
     <system:String x:Key="LogMatchPatternLabel">Log File Name Search Pattern</system:String>
@@ -289,6 +290,7 @@
     <system:String x:Key="MoveAuctionToCompleted">Move Selections To Completed</system:String>
     <system:String x:Key="CompletedAuctions">Completed Auctions</system:String>
     <system:String x:Key="ReactivateCompletedAuction">Reactivate Auction</system:String>
+    <system:String x:Key="MezBreaks">Mez Breaks</system:String>
     <system:String x:Key="CurrentBids">Current Bids</system:String>
     <system:String x:Key="RemoveBid">Remove Bid</system:String>
     <system:String x:Key="CurrentHighBids">Current High Bids</system:String>

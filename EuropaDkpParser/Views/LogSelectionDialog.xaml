@@ -165,6 +165,8 @@
                     <TextBox Text="{Binding OverlayFontSize}" Width="30" Margin="10,0,0,0"/>
                     <Label Content="{StaticResource OverlayFontColorLabel}" Margin="20,0,0,0"/>
                     <TextBox Text="{Binding OverlayFontColor}" Width="140" Margin="10,0,0,0"/>
+                    <Label Content="{StaticResource MezBreaksToShowLabel}" Margin="20,0,0,0"/>
+                    <TextBox Text="{Binding MezBreaksToShow}" Width="30" Margin="0,0,5,0" />
                 </StackPanel>
 
                 <Grid Grid.Row="2">
