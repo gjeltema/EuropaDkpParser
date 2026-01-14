@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ZealAttendanceMessageProvider.cs Copyright 2025 Craig Gjeltema
+// ZealAttendanceMessageProvider.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Zeal;
@@ -17,7 +17,10 @@ public sealed class ZealAttendanceMessageProvider : IZealMessageUpdater, IZealMe
 
     public ZealCharacterInfo CharacterInfo { get; private set; } = new();
 
-    public ZealRaidInfo RaidInfo { get; } = new() { InternalAttendees = new List<ZealRaidCharacter>(72) };
+    public bool IsConnected
+        => ZealNamedPipe.Instance.IsConnected;
+
+    public ZealRaidInfo RaidInfo { get; } = new() { InternalAttendees = new List<ZealRaidCharacter>(73) };
 
     public List<ZealRaidCharacter> GetRaidAttendees()
         => RaidInfo.InternalAttendees;
@@ -37,9 +40,9 @@ public sealed class ZealAttendanceMessageProvider : IZealMessageUpdater, IZealMe
         RaidInfo.LastUpdate = DateTime.Now;
     }
 
-    public void StartMessageProcessing(string characterName)
+    public void StartMessageProcessing()
     {
-        ZealNamedPipe.Instance.StartListening(characterName, this);
+        ZealNamedPipe.Instance.StartListening(this);
     }
 
     public void StopMessageProcessing()
@@ -54,9 +57,11 @@ public interface IZealMessageProvider
 
     ZealCharacterInfo CharacterInfo { get; }
 
+    bool IsConnected { get; }
+
     ZealRaidInfo RaidInfo { get; }
 
-    void StartMessageProcessing(string characterName);
+    void StartMessageProcessing();
 
     void StopMessageProcessing();
 }

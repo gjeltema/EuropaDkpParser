@@ -318,6 +318,8 @@ internal sealed class MessageProviderMock : IMessageProvider
 {
     private Action<string> _lineHandler;
 
+    public bool IsSendingMessages { get; }
+
     public void SendMessage(string message)
         => _lineHandler(message);
 

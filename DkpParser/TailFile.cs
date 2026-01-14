@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// TailFile.cs Copyright 2025 Craig Gjeltema
+// TailFile.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -15,7 +15,12 @@ public sealed class TailFile : IMessageProvider
     private CancellationTokenSource _cancellationTokenSource;
     private string _filePath;
     private Thread _fileReaderThread;
+    private DateTime _lastUpdate;
     private Action<string> _lineHandler;
+    private bool _readingFile = false;
+
+    public bool IsSendingMessages
+        => _readingFile && (DateTime.Now.AddSeconds(-10) < _lastUpdate);
 
     public void StartMessages(string filePath, Action<string> lineHandler)
     {
@@ -23,6 +28,12 @@ public sealed class TailFile : IMessageProvider
 
         if (string.IsNullOrWhiteSpace(filePath))
             return;
+
+        if (!File.Exists(filePath))
+        {
+            Log.Info($"{LogPrefix} File {filePath} does not exist.  Existing {nameof(StartMessages)}.");
+            return;
+        }
 
         StopMessages();
 
@@ -34,6 +45,8 @@ public sealed class TailFile : IMessageProvider
         _fileReaderThread = new(() => ReadFile(_cancellationTokenSource.Token));
         _fileReaderThread.IsBackground = true;
         _fileReaderThread.Start();
+
+        _lastUpdate = DateTime.Now;
     }
 
     public void StopMessages()
@@ -44,6 +57,8 @@ public sealed class TailFile : IMessageProvider
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
         _fileReaderThread = null;
+        _readingFile = false;
+        _lastUpdate = DateTime.MinValue;
     }
 
     private void ReadFile(CancellationToken cancelToken)
@@ -57,6 +72,8 @@ public sealed class TailFile : IMessageProvider
             using StreamReader reader = new(fileStream);
 
             long lastOffset = reader.BaseStream.Length;
+
+            _readingFile = true;
 
             while (!cancelToken.IsCancellationRequested)
             {
@@ -78,6 +95,7 @@ public sealed class TailFile : IMessageProvider
                 {
                     try
                     {
+                        _lastUpdate = DateTime.Now;
                         _lineHandler(line);
                     }
                     catch (Exception e)
@@ -97,12 +115,15 @@ public sealed class TailFile : IMessageProvider
             Log.Error($"{LogPrefix} Error encountered when processing messages: Error: {ex.ToLogMessage()}");
         }
 
+        _readingFile = false;
         Log.Info($"{LogPrefix} Leaving {nameof(ReadFile)} for filepath: {filePath}");
     }
 }
 
 public interface IMessageProvider
 {
+    bool IsSendingMessages { get; }
+
     void StartMessages(string filePath, Action<string> lineHandler);
 
     void StopMessages();

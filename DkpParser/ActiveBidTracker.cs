@@ -66,6 +66,9 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     public IEnumerable<string> CurrentAfks
         => _currentAfks;
 
+    public bool IsParsingLogFile
+        => _messageProvider.IsSendingMessages;
+
     public IEnumerable<MezBreak> MezBreaks
         => _mezBreaks;
 
@@ -644,6 +647,8 @@ public interface IActiveBidTracker
     IEnumerable<CompletedAuction> CompletedAuctions { get; }
 
     IEnumerable<string> CurrentAfks { get; }
+
+    bool IsParsingLogFile { get; }
 
     IEnumerable<MezBreak> MezBreaks { get; }
 

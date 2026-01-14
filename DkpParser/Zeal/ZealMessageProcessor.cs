@@ -21,7 +21,7 @@ internal sealed partial class ZealMessageProcessor
     private const string TypeKey = "\"type\":";
     private readonly char[] _dataBuffer = new char[20000];
     private readonly IZealMessageUpdater _messageUpdater;
-    private List<ZealRaidCharacter> _raidCharacterBuffer = new(72);
+    private List<ZealRaidCharacter> _raidCharacterBuffer = new(73);
 
     public ZealMessageProcessor(IZealMessageUpdater messageUpdater)
     {
@@ -40,7 +40,7 @@ internal sealed partial class ZealMessageProcessor
     [GeneratedRegex(@"\{((?<NEST>\{)|\}(?<-NEST>)|[^{}]*)*\}")]
     public static partial Regex ParenDataRegex();
 
-    public bool ProcessMessage(ReadOnlySpan<char> fullMessage, int charsInMessage, string currentCharacter)
+    public bool ProcessMessage(ReadOnlySpan<char> fullMessage, int charsInMessage)
     {
         int currentIndex = 0;
 
@@ -49,8 +49,6 @@ internal sealed partial class ZealMessageProcessor
             int matchIndex = match.Index;
             ReadOnlySpan<char> message = fullMessage[currentIndex..matchIndex];
             ReadOnlySpan<char> characterName = GetStringValue(message, CharacterKey);
-            if (!IsCurrentName(characterName, currentCharacter))
-                return false;
 
             int currentMessageType = GetMessageType(message);
             ReadOnlySpan<char> dataField = GetDataFromMessage(message, currentMessageType);
@@ -68,8 +66,6 @@ internal sealed partial class ZealMessageProcessor
 
         int messageType = GetMessageType(remainder);
         ReadOnlySpan<char> messageCharacterName = GetStringValue(remainder, CharacterKey);
-        if (!IsCurrentName(messageCharacterName, currentCharacter))
-            return false;
 
         ReadOnlySpan<char> remainderDataField = GetDataFromMessage(remainder, messageType);
         ParseMessage(remainderDataField, messageType);
@@ -185,6 +181,8 @@ internal sealed partial class ZealMessageProcessor
     private void ParsePlayerMessage(ReadOnlySpan<char> message)
     {
         ZealCharacterInfo characterInfo = JsonSerializer.Deserialize(message, ZealCharacterInfoGenerationContext.Default.ZealCharacterInfo);
+
+        //** Update
         _messageUpdater.SetCharacterInfo(characterInfo);
     }
 

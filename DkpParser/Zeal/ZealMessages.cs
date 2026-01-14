@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ZealMessages.cs Copyright 2025 Craig Gjeltema
+// ZealMessages.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Zeal;
@@ -80,6 +80,10 @@ public sealed class ZealVector3d
 public class ZealCharacterInfo
 {
     private readonly TimeSpan _threshold = TimeSpan.FromSeconds(4);
+
+    //** Need to get Json name
+    [JsonPropertyName("name")]
+    public string CharacterName { get; set; }
 
     [JsonPropertyName("heading")]
     public float Heading { get; set; }

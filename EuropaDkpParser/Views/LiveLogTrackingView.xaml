@@ -349,6 +349,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">
@@ -363,7 +364,13 @@
                     <ContentControl Content="{StaticResource RedXIcon16}" Visibility="{Binding IsReadyToTakeZealAttendance, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
                 </StackPanel>
 
-                <Button Grid.Row="2" Content="Ready Check" Command="{Binding StartReadyCheckCommand}" Width="85" Height="30" HorizontalAlignment="Right"
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Label Content="{StaticResource ReadingLogFile}" VerticalAlignment="Center"/>
+                    <ContentControl Content="{StaticResource SuccessCheckIcon}" Visibility="{Binding IsReadingLogFile, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    <ContentControl Content="{StaticResource RedXIcon16}" Visibility="{Binding IsReadingLogFile, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
+                </StackPanel>
+
+                <Button Grid.Row="3" Content="Ready Check" Command="{Binding StartReadyCheckCommand}" Width="85" Height="30" HorizontalAlignment="Right"
                         Visibility="{Binding EnableReadyCheck, Converter={StaticResource BoolToVisibilityConverter}}"/>
             </Grid>
             

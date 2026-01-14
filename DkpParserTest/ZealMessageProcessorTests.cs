@@ -21,7 +21,7 @@ internal sealed class ZealMessageProcessorTests
     {
         InitializeSystemUnderTest();
 
-        _systemUnderTest.ProcessMessage(firstMessage, charsInFirstmessage, currentCharacter);
+        _systemUnderTest.ProcessMessage(firstMessage, charsInFirstmessage);
         ICollection<ZealRaidCharacter> attendees = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees;
         Assert.Multiple(() =>
         {
@@ -30,7 +30,7 @@ internal sealed class ZealMessageProcessorTests
             Assert.That(attendees.FirstOrDefault(x => x.Name == "Naddin").Class, Is.EqualTo("Druid"));
         });
 
-        _systemUnderTest.ProcessMessage(secondMessage, charsInSecondMessage, currentCharacter);
+        _systemUnderTest.ProcessMessage(secondMessage, charsInSecondMessage);
         attendees = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees;
         Assert.Multiple(() =>
         {
@@ -40,7 +40,7 @@ internal sealed class ZealMessageProcessorTests
             Assert.That(attendees.FirstOrDefault(x => x.Name == "Niddin").Class, Is.EqualTo("Rogue"));
         });
 
-        _systemUnderTest.ProcessMessage(secondMessage, charsInSecondMessage, currentCharacter);
+        _systemUnderTest.ProcessMessage(secondMessage, charsInSecondMessage);
         attendees = ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees;
         Assert.Multiple(() =>
         {
@@ -58,7 +58,7 @@ internal sealed class ZealMessageProcessorTests
     public void ProcessMessage_WhenProcessingAMessage_HasExpectedValue(string message, int charsInMessage, string currentCharacter)
     {
         InitializeSystemUnderTest();
-        _systemUnderTest.ProcessMessage(message, charsInMessage, currentCharacter);
+        _systemUnderTest.ProcessMessage(message, charsInMessage);
     }
 
     private void InitializeSystemUnderTest()

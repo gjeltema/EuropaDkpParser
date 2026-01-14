@@ -41,8 +41,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private ICollection<LiveBidInfo> _highBids;
     private bool _isReadyToTakeZealAttendance;
     private bool _isZealConnected;
+    private string _itemLinkIdToAdd;
     private bool _lowRollWins;
-    private ICollection<MezBreak> _mezBreaks;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private bool _remindAttendances;
     private LiveAuctionDisplay _selectedActiveAuction;
@@ -86,6 +86,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted, () => SelectedActiveAuction != null)
             .ObservesProperty(() => SelectedActiveAuction);
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
+        AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
+            .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
         GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken))
             .ObservesProperty(() => SelectedBid);
         ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
@@ -105,6 +107,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         get => _activeAuctions;
         private set => SetProperty(ref _activeAuctions, value);
     }
+
+    public DelegateCommand AddItemLinkIdCommand { get; }
 
     public string AttendanceNowBossName
     {
@@ -177,6 +181,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         }
     }
 
+    //** Modify
     public string FilePath
     {
         get => _filePath;
@@ -184,15 +189,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         {
             if (SetProperty(ref _filePath, value))
             {
-                string characterName = ExtractCharacterNameFromLogFile(value);
-                Log.Info($"{LogPrefix} {nameof(FilePath)} being set to {value}, characterName is {characterName}.");
-                StartTailingFile(value);
-
-                if (!string.IsNullOrEmpty(characterName))
-                {
-                    _currentCharacterName = characterName;
-                    _zealMessages.StartMessageProcessing(characterName);
-                }
+                Log.Info($"{LogPrefix} {nameof(FilePath)} being set to {value}.");
+                //StartTailingFile(value);
             }
         }
     }
@@ -220,6 +218,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         get => _highBids;
         private set => SetProperty(ref _highBids, value);
     }
+    private bool _isReadingLogFile;
+    public bool IsReadingLogFile
+    {
+        get => _isReadingLogFile;
+        private set => SetProperty(ref _isReadingLogFile, value);
+    }
 
     public bool IsReadyToTakeZealAttendance
     {
@@ -233,18 +237,18 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         set => SetProperty(ref _isZealConnected, value);
     }
 
+    public string ItemLinkIdToAdd
+    {
+        get => _itemLinkIdToAdd;
+        set => SetProperty(ref _itemLinkIdToAdd, value);
+    }
+
     public ICollection<string> LogFileNames { get; }
 
     public bool LowRollWins
     {
         get => _lowRollWins;
         set => SetProperty(ref _lowRollWins, value);
-    }
-
-    public ICollection<MezBreak> MezBreaks
-    {
-        get => _mezBreaks;
-        private set => SetProperty(ref _mezBreaks, value);
     }
 
     public DelegateCommand ReactivateCompletedAuctionCommand { get; }
@@ -370,6 +374,17 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _readyCheckOverlayViewModel?.Close();
     }
 
+    private void AddItemLinkId()
+    {
+        if (string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
+            return;
+
+        if (SelectedActiveAuction == null)
+            return;
+
+        _settings.ItemLinkIds.AddAndSaveItemId(SelectedActiveAuction.ItemName, ItemLinkIdToAdd);
+    }
+
     private void ChangeBidCharacterName()
     {
         if (SelectedBid == null)
@@ -432,19 +447,34 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         SetAuctionStatusMessage();
     }
 
-    private string ExtractCharacterNameFromLogFile(string fullLogFilePath)
+    private string GetCharacterNameFromLogFileName(string logFilePath)
     {
-        int lastIndexOfSlash = fullLogFilePath.LastIndexOf('\\');
-        if (lastIndexOfSlash < 1)
-            return string.Empty;
+        string[] parts = logFilePath.Split('_');
+        if (parts.Length == 3)
+        {
+            string fileCharName = parts[1];
+            return fileCharName;
+        }
 
-        string fileName = fullLogFilePath[(lastIndexOfSlash + 1)..];
-        string[] fileNameParts = fileName.Split('_');
-        if (fileNameParts.Length < 2)
-            return string.Empty;
-
-        return fileNameParts[1];
+        return null;
     }
+
+    private string GetMatchingLogFileName(string characterName, IEnumerable<string> logFilePaths)
+        => logFilePaths.FirstOrDefault(x => LogFileCharNameMatchesCharName(x, characterName));
+
+    //private string ExtractCharacterNameFromLogFile(string fullLogFilePath)
+    //{
+    //    int lastIndexOfSlash = fullLogFilePath.LastIndexOf('\\');
+    //    if (lastIndexOfSlash < 1)
+    //        return string.Empty;
+
+    //    string fileName = fullLogFilePath[(lastIndexOfSlash + 1)..];
+    //    string[] fileNameParts = fileName.Split('_');
+    //    if (fileNameParts.Length < 2)
+    //        return string.Empty;
+
+    //    return fileNameParts[1];
+    //}
 
     private DateTime GetSortingTimestamp(CompletedAuction completed)
     {
@@ -491,6 +521,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     private void HandleZealPipeError(object sender, ZealPipeErrorEventArgs e)
         => MessageDialog.ShowDialog(e.ErrorMessage, "Zeal Pipe Error");
+
+    private bool LogFileCharNameMatchesCharName(string logFilePath, string characterName)
+    {
+        string logFileCharName = GetCharacterNameFromLogFileName(logFilePath);
+        return characterName.Equals(logFileCharName, StringComparison.OrdinalIgnoreCase);
+    }
 
     private void ReactivateCompletedAuction()
     {
@@ -580,6 +616,16 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         _activeBidTracker.StopTracking();
         _activeBidTracker.StartTracking(fileToTail);
+    }
+
+    private void StartTailingLogFile(string characterName)
+    {
+        string logFilePath = GetMatchingLogFileName(characterName, _settings.SelectedLogFiles);
+        if (logFilePath != null)
+        {
+            FilePath = logFilePath;
+            StartTailingFile(logFilePath);
+        }
     }
 
     private void UpdateActiveAuctionSelected()
@@ -673,15 +719,24 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             }
         }
 
-        IsZealConnected = !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
+        if (!_zealMessages.IsConnected)
+            _zealMessages.StartMessageProcessing();
 
-        IsReadyToTakeZealAttendance = !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale
-            && !ZealAttendanceMessageProvider.Instance.RaidInfo.IsDataStale
-            && ZealAttendanceMessageProvider.Instance.RaidInfo.RaidAttendees.Count > 6;
+        IsZealConnected = _zealMessages.IsConnected && !_zealMessages.CharacterInfo.IsDataStale;
+
+        IsReadyToTakeZealAttendance = _zealMessages.IsConnected && !_zealMessages.CharacterInfo.IsDataStale
+            && !_zealMessages.RaidInfo.IsDataStale
+            && _zealMessages.RaidInfo.RaidAttendees.Count > 2;
+
+        IsReadingLogFile = _activeBidTracker.IsParsingLogFile;
+
+        if (!IsReadingLogFile && _zealMessages.IsConnected && IsZealConnected)
+        {
+            string characterName = _zealMessages.CharacterInfo.CharacterName;
+            StartTailingLogFile(characterName);
+        }
 
         CurrentAfks = [.. _activeBidTracker.CurrentAfks.Order()];
-
-        MezBreaks = [.. _activeBidTracker.MezBreaks.OrderByDescending(x => x.TimeOfBreak).Take(_settings.MezBreaksToShow)];
 
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }
@@ -731,6 +786,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
 {
     ICollection<LiveAuctionDisplay> ActiveAuctions { get; }
 
+    DelegateCommand AddItemLinkIdCommand { get; }
+
     string AttendanceNowBossName { get; set; }
 
     bool AttendanceNowKillCall { get; set; }
@@ -767,15 +824,17 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
 
     ICollection<LiveBidInfo> HighBids { get; }
 
+    bool IsReadingLogFile { get; }
+
     bool IsReadyToTakeZealAttendance { get; set; }
 
     bool IsZealConnected { get; set; }
 
+    string ItemLinkIdToAdd { get; set; }
+
     ICollection<string> LogFileNames { get; }
 
     bool LowRollWins { get; set; }
-
-    ICollection<MezBreak> MezBreaks { get; }
 
     DelegateCommand ReactivateCompletedAuctionCommand { get; }
 
