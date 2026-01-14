@@ -81,8 +81,7 @@ public class ZealCharacterInfo
 {
     private readonly TimeSpan _threshold = TimeSpan.FromSeconds(4);
 
-    //** Need to get Json name
-    [JsonPropertyName("name")]
+    [JsonPropertyName("character")]
     public string CharacterName { get; set; }
 
     [JsonPropertyName("heading")]

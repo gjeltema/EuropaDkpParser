@@ -181,8 +181,6 @@ internal sealed partial class ZealMessageProcessor
     private void ParsePlayerMessage(ReadOnlySpan<char> message)
     {
         ZealCharacterInfo characterInfo = JsonSerializer.Deserialize(message, ZealCharacterInfoGenerationContext.Default.ZealCharacterInfo);
-
-        //** Update
         _messageUpdater.SetCharacterInfo(characterInfo);
     }
 

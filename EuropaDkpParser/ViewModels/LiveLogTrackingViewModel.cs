@@ -39,6 +39,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private string _filePath;
     private bool _forceShowOverlay;
     private ICollection<LiveBidInfo> _highBids;
+    private bool _isReadingLogFile;
     private bool _isReadyToTakeZealAttendance;
     private bool _isZealConnected;
     private string _itemLinkIdToAdd;
@@ -181,7 +182,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         }
     }
 
-    //** Modify
     public string FilePath
     {
         get => _filePath;
@@ -190,8 +190,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             if (SetProperty(ref _filePath, value))
             {
                 Log.Info($"{LogPrefix} {nameof(FilePath)} being set to {value}.");
-                //StartTailingFile(value);
             }
+
+            if (!IsReadingLogFile)
+                StartTailingFile(value);
         }
     }
 
@@ -218,7 +220,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         get => _highBids;
         private set => SetProperty(ref _highBids, value);
     }
-    private bool _isReadingLogFile;
+
     public bool IsReadingLogFile
     {
         get => _isReadingLogFile;
@@ -462,20 +464,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private string GetMatchingLogFileName(string characterName, IEnumerable<string> logFilePaths)
         => logFilePaths.FirstOrDefault(x => LogFileCharNameMatchesCharName(x, characterName));
 
-    //private string ExtractCharacterNameFromLogFile(string fullLogFilePath)
-    //{
-    //    int lastIndexOfSlash = fullLogFilePath.LastIndexOf('\\');
-    //    if (lastIndexOfSlash < 1)
-    //        return string.Empty;
-
-    //    string fileName = fullLogFilePath[(lastIndexOfSlash + 1)..];
-    //    string[] fileNameParts = fileName.Split('_');
-    //    if (fileNameParts.Length < 2)
-    //        return string.Empty;
-
-    //    return fileNameParts[1];
-    //}
-
     private DateTime GetSortingTimestamp(CompletedAuction completed)
     {
         if (completed.SpentCalls.Count > 0)
@@ -618,13 +606,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _activeBidTracker.StartTracking(fileToTail);
     }
 
-    private void StartTailingLogFile(string characterName)
+    private void StartTailingLogFileForCharacter(string characterName)
     {
         string logFilePath = GetMatchingLogFileName(characterName, _settings.SelectedLogFiles);
         if (logFilePath != null)
         {
             FilePath = logFilePath;
-            StartTailingFile(logFilePath);
         }
     }
 
@@ -733,7 +720,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         if (!IsReadingLogFile && _zealMessages.IsConnected && IsZealConnected)
         {
             string characterName = _zealMessages.CharacterInfo.CharacterName;
-            StartTailingLogFile(characterName);
+            StartTailingLogFileForCharacter(characterName);
         }
 
         CurrentAfks = [.. _activeBidTracker.CurrentAfks.Order()];
