@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DiscountsApplied.cs Copyright 2025 Craig Gjeltema
+// DiscountsApplied.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -25,5 +25,8 @@ public sealed class DiscountApplied
         => $"{CharacterName} {Item} {OriginalSpent}->{AfterDiscountSpent}, {AttendanceName}";
 
     public string ToDisplayString()
-        => $"{CharacterName} for {Item} reducing {OriginalSpent} to {AfterDiscountSpent} DKP for raid {AttendanceName} in {AttendanceZone}.";
+    {
+        string itemName = Item.Replace('`', '\'');
+        return $"{CharacterName} for {itemName} reducing {OriginalSpent} to {AfterDiscountSpent} DKP for raid {AttendanceName} in {AttendanceZone}.";
+    }
 }
