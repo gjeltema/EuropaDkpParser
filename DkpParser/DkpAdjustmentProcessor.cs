@@ -36,13 +36,15 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
             Log.Trace($"{LogPrefix} Updated class name to: {className}");
         }
 
-        if (!_classesWithDiscounts.Contains(className))
+        string actualClass = EqClasses.GetClassFromTitle(className);
+
+        if (!_classesWithDiscounts.Contains(actualClass))
         {
             Log.Trace($"{LogPrefix} No discounts found for class.");
             return dkpEntry.DkpSpent;
         }
 
-        List<DkpDiscountConfiguration> possibleDiscountRules = GetPossibleDiscountRules(className, associatedAttendance);
+        List<DkpDiscountConfiguration> possibleDiscountRules = GetPossibleDiscountRules(actualClass, associatedAttendance);
         if (possibleDiscountRules.Count == 0)
         {
             Log.Debug($"{LogPrefix} No discounts configured for {dkpEntry} in {associatedAttendance.ToDisplayString()}.");
