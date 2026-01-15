@@ -512,6 +512,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     private bool LogFileCharNameMatchesCharName(string logFilePath, string characterName)
     {
+        if (string.IsNullOrWhiteSpace(characterName))
+            return false;
+
         string logFileCharName = GetCharacterNameFromLogFileName(logFilePath);
         return characterName.Equals(logFileCharName, StringComparison.OrdinalIgnoreCase);
     }
@@ -720,6 +723,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         if (!IsReadingLogFile && _zealMessages.IsConnected && IsZealConnected)
         {
             string characterName = _zealMessages.CharacterInfo.CharacterName;
+            Log.Debug($"{LogPrefix} Looking for log file to parse with character name: {characterName}");
             StartTailingLogFileForCharacter(characterName);
         }
 

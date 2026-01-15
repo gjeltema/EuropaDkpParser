@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ZealMessageProcessor.cs Copyright 2025 Craig Gjeltema
+// ZealMessageProcessor.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Zeal;
@@ -52,7 +52,7 @@ internal sealed partial class ZealMessageProcessor
 
             int currentMessageType = GetMessageType(message);
             ReadOnlySpan<char> dataField = GetDataFromMessage(message, currentMessageType);
-            ParseMessage(dataField, currentMessageType);
+            ParseMessage(dataField, currentMessageType, characterName);
 
             currentIndex = matchIndex + match.Length;
         }
@@ -68,7 +68,7 @@ internal sealed partial class ZealMessageProcessor
         ReadOnlySpan<char> messageCharacterName = GetStringValue(remainder, CharacterKey);
 
         ReadOnlySpan<char> remainderDataField = GetDataFromMessage(remainder, messageType);
-        ParseMessage(remainderDataField, messageType);
+        ParseMessage(remainderDataField, messageType, messageCharacterName);
 
         return true;
     }
@@ -144,26 +144,26 @@ internal sealed partial class ZealMessageProcessor
         return stringValue;
     }
 
-    private bool IsCurrentName(ReadOnlySpan<char> messageCharacter, ReadOnlySpan<char> currentCharacter)
-    {
-        if (MemoryExtensions.Equals(messageCharacter, currentCharacter, StringComparison.Ordinal))
-            return true;
+    //private bool IsCurrentName(ReadOnlySpan<char> messageCharacter, ReadOnlySpan<char> currentCharacter)
+    //{
+    //    if (MemoryExtensions.Equals(messageCharacter, currentCharacter, StringComparison.Ordinal))
+    //        return true;
 
-        if (messageCharacter.Contains(currentCharacter, StringComparison.Ordinal) && messageCharacter.Contains("s corpse", StringComparison.Ordinal))
-            return true;
+    //    if (messageCharacter.Contains(currentCharacter, StringComparison.Ordinal) && messageCharacter.Contains("s corpse", StringComparison.Ordinal))
+    //        return true;
 
-        Log.Info($"{LogPrefix} Message character name {messageCharacter.ToString()} is not set character name {currentCharacter.ToString()}.");
-        return false;
-    }
+    //    Log.Info($"{LogPrefix} Message character name {messageCharacter.ToString()} is not set character name {currentCharacter.ToString()}.");
+    //    return false;
+    //}
 
-    private void ParseMessage(ReadOnlySpan<char> message, int messageType)
+    private void ParseMessage(ReadOnlySpan<char> message, int messageType, ReadOnlySpan<char> messageCharacterName)
     {
         try
         {
             switch (messageType)
             {
                 case 3:
-                    ParsePlayerMessage(message);
+                    ParsePlayerMessage(message, messageCharacterName);
                     break;
                 case 5:
                     ParseRaidMessage(message);
@@ -178,9 +178,10 @@ internal sealed partial class ZealMessageProcessor
         }
     }
 
-    private void ParsePlayerMessage(ReadOnlySpan<char> message)
+    private void ParsePlayerMessage(ReadOnlySpan<char> message, ReadOnlySpan<char> messageCharacterName)
     {
         ZealCharacterInfo characterInfo = JsonSerializer.Deserialize(message, ZealCharacterInfoGenerationContext.Default.ZealCharacterInfo);
+        characterInfo.CharacterName = messageCharacterName.ToString();
         _messageUpdater.SetCharacterInfo(characterInfo);
     }
 
