@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceTimerHandler.cs Copyright 2025 Craig Gjeltema
+// AttendanceTimerHandler.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Utility;
@@ -21,11 +21,11 @@ internal sealed class AttendanceTimerHandler
     }
 
     private const string LogPrefix = $"[{nameof(AttendanceTimerHandler)}]";
+    private readonly IAttendanceSnapshot _attendanceSnapshot;
     private readonly IDialogFactory _dialogFactory;
     private readonly IOverlayFactory _overlayFactory;
     private readonly Queue<PendingOverlay> _pendingOverlays = [];
     private readonly IDkpParserSettings _settings;
-    private readonly IAttendanceSnapshot _attendanceSnapshot;
     private IAttendanceOverlayViewModel _attendanceOverlayViewModel;
     private DispatcherTimer _attendanceReminderTimer;
     private DispatcherTimer _killCallReminderTimer;
@@ -134,8 +134,8 @@ internal sealed class AttendanceTimerHandler
             IReminderDialogViewModel reminder = GetReminderDialog(statusMessage, AttendanceCallType.Kill);
             reminder.AttendanceName = bossName;
 
-            bool doneWithReminder = reminder.ShowDialog() == true;
-            if (!doneWithReminder)
+            bool closeOk = reminder.ShowDialog() == true;
+            if (reminder.Remind)
             {
                 TimeSpan userSpecifiedInterval = TimeSpan.FromMinutes(reminder.ReminderInterval);
                 _killCallReminderTimer = new DispatcherTimer(
@@ -187,7 +187,7 @@ internal sealed class AttendanceTimerHandler
             Log.Info($"{LogPrefix} Showing reminder dialog for time call index {_timeCallIndex}.");
 
             bool ok = reminder.ShowDialog() == true;
-            nextInterval = ok ? GetAttendanceReminderInterval() : TimeSpan.FromMinutes(reminder.ReminderInterval);
+            nextInterval = reminder.Remind ? TimeSpan.FromMinutes(reminder.ReminderInterval) : GetAttendanceReminderInterval();
             int selectedTimeCallIndex = reminder.GetTimeCallIndex();
             _timeCallIndex = ok ? selectedTimeCallIndex + 1 : selectedTimeCallIndex - 1;
         }

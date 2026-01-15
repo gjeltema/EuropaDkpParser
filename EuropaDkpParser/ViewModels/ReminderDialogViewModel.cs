@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ReminderDialogViewModel.cs Copyright 2025 Craig Gjeltema
+// ReminderDialogViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -31,6 +31,7 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
         ReminderInterval = 3;
 
         CopyAttendanceCallCommand = new DelegateCommand(CopyAttendanceCall);
+        RemindCommand = new DelegateCommand(CloseWithReminder);
     }
 
     public string AttendanceName
@@ -57,6 +58,10 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
     public bool IsTimeCall
         => AttendanceType == AttendanceCallType.Time;
 
+    public bool Remind { get; private set; }
+
+    public DelegateCommand RemindCommand { get; }
+
     public int ReminderInterval
     {
         get => _reminderInterval;
@@ -81,6 +86,12 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
         _attendanceName = _timeCalls[_timeCallIndex];
     }
 
+    private void CloseWithReminder()
+    {
+        Remind = true;
+        CloseOkCommand.Execute();
+    }
+
     private void CopyAttendanceCall()
     {
         string message = AttendanceType.GetAttendanceCall(AttendanceName);
@@ -99,6 +110,10 @@ public interface IReminderDialogViewModel : IDialogViewModel
     DelegateCommand CopyAttendanceCallCommand { get; }
 
     bool IsTimeCall { get; }
+
+    bool Remind { get; }
+
+    DelegateCommand RemindCommand { get; }
 
     int ReminderInterval { get; set; }
 

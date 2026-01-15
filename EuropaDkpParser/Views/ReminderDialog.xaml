@@ -30,7 +30,7 @@
             <Label Grid.Column="1" Content="{StaticResource RemindInInterval}" VerticalAlignment="Center"/>
             <TextBox Grid.Column="2" Text="{Binding ReminderInterval}" Width="60" Padding="10,0,0,0"/>
             <Label Grid.Column="3" Content="{StaticResource Minutes}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <Button Grid.Column="4" Content="{StaticResource Remind}" Command="{Binding CloseCancelCommand}" 
+            <Button Grid.Column="4" Content="{StaticResource Remind}" Command="{Binding RemindCommand}" 
                 IsCancel="True" Width="100" Height="30" HorizontalAlignment="Right" />
         </Grid>
 
