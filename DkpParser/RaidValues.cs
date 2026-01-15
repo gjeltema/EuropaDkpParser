@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidValues.cs Copyright 2025 Craig Gjeltema
+// RaidValues.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -13,6 +13,7 @@ public sealed class RaidValues : IRaidValues
 {
     private const string AliasSection = "ZONE_ALIAS_SECTION";
     private const string BonusZonesSection = "BONUS_ZONES_SECTION";
+    private const string BossNoDruzzilSection = "BOSS_NO_DRUZZIL_SECTION";
     private const string BossSection = "BOSS_SECTION";
     private const string Comment = "#";
     private const char Delimiter = '\t';
@@ -27,6 +28,7 @@ public sealed class RaidValues : IRaidValues
     private readonly Dictionary<string, string> _zoneRaidAliases = [];
     private readonly List<ZoneValue> _zoneValues = [];
     private List<string> _bonusZones;
+    private List<string> _bossesNoDruzzil;
 
     public RaidValues(string raidValuesFileName)
     {
@@ -37,6 +39,9 @@ public sealed class RaidValues : IRaidValues
         => _bossKillValues.Select(x => x.BossName).ToList();
 
     public ICollection<string> AllValidRaidZoneNames { get; private set; }
+
+    public IEnumerable<string> BossesWithNoDruzzilMessage
+        => _bossesNoDruzzil;
 
     public IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; private set; }
 
@@ -147,6 +152,11 @@ public sealed class RaidValues : IRaidValues
     private void LoadBonusZones(string[] fileContents)
     {
         _bonusZones = GetAllEntriesInSection(fileContents, BonusZonesSection);
+    }
+
+    private void LoadBossNoDruzzilSection(string[] fileContents)
+    {
+        _bossesNoDruzzil = GetAllEntriesInSection(fileContents, BossNoDruzzilSection);
     }
 
     private void LoadBossSection(string[] fileContents)
@@ -304,6 +314,8 @@ public interface IRaidValues
     ICollection<string> AllBossMobNames { get; }
 
     ICollection<string> AllValidRaidZoneNames { get; }
+
+    IEnumerable<string> BossesWithNoDruzzilMessage { get; }
 
     IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; }
 

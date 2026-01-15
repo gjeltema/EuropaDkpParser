@@ -19,6 +19,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly ActiveBossKillAnalyzer _activeBossKillAnalyzer;
     private readonly ActiveAuctionEndAnalyzer _auctionEndAnalyzer;
     private readonly ActiveAuctionStartAnalyzer _auctionStartAnalyzer;
+    private readonly object _bossKilledLock = new();
     private readonly ChannelAnalyzer _channelAnalyzer;
     private readonly ItemLinkValues _itemLinkValues;
     private readonly IMessageProvider _messageProvider;
@@ -30,6 +31,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private string _bossKilledName;
     private ImmutableList<CompletedAuction> _completedAuctions;
     private ImmutableList<string> _currentAfks;
+    private string _lastBossKilled;
+    private DateTime _lastBossTime = DateTime.MinValue;
     private ImmutableList<MezBreak> _mezBreaks;
     private bool _readyCheckInitiated;
     private ImmutableList<LiveSpentCall> _spentCalls;
@@ -43,7 +46,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         _auctionStartAnalyzer = new();
         _auctionEndAnalyzer = new();
         _activeBiddingAnalyzer = new(settings);
-        _activeBossKillAnalyzer = new();
+        _activeBossKillAnalyzer = new(settings.RaidValue);
         _itemLinkValues = settings.ItemLinkIds;
 
         _activeAuctions = [];
@@ -88,8 +91,12 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     public string GetBossKilledName()
     {
-        string bossName = _bossKilledName;
-        _bossKilledName = null;
+        string bossName = null;
+        lock (_bossKilledLock)
+        {
+            bossName = _bossKilledName;
+            _bossKilledName = null;
+        }
         return bossName;
     }
 
@@ -436,7 +443,16 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
             if (bossKilledName != null)
             {
-                _bossKilledName = bossKilledName;
+                if (_lastBossKilled == bossKilledName && DateTime.Now.AddSeconds(-30) < _lastBossTime)
+                    return;
+
+                lock (_bossKilledLock)
+                {
+                    _bossKilledName = bossKilledName;
+                }
+                _lastBossKilled = bossKilledName;
+                _lastBossTime = DateTime.Now;
+
                 Log.Debug($"{LogPrefix} Extracted boss name: {bossKilledName} from line: {message}");
                 Updated = true;
                 return;

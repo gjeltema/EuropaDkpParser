@@ -44,6 +44,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private bool _isZealConnected;
     private string _itemLinkIdToAdd;
     private bool _lowRollWins;
+    private ICollection<MezBreak> _mezBreaks;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private bool _remindAttendances;
     private LiveAuctionDisplay _selectedActiveAuction;
@@ -251,6 +252,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         get => _lowRollWins;
         set => SetProperty(ref _lowRollWins, value);
+    }
+
+    public ICollection<MezBreak> MezBreaks
+    {
+        get => _mezBreaks;
+        set => SetProperty(ref _mezBreaks, value);
     }
 
     public DelegateCommand ReactivateCompletedAuctionCommand { get; }
@@ -729,6 +736,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         CurrentAfks = [.. _activeBidTracker.CurrentAfks.Order()];
 
+        MezBreaks = [.. _activeBidTracker.MezBreaks.OrderByDescending(x => x.TimeOfBreak)];
+
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }
 }
@@ -826,6 +835,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     ICollection<string> LogFileNames { get; }
 
     bool LowRollWins { get; set; }
+
+    ICollection<MezBreak> MezBreaks { get; }
 
     DelegateCommand ReactivateCompletedAuctionCommand { get; }
 
