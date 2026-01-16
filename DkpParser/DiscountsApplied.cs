@@ -27,6 +27,7 @@ public sealed class DiscountApplied
     public string ToDisplayString()
     {
         string itemName = Item.Replace('`', '\'');
-        return $"{CharacterName} for {itemName} reducing {OriginalSpent} to {AfterDiscountSpent} DKP for raid {AttendanceName} in {AttendanceZone}.";
+        string attendanceName = AttendanceName.Replace('`', '\'');
+        return $"{CharacterName} for {itemName} reducing {OriginalSpent} to {AfterDiscountSpent} DKP for raid {attendanceName} in {AttendanceZone}.";
     }
 }
