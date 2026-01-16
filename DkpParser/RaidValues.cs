@@ -78,6 +78,7 @@ public sealed class RaidValues : IRaidValues
         LoadZoneAliasSection(fileContents);
         LoadBonusZones(fileContents);
         LoadDkpDiscountsSection(fileContents);
+        LoadBossNoDruzzilSection(fileContents);
 
         AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).Union(_zoneRaidAliases.Keys).Order().ToList();
     }

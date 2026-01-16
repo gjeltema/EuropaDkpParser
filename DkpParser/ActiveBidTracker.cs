@@ -443,8 +443,12 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
             if (bossKilledName != null)
             {
+                Log.Debug($"{LogPrefix} Checking Boss Killed: {bossKilledName}");
                 if (_lastBossKilled == bossKilledName && DateTime.Now.AddSeconds(-30) < _lastBossTime)
+                {
+                    Log.Debug($"{LogPrefix} Ignoring. LastBossKilled: {_lastBossKilled}, LastTime: {_lastBossTime:T}");
                     return;
+                }
 
                 lock (_bossKilledLock)
                 {
@@ -453,7 +457,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 _lastBossKilled = bossKilledName;
                 _lastBossTime = DateTime.Now;
 
-                Log.Debug($"{LogPrefix} Extracted boss name: {bossKilledName} from line: {message}");
+                Log.Debug($"{LogPrefix} Extracted boss name: {bossKilledName} from line: {message}.");
                 Updated = true;
                 return;
             }

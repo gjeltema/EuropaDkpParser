@@ -20,7 +20,7 @@ public sealed class TailFile : IMessageProvider
     private bool _readingFile = false;
 
     public bool IsSendingMessages
-        => _readingFile && (DateTime.Now.AddSeconds(-10) < _lastUpdate);
+        => _readingFile && (DateTime.Now.AddSeconds(-30) < _lastUpdate);
 
     public void StartMessages(string filePath, Action<string> lineHandler)
     {

@@ -4,6 +4,8 @@
 
 namespace DkpParser.LiveTracking;
 
+using Gjeltema.Logging;
+
 internal sealed class ActiveBossKillAnalyzer
 {
     private const string DruzzilGuild = "Druzzil Ro tells the guild, '";
@@ -11,6 +13,7 @@ internal sealed class ActiveBossKillAnalyzer
     private const string HasKilled = " has killed ";
     private const string In = " in ";
     private const string Lockout = "You have incurred a lockout for ";
+    private const string LogPrefix = $"[{nameof(ActiveBossKillAnalyzer)}]";
     private const string Slain = " has been slain by ";
     private readonly IRaidValues _raidValues;
 
@@ -23,27 +26,28 @@ internal sealed class ActiveBossKillAnalyzer
     {
         if (logLine.Contains(Lockout))
         {
+            Log.Debug($"{LogPrefix} Lockout message: {logLine}");
             int indexOfEndOfLockout = logLine.IndexOf(Lockout) + Lockout.Length + 1;
             int indexOfExpires = logLine.IndexOf(Expires);
 
             string bossName = logLine[indexOfEndOfLockout..indexOfExpires].Trim();
-
             if (_raidValues.BossesWithNoDruzzilMessage.Contains(bossName))
                 return bossName;
         }
         else if (logLine.Contains(Slain))
         {
+            Log.Debug($"{LogPrefix} Slain message: {logLine}");
             string[] split = logLine.Split(Slain);
             if (split.Length != 2)
                 return null;
 
             string bossName = split[0].Trim();
-
             if (_raidValues.BossesWithNoDruzzilMessage.Contains(bossName))
                 return bossName;
         }
         else if (logLine.Contains(DruzzilGuild))
         {
+            Log.Debug($"{LogPrefix} Druzzil message: {logLine}");
             int inIndex = logLine.IndexOf(In);
             int killedIndex = logLine.IndexOf(HasKilled) + HasKilled.Length;
 
