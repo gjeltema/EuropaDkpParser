@@ -67,7 +67,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _settings = settings;
 
         _dkpDataRetriever = new DkpDataRetriever(settings);
-        _activeBidTracker = new(settings, new TailFile());
+        _activeBidTracker = new(settings, new MessageProviderFactory());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, this, overlayFactory, dialogFactory);
 
@@ -612,7 +612,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         if (!File.Exists(fileToTail))
             return;
 
-        _activeBidTracker.StopTracking();
         _activeBidTracker.StartTracking(fileToTail);
     }
 
@@ -729,6 +728,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         if (!IsReadingLogFile && _zealMessages.IsConnected && IsZealConnected)
         {
+            // Dont check against current character name - sometimes the Tail File stops tailing, and it needs to be able
+            // to refresh the tail in that case.  Keeping track of current character name and comparing it with Zeal char name
+            // prevents refreshing.
             string characterName = _zealMessages.CharacterInfo.CharacterName;
             Log.Debug($"{LogPrefix} Looking for log file to parse with character name: {characterName}");
             StartTailingLogFileForCharacter(characterName);

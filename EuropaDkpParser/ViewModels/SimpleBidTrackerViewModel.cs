@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// SimpleBidTrackerViewModel.cs Copyright 2025 Craig Gjeltema
+// SimpleBidTrackerViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -30,7 +30,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     {
         _settings = settings;
 
-        _activeBidTracker = new(settings, new TailFile());
+        _activeBidTracker = new(settings, new MessageProviderFactory());
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
         LogFileNames = [.. _settings.SelectedLogFiles];
@@ -153,7 +153,6 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
             return;
         }
 
-        _activeBidTracker.StopTracking();
         _activeBidTracker.StartTracking(fileToTail);
     }
 

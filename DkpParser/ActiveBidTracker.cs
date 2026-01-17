@@ -22,7 +22,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly object _bossKilledLock = new();
     private readonly ChannelAnalyzer _channelAnalyzer;
     private readonly ItemLinkValues _itemLinkValues;
-    private readonly IMessageProvider _messageProvider;
+    private readonly IMessageProviderFactory _messageProviderFactory;
     private readonly ConcurrentQueue<CharacterReadyCheckStatus> _readyCheckStatus = new();
     private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly IDkpParserSettings _settings;
@@ -33,16 +33,18 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private ImmutableList<string> _currentAfks;
     private string _lastBossKilled;
     private DateTime _lastBossTime = DateTime.MinValue;
+    private IMessageProvider _messageProvider;
     private ImmutableList<MezBreak> _mezBreaks;
     private bool _readyCheckInitiated;
     private ImmutableList<LiveSpentCall> _spentCalls;
 
-    public ActiveBidTracker(IDkpParserSettings settings, IMessageProvider messageProvider)
+    public ActiveBidTracker(IDkpParserSettings settings, IMessageProviderFactory messageProviderFactory)
     {
         _settings = settings;
 
         _channelAnalyzer = new(settings);
-        _messageProvider = messageProvider;
+
+        _messageProviderFactory = messageProviderFactory;
         _auctionStartAnalyzer = new();
         _auctionEndAnalyzer = new();
         _activeBiddingAnalyzer = new(settings);
@@ -70,7 +72,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         => _currentAfks;
 
     public bool IsParsingLogFile
-        => _messageProvider.IsSendingMessages;
+        => _messageProvider?.IsSendingMessages ?? false;
 
     public IEnumerable<MezBreak> MezBreaks
         => _mezBreaks;
@@ -258,10 +260,14 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     }
 
     public void StartTracking(string fileName)
-        => _messageProvider.StartMessages(fileName, ProcessMessage);
+    {
+        _messageProvider?.StopMessages();
+        _messageProvider = _messageProviderFactory.CreateTailFileProvider(fileName, ProcessMessage);
+        _messageProvider.StartMessages();
+    }
 
     public void StopTracking()
-        => _messageProvider.StopMessages();
+        => _messageProvider?.StopMessages();
 
     public void TakeAttendanceSnapshot(string raidName, AttendanceCallType callType)
     {

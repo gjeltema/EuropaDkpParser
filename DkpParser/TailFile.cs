@@ -12,53 +12,83 @@ public sealed class TailFile : IMessageProvider
 {
     private const string LogPrefix = $"[{nameof(TailFile)}]";
     private const int Timeout = 500;
+    private readonly string _filePath;
+    private readonly object _lastUpdateLock = new();
+    private readonly Action<string> _lineHandler;
     private CancellationTokenSource _cancellationTokenSource;
-    private string _filePath;
     private Thread _fileReaderThread;
-    private DateTime _lastUpdate;
-    private Action<string> _lineHandler;
-    private bool _readingFile = false;
+    private DateTime _lastUpdate = DateTime.MinValue;
+
+    public TailFile(string filePath, Action<string> lineHandler)
+    {
+        _filePath = filePath;
+        _lineHandler = lineHandler;
+    }
 
     public bool IsSendingMessages
-        => _readingFile && (DateTime.Now.AddSeconds(-30) < _lastUpdate);
-
-    public void StartMessages(string filePath, Action<string> lineHandler)
     {
-        Log.Info($"{LogPrefix} Entering {nameof(StartMessages)} with file: {filePath}");
-
-        if (string.IsNullOrWhiteSpace(filePath))
-            return;
-
-        if (!File.Exists(filePath))
+        get
         {
-            Log.Info($"{LogPrefix} File {filePath} does not exist.  Existing {nameof(StartMessages)}.");
+            bool sending = (_fileReaderThread?.IsAlive ?? false) && (DateTime.Now.AddSeconds(-40) < LastUpdate);
+            if (!sending)
+                Log.Debug($"{LogPrefix} In {nameof(IsSendingMessages)}, Last Update: {LastUpdate:T}, LastUpdate result: {DateTime.Now.AddSeconds(-30) < LastUpdate:T}, Thread is alive: '{_fileReaderThread?.IsAlive}'");
+            return sending;
+        }
+    }
+
+    private DateTime LastUpdate
+    {
+        get
+        {
+            lock (_lastUpdateLock)
+                return _lastUpdate;
+        }
+        set
+        {
+            lock (_lastUpdateLock)
+                _lastUpdate = value;
+        }
+    }
+
+    private string ThreadIdText
+        => $" Thread ID [{Environment.CurrentManagedThreadId}]";
+
+    public void StartMessages()
+    {
+        Log.Info($"{LogPrefix}{ThreadIdText} Entering {nameof(StartMessages)} with file: {_filePath}.");
+
+        if (IsSendingMessages)
+        {
+            Log.Info($"{LogPrefix} {nameof(IsSendingMessages)} is true, exiting.");
             return;
         }
 
-        StopMessages();
+        if (string.IsNullOrWhiteSpace(_filePath))
+            return;
 
-        _lineHandler = lineHandler;
-
-        _filePath = filePath;
+        if (!File.Exists(_filePath))
+        {
+            Log.Info($"{LogPrefix} File {_filePath} does not exist.  Existing {nameof(StartMessages)}.");
+            return;
+        }
 
         _cancellationTokenSource = new CancellationTokenSource();
         _fileReaderThread = new(() => ReadFile(_cancellationTokenSource.Token));
         _fileReaderThread.IsBackground = true;
         _fileReaderThread.Start();
 
-        _lastUpdate = DateTime.Now;
+        LastUpdate = DateTime.Now;
     }
 
     public void StopMessages()
     {
-        Log.Info($"{LogPrefix} Entering {nameof(StopMessages)}.");
+        Log.Info($"{LogPrefix} Entering {nameof(StopMessages)}, for base thread ID: {Environment.CurrentManagedThreadId}.");
 
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
         _fileReaderThread = null;
-        _readingFile = false;
-        _lastUpdate = DateTime.MinValue;
+        LastUpdate = DateTime.MinValue;
     }
 
     private void ReadFile(CancellationToken cancelToken)
@@ -66,14 +96,13 @@ public sealed class TailFile : IMessageProvider
         string filePath = _filePath;
         try
         {
-            Log.Info($"{LogPrefix} Starting {nameof(ReadFile)} with filepath: {filePath}.");
+            Log.Info($"{LogPrefix}{ThreadIdText} Starting {nameof(ReadFile)} with filepath: {filePath}.");
 
             using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using StreamReader reader = new(fileStream);
 
             long lastOffset = reader.BaseStream.Length;
 
-            _readingFile = true;
 
             while (!cancelToken.IsCancellationRequested)
             {
@@ -81,7 +110,7 @@ public sealed class TailFile : IMessageProvider
 
                 if (cancelToken.IsCancellationRequested)
                 {
-                    Log.Info($"{LogPrefix} Cancellation Token cancel requested.");
+                    Log.Info($"{LogPrefix}{ThreadIdText} Cancellation Token cancel requested for filepath: {filePath}.");
                     break;
                 }
 
@@ -95,12 +124,12 @@ public sealed class TailFile : IMessageProvider
                 {
                     try
                     {
-                        _lastUpdate = DateTime.Now;
+                        LastUpdate = DateTime.Now;
                         _lineHandler(line);
                     }
                     catch (Exception e)
                     {
-                        Log.Error($"{LogPrefix} Error encountered when processing line: {line}{Environment.NewLine}Error: {e.ToLogMessage()}");
+                        Log.Error($"{LogPrefix}{ThreadIdText} Error encountered in filepath {filePath} when processing line: {line}{Environment.NewLine}Error: {e.ToLogMessage()}");
                     }
                 }
 
@@ -112,11 +141,10 @@ public sealed class TailFile : IMessageProvider
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} Error encountered when processing messages: Error: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix}{ThreadIdText} Error encountered when processing messages from filepath {filePath}: Error: {ex.ToLogMessage()}");
         }
 
-        _readingFile = false;
-        Log.Info($"{LogPrefix} Leaving {nameof(ReadFile)} for filepath: {filePath}");
+        Log.Info($"{LogPrefix}{ThreadIdText} Leaving {nameof(ReadFile)} for filepath: {filePath}");
     }
 }
 
@@ -124,7 +152,7 @@ public interface IMessageProvider
 {
     bool IsSendingMessages { get; }
 
-    void StartMessages(string filePath, Action<string> lineHandler);
+    void StartMessages();
 
     void StopMessages();
 }

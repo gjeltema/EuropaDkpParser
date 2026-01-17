@@ -14,16 +14,21 @@ internal sealed class ZealNamedPipe
 {
     private const string LogPrefix = $"[{nameof(ZealNamedPipe)}]";
     private CancellationTokenSource _cancelTokenSource;
+    private Thread _messageListenerThread;
 
     private ZealNamedPipe() { }
 
     public static ZealNamedPipe Instance { get; } = new();
 
-    public bool IsConnected { get; private set; } = false;
+    public bool IsConnected
+        => _messageListenerThread?.IsAlive ?? false;
+
+    private string ThreadIdText
+        => $" Thread ID [{Environment.CurrentManagedThreadId}]";
 
     public void StartListening(IZealMessageUpdater messageUpdater)
     {
-        Log.Debug($"{LogPrefix} In {nameof(StartListening)}.");
+        Log.Debug($"{LogPrefix}{ThreadIdText} In {nameof(StartListening)}.");
 
         if (_cancelTokenSource != null)
         {
@@ -40,17 +45,17 @@ internal sealed class ZealNamedPipe
         {
             string pipeName = string.Format(Constants.ZealPipeNameFormat, eqProcess.Id.ToString());
 
-            Thread messageListenerThread = new(() => ProcessZealPipeMessages(pipeName, messageUpdater, _cancelTokenSource.Token));
-            messageListenerThread.IsBackground = true;
+            _messageListenerThread = new(() => ProcessZealPipeMessages(pipeName, messageUpdater, _cancelTokenSource.Token));
+            _messageListenerThread.IsBackground = true;
 
             Log.Info($"{LogPrefix} Spawning thread to listen to pipe, pipe name {pipeName}.");
-            messageListenerThread.Start();
+            _messageListenerThread.Start();
         }
     }
 
     public void StopListening()
     {
-        Log.Info($"{LogPrefix} {nameof(StopListening)} called.");
+        Log.Info($"{LogPrefix} Thread ID: {Environment.CurrentManagedThreadId} - {nameof(StopListening)} called.");
 
         _cancelTokenSource?.Cancel();
         _cancelTokenSource?.Dispose();
@@ -61,7 +66,7 @@ internal sealed class ZealNamedPipe
     {
         try
         {
-            Log.Info($"{LogPrefix} Starting Zeal Pipe listener, pipe name {pipeName}.");
+            Log.Info($"{LogPrefix}{ThreadIdText} Starting Zeal Pipe listener, pipe name {pipeName}.");
 
             ZealMessageProcessor messageProcessor = new(messageUpdater);
 
@@ -69,8 +74,7 @@ internal sealed class ZealNamedPipe
             {
                 pipeClient.Connect();
 
-                Log.Debug($"{LogPrefix} Zeal Pipe connected.");
-                IsConnected = true;
+                Log.Debug($"{LogPrefix}{ThreadIdText} Zeal Pipe connected.");
 
                 Span<char> charBuffer = new char[Constants.ZealPipeBufferSize];
                 Span<byte> pipeReadBytes = new byte[Constants.ZealPipeBufferSize];
@@ -79,7 +83,7 @@ internal sealed class ZealNamedPipe
                 {
                     if (!pipeClient.IsConnected)
                     {
-                        Log.Info($"{LogPrefix} Zeal Pipe is no longer connected");
+                        Log.Info($"{LogPrefix}{ThreadIdText} Zeal Pipe is no longer connected");
                         break;
                     }
 
@@ -87,7 +91,7 @@ internal sealed class ZealNamedPipe
 
                     if (cancelToken.IsCancellationRequested)
                     {
-                        Log.Info($"{LogPrefix} CancelToken cancellation requested.");
+                        Log.Info($"{LogPrefix}{ThreadIdText} CancelToken cancellation requested.");
                         break;
                     }
 
@@ -96,23 +100,23 @@ internal sealed class ZealNamedPipe
                         int charsWritten = Encoding.UTF8.GetChars(pipeReadBytes[..bytesRead], charBuffer);
                         if (charsWritten == 0)
                         {
-                            Log.Debug($"{LogPrefix} Unable to decode chars from message");
+                            Log.Debug($"{LogPrefix}{ThreadIdText} Unable to decode chars from message");
                             continue;
                         }
 
-                        Log.Trace($"{LogPrefix} Zeal message received.  CharsWritten: {charsWritten}.  Message: {charBuffer[..charsWritten].ToString()}");
+                        Log.Trace($"{LogPrefix}{ThreadIdText} Zeal message received.  CharsWritten: {charsWritten}.  Message: {charBuffer[..charsWritten].ToString()}");
 
                         try
                         {
                             if (!messageProcessor.ProcessMessage(charBuffer[..charsWritten], charsWritten))
                             {
-                                Log.Info($"{LogPrefix} Ending listening to pipe {pipeName}.");
+                                Log.Info($"{LogPrefix}{ThreadIdText} Ending listening to pipe {pipeName}.");
                                 break;
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"{LogPrefix} Error processing zeal message: {ex.ToLogMessage()}");
+                            Log.Error($"{LogPrefix}{ThreadIdText} Error processing zeal message: {ex.ToLogMessage()}");
                         }
                     }
                     else
@@ -124,16 +128,15 @@ internal sealed class ZealNamedPipe
         }
         catch (IOException ioex) when (ioex.InnerException is ObjectDisposedException)
         {
-            Log.Error($"{LogPrefix} Pipe object disposed error: {ioex.ToLogMessage()}");
+            Log.Error($"{LogPrefix}{ThreadIdText} Pipe object disposed error: {ioex.ToLogMessage()}");
             messageUpdater.SendPipeError("Zeal named pipe was disposed.  Close Bid Tracker window and reopen to re-connect.", ioex);
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} Pipe read error: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix}{ThreadIdText} Pipe read error: {ex.ToLogMessage()}");
             messageUpdater.SendPipeError("Unexpected error with Zeal named pipe.  Close Bid Tracker window and reopen to re-connect.", ex);
         }
 
-        IsConnected = false;
-        Log.Info($"{LogPrefix} Exiting listening to Zeal Pipe name: {pipeName}.  CancelToken IsCancelled:{cancelToken.IsCancellationRequested}");
+        Log.Info($"{LogPrefix}{ThreadIdText} Exiting listening to Zeal Pipe name: {pipeName}.  CancelToken IsCancelled:{cancelToken.IsCancellationRequested}");
     }
 }

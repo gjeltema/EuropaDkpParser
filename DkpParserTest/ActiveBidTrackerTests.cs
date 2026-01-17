@@ -310,8 +310,22 @@ internal sealed class ActiveBidTrackerTests
         itemLinkValues.AddItemId("Robe of Primal Force", "123456");
         SettingsMock settings = new(itemLinkValues);
         _messageProvider = new();
-        _systemUnderTest = new ActiveBidTracker(settings, _messageProvider);
+        MessageProviderFactoryMock factoryMock = new(_messageProvider);
+        _systemUnderTest = new ActiveBidTracker(settings, factoryMock);
     }
+}
+
+internal sealed class MessageProviderFactoryMock : IMessageProviderFactory
+{
+    private readonly MessageProviderMock _mock;
+
+    public MessageProviderFactoryMock(MessageProviderMock mock)
+    {
+        _mock = mock;
+    }
+
+    public IMessageProvider CreateTailFileProvider(string filePath, Action<string> lineHandler)
+        => _mock;
 }
 
 internal sealed class MessageProviderMock : IMessageProvider
@@ -323,14 +337,16 @@ internal sealed class MessageProviderMock : IMessageProvider
     public void SendMessage(string message)
         => _lineHandler(message);
 
+    public void StartMessages()
+    { }
+
     public void StartMessages(string filePath, Action<string> lineHandler)
     {
         _lineHandler = lineHandler;
     }
 
     public void StopMessages()
-    {
-    }
+    { }
 }
 
 internal sealed class SettingsMock : IDkpParserSettings
