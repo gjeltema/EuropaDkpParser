@@ -26,6 +26,7 @@ internal sealed class ActiveBossKillAnalyzer
     {
         if (logLine.Contains(Lockout))
         {
+            // [Wed Jan 14 23:41:07 2026] You have incurred a lockout for Va Xi Aten Ha Ra that expires in 6 Days and 18 Hours.
             Log.Debug($"{LogPrefix} Lockout message: {logLine}");
             int indexOfEndOfLockout = logLine.IndexOf(Lockout) + Lockout.Length + 1;
             int indexOfExpires = logLine.IndexOf(Expires);
@@ -36,6 +37,7 @@ internal sealed class ActiveBossKillAnalyzer
         }
         else if (logLine.Contains(Slain))
         {
+            // [Wed Jan 14 23:41:07 2026] Va Xi Aten Ha Ra has been slain by Motanz!
             Log.Debug($"{LogPrefix} Slain message: {logLine}");
             string[] split = logLine.Split(Slain);
             if (split.Length != 2)
@@ -47,6 +49,7 @@ internal sealed class ActiveBossKillAnalyzer
         }
         else if (logLine.Contains(DruzzilGuild))
         {
+            // [Wed Jan 14 23:41:07 2026] Druzzil Ro tells the guild, 'Brydda of <Europa> has killed Va Xi Aten Ha Ra in Vex Thal!'
             Log.Debug($"{LogPrefix} Druzzil message: {logLine}");
             int inIndex = logLine.IndexOf(In);
             int killedIndex = logLine.IndexOf(HasKilled) + HasKilled.Length;

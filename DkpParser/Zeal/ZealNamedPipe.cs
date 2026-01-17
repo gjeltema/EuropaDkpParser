@@ -55,7 +55,7 @@ internal sealed class ZealNamedPipe
 
     public void StopListening()
     {
-        Log.Info($"{LogPrefix} Thread ID: {Environment.CurrentManagedThreadId} - {nameof(StopListening)} called.");
+        Log.Info($"{LogPrefix}{ThreadIdText} {nameof(StopListening)} called.");
 
         _cancelTokenSource?.Cancel();
         _cancelTokenSource?.Dispose();
