@@ -26,7 +26,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly DispatcherTimer _updateTimer;
     private readonly IZealMessageProvider _zealMessages;
     private ICollection<LiveAuctionDisplay> _activeAuctions;
-    private string _attendanceNowBossName;
     private bool _attendanceNowKillCall;
     private bool _attendanceNowTimeCall;
     private string _auctionStatusMessageToPaste;
@@ -114,8 +113,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public string AttendanceNowBossName
     {
-        get => _attendanceNowBossName;
-        set => SetProperty(ref _attendanceNowBossName, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     public bool AttendanceNowKillCall
