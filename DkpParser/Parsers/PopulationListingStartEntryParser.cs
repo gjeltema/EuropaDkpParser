@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// PopulationListingStartEntryParser.cs Copyright 2025 Craig Gjeltema
+// PopulationListingStartEntryParser.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -25,6 +25,15 @@ internal sealed class PopulationListingStartEntryParser : IPopulationListingStar
 
     public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
     {
+        /*
+[Tue Dec 02 21:12:41 2025] Players on EverQuest:
+[Tue Dec 02 21:12:41 2025] ---------------------------
+[Tue Dec 02 21:12:41 2025] [60 Warder] Huggin (Human) <Europa>
+[Tue Dec 02 21:12:41 2025] [ANONYMOUS] Squidhunter  <Europa>
+[Tue Dec 02 21:12:41 2025] [60 Virtuoso] Kassandra (Wood Elf) <Europa>
+[Tue Dec 02 21:12:41 2025] There are 74 players in Temple of Veeshan.
+        */
+
         if (_finishedParse)
         {
             _finishedParse = false;

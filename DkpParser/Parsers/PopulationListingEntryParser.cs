@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// PopulationListingEntryParser.cs Copyright 2025 Craig Gjeltema
+// PopulationListingEntryParser.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -26,7 +26,8 @@ internal sealed class PopulationListingEntryParser : IParseEntry
         // [Sun Jun 09 19:59:39 2024] [50 Magician] Cemtex (Dark Elf) <Europa> LFG
         // [Sun Jun 09 19:59:39 2024] [ANONYMOUS] Cyberjam  <Europa>
         // [Mon Oct 28 21:32:54 2024]  AFK [55 Blackguard] Ilsidor (Human) <Europa>
-        if (logLine.Contains(Constants.GuildTag) && !logLine.Contains("Druzzil Ro tells the guild") && !logLine.Contains($" of {Constants.GuildTag}"))
+        // [Tue Dec 02 21:12:25 2025] Druzzil Ro tells the guild, 'Siddhaya of <Europa> has killed Lord Feshlak in Temple of Veeshan!'
+        if (logLine.Contains(Constants.GuildTag) && !logLine.Contains("Druzzil Ro tells the guild"))
         {
             EqLogEntry logEntry = new()
             {

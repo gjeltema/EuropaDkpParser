@@ -37,8 +37,23 @@ internal sealed class PrimaryEntryParser : IParseEntry
         }
         else if (logLine.EndsWith(Constants.EndLootedDashes))
         {
+            // [Tue Dec 02 20:18:14 2025] --Mamdar has looted a Flame Kissed Tear.--
             if (logLine.Contains(Constants.LootedA))
                 AddLootedEntry(logLine, entryTimeStamp);
+        }
+        else if (logLine.EndsWith(Constants.PlayersOnEverquest))
+        {
+            /*
+[Tue Dec 02 21:12:41 2025] Players on EverQuest:
+[Tue Dec 02 21:12:41 2025] ---------------------------
+[Tue Dec 02 21:12:41 2025] [60 Warder] Huggin (Human) <Europa>
+[Tue Dec 02 21:12:41 2025] [ANONYMOUS] Squidhunter  <Europa>
+[Tue Dec 02 21:12:41 2025] [60 Virtuoso] Kassandra (Wood Elf) <Europa>
+[Tue Dec 02 21:12:41 2025] There are 74 players in Temple of Veeshan.
+        */
+            _populationListingStartParser.SetStartTimeStamp(entryTimeStamp);
+            _setParser.SetEntryParser(_populationListingStartParser);
+            _populationListingStartParser.ParseEntry(logLine, entryTimeStamp);
         }
         // Check for just 'raid.' first as it's a fast check. Do more in depth parsing of the line if this is present.
         else if (logLine.EndsWith(Constants.Raid))

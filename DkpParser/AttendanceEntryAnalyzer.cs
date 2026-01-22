@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceEntryAnalyzer.cs Copyright 2025 Craig Gjeltema
+// AttendanceEntryAnalyzer.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -41,9 +41,9 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         IdentifyMultipleCharactersOnOneAccount();
     }
 
-    private void AddCharactersFromCharactersAttending(EqLogEntry logEntry, AttendanceEntry call)
+    private void AddCharactersFromCharactersAttending(DateTime timestamp, AttendanceEntry call)
     {
-        foreach (CharacterAttend character in _charactersAttending.Where(x => x.Timestamp.IsWithinDurationOfPopulationThreshold(logEntry.Timestamp)))
+        foreach (CharacterAttend character in _charactersAttending.Where(x => x.Timestamp.IsWithinDurationOfPopulationThreshold(timestamp)))
         {
             call.AddOrMergeInPlayerCharacter(new PlayerCharacter { CharacterName = character.CharacterName });
             if (character.IsAfk)
@@ -434,7 +434,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
                     AddRaidDumpMembers(logParseResults, logEntry, call);
 
-                    AddCharactersFromCharactersAttending(logEntry, call);
+                    AddCharactersFromCharactersAttending(logEntry.Timestamp, call);
 
                     UpdateCharacterInfo(call);
 
@@ -470,6 +470,8 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 Characters = zealAttendance.CharacterNames,
                 RawHeaderLogLine = string.Empty
             };
+
+            AddCharactersFromCharactersAttending(zealAttendance.FileDateTime, attendance);
 
             if (!_settings.RaidValue.AllValidRaidZoneNames.Contains(attendance.ZoneName))
             {
