@@ -73,15 +73,15 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public string EqDirectory { get; set; } = string.Empty;
 
-    public int EqLogFileAgeToArchiveInDays { get; set; }
+    public int EqLogFileAgeToArchiveInDays { get; set; } = 90;
 
     public string EqLogFileArchiveDirectory { get; set; }
 
-    public int EqLogFileSizeToArchiveInMBs { get; set; }
+    public int EqLogFileSizeToArchiveInMBs { get; set; } = 1000;
 
     public ICollection<string> EqLogFilesToArchive { get; set; } = [];
 
-    public int GeneratedLogFilesAgeToArchiveInDays { get; set; }
+    public int GeneratedLogFilesAgeToArchiveInDays { get; set; } = 30;
 
     public string GeneratedLogFilesArchiveDirectory { get; set; }
 
@@ -102,17 +102,17 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public int MainWindowY { get; set; } = DefaultWindowLocation;
 
-    public int MezBreaksToShow { get; set; }
+    public int MezBreaksToShow { get; set; } = 4;
 
     public string OutputDirectory { get; set; }
 
     public string OverlayFontColor { get; set; } = DefaultOverlayFontColor;
 
-    public int OverlayFontSize { get; set; }
+    public int OverlayFontSize { get; set; } = 20;
 
-    public int OverlayLocationX { get; set; }
+    public int OverlayLocationX { get; set; } = 100;
 
-    public int OverlayLocationY { get; set; }
+    public int OverlayLocationY { get; set; } = 100;
 
     public IRaidValues RaidValue { get; private set; }
 
