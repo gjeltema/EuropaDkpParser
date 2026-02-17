@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendeesModifierDialogViewModel.cs Copyright 2025 Craig Gjeltema
+// AttendeesModifierDialogViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -14,6 +14,7 @@ internal sealed class AttendeesModifierDialogViewModel : DialogViewModelBase, IA
     private string _commandResultsMessage;
     private bool _commandSuccess;
     private bool _displayResultsMessage;
+    private int _numberOfAttendees;
     private string _selectedAttendee;
 
     public AttendeesModifierDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries)
@@ -61,6 +62,12 @@ internal sealed class AttendeesModifierDialogViewModel : DialogViewModelBase, IA
         set => SetProperty(ref _displayResultsMessage, value);
     }
 
+    public int NumberOfAttendees
+    {
+        get => _numberOfAttendees;
+        private set => SetProperty(ref _numberOfAttendees, value);
+    }
+
     public DelegateCommand RemoveCharacterFromSelectedAttendancesCommand { get; }
 
     public ICollection<AttendanceEntry> SelectedAttendances { get; set; } = [];
@@ -102,6 +109,7 @@ internal sealed class AttendeesModifierDialogViewModel : DialogViewModelBase, IA
         DisplayResultsMessage = false;
         CommandSuccess = false;
         CommandResultsMessage = string.Empty;
+        NumberOfAttendees = 0;
     }
 
     private PlayerCharacter GetSelectedCharacter()
@@ -146,6 +154,8 @@ internal sealed class AttendeesModifierDialogViewModel : DialogViewModelBase, IA
 
         if (previouslySelected != null && Attendees.Contains(previouslySelected.CharacterName))
             SelectedAttendee = previouslySelected.CharacterName;
+
+        NumberOfAttendees = Attendees.Count;
     }
 
     private void SetResults(bool success, string message)
@@ -171,6 +181,8 @@ public interface IAttendeesModifierDialogViewModel : IDialogViewModel
     bool CommandSuccess { get; }
 
     bool DisplayResultsMessage { get; }
+
+    int NumberOfAttendees { get; }
 
     DelegateCommand RemoveCharacterFromSelectedAttendancesCommand { get; }
 
