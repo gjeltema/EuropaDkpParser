@@ -19,8 +19,10 @@ public sealed class RaidValues : IRaidValues
     private const char Delimiter = '\t';
     private const string DkpDiscountsSection = "DKP_DISCOUNTS_SECTION";
     private const string LogPrefix = $"[{nameof(RaidValues)}]";
+    private const string OnlyTimeCallsKillSection = "ONLY_TIME_CALLS_KILL_SECTION";
     private const string SectionEnding = "_END";
     private const string TierSection = "TIER_SECTION";
+    private const string UseTimeOnlyWithConfiguredKillCallsSection = "USE_TIME_ONLY_WITH_CONFIGURED_KILL_CALLS";
     private const string ZoneValueSection = "ZONE_SECTION";
     private readonly List<BossKillValue> _bossKillValues = [];
     private readonly string _raidValuesFileName;
@@ -29,6 +31,7 @@ public sealed class RaidValues : IRaidValues
     private readonly List<ZoneValue> _zoneValues = [];
     private List<string> _bonusZones;
     private List<string> _bossesNoDruzzil;
+    private List<string> _onlyKillCalls;
 
     public RaidValues(string raidValuesFileName)
     {
@@ -44,6 +47,11 @@ public sealed class RaidValues : IRaidValues
         => _bossesNoDruzzil;
 
     public IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; private set; }
+
+    public IEnumerable<string> OnlyKillCalls
+        => _onlyKillCalls;
+
+    public bool UseTimeOnlyWithConfiguredKillCalls { get; private set; }
 
     public int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry)
     {
@@ -79,7 +87,9 @@ public sealed class RaidValues : IRaidValues
         LoadBonusZones(fileContents);
         LoadDkpDiscountsSection(fileContents);
         LoadBossNoDruzzilSection(fileContents);
+        LoadTimeOnlyKillsSection(fileContents);
 
+        UseTimeOnlyWithConfiguredKillCalls = GetBoolValue(fileContents, UseTimeOnlyWithConfiguredKillCallsSection);
         AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).Union(_zoneRaidAliases.Keys).Order().ToList();
     }
 
@@ -111,6 +121,20 @@ public sealed class RaidValues : IRaidValues
         }
 
         return entries;
+    }
+
+    private bool GetBoolValue(string[] fileContents, string key, bool defaultValue = false)
+    {
+        int index = Array.FindIndex(fileContents, x => x.StartsWith(key));
+        if (!IsValidIndex(index, fileContents))
+            return defaultValue;
+
+        string setting = fileContents[index];
+        string[] split = setting.Split(Delimiter);
+        if (split.Length > 1)
+            return split[1].Equals("TRUE", StringComparison.OrdinalIgnoreCase);
+
+        return defaultValue;
     }
 
     private int GetBossKillValue(string bossName, string zoneName)
@@ -227,6 +251,11 @@ public sealed class RaidValues : IRaidValues
         }
     }
 
+    private void LoadTimeOnlyKillsSection(string[] fileContents)
+    {
+        _onlyKillCalls = GetAllEntriesInSection(fileContents, OnlyTimeCallsKillSection);
+    }
+
     private void LoadZoneAliasSection(string[] fileContents)
     {
         ICollection<string> entries = GetAllEntriesInSection(fileContents, AliasSection);
@@ -319,6 +348,10 @@ public interface IRaidValues
     IEnumerable<string> BossesWithNoDruzzilMessage { get; }
 
     IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; }
+
+    IEnumerable<string> OnlyKillCalls { get; }
+
+    bool UseTimeOnlyWithConfiguredKillCalls { get; }
 
     int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry);
 

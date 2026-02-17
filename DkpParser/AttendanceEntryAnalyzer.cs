@@ -104,6 +104,12 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         IEnumerable<AttendanceEntry> calls = logCalls.Concat(zealCalls);
         foreach (AttendanceEntry attendance in calls.OrderBy(x => x.Timestamp))
         {
+            if (attendance.AttendanceCallType == AttendanceCallType.Kill && _settings.RaidValue.UseTimeOnlyWithConfiguredKillCalls)
+            {
+                if (!_settings.RaidValue.OnlyKillCalls.Contains(attendance.CallName))
+                    continue;
+            }
+
             _raidEntries.AttendanceEntries.Add(attendance);
         }
     }

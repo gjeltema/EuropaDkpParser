@@ -456,6 +456,12 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                     return;
                 }
 
+                if (_settings.RaidValue.UseTimeOnlyWithConfiguredKillCalls)
+                {
+                    if (!_settings.RaidValue.OnlyKillCalls.Contains(bossKilledName))
+                        return;
+                }
+
                 lock (_bossKilledLock)
                 {
                     _bossKilledName = bossKilledName;
