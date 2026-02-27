@@ -36,6 +36,8 @@ public sealed class RaidEntries
 
     public ICollection<DkpEntry> RemovedDkpEntries { get; set; } = new List<DkpEntry>();
 
+    public ICollection<DkpAwardOverride> DkpAwardOverrides { get; set; } = [];
+
     public ICollection<PlayerCharacter> RemovedPlayerCharacters { get; } = new HashSet<PlayerCharacter>();
 
     public ICollection<DkpTransfer> Transfers { get; set; } = new List<DkpTransfer>();

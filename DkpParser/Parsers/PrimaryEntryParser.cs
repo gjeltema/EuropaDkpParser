@@ -171,5 +171,17 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.HitSquad);
         }
+        else if (noWhitespaceSanitized.Contains(Constants.SetAwardedDKPWithDelimiter, StringComparison.OrdinalIgnoreCase)
+            || noWhitespaceSanitized.Contains(Constants.SetAwardedDKPAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.SetAwardedDkp);
+        }
+        else if (noWhitespaceSanitized.Contains(Constants.SetAwardedDKPEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
+            || noWhitespaceSanitized.Contains(Constants.SetAwardedDKPEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase)
+            || noWhitespaceSanitized.Contains(Constants.SetAwardedDKPEndWithDelimiter2, StringComparison.OrdinalIgnoreCase)
+            || noWhitespaceSanitized.Contains(Constants.SetAwardedDKPEndAlternateDelimiter2, StringComparison.OrdinalIgnoreCase))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.SetAwardedDkpEnd);
+        }
     }
 }

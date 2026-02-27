@@ -42,7 +42,9 @@ public enum LogEntryType : byte
     AfkStart,
     AfkEnd,
     Transfer,
-    HitSquad
+    HitSquad,
+    SetAwardedDkp,
+    SetAwardedDkpEnd
 }
 
 public enum PossibleError : byte

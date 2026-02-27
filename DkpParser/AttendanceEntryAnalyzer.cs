@@ -4,9 +4,7 @@
 
 namespace DkpParser;
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Gjeltema.Logging;
 
 internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
@@ -35,6 +33,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         PopulateZoneNames(logParseResults);
 
         AnalyzeLogFilesAttendanceCalls(logParseResults);
+        ProcessSetDkpEntries(logParseResults);
         HandleCrashedEntries(logParseResults);
         HandleAfkTags(logParseResults);
         HandleTransfers(logParseResults);
@@ -414,6 +413,18 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             .OrderBy(x => x.Timestamp)
             .MaxBy(x => x.Timestamp);
 
+    private int GetDkpFromSetDkpEntry(string logLine)
+    {
+        string sanitizedLogLine = logLine.RemoveAllWhitespace();
+        sanitizedLogLine = _sanitizer.SanitizeDelimiterString(sanitizedLogLine);
+
+        string delimiter = logLine.Contains(Constants.AttendanceDelimiter) ? Constants.AttendanceDelimiter : Constants.AlternateDelimiter;
+        string[] stringSplit = logLine.Split(delimiter);
+        string dkpText = stringSplit[2];
+        int dkpValue = int.Parse(dkpText);
+        return dkpValue;
+    }
+
     private List<AttendanceEntry> GetLogBasedAttendanceCalls(LogParseResults logParseResults)
     {
         List<AttendanceEntry> calls = [];
@@ -635,6 +646,53 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
             _zonePerAttendance.AddRange(zones);
         }
+    }
+
+    private void ProcessSetDkpEntries(LogParseResults logParseResults)
+    {
+        IEnumerable<EqLogEntry> setDkpEntries = from logFile in logParseResults.EqLogFiles
+                                                from logEntry in logFile.LogEntries
+                                                where logEntry.EntryType == LogEntryType.SetAwardedDkp || logEntry.EntryType == LogEntryType.SetAwardedDkpEnd
+                                                orderby logEntry.Timestamp
+                                                select logEntry;
+
+        List<DkpAwardOverride> overrides = [];
+        foreach (EqLogEntry setEntry in setDkpEntries)
+        {
+            try
+            {
+                DkpAwardOverride lastEntry = overrides.LastOrDefault();
+                if (setEntry.EntryType == LogEntryType.SetAwardedDkp)
+                {
+                    // If the previous SET entry doesnt yet have an EndTime set, then this SET is redundant.
+                    if (lastEntry != null && lastEntry.EndTime == DateTime.MaxValue)
+                        continue;
+
+                    int dkpAmount = GetDkpFromSetDkpEntry(setEntry.LogLine);
+
+                    DkpAwardOverride dkpOverride = new()
+                    {
+                        LogLine = setEntry.FullLogLine,
+                        StartTime = setEntry.Timestamp,
+                        DkpAmount = dkpAmount
+                    };
+                    overrides.Add(dkpOverride);
+                }
+                else // setEntry.EntryType == LogEntryType.SetAwardedDkpEnd
+                {
+                    if (lastEntry == null)
+                        Log.Warning($"{LogPrefix} Issue processing a DKP override - a ENDSETDKP entry was found without a preceding SETDKP entry: {setEntry.FullLogLine}");
+                    else
+                        lastEntry.EndTime = setEntry.Timestamp;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{LogPrefix} Error in parsing a DKP override. Line: {setEntry.FullLogLine}{Environment.NewLine}{ex.ToLogMessage()}");
+            }
+        }
+
+        _raidEntries.DkpAwardOverrides = overrides;
     }
 
     private void SetAttendanceType(EqLogEntry logEntry, AttendanceEntry call, string logLine)

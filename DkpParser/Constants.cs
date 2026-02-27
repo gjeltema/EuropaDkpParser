@@ -93,6 +93,15 @@ public static class Constants
     public const string RollWin = "WINS";
     public const string Rot = "ROT";
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
+    public const string SetAwardedDKP = "SETDKP";
+    public const string SetAwardedDKPAlternateDelimiter = $"{AlternateDelimiter}{SetAwardedDKP}{AlternateDelimiter}";
+    public const string SetAwardedDKPEnd = "ENDSETDKP";
+    public const string SetAwardedDKPEnd2 = "SETDKPEND";
+    public const string SetAwardedDKPEndAlternateDelimiter = $"{AlternateDelimiter}{SetAwardedDKPEnd}{AlternateDelimiter}";
+    public const string SetAwardedDKPEndAlternateDelimiter2 = $"{AlternateDelimiter}{SetAwardedDKPEnd2}{AlternateDelimiter}";
+    public const string SetAwardedDKPEndWithDelimiter = $"{AttendanceDelimiter}{SetAwardedDKPEnd}{AttendanceDelimiter}";
+    public const string SetAwardedDKPEndWithDelimiter2 = $"{AttendanceDelimiter}{SetAwardedDKPEnd2}{AttendanceDelimiter}";
+    public const string SetAwardedDKPWithDelimiter = $"{AttendanceDelimiter}{SetAwardedDKP}{AttendanceDelimiter}";
     public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TellsYou = " tells you,";
     public const string TimePickerDisplayDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
