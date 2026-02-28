@@ -28,7 +28,7 @@ internal sealed class ActiveBossKillAnalyzer
         {
             // [Wed Jan 14 23:41:07 2026] You have incurred a lockout for Va Xi Aten Ha Ra that expires in 6 Days and 18 Hours.
             Log.Debug($"{LogPrefix} Lockout message: {logLine}");
-            int indexOfEndOfLockout = logLine.IndexOf(Lockout) + Lockout.Length + 1;
+            int indexOfEndOfLockout = logLine.IndexOf(Lockout) + Lockout.Length;
             int indexOfExpires = logLine.IndexOf(Expires);
 
             string bossName = logLine[indexOfEndOfLockout..indexOfExpires].Trim();
