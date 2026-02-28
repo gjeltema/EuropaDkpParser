@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpServer.cs Copyright 2025 Craig Gjeltema
+// DkpServer.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -193,12 +193,11 @@ public sealed class DkpServer : IDkpServer
             .Select(playerName => _playerIdCache[playerName]);
 
         int eventId = _eventIdCache[attendanceEntry.ZoneName];
-        int dkpValue = _settings.RaidValue.GetDkpValueForRaid(attendanceEntry);
 
         var attendanceContent =
             new XElement("request",
                 new XElement("raid_date", attendanceEntry.Timestamp.ToUsTimestamp(ServerTimeFormat)),
-                new XElement("raid_value", dkpValue),
+                new XElement("raid_value", attendanceEntry.DkpAwarded),
                 new XElement("raid_event_id", eventId),
                 new XElement("raid_note", SanitizeString(attendanceEntry.ToDkpServerDescription())),
                 new XElement("raid_attendees",

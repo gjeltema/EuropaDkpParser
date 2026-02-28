@@ -19,7 +19,7 @@ public sealed class UploadRaidInfo
 
     public ICollection<DkpUploadInfo> DkpInfo { get; init; }
 
-    public async static Task<UploadRaidInfo> Create(IDkpAdjustments dkpAdjustments, RaidEntries raidEntries)
+    public async static Task<UploadRaidInfo> Create(IDkpAdjustments dkpAdjustments, RaidEntries raidEntries, IDkpParserSettings settings)
     {
         ICollection<AttendanceUploadInfo> attendanceUploadInfo = raidEntries.AttendanceEntries
             .OrderBy(x => x.Timestamp)
@@ -30,6 +30,7 @@ public sealed class UploadRaidInfo
                 ZoneName = x.ZoneName,
                 AttendanceCallType = x.AttendanceCallType,
                 Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
+                DkpAwarded = GetDkpAwarded(x, raidEntries, settings)
             }).ToList();
 
         IOrderedEnumerable<DkpEntry> dkpEntries = raidEntries.DkpEntries.OrderBy(x => x.Timestamp);
@@ -53,7 +54,7 @@ public sealed class UploadRaidInfo
     /// <summary>
     /// Used for uploading only select attendances, assumes zone names are already sanitized.
     /// </summary>
-    public static UploadRaidInfo Create(IEnumerable<AttendanceEntry> attendances, RaidEntries raidEntries)
+    public static UploadRaidInfo Create(IEnumerable<AttendanceEntry> attendances, RaidEntries raidEntries, IDkpParserSettings settings)
     {
         IEnumerable<PlayerCharacter> charactersToBeUploaded = ConvertTransfers(raidEntries.AllCharactersInRaid, raidEntries.Transfers);
 
@@ -66,6 +67,7 @@ public sealed class UploadRaidInfo
                 Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
                 Timestamp = x.Timestamp,
                 ZoneName = x.ZoneName,
+                DkpAwarded = GetDkpAwarded(x, raidEntries, settings)
             }).ToList(),
             DkpInfo = [],
             CharacterNames = charactersToBeUploaded.Select(x => x.CharacterName).ToList()
@@ -91,6 +93,16 @@ public sealed class UploadRaidInfo
         }
 
         return newList.OrderBy(x => x.CharacterName).ToList();
+    }
+
+    private static int GetDkpAwarded(AttendanceEntry attendance, RaidEntries raidEntries, IDkpParserSettings settings)
+    {
+        DkpAwardOverride dkpOverride = raidEntries.GetDkpOverride(attendance.Timestamp);
+        if (dkpOverride != null)
+            return dkpOverride.DkpAmount;
+
+        int dkpValue = settings.RaidValue.GetDkpValueForRaid(attendance);
+        return dkpValue;
     }
 
     private async static Task<ICollection<DkpUploadInfo>> GetDkpInfo(IEnumerable<DkpEntry> dkpEntries, RaidEntries raidEntries, IDkpAdjustments dkpAdjustments)

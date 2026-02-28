@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidUploadDialogViewModel.cs Copyright 2025 Craig Gjeltema
+// RaidUploadDialogViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -16,6 +16,7 @@ using Prism.Commands;
 internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUploadDialogViewModel
 {
     private const string LogPrefix = $"[{nameof(RaidUploadDialogViewModel)}]";
+    private readonly IDkpAdjustments _dkpAdjustments;
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
     private ICollection<UploadErrorDisplay> _errorMessages;
@@ -29,7 +30,6 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
     private bool _uploadButtonEnabled;
     private bool _uploadInProgress = false;
     private bool _uploadSelectedAttendances;
-    private readonly IDkpAdjustments _dkpAdjustments;
 
     public RaidUploadDialogViewModel(IDialogViewFactory viewFactory, RaidEntries raidEntries, IDkpParserSettings settings)
         : base(viewFactory)
@@ -163,11 +163,11 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             if (UploadSelectedAttendances)
             {
                 UploadSelectedAttendances = false;
-                raidsToUpload = UploadRaidInfo.Create(SelectedAttendances, _raidEntries);
+                raidsToUpload = UploadRaidInfo.Create(SelectedAttendances, _raidEntries, _settings);
             }
             else
             {
-                raidsToUpload = await UploadRaidInfo.Create(_dkpAdjustments, _raidEntries);
+                raidsToUpload = await UploadRaidInfo.Create(_dkpAdjustments, _raidEntries, _settings);
             }
 
             RaidUploader server = new(_settings);

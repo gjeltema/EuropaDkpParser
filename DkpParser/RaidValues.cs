@@ -6,7 +6,6 @@ namespace DkpParser;
 
 using System.Diagnostics;
 using System.IO;
-using DkpParser.Uploading;
 using Gjeltema.Logging;
 
 public sealed class RaidValues : IRaidValues
@@ -53,7 +52,7 @@ public sealed class RaidValues : IRaidValues
 
     public bool UseTimeOnlyWithConfiguredKillCalls { get; private set; }
 
-    public int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry)
+    public int GetDkpValueForRaid(AttendanceEntry attendanceEntry)
     {
         int dkpValue = attendanceEntry.AttendanceCallType == AttendanceCallType.Time
             ? GetTimeBasedValue(attendanceEntry.ZoneName)
@@ -353,7 +352,7 @@ public interface IRaidValues
 
     bool UseTimeOnlyWithConfiguredKillCalls { get; }
 
-    int GetDkpValueForRaid(AttendanceUploadInfo attendanceEntry);
+    int GetDkpValueForRaid(AttendanceEntry attendanceEntry);
 
     string GetZoneRaidAlias(string zoneName);
 

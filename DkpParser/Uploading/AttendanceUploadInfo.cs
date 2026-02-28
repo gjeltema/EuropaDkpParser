@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceUploadInfo.cs Copyright 2024 Craig Gjeltema
+// AttendanceUploadInfo.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Uploading;
@@ -17,6 +17,8 @@ public sealed class AttendanceUploadInfo
     public string CallName { get; init; }
 
     public ICollection<PlayerCharacter> Characters { get; init; } = new HashSet<PlayerCharacter>();
+
+    public int DkpAwarded { get; init; }
 
     public DateTime Timestamp { get; init; }
 

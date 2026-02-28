@@ -22,6 +22,8 @@ public sealed class RaidEntries
 
     public ICollection<DiscountApplied> Discounts { get; init; } = new List<DiscountApplied>();
 
+    public ICollection<DkpAwardOverride> DkpAwardOverrides { get; set; } = [];
+
     public ICollection<DkpEntry> DkpEntries { get; set; } = new List<DkpEntry>();
 
     public ICollection<DkpEntry> DkpUploadErrors { get; set; } = new List<DkpEntry>();
@@ -35,8 +37,6 @@ public sealed class RaidEntries
     public ICollection<PlayerPossibleLinkdead> PossibleLinkdeads { get; } = new List<PlayerPossibleLinkdead>();
 
     public ICollection<DkpEntry> RemovedDkpEntries { get; set; } = new List<DkpEntry>();
-
-    public ICollection<DkpAwardOverride> DkpAwardOverrides { get; set; } = [];
 
     public ICollection<PlayerCharacter> RemovedPlayerCharacters { get; } = new HashSet<PlayerCharacter>();
 
@@ -180,6 +180,9 @@ public sealed class RaidEntries
 
         return firstTimeCallAfter ?? AttendanceEntries.Last();
     }
+
+    public DkpAwardOverride GetDkpOverride(DateTime timestamp)
+        => DkpAwardOverrides.FirstOrDefault(x => x.IsOverridden(timestamp));
 
     public bool IsPlayerAfkFlagged(PlayerCharacter character, DateTime timestamp)
         => AfkEntries
