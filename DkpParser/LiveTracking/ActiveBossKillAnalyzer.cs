@@ -33,7 +33,10 @@ internal sealed class ActiveBossKillAnalyzer
 
             string bossName = logLine[indexOfEndOfLockout..indexOfExpires].Trim();
             if (_raidValues.BossesWithNoDruzzilMessage.Contains(bossName))
+            {
+                Log.Debug($"{LogPrefix} Returning boss name: {bossName}");
                 return bossName;
+            }
         }
         else if (logLine.Contains(Slain))
         {
@@ -45,7 +48,10 @@ internal sealed class ActiveBossKillAnalyzer
 
             string bossName = split[0].Trim();
             if (_raidValues.BossesWithNoDruzzilMessage.Contains(bossName))
+            {
+                Log.Debug($"{LogPrefix} Returning boss name: {bossName}");
                 return bossName;
+            }
         }
         else if (logLine.Contains(DruzzilGuild))
         {
@@ -54,7 +60,9 @@ internal sealed class ActiveBossKillAnalyzer
             int inIndex = logLine.IndexOf(In);
             int killedIndex = logLine.IndexOf(HasKilled) + HasKilled.Length;
 
-            return logLine[killedIndex..inIndex];
+            string bossName = logLine[killedIndex..inIndex];
+            Log.Debug($"{LogPrefix} Returning boss name: {bossName}");
+            return bossName;
         }
 
         return null;

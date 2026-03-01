@@ -663,7 +663,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         if (selectedCurrentBid != null)
         {
-            LiveBidInfo matchingBid = CurrentBids.FirstOrDefault(x => x.ParentAuctionId == selectedCurrentBid.ParentAuctionId
+            LiveBidInfo matchingBid = CurrentBids.FirstOrDefault(x =>
+                x.ParentAuctionId == selectedCurrentBid.ParentAuctionId
                 && x.ItemName == selectedCurrentBid.ItemName
                 && x.BidAmount == selectedCurrentBid.BidAmount
                 && x.CharacterBeingBidFor == selectedCurrentBid.CharacterBeingBidFor);
