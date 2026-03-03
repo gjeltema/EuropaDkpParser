@@ -438,6 +438,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         string spentCallWithLink = _activeBidTracker.GetSpentMessageWithLink(selectedSpentCall);
         Clip.Copy(spentCallWithLink);
+
+        SelectedActiveAuction.HasNewBidsAdded = false;
     }
 
     private void CopySelectedStatusMessageToClipboard()
@@ -447,6 +449,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             return;
 
         Clip.Copy(selectedStatsuMessage);
+
+        SelectedActiveAuction.HasNewBidsAdded = false;
     }
 
     private void CycleToNextStatusMarker()
@@ -630,8 +634,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         if (SelectedActiveAuction != null)
         {
-            SelectedActiveAuction.HasNewBidsAdded = false;
-
             UpdateBidsListing(selectedCurrentBid);
 
             HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction.Auction, LowRollWins));
