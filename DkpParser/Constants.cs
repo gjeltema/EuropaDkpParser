@@ -117,6 +117,7 @@ public static class Constants
     public const string YouTold = "You told ";
     public const string ZealAttendanceBasedFileName = "ZealRaidAttendance_";
     public const string ZealAttendanceBasedFileNameFormat = ZealAttendanceBasedFileName + "{0}.txt";
+    public const string ZealDetailLog = "Zeal";
     public const int ZealPipeBufferSize = 32768;
     /// <summary>
     /// One argument for format: Process ID

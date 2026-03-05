@@ -25,6 +25,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const char Delimiter = '=';
     private const string DkpspentGuildEnableSection = "DKPSPENT_GU_ENABLE";
     private const string EnableDkpBonusAttendance = "ENABLE_DKP_BONUS";
+    private const string EnableZealDetailLoggingSection = "ENABLE_ZEAL_DETAIL_LOGS";
     private const string EqDirectorySection = "EQ_DIRECTORY";
     private const string IncludeTellsInRawLogSection = "INCLUDE_TELLS_IN_RAW_LOG";
     private const string InventoryDirectoriesSection = "INVENTORY_DIRECTORIES";
@@ -70,6 +71,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public DkpServerCharacters CharactersOnDkpServer { get; private set; }
 
     public bool DkpspentGuEnabled { get; set; } = true;
+
+    public bool EnableZealDetailLogging { get; set; }
 
     public string EqDirectory { get; set; } = string.Empty;
 
@@ -167,6 +170,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         OverlayFontColor = GetStringValue(fileContents, OverlayFontColorSection, DefaultOverlayFontColor);
         OverlayFontSize = GetIntValue(fileContents, OverlayFontSizeSection, 20);
 
+        EnableZealDetailLogging = GetBoolValue(fileContents, EnableZealDetailLoggingSection, false);
+
         int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Info);
         LoggingLevel = (LogLevel)loggingLevelRaw;
 
@@ -219,6 +224,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(OverlayFontColorSection, OverlayFontColor),
             CreateFileEntry(OverlayFontSizeSection, OverlayFontSize),
             CreateFileEntry(MezBreaksToShowSection, MezBreaksToShow),
+            CreateFileEntry(EnableZealDetailLoggingSection, EnableZealDetailLogging),
             CreateFileEntry(LogLevelSection, (int)LoggingLevel),
         };
 
@@ -455,6 +461,8 @@ public interface IDkpParserSettings
     DkpServerCharacters CharactersOnDkpServer { get; }
 
     bool DkpspentGuEnabled { get; set; }
+
+    bool EnableZealDetailLogging { get; set; }
 
     string EqDirectory { get; set; }
 

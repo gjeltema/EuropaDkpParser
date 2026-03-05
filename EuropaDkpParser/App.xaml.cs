@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// App.xaml.cs Copyright 2025 Craig Gjeltema
+// App.xaml.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser;
@@ -132,9 +132,21 @@ public partial class App : Application
 
         simpleAsyncLogTarget.LoggingLevel = _settings.LoggingLevel;
 
-        Log.Logger = new SingleLogger();
-        Log.Logger.Default = simpleAsyncLogTarget;
+        if (_settings.EnableZealDetailLogging)
+        {
+            string zealLogFileName = $"{DateTime.Now:MMdd}_ZealDetailLog.txt";
+            string zealLogFilePath = Path.Combine(logDirectory, zealLogFileName);
+            ILogTarget zealAsyncLogTarget = logFactory.CreateAsyncSimpleLogTarget(zealLogFilePath, LogFormatter);
+            zealAsyncLogTarget.LoggingLevel = LogLevel.Info;
 
+            Log.Logger[Constants.ZealDetailLog] = zealAsyncLogTarget;
+        }
+        else
+        {
+            Log.Logger = new SingleLogger();
+        }
+
+        Log.Logger.Default = simpleAsyncLogTarget;
         Log.Info($"Logging started. LogLevel set to: {Log.Logger.Default.LoggingLevel}");
     }
 }

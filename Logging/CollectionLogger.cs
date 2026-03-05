@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// CollectionLogger.cs Copyright 2025 Craig Gjeltema
+// CollectionLogger.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace Gjeltema.Logging;
@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 /// </summary>
 public sealed class CollectionLogger : ILogger
 {
+    private static readonly ILogTarget EmptyTarget = new EmptyLogTarget();
     private readonly ConcurrentDictionary<string, ILogTarget> _logTargets = new();
     private ILogTarget _defaultLogTarget;
 
@@ -21,7 +22,7 @@ public sealed class CollectionLogger : ILogger
     /// </summary>
     public CollectionLogger()
     {
-        _defaultLogTarget = new EmptyLogTarget();
+        _defaultLogTarget = EmptyTarget;
         this["Default"] = _defaultLogTarget;
     }
 
@@ -35,7 +36,7 @@ public sealed class CollectionLogger : ILogger
                 return logTarget;
             }
 
-            return Default;
+            return EmptyTarget;
         }
         set
         {
