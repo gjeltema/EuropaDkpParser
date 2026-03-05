@@ -13,38 +13,6 @@ using System.Text;
 public static class LoggingExtensions
 {
     /// <summary>
-    ///     Logs a critical error message.
-    /// </summary>
-    /// <param name="logTarget">The target to send the log to.</param>
-    /// <param name="message">The message to be logged.</param>
-    public static void Critical(this ILogTarget logTarget, string message)
-        => logTarget.Log(LogLevel.Critical, message);
-
-    /// <summary>
-    ///     Logs a debug message.
-    /// </summary>
-    /// <param name="logTarget">The target to send the log to.</param>
-    /// <param name="message">The message to be logged.</param>
-    public static void Debug(this ILogTarget logTarget, string message)
-        => logTarget.Log(LogLevel.Debug, message);
-
-    /// <summary>
-    ///     Logs an error message.
-    /// </summary>
-    /// <param name="logTarget">The target to send the log to.</param>
-    /// <param name="message">The message to be logged.</param>
-    public static void Error(this ILogTarget logTarget, string message)
-        => logTarget.Log(LogLevel.Error, message);
-
-    /// <summary>
-    ///     Logs an informational message.
-    /// </summary>
-    /// <param name="logTarget">The target to send the log to.</param>
-    /// <param name="message">The message to be logged.</param>
-    public static void Info(this ILogTarget logTarget, string message)
-        => logTarget.Log(LogLevel.Info, message);
-
-    /// <summary>
     ///     Compares the set level to the message's logging level to determine if the log message should be logged.
     /// </summary>
     /// <param name="setLevel">The logging level set for filtering messages sent to the log.</param>
@@ -119,20 +87,4 @@ public static class LoggingExtensions
 
         return logMessage.ToString();
     }
-
-    /// <summary>
-    ///     Logs a trace message.
-    /// </summary>
-    /// <param name="logTarget">The target to send the log to.</param>
-    /// <param name="message">The message to be logged.</param>
-    public static void Trace(this ILogTarget logTarget, string message)
-        => logTarget.Log(LogLevel.Trace, message);
-
-    /// <summary>
-    ///     Logs a warning message.
-    /// </summary>
-    /// <param name="logTarget">The target to send the log to.</param>
-    /// <param name="message">The message to be logged.</param>
-    public static void Warning(this ILogTarget logTarget, string message)
-        => logTarget.Log(LogLevel.Warning, message);
 }
