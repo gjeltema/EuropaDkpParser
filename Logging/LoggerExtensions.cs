@@ -1,10 +1,11 @@
 ﻿// -----------------------------------------------------------------------
-// LoggerExtensions.cs Copyright 2025 Craig Gjeltema
+// LoggerExtensions.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace Gjeltema.Logging;
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 /// <summary>
@@ -12,6 +13,50 @@ using System.Text;
 /// </summary>
 public static class LoggingExtensions
 {
+    /// <summary>
+    ///     Logs a critical error to the default log target.
+    /// </summary>
+    /// <param name="logTarget">The <see cref="ILogTarget"/> to apply this extension method to.</param>
+    /// <param name="message">The message to be logged.</param>
+    public static void Critical(this ILogTarget logTarget, [InterpolatedStringHandlerArgument("logTarget")] LoggerCriticalInterpolator message)
+    {
+        if (message.CreatedLogMessage)
+            logTarget.Log(LogLevel.Critical, message.ToStringAndClear());
+    }
+
+    /// <summary>
+    ///     Logs a debug message to the default log target.
+    /// </summary>
+    /// <param name="logTarget">The <see cref="ILogTarget"/> to apply this extension method to.</param>
+    /// <param name="message">The message to be logged.</param>
+    public static void Debug(this ILogTarget logTarget, [InterpolatedStringHandlerArgument("logTarget")] LoggerDebugInterpolator message)
+    {
+        if (message.CreatedLogMessage)
+            logTarget.Log(LogLevel.Debug, message.ToStringAndClear());
+    }
+
+    /// <summary>
+    ///     Logs an error to the default log target.
+    /// </summary>
+    /// <param name="logTarget">The <see cref="ILogTarget"/> to apply this extension method to.</param>
+    /// <param name="message">The message to be logged.</param>
+    public static void Error(this ILogTarget logTarget, [InterpolatedStringHandlerArgument("logTarget")] LoggerErrorInterpolator message)
+    {
+        if (message.CreatedLogMessage)
+            logTarget.Log(LogLevel.Error, message.ToStringAndClear());
+    }
+
+    /// <summary>
+    ///     Logs an informational message to the default log target.
+    /// </summary>
+    /// <param name="logTarget">The <see cref="ILogTarget"/> to apply this extension method to.</param>
+    /// <param name="message">The message to be logged.</param>
+    public static void Info(this ILogTarget logTarget, [InterpolatedStringHandlerArgument("logTarget")] LoggerInfoInterpolator message)
+    {
+        if (message.CreatedLogMessage)
+            logTarget.Log(LogLevel.Info, message.ToStringAndClear());
+    }
+
     /// <summary>
     ///     Compares the set level to the message's logging level to determine if the log message should be logged.
     /// </summary>
@@ -86,5 +131,27 @@ public static class LoggingExtensions
         }
 
         return logMessage.ToString();
+    }
+
+    /// <summary>
+    ///     Logs a trace message to the default log target.
+    /// </summary>
+    /// <param name="logTarget">The <see cref="ILogTarget"/> to apply this extension method to.</param>
+    /// <param name="message">The message to be logged.</param>
+    public static void Trace(this ILogTarget logTarget, [InterpolatedStringHandlerArgument("logTarget")] LoggerTraceInterpolator message)
+    {
+        if (message.CreatedLogMessage)
+            logTarget.Log(LogLevel.Trace, message.ToStringAndClear());
+    }
+
+    /// <summary>
+    ///     Logs a warning to the default log target.
+    /// </summary>
+    /// <param name="logTarget">The <see cref="ILogTarget"/> to apply this extension method to.</param>
+    /// <param name="message">The message to be logged.</param>
+    public static void Warning(this ILogTarget logTarget, [InterpolatedStringHandlerArgument("logTarget")] LoggerWarningInterpolator message)
+    {
+        if (message.CreatedLogMessage)
+            logTarget.Log(LogLevel.Warning, message.ToStringAndClear());
     }
 }
