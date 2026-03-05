@@ -137,7 +137,7 @@ public partial class App : Application
             string zealLogFileName = $"{DateTime.Now:MMdd}_ZealDetailLog.txt";
             string zealLogFilePath = Path.Combine(logDirectory, zealLogFileName);
             ILogTarget zealAsyncLogTarget = logFactory.CreateAsyncSimpleLogTarget(zealLogFilePath, LogFormatter);
-            zealAsyncLogTarget.LoggingLevel = LogLevel.Info;
+            zealAsyncLogTarget.LoggingLevel = LogLevel.Trace;
 
             Log.Logger[Constants.ZealDetailLog] = zealAsyncLogTarget;
         }

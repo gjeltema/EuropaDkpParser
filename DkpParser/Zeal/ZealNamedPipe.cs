@@ -104,7 +104,7 @@ internal sealed class ZealNamedPipe
                             continue;
                         }
 
-                        Log.Logger[Constants.ZealDetailLog].Info($"{LogPrefix}{ThreadIdText} Zeal message received.  CharsWritten: {charsWritten}.  Message: {charBuffer[..charsWritten].ToString()}");
+                        Log.Logger[Constants.ZealDetailLog].Trace($"{LogPrefix}{ThreadIdText} Zeal message received.  CharsWritten: {charsWritten}.  Message: {charBuffer[..charsWritten].ToString()}");
 
                         try
                         {
