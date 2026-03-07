@@ -79,6 +79,7 @@ public static class Constants
     // When someone else does an /rs message, it has 2 spaces after the comma (clearly a cosmetic bug in the game itself).
     // Dont add the single quote to this string in case it is "fixed" at some point.
     public const string RaidOther = " tells the raid, ";
+    public const string RaidSummaryFileNamePrefix = "RaidSummary-";
     // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
     public const string RaidYou = "You tell your raid, '";
     public const string Ready = "READY";

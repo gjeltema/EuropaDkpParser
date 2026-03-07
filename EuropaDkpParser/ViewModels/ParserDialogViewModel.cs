@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ParserDialogViewModel.cs Copyright 2024 Craig Gjeltema
+// ParserDialogViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -40,6 +40,8 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         GetSearchTermCommand = new DelegateCommand(GetSearchTerm, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(SearchTermText) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => SearchTermText);
         OpenGeneralParserCommand = new DelegateCommand(OpenGeneralParser);
+        GetRaidSummaryCommand = new DelegateCommand(GetRaidSummary, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText);
     }
 
     public string ConversationPlayer
@@ -67,7 +69,15 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
 
     public DelegateCommand GetConversationCommand { get; }
 
+    public DelegateCommand GetRaidSummaryCommand { get; }
+
     public DelegateCommand GetSearchTermCommand { get; }
+
+    public bool IncludeTells
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
 
     public bool IsCaseSensitive
     {
@@ -119,6 +129,12 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
     private string GetOutputPath()
         => string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? _logGenerator.GetUserProfilePath() : _settings.OutputDirectory;
 
+    private async void GetRaidSummary()
+        => await ExecuteParse(GetRaidSummaryAsync);
+
+    private async Task GetRaidSummaryAsync(DateTime startTime, DateTime endTime)
+       => await _parsedFileGenerator.GetRaidSummaryAsync(startTime, endTime, IncludeTells, GetOutputPath());
+
     private async void GetSearchTerm()
         => await ExecuteParse(GetSearchTermAsync);
 
@@ -162,7 +178,11 @@ public interface IParserDialogViewModel : IDialogViewModel
 
     DelegateCommand GetConversationCommand { get; }
 
+    DelegateCommand GetRaidSummaryCommand { get; }
+
     DelegateCommand GetSearchTermCommand { get; }
+
+    bool IncludeTells { get; set; }
 
     bool IsCaseSensitive { get; set; }
 

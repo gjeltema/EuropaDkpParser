@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ParsedFileGenerator.cs Copyright 2025 Craig Gjeltema
+// ParsedFileGenerator.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Utility;
@@ -44,7 +44,7 @@ internal sealed class ParsedFileGenerator
         IAllCommunicationParser communicationParser = new AllCommunicationParser(_settings);
         ICollection<EqLogFile> logFiles = await Task.Run(() => communicationParser.GetEqLogFiles(startTime, endTime));
 
-        string communicationOutputFile = $"{Constants.CommunicationFileNamePrefix}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string communicationOutputFile = $"{Constants.CommunicationFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string communicationOutputFullPath = Path.Combine(outputDirectory, communicationOutputFile);
         bool anyCommunicationFound = false;
         foreach (EqLogFile logFile in logFiles)
@@ -63,6 +63,33 @@ internal sealed class ParsedFileGenerator
         }
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(communicationOutputFullPath);
+        completedDialog.ShowDialog();
+    }
+
+    public async Task GetRaidSummaryAsync(DateTime startTime, DateTime endTime, bool includeTells, string outputDirectory)
+    {
+        IRaidSummaryParser raidSummaryParser = new RaidSummaryParser(_settings, includeTells);
+        ICollection<EqLogFile> logFiles = await Task.Run(() => raidSummaryParser.GetEqLogFiles(startTime, endTime));
+
+        string raidSummaryOutputFile = $"{Constants.RaidSummaryFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string raidSummaryOutputFullPath = Path.Combine(outputDirectory, raidSummaryOutputFile);
+        bool anySummaryFound = false;
+        foreach (EqLogFile logFile in logFiles)
+        {
+            if (logFile.LogEntries.Count > 0)
+            {
+                await CreateFile(raidSummaryOutputFullPath, logFile.GetAllLogLines());
+                anySummaryFound = true;
+            }
+        }
+
+        if (!anySummaryFound)
+        {
+            MessageBox.Show(Strings.GetString("NoRaisSummaryFound"), Strings.GetString("NoRaidSummaryFoundTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(raidSummaryOutputFullPath);
         completedDialog.ShowDialog();
     }
 

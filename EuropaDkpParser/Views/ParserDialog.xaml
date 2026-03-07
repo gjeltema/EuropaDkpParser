@@ -14,6 +14,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -95,11 +96,35 @@
 
             <CheckBox Grid.Row="1" HorizontalAlignment="Left" IsChecked="{Binding IsCaseSensitive}" Content="{StaticResource CaseSensitive}" Margin="10,4,0,0"/>
 
+            <Rectangle Grid.Row="2" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,10,0,0"/>
+        </Grid>
+
+        <!-- Search Term -->
+        <Grid Grid.Row="3" Margin="5,15,10,5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Content="{StaticResource RaidSummaryLabel}" Margin="0,0,4,0" VerticalAlignment="Top"/>
+                <Button Grid.Column="2" Content="{StaticResource RaidSummaryButtonText}" Command="{Binding GetRaidSummaryCommand}" Width="85" Height="35"/>
+            </Grid>
+
+            <CheckBox Grid.Row="1" HorizontalAlignment="Left" IsChecked="{Binding IncludeTells}" Content="{StaticResource IncludeTellsLabel}" Margin="10,0,0,0"/>
+
             <!--<Rectangle Grid.Row="2" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,6,0,0"/>-->
         </Grid>
 
-        <!-- Grid.Row 3 is filler -->
+        <!-- Grid.Row 4 is filler -->
 
-        <Button Grid.Row="4" Content="{StaticResource OpenGeneralLogParser}" Command="{Binding OpenGeneralParserCommand}" HorizontalAlignment="Left" Width="85" Height="25" Margin="10,0,0,15"/>
+        <Button Grid.Row="5" Content="{StaticResource OpenGeneralLogParser}" Command="{Binding OpenGeneralParserCommand}" HorizontalAlignment="Left" Width="85" Height="25" Margin="10,0,0,15"/>
     </Grid>
 </UserControl>
