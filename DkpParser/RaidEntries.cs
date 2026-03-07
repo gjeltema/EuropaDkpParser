@@ -142,7 +142,7 @@ public sealed class RaidEntries
         // Find the most prior kill call.  If it's within the time threshold to the SPENT call, check if it's *too* close.
         // If it's very close, search for the kill call prior to that one.  If that one is in range, use it.  If not, just
         // use the most prior kill call.  This should handle multiple boss kills in quick succession.
-        // If no kill calls are within range prior, use the next Time call - assume it's a drop from trash.
+        // If no kill calls are within range prior, use the previous Time call.
 
         DateTime referenceTime = dkpEntry.Timestamp;
         AttendanceEntry killCallPrior = AttendanceEntries
@@ -174,11 +174,15 @@ public sealed class RaidEntries
             }
         }
 
-        AttendanceEntry firstTimeCallAfter = AttendanceEntries
-            .Where(x => x.AttendanceCallType == AttendanceCallType.Time && dkpEntry.Timestamp < x.Timestamp)
+        // Get last time call before the SPENT call. If none, use the next time call after the SPENT call.
+        AttendanceEntry timeCallToUse = AttendanceEntries
+            .Where(x => x.AttendanceCallType == AttendanceCallType.Time && x.Timestamp < dkpEntry.Timestamp)
+            .MaxBy(x => x.Timestamp)
+            ?? AttendanceEntries
+            .Where(x => x.AttendanceCallType == AttendanceCallType.Time && dkpEntry.Timestamp <= x.Timestamp)
             .MinBy(x => x.Timestamp);
 
-        return firstTimeCallAfter ?? AttendanceEntries.Last();
+        return timeCallToUse ?? AttendanceEntries.Last();
     }
 
     public DkpAwardOverride GetDkpOverride(DateTime timestamp)

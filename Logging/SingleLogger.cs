@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// SingleLogger.cs Copyright 2025 Craig Gjeltema
+// SingleLogger.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace Gjeltema.Logging;
@@ -7,6 +7,9 @@ namespace Gjeltema.Logging;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
+/// <summary>
+/// A Logger to use when it is known that only a single <see cref="ILogTarget"/> will be used, to improve performance.
+/// </summary>
 public sealed class SingleLogger : ILogger
 {
     public ILogTarget this[string name]
