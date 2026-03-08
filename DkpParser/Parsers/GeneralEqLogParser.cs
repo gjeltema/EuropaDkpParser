@@ -1,11 +1,10 @@
 ﻿// -----------------------------------------------------------------------
-// GeneralEqLogParser.cs Copyright 2025 Craig Gjeltema
+// GeneralEqLogParser.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
 
 using System.IO;
-using System.Text.RegularExpressions;
 
 public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 {
@@ -88,10 +87,6 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouTold));
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.TellsYou));
         }
-        if (settings.Channel)
-        {
-            _entryParsers.Add(new ChannelMessageEntryParser());
-        }
         if (settings.JoinRaid)
         {
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.JoinedRaid));
@@ -110,6 +105,11 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         {
             foreach (string searchTerm in settings.CaseInsensitiveSearchTerms)
                 _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(searchTerm));
+        }
+        if (settings.Channels != null && settings.Channels.Count > 0)
+        {
+            foreach (string channel in settings.Channels)
+                _entryParsers.Add(new CustomChannelEntryParser(channel));
         }
         if (settings.Who)
         {
@@ -146,7 +146,8 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             else if (entryTimeStamp > endTime)
                 break;
 
-            ParseLogEntry(logFile, logLine, entryTimeStamp);
+            string logLineNoTimestamp = logLine[(Constants.EqLogDateTimeLength + 1)..];
+            ParseLogEntry(logFile, logLineNoTimestamp, entryTimeStamp);
         }
 
         return logFile;
@@ -158,7 +159,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 
         public ConversationEntryParser(ICollection<string> peopleConversingWith)
         {
-            _peopleConversingWith = peopleConversingWith;
+            _peopleConversingWith = peopleConversingWith.Select(x => x.NormalizeName()).ToList();
         }
 
         public bool TryParseEntry(string logLine, DateTime entryTimeStamp, out EqLogEntry eqLogEntry)
@@ -174,13 +175,13 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             // [Thu Oct 24 00:02:39 2024] You told Shaper '[queued], You're in WC.  If you come to EC, I can tag you.'
             foreach (string person in _peopleConversingWith)
             {
-                if (logLine.Contains($"{Constants.YouTold}{person}", StringComparison.OrdinalIgnoreCase)
-                    || logLine.Contains($"{person}{Constants.TellsYou}", StringComparison.OrdinalIgnoreCase))
+                if (logLine.StartsWith($"{Constants.YouTold}{person}")
+                    || logLine.Contains($"{person}{Constants.TellsYou}"))
                 {
                     eqLogEntry = new()
                     {
                         EntryType = LogEntryType.Unknown,
-                        LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
+                        LogLine = logLine,
                         Timestamp = entryTimeStamp
                     };
 
@@ -209,7 +210,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 eqLogEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
+                    LogLine = logLine,
                     Timestamp = entryTimeStamp
                 };
 
@@ -239,7 +240,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 eqLogEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
+                    LogLine = logLine,
                     Timestamp = entryTimeStamp
                 };
 
@@ -265,17 +266,16 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 return false;
             }
 
-            string logLineWithoutTimestamp = logLine[(Constants.EqLogDateTimeLength + 1)..];
-            if (logLineWithoutTimestamp.Contains("[ANONYMOUS]")
-                || (logLineWithoutTimestamp.Contains('(') && logLineWithoutTimestamp.Contains(')') && logLineWithoutTimestamp.Contains('[') && logLineWithoutTimestamp.Contains(']'))
-                || logLineWithoutTimestamp.Contains(Constants.Dashes)
-                || (logLineWithoutTimestamp.Contains(Constants.WhoZonePrefixPlural) || logLineWithoutTimestamp.Contains(Constants.WhoZonePrefixSingle)) && (logLineWithoutTimestamp.Contains(Constants.PlayersIn) || logLineWithoutTimestamp.Contains(Constants.PlayerIn))
-                || logLineWithoutTimestamp.Contains("There are no players in "))
+            if (logLine.Contains("[ANONYMOUS]")
+                || (logLine.Contains('(') && logLine.Contains(')') && logLine.Contains('[') && logLine.Contains(']'))
+                || logLine.Contains(Constants.Dashes)
+                || (logLine.Contains(Constants.WhoZonePrefixPlural) || logLine.Contains(Constants.WhoZonePrefixSingle)) && (logLine.Contains(Constants.PlayersIn) || logLine.Contains(Constants.PlayerIn))
+                || logLine.Contains("There are no players in "))
             {
                 eqLogEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLineWithoutTimestamp,
+                    LogLine = logLine,
                     Timestamp = entryTimeStamp
                 };
 
@@ -305,7 +305,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
                 eqLogEntry = new()
                 {
                     EntryType = LogEntryType.Unknown,
-                    LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
+                    LogLine = logLine,
                     Timestamp = entryTimeStamp
                 };
 
@@ -322,20 +322,28 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
     }
 }
 
-public sealed partial class ChannelMessageEntryParser : IEntryParser
+public sealed class CustomChannelEntryParser : IEntryParser
 {
-    private readonly Regex _findTellChannelRegex = FindTellChannelRegex();
+    private readonly string _otherTellsChannelName;
+    private readonly string _youTellChannelName;
+
+    // [Tue Jan 14 20:27:57 2025] Rezzt tells Eu.heals:3, 'Celestial Elixir on -- Mcporty -- at 100% mana'
+    // [Tue Jan 14 21:25:13 2025] You tell Eu.officers:1, 'So... what do we infer from that?'
+    public CustomChannelEntryParser(string channelName)
+    {
+        string normalizedChannelName = channelName.NormalizeName();
+        _youTellChannelName = $"You tell {normalizedChannelName}:";
+        _otherTellsChannelName = $" tells {normalizedChannelName}:";
+    }
 
     public bool TryParseEntry(string logLine, DateTime entryTimeStamp, out EqLogEntry eqLogEntry)
     {
-        bool findMatch = _findTellChannelRegex.IsMatch(logLine);
-
-        if (findMatch && (logLine.Contains("You tell ") || logLine.Contains(" tells ")))
+        if (logLine.StartsWith(_youTellChannelName) || logLine.Contains(_otherTellsChannelName))
         {
             eqLogEntry = new()
             {
                 EntryType = LogEntryType.Unknown,
-                LogLine = logLine[(Constants.EqLogDateTimeLength + 1)..],
+                LogLine = logLine,
                 Timestamp = entryTimeStamp
             };
 
@@ -347,9 +355,6 @@ public sealed partial class ChannelMessageEntryParser : IEntryParser
             return false;
         }
     }
-
-    [GeneratedRegex(@"[A-Za-z]+:\d+, '", RegexOptions.Compiled)]
-    private static partial Regex FindTellChannelRegex();
 }
 
 public sealed class GeneralEqLogParserSettings
@@ -362,7 +367,7 @@ public sealed class GeneralEqLogParserSettings
 
     public ICollection<string> CaseSensitiveSearchTerms { get; set; }
 
-    public bool Channel { get; set; }
+    public ICollection<string> Channels { get; set; }
 
     public bool Dies { get; set; }
 
@@ -374,11 +379,19 @@ public sealed class GeneralEqLogParserSettings
 
     public bool JoinRaid { get; set; }
 
+    public bool LeaveRaid { get; set; }
+
+    public bool Looted { get; set; }
+
     public bool Ooc { get; set; }
+
+    public bool OthersHealed { get; set; }
 
     public ICollection<string> PeopleConversingWith { get; set; }
 
     public bool RaidSay { get; set; }
+
+    public bool Rampage { get; set; }
 
     public bool Say { get; set; }
 
@@ -387,6 +400,8 @@ public sealed class GeneralEqLogParserSettings
     public bool Who { get; set; }
 
     public bool You { get; set; }
+
+    public bool YourHeals { get; set; }
 }
 
 internal interface IEntryParser

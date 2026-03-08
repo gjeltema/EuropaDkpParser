@@ -16,6 +16,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Margin="5">
@@ -91,7 +92,7 @@
         </Grid>
 
         <!-- Conversationalists -->
-        <Grid Grid.Row="2" Margin="0,5,0,15">
+        <Grid Grid.Row="2" Margin="0,5,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -101,9 +102,21 @@
 
             <TextBox Grid.Column="1" Text="{Binding PeopleConversingWith}" />
         </Grid>
-        
+
+        <!-- Custom Channels -->
+        <Grid Grid.Row="3" Margin="0,5,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Column="0" Content="{StaticResource CustomChannels}"/>
+
+            <TextBox Grid.Column="1" Text="{Binding Channels}" />
+        </Grid>
+
         <!-- Checkboxes -->
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -114,28 +127,33 @@
             <WrapPanel Grid.Row="1" Margin="0,10,5,5">
                 <WrapPanel.Resources>
                     <Style TargetType="{x:Type CheckBox}">
-                        <Setter Property="Margin" Value="0,5,30,10"/>
+                        <Setter Property="Margin" Value="0,5,25,10"/>
+                        <Setter Property="Foreground" Value="{StaticResource DefaultForegroundColor}" />
                     </Style>
                 </WrapPanel.Resources>
-                <CheckBox IsChecked="{Binding AllTells}" Content="{StaticResource AllTellsText}"/>
-                <CheckBox IsChecked="{Binding Auction}" Content="{StaticResource AuctionText}"/>
-                <CheckBox IsChecked="{Binding Channel}" Content="{StaticResource ChannelText}" ToolTip="{StaticResource ChannelTooltipText}"/>
-                <CheckBox IsChecked="{Binding Dies}" Content="{StaticResource DiesText}" ToolTip="{StaticResource DiesTooltipText}"/>
-                <CheckBox IsChecked="{Binding FactionStanding}" Content="{StaticResource FactionStandingText}" ToolTip="{StaticResource FactionStandingTooltipText}"/>
+                
                 <CheckBox IsChecked="{Binding Guild}" Content="{StaticResource GuildText}"/>
-                <CheckBox IsChecked="{Binding JoinRaid}" Content="{StaticResource JoinRaidText}" ToolTip="{StaticResource JoinRaidTooltipText}"/>
-                <CheckBox IsChecked="{Binding Ooc}" Content="{StaticResource OocText}"/>
-                <CheckBox IsChecked="{Binding Group}" Content="{StaticResource GroupText}"/>
                 <CheckBox IsChecked="{Binding RaidSay}" Content="{StaticResource RaidSayText}"/>
+                <CheckBox IsChecked="{Binding Group}" Content="{StaticResource GroupText}"/>
                 <CheckBox IsChecked="{Binding Say}" Content="{StaticResource SayText}"/>
                 <CheckBox IsChecked="{Binding Shout}" Content="{StaticResource ShoutText}"/>
+                <CheckBox IsChecked="{Binding Ooc}" Content="{StaticResource OocText}"/>
+                <CheckBox IsChecked="{Binding Auction}" Content="{StaticResource AuctionText}"/>
+                <CheckBox IsChecked="{Binding JoinRaid}" Content="{StaticResource JoinRaidText}" ToolTip="{StaticResource JoinRaidTooltipText}"/>
                 <CheckBox IsChecked="{Binding Who}" Content="{StaticResource WhoText}"/>
+                <CheckBox IsChecked="{Binding Rampage}" Content="{StaticResource RampageText}"/>
+                <CheckBox IsChecked="{Binding Dies}" Content="{StaticResource DiesText}" ToolTip="{StaticResource DiesTooltipText}"/>
+                <CheckBox IsChecked="{Binding FactionStanding}" Content="{StaticResource FactionStandingText}" ToolTip="{StaticResource FactionStandingTooltipText}"/>
+                <CheckBox IsChecked="{Binding YourHeals}" Content="{StaticResource YourHealsText}"/>
+                <CheckBox IsChecked="{Binding OthersHealed}" Content="{StaticResource OthersHealedText}"/>
+                <CheckBox IsChecked="{Binding Looted}" Content="{StaticResource LootedText}" ToolTip="{StaticResource LootedTooltipText}"/>
+                <CheckBox IsChecked="{Binding AllTells}" Content="{StaticResource AllTellsText}"/>
                 <CheckBox IsChecked="{Binding You}" Content="{StaticResource YouText}" ToolTip="{StaticResource YouTooltipText}"/>
             </WrapPanel>
         </Grid>
         
         <!-- Buttons -->
-        <Grid Grid.Row="4" HorizontalAlignment="Right">
+        <Grid Grid.Row="5" HorizontalAlignment="Right">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>

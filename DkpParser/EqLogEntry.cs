@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// EqLogEntry.cs Copyright 2025 Craig Gjeltema
+// EqLogEntry.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -28,5 +28,13 @@ public sealed class EqLogEntry
     public bool Visited { get; set; } = false;
 
     private string DebugDisplay
-        => $"{Timestamp:HH:mm:ss} {EntryType} {LogLine.AsSpan()[..10]}...";
+    {
+        get
+        {
+            if (LogLine.Length < 20)
+                return $"{Timestamp:HH:mm:ss} {EntryType} {LogLine}";
+
+            return $"{Timestamp:HH:mm:ss} {EntryType} {LogLine[..20]}...";
+        }
+    }
 }

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// GeneralEqLogParserDialogViewModel.cs Copyright 2025 Craig Gjeltema
+// GeneralEqLogParserDialogViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -16,28 +16,6 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
     private const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     private readonly IDialogFactory _dialogFactory;
     private readonly IDkpParserSettings _settings;
-    private bool _allTells;
-    private bool _auction;
-    private string _caseInsensitiveSearchTerm;
-    private ICollection<string> _caseInsensitiveSearchTerms;
-    private string _caseSensitiveSearchTerm;
-    private ICollection<string> _caseSensitiveSearchTerms;
-    private bool _channel;
-    private bool _checkAll;
-    private bool _dies;
-    private string _endTimeText;
-    private bool _factionStanding;
-    private bool _group;
-    private bool _guild;
-    private bool _joinRaid;
-    private bool _ooc;
-    private string _peopleConversingWith;
-    private bool _raidSay;
-    private bool _say;
-    private bool _shout;
-    private string _startTimeText;
-    private bool _who;
-    private bool _you;
 
     public GeneralEqLogParserDialogViewModel(IDialogViewFactory viewFactory, IDialogFactory dialogFactory, IDkpParserSettings settings)
         : base(viewFactory)
@@ -64,57 +42,28 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
 
     public DelegateCommand AddCaseSensitiveSearchTermCommand { get; }
 
-    public bool AllTells
-    {
-        get => _allTells;
-        set => SetProperty(ref _allTells, value);
-    }
+    public bool AllTells { get; set => SetProperty(ref field, value); }
 
-    public bool Auction
-    {
-        get => _auction;
-        set => SetProperty(ref _auction, value);
-    }
+    public bool Auction { get; set => SetProperty(ref field, value); }
 
-    public string CaseInsensitiveSearchTerm
-    {
-        get => _caseInsensitiveSearchTerm;
-        set => SetProperty(ref _caseInsensitiveSearchTerm, value);
-    }
+    public string CaseInsensitiveSearchTerm { get; set => SetProperty(ref field, value); }
 
-    public ICollection<string> CaseInsensitiveSearchTerms
-    {
-        get => _caseInsensitiveSearchTerms;
-        set => SetProperty(ref _caseInsensitiveSearchTerms, value);
-    }
+    public ICollection<string> CaseInsensitiveSearchTerms { get; set => SetProperty(ref field, value); }
 
-    public string CaseSensitiveSearchTerm
-    {
-        get => _caseSensitiveSearchTerm;
-        set => SetProperty(ref _caseSensitiveSearchTerm, value);
-    }
+    public string CaseSensitiveSearchTerm { get; set => SetProperty(ref field, value); }
 
-    public ICollection<string> CaseSensitiveSearchTerms
-    {
-        get => _caseSensitiveSearchTerms;
-        set => SetProperty(ref _caseSensitiveSearchTerms, value);
-    }
+    public ICollection<string> CaseSensitiveSearchTerms { get; set => SetProperty(ref field, value); }
 
-    public bool Channel
-    {
-        get => _channel;
-        set => SetProperty(ref _channel, value);
-    }
+    public string Channels { get; set => SetProperty(ref field, value); }
 
     public bool CheckAll
     {
-        get => _checkAll;
+        get;
         set
         {
-            SetProperty(ref _checkAll, value);
+            SetProperty(ref field, value);
             AllTells = value;
             Auction = value;
-            Channel = value;
             Dies = value;
             FactionStanding = value;
             Guild = value;
@@ -126,94 +75,63 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             Shout = value;
             Who = value;
             You = value;
+            YourHeals = value;
+            OthersHealed = value;
+            Rampage = value;
+            Looted = value;
         }
     }
 
-    public bool Dies
-    {
-        get => _dies;
-        set => SetProperty(ref _dies, value);
-    }
+    public bool Dies { get; set => SetProperty(ref field, value); }
 
     public string EndTimeText
     {
-        get => _endTimeText;
-        set => SetProperty(ref _endTimeText, value);
+        get;
+        set
+        {
+            if (SetProperty(ref field, value))
+            {
+                if (DateTime.TryParse(value, out DateTime endTime))
+                {
+                    StartTimeText = endTime.AddHours(-6).ToString(Constants.TimePickerDisplayDateTimeFormat);
+                }
+            }
+        }
     }
 
-    public bool FactionStanding
-    {
-        get => _factionStanding;
-        set => SetProperty(ref _factionStanding, value);
-    }
+    public bool FactionStanding { get; set => SetProperty(ref field, value); }
 
-    public bool Group
-    {
-        get => _you;
-        set => SetProperty(ref _group, value);
-    }
+    public bool Group { get; set => SetProperty(ref field, value); }
 
-    public bool Guild
-    {
-        get => _guild;
-        set => SetProperty(ref _guild, value);
-    }
+    public bool Guild { get; set => SetProperty(ref field, value); }
 
-    public bool JoinRaid
-    {
-        get => _joinRaid;
-        set => SetProperty(ref _joinRaid, value);
-    }
+    public bool JoinRaid { get; set => SetProperty(ref field, value); }
 
-    public bool Ooc
-    {
-        get => _ooc;
-        set => SetProperty(ref _ooc, value);
-    }
+    public bool Looted { get; set => SetProperty(ref field, value); }
 
-    public string PeopleConversingWith
-    {
-        get => _peopleConversingWith;
-        set => SetProperty(ref _peopleConversingWith, value);
-    }
+    public bool Ooc { get; set => SetProperty(ref field, value); }
 
-    public bool RaidSay
-    {
-        get => _raidSay;
-        set => SetProperty(ref _raidSay, value);
-    }
+    public bool OthersHealed { get; set => SetProperty(ref field, value); }
 
-    public bool Say
-    {
-        get => _say;
-        set => SetProperty(ref _say, value);
-    }
+    public string PeopleConversingWith { get; set => SetProperty(ref field, value); }
 
-    public bool Shout
-    {
-        get => _shout;
-        set => SetProperty(ref _shout, value);
-    }
+    public bool RaidSay { get; set => SetProperty(ref field, value); }
+
+    public bool Rampage { get; set => SetProperty(ref field, value); }
+
+    public bool Say { get; set => SetProperty(ref field, value); }
+
+    public bool Shout { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand StartSearchCommand { get; }
 
-    public string StartTimeText
-    {
-        get => _startTimeText;
-        set => SetProperty(ref _startTimeText, value);
-    }
+    public string StartTimeText { get; set => SetProperty(ref field, value); }
 
-    public bool Who
-    {
-        get => _who;
-        set => SetProperty(ref _who, value);
-    }
+    public bool Who { get; set => SetProperty(ref field, value); }
 
-    public bool You
-    {
-        get => _you;
-        set => SetProperty(ref _you, value);
-    }
+    public bool You { get; set => SetProperty(ref field, value); }
+
+    public bool YourHeals { get; set => SetProperty(ref field, value); }
 
     private void AddTermToCaseInsensitive()
     {
@@ -268,7 +186,6 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
         {
             AllTells = AllTells,
             Auction = Auction,
-            Channel = Channel,
             Dies = Dies,
             FactionStanding = FactionStanding,
             Guild = Guild,
@@ -280,6 +197,11 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             Shout = Shout,
             Who = Who,
             You = You,
+            YourHeals = YourHeals,
+            OthersHealed = OthersHealed,
+            Rampage = Rampage,
+            Looted = Looted,
+            Channels = Channels?.Split(';'),
             CaseInsensitiveSearchTerms = CaseInsensitiveSearchTerms,
             CaseSensitiveSearchTerms = CaseSensitiveSearchTerms,
             PeopleConversingWith = PeopleConversingWith?.Split(';')
@@ -323,7 +245,7 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
 
     public bool Auction { get; set; }
 
-    public bool Channel { get; set; }
+    public string Channels { get; set; }
 
     public bool CheckAll { get; set; }
 
@@ -337,9 +259,15 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
 
     public bool JoinRaid { get; set; }
 
+    public bool Looted { get; set; }
+
     public bool Ooc { get; set; }
 
+    public bool OthersHealed { get; set; }
+
     public bool RaidSay { get; set; }
+
+    public bool Rampage { get; set; }
 
     public bool Say { get; set; }
 
@@ -348,6 +276,8 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
     public bool Who { get; set; }
 
     public bool You { get; set; }
+
+    public bool YourHeals { get; set; }
 
     DelegateCommand AddCaseInsensitiveSearchTermCommand { get; }
 

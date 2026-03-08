@@ -4,6 +4,7 @@
 
 namespace EuropaDkpParser.ViewModels;
 
+using System.Windows;
 using DkpParser;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
@@ -15,12 +16,6 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
     private readonly DkpLogGenerator _logGenerator;
     private readonly ParsedFileGenerator _parsedFileGenerator;
     private readonly IDkpParserSettings _settings;
-    private string _conversationPlayer;
-    private string _endTimeText;
-    private bool _isCaseSensitive;
-    private bool _performingParse = false;
-    private string _searchTermText;
-    private string _startTimeText;
 
     internal ParserDialogViewModel(IDkpParserSettings settings, IDialogFactory dialogFactory, IDialogViewFactory viewFactory)
         : base(viewFactory)
@@ -33,29 +28,25 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         _parsedFileGenerator = new(settings, dialogFactory);
 
         ResetTimeCommand = new DelegateCommand(ResetTime);
-        GetConversationCommand = new DelegateCommand(ParseConversation, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(ConversationPlayer) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
-            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => ConversationPlayer);
-        GetAllCommunicationCommand = new DelegateCommand(GetAllCommunication, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
-            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText);
-        GetSearchTermCommand = new DelegateCommand(GetSearchTerm, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(SearchTermText) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
-           .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => SearchTermText);
+        GetConversationCommand = new DelegateCommand(ParseConversation, () => !PerformingParse && !string.IsNullOrWhiteSpace(ConversationPlayer) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => ConversationPlayer).ObservesProperty(() => PerformingParse);
+        GetAllCommunicationCommand = new DelegateCommand(GetAllCommunication, () => !PerformingParse && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => PerformingParse);
+        GetSearchTermCommand = new DelegateCommand(GetSearchTerm, () => !PerformingParse && !string.IsNullOrWhiteSpace(SearchTermText) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+           .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => SearchTermText).ObservesProperty(() => PerformingParse);
         OpenGeneralParserCommand = new DelegateCommand(OpenGeneralParser);
-        GetRaidSummaryCommand = new DelegateCommand(GetRaidSummary, () => !_performingParse && !string.IsNullOrWhiteSpace(StartTimeText) && !string.IsNullOrWhiteSpace(EndTimeText) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
-            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText);
+        GetRaidSummaryCommand = new DelegateCommand(GetRaidSummary, () => !PerformingParse && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => PerformingParse);
     }
 
-    public string ConversationPlayer
-    {
-        get => _conversationPlayer;
-        set => SetProperty(ref _conversationPlayer, value);
-    }
+    public string ConversationPlayer { get; set => SetProperty(ref field, value); }
 
     public string EndTimeText
     {
-        get => _endTimeText;
+        get;
         set
         {
-            if (SetProperty(ref _endTimeText, value))
+            if (SetProperty(ref field, value))
             {
                 if (DateTime.TryParse(value, out DateTime endTime))
                 {
@@ -73,33 +64,19 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
 
     public DelegateCommand GetSearchTermCommand { get; }
 
-    public bool IncludeTells
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    public bool IncludeTells { get; set => SetProperty(ref field, value); }
 
-    public bool IsCaseSensitive
-    {
-        get => _isCaseSensitive;
-        set => SetProperty(ref _isCaseSensitive, value);
-    }
+    public bool IsCaseSensitive { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand OpenGeneralParserCommand { get; }
 
     public DelegateCommand ResetTimeCommand { get; }
 
-    public string SearchTermText
-    {
-        get => _searchTermText;
-        set => SetProperty(ref _searchTermText, value);
-    }
+    public string SearchTermText { get; set => SetProperty(ref field, value); }
 
-    public string StartTimeText
-    {
-        get => _startTimeText;
-        set => SetProperty(ref _startTimeText, value);
-    }
+    public string StartTimeText { get; set => SetProperty(ref field, value); }
+
+    private bool PerformingParse { get; set => SetProperty(ref field, value); }
 
     private async Task ExecuteParse(Func<DateTime, DateTime, Task> parseToExecute)
     {
@@ -108,20 +85,25 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
 
         try
         {
-            _performingParse = true;
+            PerformingParse = true;
             RefreshCommands();
 
             await parseToExecute(startTime, endTime);
         }
         finally
         {
-            _performingParse = false;
+            PerformingParse = false;
             RefreshCommands();
         }
     }
 
     private async void GetAllCommunication()
-        => await ExecuteParse(GetAllCommunicationAsync);
+    {
+        if (!TimesAreValid())
+            return;
+
+        await ExecuteParse(GetAllCommunicationAsync);
+    }
 
     private async Task GetAllCommunicationAsync(DateTime startTime, DateTime endTime)
         => await _parsedFileGenerator.GetAllCommunicationAsync(startTime, endTime, GetOutputPath());
@@ -130,13 +112,23 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         => string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? _logGenerator.GetUserProfilePath() : _settings.OutputDirectory;
 
     private async void GetRaidSummary()
-        => await ExecuteParse(GetRaidSummaryAsync);
+    {
+        if (!TimesAreValid())
+            return;
+
+        await ExecuteParse(GetRaidSummaryAsync);
+    }
 
     private async Task GetRaidSummaryAsync(DateTime startTime, DateTime endTime)
        => await _parsedFileGenerator.GetRaidSummaryAsync(startTime, endTime, IncludeTells, GetOutputPath());
 
     private async void GetSearchTerm()
-        => await ExecuteParse(GetSearchTermAsync);
+    {
+        if (!TimesAreValid())
+            return;
+
+        await ExecuteParse(GetSearchTermAsync);
+    }
 
     private async Task GetSearchTermAsync(DateTime startTime, DateTime endTime)
         => await _parsedFileGenerator.GetSearchTermAsync(startTime, endTime, SearchTermText, IsCaseSensitive, GetOutputPath());
@@ -149,7 +141,12 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
     }
 
     private async void ParseConversation()
-        => await ExecuteParse(ParseConversationAsync);
+    {
+        if (!TimesAreValid())
+            return;
+
+        await ExecuteParse(ParseConversationAsync);
+    }
 
     private async Task ParseConversationAsync(DateTime startTime, DateTime endTime)
         => await _parsedFileGenerator.ParseConversationAsync(startTime, endTime, ConversationPlayer, GetOutputPath());
@@ -158,6 +155,8 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
     {
         GetConversationCommand.RaiseCanExecuteChanged();
         GetSearchTermCommand.RaiseCanExecuteChanged();
+        GetAllCommunicationCommand.RaiseCanExecuteChanged();
+        GetRaidSummaryCommand.RaiseCanExecuteChanged();
     }
 
     private void ResetTime()
@@ -165,6 +164,23 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         DateTime currentTime = DateTime.Now;
         EndTimeText = currentTime.ToString(Constants.TimePickerDisplayDateTimeFormat);
         StartTimeText = currentTime.AddHours(-6).ToString(Constants.TimePickerDisplayDateTimeFormat);
+    }
+
+    private bool TimesAreValid()
+    {
+        if (!DateTime.TryParse(StartTimeText, out DateTime startTime))
+        {
+            MessageBox.Show(Strings.GetString("StartTimeErrorMessage"), Strings.GetString("StartTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+
+        if (!DateTime.TryParse(EndTimeText, out DateTime endTime))
+        {
+            MessageBox.Show(Strings.GetString("EndTimeErrorMessage"), Strings.GetString("EndTimeError"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+
+        return true;
     }
 }
 

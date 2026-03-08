@@ -254,6 +254,7 @@
     <system:String x:Key="CaseInsensitiveSearchTerms">Case Insensitive Search Terms</system:String>
     <system:String x:Key="CaseSensitiveSearchTerms">Case Sensitive Search Terms</system:String>
     <system:String x:Key="ConversationWith">Get /tells with (semi-colon separated list):</system:String>
+    <system:String x:Key="CustomChannels">Get custom channel msgs (semi-colon separated list):</system:String>
     <system:String x:Key="DeSelectAll">(De)Select All</system:String>
     <system:String x:Key="AllTellsText">All Tells</system:String>
     <system:String x:Key="AuctionText">/auc</system:String>
@@ -268,12 +269,17 @@
     <system:String x:Key="SayText">/say</system:String>
     <system:String x:Key="ShoutText">/shout</system:String>
     <system:String x:Key="WhoText">/who</system:String>
+    <system:String x:Key="RampageText">Rampage</system:String>
+    <system:String x:Key="YourHealsText">Your Heals</system:String>
+    <system:String x:Key="OthersHealedText">Others Healed</system:String>
+    <system:String x:Key="LootedText">Looted</system:String>
     <system:String x:Key="YouText">You</system:String>
     <system:String x:Key="ChannelTooltipText">All messages sent to a custom chat channel.</system:String>
     <system:String x:Key="DiesTooltipText">All entries where a player dies.</system:String>
     <system:String x:Key="FactionStandingTooltipText">All entries which show a faction standing change.</system:String>
     <system:String x:Key="JoinRaidTooltipText">All entries where a player joines or leaves a raid.</system:String>
     <system:String x:Key="YouTooltipText">All entries that have "You" (case sensitive) in it.  Gets spells cast and other actions by You.</system:String>
+    <system:String x:Key="LootedTooltipText">All entries where a player or you loots an item.</system:String>
     <system:String x:Key="StartParse">Start Parse</system:String>
     <system:String x:Key="NoEntriesFound">No entries in the specified time period that match the settings were found.</system:String>
     <system:String x:Key="NoEntriesFoundTitle">No Entries Found</system:String>
