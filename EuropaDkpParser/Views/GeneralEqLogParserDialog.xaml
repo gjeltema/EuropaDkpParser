@@ -142,9 +142,10 @@
                 <CheckBox IsChecked="{Binding JoinRaid}" Content="{StaticResource JoinRaidText}" ToolTip="{StaticResource JoinRaidTooltipText}"/>
                 <CheckBox IsChecked="{Binding Who}" Content="{StaticResource WhoText}"/>
                 <CheckBox IsChecked="{Binding Rampage}" Content="{StaticResource RampageText}"/>
-                <CheckBox IsChecked="{Binding Dies}" Content="{StaticResource DiesText}" ToolTip="{StaticResource DiesTooltipText}"/>
+                <CheckBox IsChecked="{Binding OtherDeath}" Content="{StaticResource OtherDeathText}" ToolTip="{StaticResource OtherDeathTooltipText}"/>
+                <CheckBox IsChecked="{Binding YouSlain}" Content="{StaticResource YouSlainText}" ToolTip="{StaticResource YouSlainTooltipText}"/>
                 <CheckBox IsChecked="{Binding FactionStanding}" Content="{StaticResource FactionStandingText}" ToolTip="{StaticResource FactionStandingTooltipText}"/>
-                <CheckBox IsChecked="{Binding YourHeals}" Content="{StaticResource YourHealsText}"/>
+                <CheckBox IsChecked="{Binding YourHeals}" Content="{StaticResource YourHealsText}" ToolTip="{StaticResource YouHealedTooltipText}"/>
                 <CheckBox IsChecked="{Binding OthersHealed}" Content="{StaticResource OthersHealedText}"/>
                 <CheckBox IsChecked="{Binding Looted}" Content="{StaticResource LootedText}" ToolTip="{StaticResource LootedTooltipText}"/>
                 <CheckBox IsChecked="{Binding AllTells}" Content="{StaticResource AllTellsText}"/>

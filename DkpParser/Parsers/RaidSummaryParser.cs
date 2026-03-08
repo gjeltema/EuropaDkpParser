@@ -39,23 +39,23 @@ public sealed class RaidSummaryParser : EqLogParserBase, IRaidSummaryParser
 
         public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
         {
-            if (logLine.Contains(Constants.RaidYou) || logLine.Contains(Constants.RaidOther)
-            || logLine.Contains(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)
-            || logLine.Contains(Constants.OocYou) || logLine.Contains(Constants.OocOther)
-            || logLine.Contains(Constants.GuildYou) || logLine.Contains(Constants.GuildOther)
-            || logLine.Contains(Constants.GroupYou) || logLine.Contains(Constants.GroupOther)
+            if (logLine.StartsWith(Constants.RaidYou) || logLine.Contains(Constants.RaidOther)
+            || logLine.StartsWith(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)
+            || logLine.StartsWith(Constants.OocYou) || logLine.Contains(Constants.OocOther)
+            || logLine.StartsWith(Constants.GuildYou) || logLine.Contains(Constants.GuildOther)
+            || logLine.StartsWith(Constants.GroupYou) || logLine.Contains(Constants.GroupOther)
             || logLine.Contains(Constants.JoinedRaid) || logLine.Contains(Constants.LeftRaid)
-            || logLine.Contains(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)
-            || logLine.Contains(Constants.LootedA)
-            || logLine.Contains("You have been healed for ") || logLine.Contains(" feels much better.")
-            || logLine.Contains("goes on a RAMPAGE against ")
+            || logLine.StartsWith(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)
+            || logLine.EndsWith(Constants.EndLootedDashes) || logLine.StartsWith(Constants.SlainYou)
+            || logLine.StartsWith(Constants.YouHealed) || logLine.Contains(Constants.FeelsMuchBetter)
+            || logLine.Contains(Constants.Rampage) || logLine.Contains(Constants.Slain)
             || logLine.Contains(" Eu.heals:") || logLine.Contains(" Eu.ch:") || logLine.Contains(" Eu.officers:"))
             {
                 AddLogEntry(logLine, entryTimeStamp);
                 return;
             }
 
-            if (_includeTells && (logLine.Contains(Constants.TellsYou) || logLine.Contains(Constants.YouTold)))
+            if (_includeTells && (logLine.Contains(Constants.TellsYou) || logLine.StartsWith(Constants.YouTold)))
             {
                 AddLogEntry(logLine, entryTimeStamp);
                 return;

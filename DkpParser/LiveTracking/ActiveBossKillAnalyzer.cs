@@ -8,13 +8,10 @@ using Gjeltema.Logging;
 
 internal sealed class ActiveBossKillAnalyzer
 {
-    private const string DruzzilGuild = "Druzzil Ro tells the guild, '";
     private const string Expires = " that expires in ";
     private const string HasKilled = " has killed ";
     private const string In = " in ";
-    private const string Lockout = "You have incurred a lockout for ";
     private const string LogPrefix = $"[{nameof(ActiveBossKillAnalyzer)}]";
-    private const string Slain = " has been slain by ";
     private readonly IRaidValues _raidValues;
 
     public ActiveBossKillAnalyzer(IRaidValues raidValues)
@@ -24,11 +21,11 @@ internal sealed class ActiveBossKillAnalyzer
 
     public string GetBossKillName(string logLine)
     {
-        if (logLine.Contains(Lockout))
+        if (logLine.Contains(Constants.Lockout))
         {
             // [Wed Jan 14 23:41:07 2026] You have incurred a lockout for Va Xi Aten Ha Ra that expires in 6 Days and 18 Hours.
             Log.Debug($"{LogPrefix} Lockout message: {logLine}");
-            int indexOfEndOfLockout = logLine.IndexOf(Lockout) + Lockout.Length;
+            int indexOfEndOfLockout = logLine.IndexOf(Constants.Lockout) + Constants.Lockout.Length;
             int indexOfExpires = logLine.IndexOf(Expires);
 
             string bossName = logLine[indexOfEndOfLockout..indexOfExpires].Trim();
@@ -38,11 +35,11 @@ internal sealed class ActiveBossKillAnalyzer
                 return bossName;
             }
         }
-        else if (logLine.Contains(Slain))
+        else if (logLine.Contains(Constants.Slain))
         {
             // [Wed Jan 14 23:41:07 2026] Va Xi Aten Ha Ra has been slain by Motanz!
             Log.Debug($"{LogPrefix} Slain message: {logLine}");
-            string[] split = logLine.Split(Slain);
+            string[] split = logLine.Split(Constants.Slain);
             if (split.Length != 2)
                 return null;
 
@@ -53,7 +50,7 @@ internal sealed class ActiveBossKillAnalyzer
                 return bossName;
             }
         }
-        else if (logLine.Contains(DruzzilGuild))
+        else if (logLine.Contains(Constants.DruzzilGuild))
         {
             // [Wed Jan 14 23:41:07 2026] Druzzil Ro tells the guild, 'Brydda of <Europa> has killed Va Xi Aten Ha Ra in Vex Thal!'
             Log.Debug($"{LogPrefix} Druzzil message: {logLine}");

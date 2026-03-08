@@ -8,19 +8,7 @@ using System.IO;
 
 public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 {
-    private const string DiesTerm = " dies.";
     private const string FactionStandingTerm = "Your faction standing with ";
-    private const string OocTerm = " out of character, ";
-    private const string OtherAuctionTerm = " auctions, ";
-    private const string OtherGuildTerm = " tells the guild, ";
-    private const string OtherRaidTerm = " tells the raid, ";
-    private const string OtherSayTerm = " says, ";
-    private const string OtherShoutTerm = " shouts, ";
-    private const string YouAuctionTerm = "You auction, ";
-    private const string YouGuildTerm = "You say to your guild, ";
-    private const string YouRaidTerm = "You tell your raid, ";
-    private const string YouSayTerm = "You say, ";
-    private const string YouShoutTerm = "You shout, ";
     private const string YouTerm = "You";
     private readonly List<IEntryParser> _entryParsers = [];
 
@@ -46,52 +34,76 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 
         if (settings.Guild)
         {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouGuildTerm));
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OtherGuildTerm));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.GuildYou));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.GuildOther));
         }
         if (settings.RaidSay)
         {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouRaidTerm));
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OtherRaidTerm));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.RaidYou));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.RaidOther));
         }
-        if (settings.Say)
-        {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouSayTerm));
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OtherSayTerm));
-        }
-        if (settings.Ooc)
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OocTerm));
         if (settings.Group)
         {
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.GroupYou));
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.GroupOther));
         }
+        if (settings.Say)
+        {
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.SayYou));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.SayOther));
+        }
         if (settings.Shout)
         {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouShoutTerm));
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OtherShoutTerm));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.ShoutYou));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.ShoutOther));
         }
-        if (settings.You)
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouTerm));
+        if (settings.Ooc)
+        {
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.OocYou));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.OocOther));
+        }
         if (settings.Auction)
         {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouAuctionTerm));
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OtherAuctionTerm));
-        }
-        if (settings.Dies)
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(DiesTerm));
-        if (settings.FactionStanding)
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(FactionStandingTerm));
-        if (settings.AllTells)
-        {
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouTold));
-            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.TellsYou));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.AuctionYou));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.AuctionOther));
         }
         if (settings.JoinRaid)
         {
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.JoinedRaid));
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.LeftRaid));
         }
+        if (settings.Who)
+        {
+            WhoBodyEntryParser bodyParser = new();
+            WhoStartEntryParser startParser = new(bodyParser);
+            _entryParsers.Add(startParser);
+            _entryParsers.Add(bodyParser);
+        }
+        if (settings.Rampage)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.Rampage));
+        if (settings.OtherDeath)
+        {
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.Lockout));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.Slain));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.DruzzilGuild));
+        }
+        if (settings.YouSlain)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.SlainYou));
+        if (settings.FactionStanding)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(FactionStandingTerm));
+        if (settings.YourHeals)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouHealed));
+        if (settings.OthersHealed)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.FeelsMuchBetter));
+        if (settings.Looted)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.EndLootedDashes));
+        if (settings.AllTells)
+        {
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouTold));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.TellsYou));
+        }
+        if (settings.You)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouTerm));
         if (settings.PeopleConversingWith != null && settings.PeopleConversingWith.Count > 0 && !settings.AllTells)
         {
             _entryParsers.Add(new ConversationEntryParser(settings.PeopleConversingWith));
@@ -110,13 +122,6 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         {
             foreach (string channel in settings.Channels)
                 _entryParsers.Add(new CustomChannelEntryParser(channel));
-        }
-        if (settings.Who)
-        {
-            WhoBodyEntryParser bodyParser = new();
-            WhoStartEntryParser startParser = new(bodyParser);
-            _entryParsers.Add(startParser);
-            _entryParsers.Add(bodyParser);
         }
     }
 
@@ -369,8 +374,6 @@ public sealed class GeneralEqLogParserSettings
 
     public ICollection<string> Channels { get; set; }
 
-    public bool Dies { get; set; }
-
     public bool FactionStanding { get; set; }
 
     public bool Group { get; set; }
@@ -384,6 +387,8 @@ public sealed class GeneralEqLogParserSettings
     public bool Looted { get; set; }
 
     public bool Ooc { get; set; }
+
+    public bool OtherDeath { get; set; }
 
     public bool OthersHealed { get; set; }
 
@@ -402,6 +407,8 @@ public sealed class GeneralEqLogParserSettings
     public bool You { get; set; }
 
     public bool YourHeals { get; set; }
+
+    public bool YouSlain { get; set; }
 }
 
 internal interface IEntryParser

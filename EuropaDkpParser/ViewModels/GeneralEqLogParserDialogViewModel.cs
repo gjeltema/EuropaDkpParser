@@ -64,7 +64,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             SetProperty(ref field, value);
             AllTells = value;
             Auction = value;
-            Dies = value;
+            YouSlain = value;
             FactionStanding = value;
             Guild = value;
             Group = value;
@@ -79,10 +79,9 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             OthersHealed = value;
             Rampage = value;
             Looted = value;
+            OtherDeath = value;
         }
     }
-
-    public bool Dies { get; set => SetProperty(ref field, value); }
 
     public string EndTimeText
     {
@@ -111,6 +110,8 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
 
     public bool Ooc { get; set => SetProperty(ref field, value); }
 
+    public bool OtherDeath { get; set => SetProperty(ref field, value); }
+
     public bool OthersHealed { get; set => SetProperty(ref field, value); }
 
     public string PeopleConversingWith { get; set => SetProperty(ref field, value); }
@@ -132,6 +133,8 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
     public bool You { get; set => SetProperty(ref field, value); }
 
     public bool YourHeals { get; set => SetProperty(ref field, value); }
+
+    public bool YouSlain { get; set => SetProperty(ref field, value); }
 
     private void AddTermToCaseInsensitive()
     {
@@ -186,7 +189,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
         {
             AllTells = AllTells,
             Auction = Auction,
-            Dies = Dies,
+            YouSlain = YouSlain,
             FactionStanding = FactionStanding,
             Guild = Guild,
             JoinRaid = JoinRaid,
@@ -201,6 +204,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             OthersHealed = OthersHealed,
             Rampage = Rampage,
             Looted = Looted,
+            OtherDeath = OtherDeath,
             Channels = Channels?.Split(';'),
             CaseInsensitiveSearchTerms = CaseInsensitiveSearchTerms,
             CaseSensitiveSearchTerms = CaseSensitiveSearchTerms,
@@ -241,47 +245,13 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
 
 public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
 {
-    public bool AllTells { get; set; }
-
-    public bool Auction { get; set; }
-
-    public string Channels { get; set; }
-
-    public bool CheckAll { get; set; }
-
-    public bool Dies { get; set; }
-
-    public bool FactionStanding { get; set; }
-
-    public bool Group { get; set; }
-
-    public bool Guild { get; set; }
-
-    public bool JoinRaid { get; set; }
-
-    public bool Looted { get; set; }
-
-    public bool Ooc { get; set; }
-
-    public bool OthersHealed { get; set; }
-
-    public bool RaidSay { get; set; }
-
-    public bool Rampage { get; set; }
-
-    public bool Say { get; set; }
-
-    public bool Shout { get; set; }
-
-    public bool Who { get; set; }
-
-    public bool You { get; set; }
-
-    public bool YourHeals { get; set; }
-
     DelegateCommand AddCaseInsensitiveSearchTermCommand { get; }
 
     DelegateCommand AddCaseSensitiveSearchTermCommand { get; }
+
+    bool AllTells { get; set; }
+
+    bool Auction { get; set; }
 
     string CaseInsensitiveSearchTerm { get; set; }
 
@@ -291,12 +261,48 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
 
     ICollection<string> CaseSensitiveSearchTerms { get; }
 
+    string Channels { get; set; }
+
+    bool CheckAll { get; set; }
+
     string EndTimeText { get; set; }
 
+    bool FactionStanding { get; set; }
+
+    bool Group { get; set; }
+
+    bool Guild { get; set; }
+
+    bool JoinRaid { get; set; }
+
+    bool Looted { get; set; }
+
+    bool Ooc { get; set; }
+
+    bool OtherDeath { get; set; }
+
+    bool OthersHealed { get; set; }
+
     string PeopleConversingWith { get; set; }
+
+    bool RaidSay { get; set; }
+
+    bool Rampage { get; set; }
+
+    bool Say { get; set; }
+
+    bool Shout { get; set; }
 
     DelegateCommand StartSearchCommand { get; }
 
     string StartTimeText { get; set; }
+
+    bool Who { get; set; }
+
+    bool You { get; set; }
+
+    bool YourHeals { get; set; }
+
+    bool YouSlain { get; set; }
 }
 

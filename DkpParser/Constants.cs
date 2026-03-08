@@ -33,10 +33,12 @@ public static class Constants
     public const string Dashes = "---------------------------";
     public const string DkpSpent = "SPENT";  // Used to be DKPSPENT, but was changed to SPENT due to typos by users
     public const string DoubleDash = "--";
+    public const string DruzzilGuild = "Druzzil Ro tells the guild, '";
     public const string EndLootedDashes = ".--";
     public const string EqLogDateTimeFormat = "[ddd MMM dd HH:mm:ss yyyy]";
     public const string EqLogSearchPattern = "*eqlog*.txt";
     public const string EqProcessName = "eqgame";
+    public const string FeelsMuchBetter = " feels much better.";
     public const string FullGeneratedLogFileNamePrefix = "FullLogOutput-eqlog-";
     public const string GeneratedLogFileNamePrefix = "GeneratedDkpLog-eqlog-";
     public const string GroupOther = " tells the group,";
@@ -53,6 +55,7 @@ public static class Constants
     public const string JoinedRaid = " joined the raid.";
     public const string KillCall = "KILL";
     public const string LeftRaid = " has left the raid.";
+    public const string Lockout = "You have incurred a lockout for ";
     public const string LootedA = " looted a ";
     public const int MinimumRaidNameLength = 5;
     public const string NotReady = "NOTREADY";
@@ -82,6 +85,7 @@ public static class Constants
     public const string RaidSummaryFileNamePrefix = "RaidSummary-";
     // [Sun Mar 17 23:18:28 2024] You tell your raid, ':::Raid Attendance Taken:::Sister of the Spire:::Kill:::'
     public const string RaidYou = "You tell your raid, '";
+    public const string Rampage = " goes on a RAMPAGE against ";
     public const string Ready = "READY";
     public const string ReadyAlternateDelimiter = $"{AlternateDelimiter}{Ready}{AlternateDelimiter}";
     public const string ReadyCheck = "READYCHECK";
@@ -93,6 +97,8 @@ public static class Constants
     public const string Remove = "REMOVE";
     public const string RollWin = "WINS";
     public const string Rot = "ROT";
+    public const string SayOther = " says, ";
+    public const string SayYou = "You say, ";
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
     public const string SetAwardedDKP = "SETDKP";
     public const string SetAwardedDKPAlternateDelimiter = $"{AlternateDelimiter}{SetAwardedDKP}{AlternateDelimiter}";
@@ -103,26 +109,27 @@ public static class Constants
     public const string SetAwardedDKPEndWithDelimiter = $"{AttendanceDelimiter}{SetAwardedDKPEnd}{AttendanceDelimiter}";
     public const string SetAwardedDKPEndWithDelimiter2 = $"{AttendanceDelimiter}{SetAwardedDKPEnd2}{AttendanceDelimiter}";
     public const string SetAwardedDKPWithDelimiter = $"{AttendanceDelimiter}{SetAwardedDKP}{AttendanceDelimiter}";
+    public const string ShoutOther = " shouts, ";
+    public const string ShoutYou = "You shout, ";
+    public const string Slain = " has been slain by ";
+    public const string SlainYou = "You have been slain by ";
     public const string StandardDateTimeDisplayFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TellsYou = " tells you,";
     public const string TimePickerDisplayDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     public const string TooLongDelimiter = "::::";
-    /// <summary>
-    /// /rs :::From Character:::To Character:::TRANSFER:::
-    /// </summary>
+    /// <summary>/rs :::From Character:::To Character:::TRANSFER:::</summary>
     public const string Transfer = "TRANSFER";
     public const string Undo = "UNDO";
     public const string UploadDebugInfoFileNamePrefix = "DEBUGUploadInfo-";
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";
+    public const string YouHealed = "You have been healed for ";
     public const string YouTold = "You told ";
     public const string ZealAttendanceBasedFileName = "ZealRaidAttendance_";
     public const string ZealAttendanceBasedFileNameFormat = ZealAttendanceBasedFileName + "{0}.txt";
     public const string ZealDetailLog = "Zeal";
     public const int ZealPipeBufferSize = 32768;
-    /// <summary>
-    /// One argument for format: Process ID
-    /// </summary>
+    /// <summary>One argument for format: Process ID</summary>
     public const string ZealPipeNameFormat = ZealPipeNamePrefix + "_{0}";
     public const string ZealPipeNamePrefix = "zeal";
     public const string ZealRaidAttendanceFileNameTimeFormat = "yyyy-MM-dd_HH-mm-ss";
