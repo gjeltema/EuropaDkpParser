@@ -77,6 +77,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             You = value;
             YourHeals = value;
             OthersHealed = value;
+            Twitches = value;
             Rampage = value;
             Looted = value;
             OtherDeath = value;
@@ -127,6 +128,8 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
     public DelegateCommand StartSearchCommand { get; }
 
     public string StartTimeText { get; set => SetProperty(ref field, value); }
+
+    public bool Twitches { get; set => SetProperty(ref field, value); }
 
     public bool Who { get; set => SetProperty(ref field, value); }
 
@@ -202,6 +205,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             You = You,
             YourHeals = YourHeals,
             OthersHealed = OthersHealed,
+            Twitches = Twitches,
             Rampage = Rampage,
             Looted = Looted,
             OtherDeath = OtherDeath,
@@ -296,6 +300,8 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
     DelegateCommand StartSearchCommand { get; }
 
     string StartTimeText { get; set; }
+
+    bool Twitches { get; set; }
 
     bool Who { get; set; }
 

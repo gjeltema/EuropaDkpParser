@@ -48,7 +48,7 @@ public sealed class RaidSummaryParser : EqLogParserBase, IRaidSummaryParser
             || logLine.StartsWith(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)
             || logLine.EndsWith(Constants.EndLootedDashes) || logLine.StartsWith(Constants.SlainYou)
             || logLine.StartsWith(Constants.YouHealed) || logLine.Contains(Constants.FeelsMuchBetter)
-            || logLine.Contains(Constants.Rampage) || logLine.Contains(Constants.Slain)
+            || logLine.StartsWith(Constants.Twitches) || logLine.Contains(Constants.Rampage) || logLine.Contains(Constants.Slain)
             || logLine.Contains(" Eu.heals:") || logLine.Contains(" Eu.ch:") || logLine.Contains(" Eu.officers:"))
             {
                 AddLogEntry(logLine, entryTimeStamp);

@@ -95,6 +95,8 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouHealed));
         if (settings.OthersHealed)
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.FeelsMuchBetter));
+        if (settings.Twitches)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.Twitches));
         if (settings.Looted)
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.EndLootedDashes));
         if (settings.AllTells)
@@ -401,6 +403,8 @@ public sealed class GeneralEqLogParserSettings
     public bool Say { get; set; }
 
     public bool Shout { get; set; }
+
+    public bool Twitches { get; set; }
 
     public bool Who { get; set; }
 

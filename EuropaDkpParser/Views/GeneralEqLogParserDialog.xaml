@@ -147,6 +147,7 @@
                 <CheckBox IsChecked="{Binding FactionStanding}" Content="{StaticResource FactionStandingText}" ToolTip="{StaticResource FactionStandingTooltipText}"/>
                 <CheckBox IsChecked="{Binding YourHeals}" Content="{StaticResource YourHealsText}" ToolTip="{StaticResource YouHealedTooltipText}"/>
                 <CheckBox IsChecked="{Binding OthersHealed}" Content="{StaticResource OthersHealedText}"/>
+                <CheckBox IsChecked="{Binding Twitches}" Content="{StaticResource TwitchesText}"/>
                 <CheckBox IsChecked="{Binding Looted}" Content="{StaticResource LootedText}" ToolTip="{StaticResource LootedTooltipText}"/>
                 <CheckBox IsChecked="{Binding AllTells}" Content="{StaticResource AllTellsText}"/>
                 <CheckBox IsChecked="{Binding You}" Content="{StaticResource YouText}" ToolTip="{StaticResource YouTooltipText}"/>

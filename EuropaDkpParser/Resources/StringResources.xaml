@@ -273,6 +273,7 @@
     <system:String x:Key="RampageText">Rampage</system:String>
     <system:String x:Key="YourHealsText">You Healed</system:String>
     <system:String x:Key="OthersHealedText">Others Healed</system:String>
+    <system:String x:Key="TwitchesText">Twitches</system:String>
     <system:String x:Key="LootedText">Looted</system:String>
     <system:String x:Key="YouText">You</system:String>
     <system:String x:Key="ChannelTooltipText">All messages sent to a custom chat channel.</system:String>

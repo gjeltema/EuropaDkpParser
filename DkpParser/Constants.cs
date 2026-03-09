@@ -119,6 +119,7 @@ public static class Constants
     public const string TooLongDelimiter = "::::";
     /// <summary>/rs :::From Character:::To Character:::TRANSFER:::</summary>
     public const string Transfer = "TRANSFER";
+    public const string Twitches = " twitches.";
     public const string Undo = "UNDO";
     public const string UploadDebugInfoFileNamePrefix = "DEBUGUploadInfo-";
     public const string WhoZonePrefixPlural = "There are ";
