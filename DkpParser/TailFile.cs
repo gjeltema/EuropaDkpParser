@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading;
 using Gjeltema.Logging;
 
-public sealed class TailFile : IMessageProvider
+internal sealed class TailFile : IMessageProvider
 {
     private const string LogPrefix = $"[{nameof(TailFile)}]";
     private const int Timeout = 500;
@@ -102,7 +102,7 @@ public sealed class TailFile : IMessageProvider
             using StreamReader reader = new(fileStream);
 
             long lastOffset = reader.BaseStream.Length;
-
+            reader.BaseStream.Seek(lastOffset, SeekOrigin.Begin);
 
             while (!cancelToken.IsCancellationRequested)
             {
@@ -117,14 +117,13 @@ public sealed class TailFile : IMessageProvider
                 if (reader.BaseStream.Length == lastOffset)
                     continue;
 
-                reader.BaseStream.Seek(lastOffset, SeekOrigin.Begin);
-
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
                     try
                     {
                         LastUpdate = DateTime.Now;
+                        Log.Trace($"{LogPrefix}{ThreadIdText} Line read: {line}");
                         _lineHandler(line);
                     }
                     catch (Exception e)

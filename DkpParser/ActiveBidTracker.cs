@@ -14,15 +14,10 @@ using Gjeltema.Logging;
 public sealed class ActiveBidTracker : IActiveBidTracker
 {
     private const string LogPrefix = $"[{nameof(ActiveBidTracker)}]";
-    private const string MezBreakIdentifier = " is no longer mezzed. (";
     private readonly ActiveBiddingAnalyzer _activeBiddingAnalyzer;
-    private readonly ActiveBossKillAnalyzer _activeBossKillAnalyzer;
-    private readonly ActiveAuctionEndAnalyzer _auctionEndAnalyzer;
-    private readonly ActiveAuctionStartAnalyzer _auctionStartAnalyzer;
     private readonly object _bossKilledLock = new();
-    private readonly ChannelAnalyzer _channelAnalyzer;
+    private readonly IEqLogTailFile _eqLogTailFile;
     private readonly ItemLinkValues _itemLinkValues;
-    private readonly IMessageProviderFactory _messageProviderFactory;
     private readonly ConcurrentQueue<CharacterReadyCheckStatus> _readyCheckStatus = new();
     private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly IDkpParserSettings _settings;
@@ -33,22 +28,17 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private ImmutableList<string> _currentAfks;
     private string _lastBossKilled;
     private DateTime _lastBossTime = DateTime.MinValue;
-    private IMessageProvider _messageProvider;
+    private bool _listeningForEvents = false;
     private ImmutableList<MezBreak> _mezBreaks;
     private bool _readyCheckInitiated;
     private ImmutableList<LiveSpentCall> _spentCalls;
 
-    public ActiveBidTracker(IDkpParserSettings settings, IMessageProviderFactory messageProviderFactory)
+    public ActiveBidTracker(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile)
     {
         _settings = settings;
+        _eqLogTailFile = eqLogTailFile;
 
-        _channelAnalyzer = new(settings);
-
-        _messageProviderFactory = messageProviderFactory;
-        _auctionStartAnalyzer = new();
-        _auctionEndAnalyzer = new();
         _activeBiddingAnalyzer = new(settings);
-        _activeBossKillAnalyzer = new(settings.RaidValue);
         _itemLinkValues = settings.ItemLinkIds;
 
         _activeAuctions = [];
@@ -72,7 +62,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         => _currentAfks;
 
     public bool IsParsingLogFile
-        => _messageProvider?.IsSendingMessages ?? false;
+        => _eqLogTailFile.IsSendingMessages;
 
     public IEnumerable<MezBreak> MezBreaks
         => _mezBreaks;
@@ -87,7 +77,40 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         }
     }
 
-    public bool TrackReadyCheck { get; set; }
+    public bool TrackBossKills
+    {
+        get;
+        set
+        {
+            if (field == value)
+                return;
+
+            field = value;
+            if (field)
+                _eqLogTailFile.BossKilledMessage += HandleBossKilled;
+            else
+                _eqLogTailFile.BossKilledMessage -= HandleBossKilled;
+        }
+    }
+
+    public bool TrackReadyCheck
+    {
+        get;
+        set
+        {
+            field = value;
+            if (field)
+            {
+                _eqLogTailFile.ReadyCheckInitiatedMessage += HandleReadyCheckInitiated;
+                _eqLogTailFile.CharacterReadyCheckMessage += HandleCharacterReadyCheck;
+            }
+            else
+            {
+                _eqLogTailFile.ReadyCheckInitiatedMessage -= HandleReadyCheckInitiated;
+                _eqLogTailFile.CharacterReadyCheckMessage -= HandleCharacterReadyCheck;
+            }
+        }
+    }
 
     public bool Updated { get; set; }
 
@@ -219,6 +242,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             return;
 
         _activeAuctions = _activeAuctions.Add(auction.AuctionStart);
+        _eqLogTailFile.AddAuctionItem(auction.AuctionStart.ItemName);
         _completedAuctions = _completedAuctions.Remove(auction);
         Updated = true;
     }
@@ -255,19 +279,36 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         _completedAuctions = _completedAuctions.Add(completedAuction);
         _activeAuctions = _activeAuctions.Remove(auctionToComplete);
+        _eqLogTailFile.RemoveAuctionItem(auctionToComplete.ItemName);
 
         Updated = true;
     }
 
+    public void StartTracking()
+    {
+        _eqLogTailFile.StartMessages();
+        ListenForUpdates();
+    }
+
     public void StartTracking(string fileName)
     {
-        _messageProvider?.StopMessages();
-        _messageProvider = _messageProviderFactory.CreateTailFileProvider(fileName, ProcessMessage);
-        _messageProvider.StartMessages();
+        _eqLogTailFile.StartMessages(fileName);
+        ListenForUpdates();
     }
 
     public void StopTracking()
-        => _messageProvider?.StopMessages();
+    {
+        _listeningForEvents = false;
+        _eqLogTailFile.AuctionStartMessage -= HandleAuctionStart;
+        _eqLogTailFile.BidInfoMessage -= HandleBid;
+        _eqLogTailFile.RollMessage -= HandleRoll;
+        _eqLogTailFile.AfkCommandMessage -= HandleAfkCommand;
+        _eqLogTailFile.MezBreakMessage -= HandleMezBreak;
+        _eqLogTailFile.SpentCallMessage -= HandleSpentCall;
+        _eqLogTailFile.ReadyCheckInitiatedMessage -= HandleReadyCheckInitiated;
+        _eqLogTailFile.CharacterReadyCheckMessage -= HandleCharacterReadyCheck;
+        _eqLogTailFile.BossKilledMessage -= HandleBossKilled;
+    }
 
     public void TakeAttendanceSnapshot(string raidName, AttendanceCallType callType)
     {
@@ -347,46 +388,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "/rs",
         };
 
-    private string GetMessageSenderName(ReadOnlySpan<char> logLine)
-    {
-        int indexOfSpace = logLine.IndexOf(' ');
-        if (indexOfSpace < 3)
-            return string.Empty;
-
-        string auctioneerName = logLine[0..indexOfSpace].Trim().ToString();
-        return auctioneerName;
-    }
-
-    private MezBreak GetMezBreak(string logLineNoTimestamp, DateTime timestamp)
-    {
-        // [Fri Dec 05 20:02:17 2025] a fetid fiend is no longer mezzed. (Haight - melee)
-        // [Fri Dec 12 20:20:13 2025] Amygdalan knight is no longer mezzed. (Naddin - Upheaval)
-
-        if (!logLineNoTimestamp.Contains(MezBreakIdentifier))
-            return null;
-
-        string[] mezBreakInfo = logLineNoTimestamp.Split(MezBreakIdentifier);
-        if (mezBreakInfo.Length != 2)
-            return null;
-
-        string mobName = mezBreakInfo[0];
-        string characterAndReason = mezBreakInfo[1];
-        int indexOfDash = characterAndReason.IndexOf('-');
-        if (indexOfDash < 5)
-            return null;
-
-        string characterName = characterAndReason[0..(indexOfDash - 1)];
-        string reason = characterAndReason[(indexOfDash + 2)..(characterAndReason.Length - 1)];
-
-        return new MezBreak
-        {
-            CharacterName = characterName,
-            MobName = mobName,
-            Reason = reason,
-            TimeOfBreak = timestamp
-        };
-    }
-
     private string GetStatusString(StatusMarker statusMarker)
         => statusMarker switch
         {
@@ -397,201 +398,117 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             _ => "60s",
         };
 
-    private void HandleRollByPlayer(LiveBidInfo rollInfo)
+    private void HandleAfkCommand(object sender, AfkCommandEventArgs e)
     {
-        if (rollInfo == null)
-            return;
+        if (e.StartAfk)
+        {
+            _currentAfks = _currentAfks.Add(e.CharacterName);
+        }
+        else
+        {
+            _currentAfks = _currentAfks.Remove(e.CharacterName);
+        }
+        Updated = true;
+    }
 
-        _bids = _bids.Add(rollInfo);
+    private void HandleAuctionStart(object sender, AuctionStartEventArgs e)
+    {
+        LiveAuctionInfo newAuction = e.AuctionStart;
+        LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x == newAuction);
+        if (existingAuction != null)
+        {
+            if (!existingAuction.IsRoll)
+            {
+                int newNumberOfItems = Math.Max(existingAuction.TotalNumberOfItems, newAuction.TotalNumberOfItems);
+                Log.Debug($"{LogPrefix} Overwiting existing auction [{existingAuction}] {nameof(LiveAuctionInfo.TotalNumberOfItems)} with {newNumberOfItems} due to auction [{newAuction}]");
+                existingAuction.TotalNumberOfItems = newNumberOfItems;
+                existingAuction.Channel = newAuction.Channel;
+            }
+
+            return;
+        }
+
+        _activeAuctions = _activeAuctions.Add(newAuction);
+        _eqLogTailFile.AddAuctionItem(newAuction.ItemName);
+    }
+
+    private void HandleBid(object sender, BidInfoEventArgs e)
+    {
+        LiveBidInfo bid = _activeBiddingAnalyzer.ProcessBidInfo(e.BidInfo, _activeAuctions);
+        if (bid != null)
+        {
+            LiveBidInfo possibleDuplicateBid = _bids.FirstOrDefault(x => x == bid);
+            if (possibleDuplicateBid != null)
+            {
+                _bids = _bids.Remove(possibleDuplicateBid);
+                Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
+            }
+
+            _bids = _bids.Add(bid);
+
+            Updated = true;
+            return;
+        }
+    }
+
+    private void HandleBossKilled(object sender, BossKilledEventArgs e)
+    {
+        string bossName = e.BossName;
+        Log.Debug($"{LogPrefix} Checking Boss Killed: {bossName}");
+        if (_lastBossKilled == bossName && DateTime.Now.AddSeconds(-30) < _lastBossTime)
+        {
+            Log.Debug($"{LogPrefix} Ignoring. LastBossKilled: {_lastBossKilled}, LastTime: {_lastBossTime:T}");
+            return;
+        }
+
+        if (_settings.RaidValue.UseTimeOnlyWithConfiguredKillCalls)
+        {
+            if (!_settings.RaidValue.OnlyKillCalls.Contains(bossName))
+                return;
+        }
+
+        lock (_bossKilledLock)
+        {
+            _bossKilledName = bossName;
+        }
+        _lastBossKilled = bossName;
+        _lastBossTime = DateTime.Now;
 
         Updated = true;
     }
 
-    private void ProcessAuctionStart(ICollection<LiveAuctionInfo> auctionStarts)
+    private void HandleCharacterReadyCheck(object sender, CharacterReadyCheckEventArgs e)
     {
-        foreach (LiveAuctionInfo newAuction in auctionStarts)
+        _readyCheckStatus.Enqueue(e.ReadyCheckStatus);
+        Updated = true;
+    }
+
+    private void HandleMezBreak(object sender, MezBreakEventArgs e)
+    {
+        _mezBreaks = _mezBreaks.Add(e.MezBreak);
+        Log.Debug($"{LogPrefix} Added Mez Break: [{e.MezBreak}].");
+        Updated = true;
+    }
+
+    private void HandleReadyCheckInitiated(object sender, EventArgs e)
+    {
+        _readyCheckInitiated = true;
+        Updated = true;
+    }
+
+    private void HandleRoll(object sender, RawRollInfoEventArgs e)
+    {
+        LiveBidInfo rollInfo = _activeBiddingAnalyzer.ProcessRollInfo(e.RollInfo, _activeAuctions);
+        if (rollInfo != null)
         {
-            LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x == newAuction);
-            if (existingAuction != null)
-            {
-                if (!existingAuction.IsRoll)
-                {
-                    int newNumberOfItems = Math.Max(existingAuction.TotalNumberOfItems, newAuction.TotalNumberOfItems);
-                    Log.Debug($"{LogPrefix} Overwiting existing auction [{existingAuction}] {nameof(LiveAuctionInfo.TotalNumberOfItems)} with {newNumberOfItems} due to auction [{newAuction}]");
-                    existingAuction.TotalNumberOfItems = newNumberOfItems;
-                    existingAuction.Channel = newAuction.Channel;
-                }
-
-                continue;
-            }
-
-            _activeAuctions = _activeAuctions.Add(newAuction);
+            _bids = _bids.Add(rollInfo);
+            Updated = true;
         }
     }
 
-    private void ProcessMessage(string message)
+    private void HandleSpentCall(object sender, LiveSpentCallEventArgs e)
     {
-        if (!message.TryExtractEqLogTimeStamp(out DateTime timestamp))
-            return;
-
-        try
-        {
-            // +1 to remove the following space.
-            string logLineNoTimestamp = message[(Constants.EqLogDateTimeLength + 1)..];
-
-            MezBreak mezBreak = GetMezBreak(logLineNoTimestamp, timestamp);
-            if (mezBreak != null)
-            {
-                UpdateMezBreaks(mezBreak, message);
-                return;
-            }
-
-            string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
-            if (bossKilledName != null)
-            {
-                Log.Debug($"{LogPrefix} Checking Boss Killed: {bossKilledName}");
-                if (_lastBossKilled == bossKilledName && DateTime.Now.AddSeconds(-30) < _lastBossTime)
-                {
-                    Log.Debug($"{LogPrefix} Ignoring. LastBossKilled: {_lastBossKilled}, LastTime: {_lastBossTime:T}");
-                    return;
-                }
-
-                if (_settings.RaidValue.UseTimeOnlyWithConfiguredKillCalls)
-                {
-                    if (!_settings.RaidValue.OnlyKillCalls.Contains(bossKilledName))
-                        return;
-                }
-
-                lock (_bossKilledLock)
-                {
-                    _bossKilledName = bossKilledName;
-                }
-                _lastBossKilled = bossKilledName;
-                _lastBossTime = DateTime.Now;
-
-                Log.Debug($"{LogPrefix} Extracted boss name: {bossKilledName} from line: {message}.");
-                Updated = true;
-                return;
-            }
-
-            LiveBidInfo rollInfo = _activeBiddingAnalyzer.GetRollInfo(logLineNoTimestamp, timestamp, _activeAuctions);
-            if (rollInfo != null)
-            {
-                HandleRollByPlayer(rollInfo);
-            }
-
-            EqChannel channel = _channelAnalyzer.GetChannel(logLineNoTimestamp);
-            if (channel == EqChannel.None)
-                return;
-
-            bool isValidDkpChannel = _channelAnalyzer.IsValidDkpChannel(channel);
-
-            if (TrackReadyCheck && (isValidDkpChannel || channel == EqChannel.ReadyCheck))
-            {
-                if (logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter) || logLineNoTimestamp.Contains(Constants.AlternateDelimiter))
-                {
-                    string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(logLineNoTimestamp);
-                    string noWhitespaceLogLine = sanitizedLogLine.RemoveAllWhitespace();
-
-                    if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter) || noWhitespaceLogLine.Contains(Constants.ReadyCheckAlternateDelimiter))
-                    {
-                        Log.Debug($"{LogPrefix} Ready Check initiated: {message}");
-                        _readyCheckInitiated = true;
-                        Updated = true;
-                        return;
-                    }
-                    else if (noWhitespaceLogLine.Contains(Constants.ReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                        || noWhitespaceLogLine.Contains(Constants.ReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
-                    {
-                        string senderName = GetMessageSenderName(logLineNoTimestamp);
-                        _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = true });
-                        Log.Debug($"{LogPrefix} {senderName} is READY: {message}");
-                        Updated = true;
-                        return;
-                    }
-                    else if (noWhitespaceLogLine.Contains(Constants.NotReadyWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                        || noWhitespaceLogLine.Contains(Constants.NotReadyAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
-                    {
-                        string senderName = GetMessageSenderName(logLineNoTimestamp);
-                        _readyCheckStatus.Enqueue(new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = false });
-                        Log.Debug($"{LogPrefix} {senderName} is NOT READY: {message}");
-                        Updated = true;
-                        return;
-                    }
-                }
-            }
-
-            // Include Group so that the tool can be used in xp groups
-            if (!isValidDkpChannel && channel != EqChannel.Group)
-                return;
-
-            string messageSenderName = GetMessageSenderName(logLineNoTimestamp);
-
-            string noWhitespaceLogline = logLineNoTimestamp.RemoveAllWhitespace();
-            if (!_currentAfks.Contains(messageSenderName) && (noWhitespaceLogline.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                || noWhitespaceLogline.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
-            {
-                Log.Info($"{LogPrefix} Added {messageSenderName} to the +AFK+ list.");
-                _currentAfks = _currentAfks.Add(messageSenderName);
-                Updated = true;
-                return;
-            }
-            if (_currentAfks.Contains(messageSenderName) && (noWhitespaceLogline.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
-                || noWhitespaceLogline.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase)))
-            {
-                Log.Info($"{LogPrefix} Removed {messageSenderName} from the +AFK+ list.");
-                _currentAfks = _currentAfks.Remove(messageSenderName);
-                Updated = true;
-                return;
-            }
-
-            int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'');
-            string messageFromPlayer = logLineNoTimestamp.AsSpan()[(indexOfFirstQuote + 1)..^1].Trim().ToString();
-
-            ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(messageFromPlayer, channel, timestamp, messageSenderName);
-            if (auctionStarts.Count > 0)
-            {
-                ProcessAuctionStart(auctionStarts);
-
-                Updated = true;
-                return;
-            }
-
-            Log.Debug($"{LogPrefix} Message from player: '{messageFromPlayer}'");
-            LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(messageFromPlayer, channel, timestamp, messageSenderName);
-            if (spentCall != null)
-            {
-                Updated = ProcessSpentCall(spentCall);
-                return;
-            }
-
-            if (isValidDkpChannel)
-            {
-                LiveBidInfo bid = _activeBiddingAnalyzer.GetBidInformation(messageFromPlayer, channel, timestamp, messageSenderName, _activeAuctions);
-                if (bid != null)
-                {
-                    LiveBidInfo possibleDuplicateBid = _bids.FirstOrDefault(x => x == bid);
-                    if (possibleDuplicateBid != null)
-                    {
-                        _bids = _bids.Remove(possibleDuplicateBid);
-                        Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
-                    }
-
-                    _bids = _bids.Add(bid);
-
-                    Updated = true;
-                    return;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"{LogPrefix} Error processing messages: {ex.ToLogMessage()}");
-        }
-    }
-
-    private bool ProcessSpentCall(LiveSpentCall spentCall)
-    {
+        LiveSpentCall spentCall = e.SpentCall;
         if (spentCall.IsRemoveCall)
         {
             LiveSpentCall existingSpentCall = _spentCalls
@@ -600,18 +517,19 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             {
                 _spentCalls.Remove(existingSpentCall);
                 Log.Info($"{LogPrefix} REMOVE applied to spent call {existingSpentCall}");
-                return true;
+                Updated = true;
+                return;
             }
 
             Log.Info($"{LogPrefix} REMOVE call made, but no associated SPENT call found: {spentCall}");
-            return false;
+            return;
         }
 
         LiveAuctionInfo existingAuction = _activeAuctions.FirstOrDefault(x => x.ItemName == spentCall.ItemName);
         if (existingAuction == null)
         {
             Log.Info($"{LogPrefix} SPENT call made, but no associated auction found: {spentCall}");
-            return false;
+            return;
         }
 
         spentCall.AuctionStart = existingAuction;
@@ -628,6 +546,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (spentCalls.Count >= existingAuction.TotalNumberOfItems)
         {
             _activeAuctions = _activeAuctions.Remove(existingAuction);
+            _eqLogTailFile.RemoveAuctionItem(existingAuction.ItemName);
             CompletedAuction newCompletedCall = new()
             {
                 AuctionStart = existingAuction,
@@ -636,11 +555,27 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             };
             Log.Debug($"{LogPrefix} SPENT call made, Completed call created: {newCompletedCall}");
             _completedAuctions = _completedAuctions.Add(newCompletedCall);
-            return true;
+            Updated = true;
+            return;
         }
 
         Log.Debug($"{LogPrefix} SPENT call made, but not enough SPENT calls to complete the auction. SPENT call: {spentCall}; Associated Auction: {existingAuction}");
-        return true;
+        Updated = true;
+        return;
+    }
+
+    private void ListenForUpdates()
+    {
+        if (_listeningForEvents)
+            return;
+
+        _listeningForEvents = true;
+        _eqLogTailFile.AuctionStartMessage += HandleAuctionStart;
+        _eqLogTailFile.BidInfoMessage += HandleBid;
+        _eqLogTailFile.RollMessage += HandleRoll;
+        _eqLogTailFile.AfkCommandMessage += HandleAfkCommand;
+        _eqLogTailFile.MezBreakMessage += HandleMezBreak;
+        _eqLogTailFile.SpentCallMessage += HandleSpentCall;
     }
 
     private bool SpentCallExists(LiveBidInfo bid)
@@ -648,13 +583,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 && x.DkpSpent == bid.BidAmount
                 && x.ItemName == bid.ItemName
                 && x.Winner.Equals(bid.CharacterBeingBidFor, StringComparison.OrdinalIgnoreCase));
-
-    private void UpdateMezBreaks(MezBreak mezBreak, string message)
-    {
-        _mezBreaks = _mezBreaks.Add(mezBreak);
-        Log.Debug($"{LogPrefix} Added Mez Break: [{mezBreak}] from line: {message}");
-        Updated = true;
-    }
 
     private void WriteToFile(string fileToWriteTo, IEnumerable<string> fileContents)
     {
@@ -686,6 +614,8 @@ public interface IActiveBidTracker
 
     bool ReadyCheckInitiated { get; }
 
+    bool TrackBossKills { get; set; }
+
     bool TrackReadyCheck { get; set; }
 
     bool Updated { get; set; }
@@ -695,6 +625,8 @@ public interface IActiveBidTracker
     ICollection<LiveBidInfo> GetHighBids(LiveAuctionInfo auction, bool lowRollWins);
 
     string GetNextStatusMarkerForSelection(string currentMarker);
+
+    string GetRemoveSpentMessageWithLink(SuggestedSpentCall spentCall);
 
     ICollection<SuggestedSpentCall> GetSpentInfoForCurrentHighBids(LiveAuctionInfo auction, bool lowRollWins);
 
@@ -715,4 +647,6 @@ public interface IActiveBidTracker
     void StopTracking();
 
     void TakeAttendanceSnapshot(string raidName, AttendanceCallType callType);
+
+    bool TryGetReadyCheckStatus(out CharacterReadyCheckStatus readyStatus);
 }

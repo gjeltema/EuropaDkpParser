@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpParserExtensions.cs Copyright 2025 Craig Gjeltema
+// DkpParserExtensions.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -12,6 +12,9 @@ public static class DkpParserExtensions
 
     public static bool Contains(this ReadOnlySpan<char> line, ReadOnlySpan<char> toFind)
         => line.Contains(toFind, StringComparison.Ordinal);
+
+    public static bool ContainsIgnoreCase(this string searchingString, string lookingFor)
+        => searchingString.Contains(lookingFor, StringComparison.OrdinalIgnoreCase);
 
     public static string GetAttendanceCall(this AttendanceCallType callType, string attendanceName)
     {

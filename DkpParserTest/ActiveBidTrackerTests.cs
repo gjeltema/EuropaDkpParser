@@ -13,13 +13,25 @@ using Gjeltema.Logging;
 internal sealed class ActiveBidTrackerTests
 {
     private MessageProviderMock _messageProvider;
+    private SettingsMock _settingsMock;
     private ActiveBidTracker _systemUnderTest;
+
+    [OneTimeSetUp]
+    public void OneTime()
+    {
+        ItemLinkValues itemLinkValues = new("");
+        itemLinkValues.AddItemId("Robe of Primal Force", "123456");
+        _settingsMock = new(itemLinkValues);
+        _messageProvider = new();
+        MessageProviderFactoryMock factoryMock = new(_messageProvider);
+        EqLogTailFile.Instance.Initialize(_settingsMock, factoryMock);
+    }
 
     [TestCase()]
     public void Tracker_WhenBidCycleWith2ItemsAndRotSpent_HasExpectedState()
     {
         InitializeSystemUnderTest();
-        _systemUnderTest.StartTracking("");
+        _systemUnderTest.StartTracking("TestFile");
         _messageProvider.SendMessage("[Fri Nov 01 20:58:08 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: BIDS OPEN X2'");
         Assert.Multiple(() =>
         {
@@ -76,7 +88,7 @@ internal sealed class ActiveBidTrackerTests
     public void Tracker_WhenBidCycleWith2ItemsTranspires_HasExpectedState()
     {
         InitializeSystemUnderTest();
-        _systemUnderTest.StartTracking("");
+        _systemUnderTest.StartTracking("TestFile");
         _messageProvider.SendMessage("[Fri Nov 01 20:58:08 2024] Ghalone tells the raid,  '::: Robe of Primal Force ::: BIDS OPEN X2'");
         Assert.Multiple(() =>
         {
@@ -137,7 +149,7 @@ internal sealed class ActiveBidTrackerTests
     public void Tracker_WhenBidCycleWithMultipleItemsTranspires_HasExpectedState()
     {
         InitializeSystemUnderTest();
-        _systemUnderTest.StartTracking("");
+        _systemUnderTest.StartTracking("TestFile");
         _messageProvider.SendMessage("[Fri Nov 01 23:13:30 2024] Ghalone tells the raid,  'Robe of Primal Force,Crystalline Spear,Robe of Primal Force OPEN'");
         Assert.Multiple(() =>
         {
@@ -181,7 +193,7 @@ internal sealed class ActiveBidTrackerTests
     public void Tracker_WhenBidWithDelimiter_ProcessesBidCorrectly()
     {
         InitializeSystemUnderTest();
-        _systemUnderTest.StartTracking("");
+        _systemUnderTest.StartTracking("TestFile");
         _messageProvider.SendMessage("[Fri Nov 01 20:58:08 2024] Ghalone tells the raid,  ':::Robe of Primal Force::: BIDS OPEN'");
         _messageProvider.SendMessage("[Fri Nov 01 23:13:38 2024] Undertree tells the raid,  ':::Robe of Primal Force::: uNderPaID 20 DKP'");
 
@@ -206,7 +218,8 @@ internal sealed class ActiveBidTrackerTests
     public void Tracker_WhenBossKillHappens_HasExpectedState(string logLine, string expectedBossName)
     {
         InitializeSystemUnderTest();
-        _systemUnderTest.StartTracking("");
+        _systemUnderTest.StartTracking("TestFile");
+        _systemUnderTest.TrackBossKills = true;
 
         Assert.That(_systemUnderTest.GetBossKilledName(), Is.Null);
 
@@ -224,7 +237,7 @@ internal sealed class ActiveBidTrackerTests
     public void Tracker_WhenNormalBidCycleTranspires_HasExpectedState()
     {
         InitializeSystemUnderTest();
-        _systemUnderTest.StartTracking("");
+        _systemUnderTest.StartTracking("TestFile");
         _messageProvider.SendMessage("[Fri Nov 01 23:13:39 2024] You tell your raid, ':::Crystalline Spear::: BIDS OPEN'");
         Assert.Multiple(() =>
         {
@@ -306,12 +319,7 @@ internal sealed class ActiveBidTrackerTests
 
     private void InitializeSystemUnderTest()
     {
-        ItemLinkValues itemLinkValues = new("");
-        itemLinkValues.AddItemId("Robe of Primal Force", "123456");
-        SettingsMock settings = new(itemLinkValues);
-        _messageProvider = new();
-        MessageProviderFactoryMock factoryMock = new(_messageProvider);
-        _systemUnderTest = new ActiveBidTracker(settings, factoryMock);
+        _systemUnderTest = new ActiveBidTracker(_settingsMock, EqLogTailFile.Instance);
     }
 }
 
@@ -325,14 +333,18 @@ internal sealed class MessageProviderFactoryMock : IMessageProviderFactory
     }
 
     public IMessageProvider CreateTailFileProvider(string filePath, Action<string> lineHandler)
-        => _mock;
+    {
+        _mock.StartMessages("", lineHandler);
+        return _mock;
+    }
 }
 
 internal sealed class MessageProviderMock : IMessageProvider
 {
     private Action<string> _lineHandler;
 
-    public bool IsSendingMessages { get; }
+    public bool IsSendingMessages
+        => true;
 
     public void SendMessage(string message)
         => _lineHandler(message);
@@ -414,7 +426,7 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public int OverlayLocationY { get; set; }
 
-    public IRaidValues RaidValue { get; }
+    public IRaidValues RaidValue { get; } = new RaidValueMock();
 
     public ICollection<string> SelectedLogFiles { get; set; }
 
@@ -423,6 +435,9 @@ internal sealed class SettingsMock : IDkpParserSettings
     public bool UseLightMode { get; set; }
 
     public IDictionary<int, string> ZoneIdMapping { get; }
+
+    public string GetLogFileForCharacter(string characterName)
+        => throw new NotImplementedException();
 
     public void LoadAllSettings()
         => throw new NotImplementedException();
@@ -434,5 +449,33 @@ internal sealed class SettingsMock : IDkpParserSettings
         => throw new NotImplementedException();
 
     public void SaveSettings()
+        => throw new NotImplementedException();
+}
+
+internal sealed class RaidValueMock : IRaidValues
+{
+    public ICollection<string> AllBossMobNames { get; }
+
+    public ICollection<string> AllValidRaidZoneNames { get; }
+
+    public IEnumerable<string> BossesWithNoDruzzilMessage { get; }
+
+    public IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; }
+
+    public IEnumerable<string> OnlyKillCalls { get; } = ["Innoruuk", "Lord Nagafen", "King Tranix"];
+
+    public bool UseTimeOnlyWithConfiguredKillCalls
+        => true;
+
+    public int GetDkpValueForRaid(AttendanceEntry attendanceEntry)
+        => throw new NotImplementedException();
+
+    public string GetZoneRaidAlias(string zoneName)
+        => throw new NotImplementedException();
+
+    public bool IsBonusZone(string zoneName)
+        => throw new NotImplementedException();
+
+    public void LoadSettings()
         => throw new NotImplementedException();
 }

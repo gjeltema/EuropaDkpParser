@@ -345,3 +345,41 @@ public sealed class MezBreak
     public override string ToString()
          => $"[{TimeOfBreak:HH:mm:ss}] ({CharacterName} - {Reason}) broke {MobName}";
 }
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class RawRollInfo
+{
+    public string CharacterRolling { get; init; }
+
+    public int RollAmount { get; init; }
+
+    public DateTime Timestamp { get; init; }
+
+    private string DebugText
+        => $"{Timestamp:HH:mm:ss} {CharacterRolling} {RollAmount}";
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class RawBidInfo
+{
+    public int BidAmount { get; init; }
+
+    public EqChannel Channel { get; init; }
+
+    public string CharacterBeingBidFor { get; set; }
+
+    public bool CharacterNotOnDkpServer { get; set; }
+
+    public string CharacterPlacingBid { get; init; }
+
+    public bool IsStatusUpdate { get; init; } = false;
+
+    public string ItemName { get; init; }
+
+    public string StatusValue { get; init; }
+
+    public DateTime Timestamp { get; init; }
+
+    private string DebugText
+        => $"{Timestamp:HH:mm:ss} {ItemName} {CharacterBeingBidFor} {BidAmount}";
+}

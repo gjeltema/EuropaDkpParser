@@ -4,7 +4,6 @@
 
 namespace EuropaDkpParser.ViewModels;
 
-using System.IO;
 using System.Windows.Threading;
 using DkpParser;
 using DkpParser.LiveTracking;
@@ -25,12 +24,12 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     private int _selectedFontSize;
     private string _selectedLogFilePath;
 
-    public SimpleBidTrackerViewModel(IWindowViewFactory viewFactory, IDkpParserSettings settings)
+    public SimpleBidTrackerViewModel(IWindowViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile)
         : base(viewFactory)
     {
         _settings = settings;
 
-        _activeBidTracker = new(settings, new MessageProviderFactory());
+        _activeBidTracker = new(settings, eqLogTailFile);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
         LogFileNames = [.. _settings.SelectedLogFiles];
@@ -38,6 +37,8 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
         SetActiveAuctionsToCompletedCommand = new DelegateCommand(SetActiveAuctionsToCompleted);
 
         _selectedFontSize = 12;
+
+        _activeBidTracker.StartTracking();
     }
 
     public ICollection<LiveAuctionDisplay> ActiveAuctions
@@ -78,7 +79,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
             if (SetProperty(ref _selectedLogFilePath, value))
             {
                 Log.Info($"{LogPrefix} {nameof(SelectedLogFilePath)} being set to {value}.");
-                StartTailingFile(value);
+                _activeBidTracker.StartTracking(value);
             }
         }
     }
@@ -137,23 +138,6 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
         }
 
         SelectedActiveAuctions.Clear();
-    }
-
-    private void StartTailingFile(string fileToTail)
-    {
-        if (string.IsNullOrWhiteSpace(fileToTail))
-        {
-            Log.Info($"{LogPrefix} Selected log file '{fileToTail}' is null or whitespace - not tailing file.");
-            return;
-        }
-
-        if (!File.Exists(fileToTail))
-        {
-            Log.Info($"{LogPrefix} Selected log file {fileToTail} does not exist - not tailing file.");
-            return;
-        }
-
-        _activeBidTracker.StartTracking(fileToTail);
     }
 
     private void UpdateDisplay()

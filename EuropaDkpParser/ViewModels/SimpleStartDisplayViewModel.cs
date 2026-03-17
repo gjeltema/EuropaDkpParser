@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// SimpleStartDisplayViewModel.cs Copyright 2025 Craig Gjeltema
+// SimpleStartDisplayViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Windows;
 using DkpParser;
+using DkpParser.LiveTracking;
 using EuropaDkpParser.Utility;
 using Prism.Commands;
 
@@ -84,7 +85,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private void OpenBiddingTrackerDialog()
     {
-        _adminBiddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, _dialogFactory, _overlayFactory, _windowFactory);
+        _adminBiddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, EqLogTailFile.Instance, _dialogFactory, _overlayFactory, _windowFactory);
         _adminBiddingDialogVM.WindowClosing += HandleAdminBiddingWindowClosed;
         _adminBiddingDialogVM.Show();
 
@@ -116,7 +117,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private void OpenSimpleBidTrackerDialog()
     {
-        _simpleBidTrackerVM = _windowFactory.CreateSimpleBidTrackerViewModel(_settings);
+        _simpleBidTrackerVM = _windowFactory.CreateSimpleBidTrackerViewModel(_settings, EqLogTailFile.Instance);
         _simpleBidTrackerVM.WindowClosing += HandleSimpleBiddingWindowClosed;
         _simpleBidTrackerVM.Show();
 

@@ -4,7 +4,6 @@
 
 namespace EuropaDkpParser.ViewModels;
 
-using System.IO;
 using System.Windows.Threading;
 using DkpParser;
 using DkpParser.LiveTracking;
@@ -58,6 +57,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     public LiveLogTrackingViewModel(
         IWindowViewFactory windowViewFactory,
         IDkpParserSettings settings,
+        IEqLogTailFile eqLogTailFile,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory)
@@ -66,7 +66,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _settings = settings;
 
         _dkpDataRetriever = new DkpDataRetriever(settings);
-        _activeBidTracker = new(settings, new MessageProviderFactory());
+        _activeBidTracker = new(settings, eqLogTailFile);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, this, overlayFactory, dialogFactory);
 
@@ -101,6 +101,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         LogFileNames = [.. _settings.SelectedLogFiles];
 
         AttendanceNowTimeCall = true;
+
+        _activeBidTracker.StartTracking();
     }
 
     public ICollection<LiveAuctionDisplay> ActiveAuctions
@@ -193,7 +195,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             }
 
             if (!IsReadingLogFile)
-                StartTailingFile(value);
+                _activeBidTracker.StartTracking(value);
         }
     }
 
@@ -269,6 +271,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             if (SetProperty(ref _remindAttendances, value))
             {
                 _attendanceTimerHandler.RemindAttendances = value;
+                _activeBidTracker.TrackBossKills = value;
                 Log.Debug($"{LogPrefix} {nameof(RemindAttendances)} set to {value}.");
             }
         }
@@ -459,21 +462,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         SetAuctionStatusMessage();
     }
 
-    private string GetCharacterNameFromLogFileName(string logFilePath)
-    {
-        string[] parts = logFilePath.Split('_');
-        if (parts.Length == 3)
-        {
-            string fileCharName = parts[1];
-            return fileCharName;
-        }
-
-        return null;
-    }
-
-    private string GetMatchingLogFileName(string characterName, IEnumerable<string> logFilePaths)
-        => logFilePaths.FirstOrDefault(x => LogFileCharNameMatchesCharName(x, characterName));
-
     private DateTime GetSortingTimestamp(CompletedAuction completed)
     {
         if (completed.SpentCalls.Count > 0)
@@ -519,15 +507,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     private void HandleZealPipeError(object sender, ZealPipeErrorEventArgs e)
         => MessageDialog.ShowDialog(e.ErrorMessage, "Zeal Pipe Error");
-
-    private bool LogFileCharNameMatchesCharName(string logFilePath, string characterName)
-    {
-        if (string.IsNullOrWhiteSpace(characterName))
-            return false;
-
-        string logFileCharName = GetCharacterNameFromLogFileName(logFilePath);
-        return characterName.Equals(logFileCharName, StringComparison.OrdinalIgnoreCase);
-    }
 
     private void ReactivateCompletedAuction()
     {
@@ -605,26 +584,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         Log.Debug($"{LogPrefix} Showing ReadyCheck overlay.");
 
         _readyCheckOverlayViewModel.Show();
-    }
-
-    private void StartTailingFile(string fileToTail)
-    {
-        if (string.IsNullOrWhiteSpace(fileToTail))
-            return;
-
-        if (!File.Exists(fileToTail))
-            return;
-
-        _activeBidTracker.StartTracking(fileToTail);
-    }
-
-    private void StartTailingLogFileForCharacter(string characterName)
-    {
-        string logFilePath = GetMatchingLogFileName(characterName, _settings.SelectedLogFiles);
-        if (logFilePath != null)
-        {
-            FilePath = logFilePath;
-        }
     }
 
     private void UpdateActiveAuctionSelected()
@@ -727,16 +686,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             && _zealMessages.RaidInfo.RaidAttendees.Count > 2;
 
         IsReadingLogFile = _activeBidTracker.IsParsingLogFile;
-
-        if (!IsReadingLogFile && _zealMessages.IsConnected && IsZealConnected)
-        {
-            // Dont check against current character name - sometimes the Tail File stops tailing, and it needs to be able
-            // to refresh the tail in that case.  Keeping track of current character name and comparing it with Zeal char name
-            // prevents refreshing.
-            string characterName = _zealMessages.CharacterInfo.CharacterName;
-            Log.Debug($"{LogPrefix} Looking for log file to parse with character name: {characterName}");
-            StartTailingLogFileForCharacter(characterName);
-        }
 
         CurrentAfks = [.. _activeBidTracker.CurrentAfks.Order()];
 

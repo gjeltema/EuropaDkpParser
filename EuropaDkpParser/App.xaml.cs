@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using DkpParser;
+using DkpParser.LiveTracking;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
 using EuropaDkpParser.ViewModels;
@@ -75,6 +76,8 @@ public partial class App : Application
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = darkMode });
             Log.Debug($"Dark Mode enabled");
         }
+
+        EqLogTailFile.Instance.Initialize(_settings, new MessageProviderFactory());
 
         OverlayFactory overlayFactory = new(new OverlayViewFactory());
         WindowFactory windowFactory = new(new WindowViewFactory());

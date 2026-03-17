@@ -1,10 +1,11 @@
 ﻿// -----------------------------------------------------------------------
-// WindowFactory.cs Copyright 2025 Craig Gjeltema
+// WindowFactory.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
 
 using DkpParser;
+using DkpParser.LiveTracking;
 
 public sealed class WindowFactory : IWindowFactory
 {
@@ -17,22 +18,24 @@ public sealed class WindowFactory : IWindowFactory
 
     public ILiveLogTrackingViewModel CreateLiveLogTrackingViewModel(
         IDkpParserSettings settings,
+        IEqLogTailFile eqLogTailFile,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory)
-        => new LiveLogTrackingViewModel(_viewFactory, settings, dialogFactory, overlayFactory, windowFactory);
+        => new LiveLogTrackingViewModel(_viewFactory, settings, eqLogTailFile, dialogFactory, overlayFactory, windowFactory);
 
-    public ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings)
-        => new SimpleBidTrackerViewModel(_viewFactory, settings);
+    public ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile)
+        => new SimpleBidTrackerViewModel(_viewFactory, settings, eqLogTailFile);
 }
 
 public interface IWindowFactory
 {
     ILiveLogTrackingViewModel CreateLiveLogTrackingViewModel(
         IDkpParserSettings settings,
+        IEqLogTailFile eqLogTailFile,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory);
 
-    ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings);
+    ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile);
 }

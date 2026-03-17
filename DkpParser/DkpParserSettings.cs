@@ -127,6 +127,12 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public IDictionary<int, string> ZoneIdMapping { get; private set; }
 
+    public string GetLogFileForCharacter(string characterName)
+    {
+        string logFilePath = SelectedLogFiles.FirstOrDefault(x => LogFileCharNameMatchesCharName(x, characterName));
+        return logFilePath;
+    }
+
     public void LoadAllSettings()
     {
         LoadBaseSettings();
@@ -299,6 +305,18 @@ public sealed class DkpParserSettings : IDkpParserSettings
         return settingValue.Equals("TRUE", StringComparison.OrdinalIgnoreCase);
     }
 
+    private string GetCharacterNameFromLogFileName(string logFilePath)
+    {
+        string[] parts = logFilePath.Split('_');
+        if (parts.Length == 3)
+        {
+            string fileCharName = parts[1];
+            return fileCharName;
+        }
+
+        return null;
+    }
+
     private int GetIntValue(string[] fileContents, string key, int defaultValue = 0)
     {
         int index = GetStartingIndex(fileContents, key);
@@ -393,6 +411,15 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     private bool IsValidIndex(int indexOfSection, ICollection<string> fileContents)
         => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
+
+    private bool LogFileCharNameMatchesCharName(string logFilePath, string characterName)
+    {
+        if (string.IsNullOrWhiteSpace(characterName))
+            return false;
+
+        string logFileCharName = GetCharacterNameFromLogFileName(logFilePath);
+        return characterName.Equals(logFileCharName, StringComparison.OrdinalIgnoreCase);
+    }
 
     private void SetApiUrl(string[] fileContents)
     {
@@ -515,6 +542,8 @@ public interface IDkpParserSettings
     bool UseLightMode { get; set; }
 
     IDictionary<int, string> ZoneIdMapping { get; }
+
+    string GetLogFileForCharacter(string characterName);
 
     void LoadAllSettings();
 
