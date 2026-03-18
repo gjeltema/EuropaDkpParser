@@ -15,23 +15,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 {
     private readonly IDkpDataRetriever _dkpDataRetriever;
     private readonly IDkpParserSettings _settings;
-    private string _apiReadToken;
-    private string _apiUrl;
-    private string _apiWriteToken;
-    private bool _dkpspentGuEnable;
     private string _eqDirectory;
-    private bool _includeTellsInRawLog;
     private string _logFileMatchPattern;
-    private int _mezBreaksToShow;
-    private string _outputDirectory;
-    private string _overlayFontColor;
-    private string _overlayFontSize;
-    private string _selectedLogFileToAdd;
-    private string _selectedLogFileToParse;
-    private string _selectedLoggingLevel;
-    private bool _showAfkReview;
-    private bool _showPogress;
-    private bool _useLightMode;
 
     internal LogSelectionViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings)
         : base(viewFactory)
@@ -84,29 +69,13 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public ICollection<string> AllCharacterLogFiles { get; private set; }
 
-    public string ApiReadToken
-    {
-        get => _apiReadToken;
-        set => SetProperty(ref _apiReadToken, value);
-    }
+    public string ApiReadToken { get; set => SetProperty(ref field, value); }
 
-    public string ApiUrl
-    {
-        get => _apiUrl;
-        set => SetProperty(ref _apiUrl, value);
-    }
+    public string ApiUrl { get; set => SetProperty(ref field, value); }
 
-    public string ApiWriteToken
-    {
-        get => _apiWriteToken;
-        set => SetProperty(ref _apiWriteToken, value);
-    }
+    public string ApiWriteToken { get; set => SetProperty(ref field, value); }
 
-    public bool DkpspentGuEnable
-    {
-        get => _dkpspentGuEnable;
-        set => SetProperty(ref _dkpspentGuEnable, value);
-    }
+    public bool DkpspentGuEnable { get; set => SetProperty(ref field, value); }
 
     public string EqDirectory
     {
@@ -120,11 +89,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         }
     }
 
-    public bool IncludeTellsInRawLog
-    {
-        get => _includeTellsInRawLog;
-        set => SetProperty(ref _includeTellsInRawLog, value);
-    }
+    public bool IncludeTellsInRawLog { get; set => SetProperty(ref field, value); }
 
     public string LogFileMatchPattern
     {
@@ -138,29 +103,13 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public ICollection<string> LoggingLevels { get; }
 
-    public int MezBreaksToShow
-    {
-        get => _mezBreaksToShow;
-        set => SetProperty(ref _mezBreaksToShow, value);
-    }
+    public int MezBreaksToShow { get; set => SetProperty(ref field, value); }
 
-    public string OutputDirectory
-    {
-        get => _outputDirectory;
-        set => SetProperty(ref _outputDirectory, value);
-    }
+    public string OutputDirectory { get; set => SetProperty(ref field, value); }
 
-    public string OverlayFontColor
-    {
-        get => _overlayFontColor;
-        set => SetProperty(ref _overlayFontColor, value);
-    }
+    public string OverlayFontColor { get; set => SetProperty(ref field, value); }
 
-    public string OverlayFontSize
-    {
-        get => _overlayFontSize;
-        set => SetProperty(ref _overlayFontSize, value);
-    }
+    public string OverlayFontSize { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand RemoveLogFileFromListCommand { get; }
 
@@ -168,46 +117,22 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public ICollection<string> SelectedCharacterLogFiles { get; private set; }
 
-    public string SelectedLogFileToAdd
-    {
-        get => _selectedLogFileToAdd;
-        set => SetProperty(ref _selectedLogFileToAdd, value);
-    }
+    public string SelectedLogFileToAdd { get; set => SetProperty(ref field, value); }
 
-    public string SelectedLogFileToParse
-    {
-        get => _selectedLogFileToParse;
-        set => SetProperty(ref _selectedLogFileToParse, value);
-    }
+    public string SelectedLogFileToParse { get; set => SetProperty(ref field, value); }
 
-    public string SelectedLoggingLevel
-    {
-        get => _selectedLoggingLevel;
-        set => SetProperty(ref _selectedLoggingLevel, value);
-    }
+    public string SelectedLoggingLevel { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand SelectEqDirectoryCommand { get; }
 
     public DelegateCommand SelectOutputDirectoryCommand { get; }
 
     // Unused for now.  May re-add later if/when I fully implement the AFK Review dialog.
-    public bool ShowAfkReview
-    {
-        get => _showAfkReview;
-        set => SetProperty(ref _showAfkReview, value);
-    }
+    public bool ShowAfkReview { get; set => SetProperty(ref field, value); }
 
-    public bool ShowProgress
-    {
-        get => _showPogress;
-        private set => SetProperty(ref _showPogress, value);
-    }
+    public bool ShowProgress { get; private set => SetProperty(ref field, value); }
 
-    public bool UseLightMode
-    {
-        get => _useLightMode;
-        set => SetProperty(ref _useLightMode, value);
-    }
+    public bool UseLightMode { get; set => SetProperty(ref field, value); }
 
     public void UpdateSettings(IDkpParserSettings settings)
     {
@@ -258,8 +183,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
             return;
 
 
-        SelectedCharacterLogFiles = new List<string>(SelectedCharacterLogFiles);
-        SelectedCharacterLogFiles.Add(SelectedLogFileToAdd);
+        SelectedCharacterLogFiles = [.. SelectedCharacterLogFiles, SelectedLogFileToAdd];
         RaisePropertyChanged(nameof(SelectedCharacterLogFiles));
     }
 

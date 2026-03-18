@@ -120,37 +120,125 @@ public sealed class EqLogTailFile : IEqLogTailFile
         Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file, Zeal is connected, but character name does not have a matching log file configured.");
     }
 
-    private bool CheckForReadyCheck(string logLineNoTimestamp)
+    private bool CheckForAfk(string message, string messageSenderName)
     {
-        if (!logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter) && !logLineNoTimestamp.Contains(Constants.AlternateDelimiter))
+        if (AfkCommandMessage == null)
             return false;
 
-        string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(logLineNoTimestamp);
-        string noWhitespaceLogLine = sanitizedLogLine.RemoveAllWhitespace();
-
-        if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter) || noWhitespaceLogLine.Contains(Constants.ReadyCheckAlternateDelimiter))
+        AfkCommandEventArgs afk = GetAfkCommand(message, messageSenderName);
+        if (afk != null)
         {
-            Log.Debug($"{LogPrefix} Ready Check initiated: {logLineNoTimestamp}");
-            ReadyCheckInitiatedMessage?.Invoke(this, EventArgs.Empty);
+            AfkCommandMessage?.Invoke(this, afk);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CheckForAuctionStart(string message, DateTime timestamp, string messageSenderName, EqChannel channel)
+    {
+        if (AuctionStartMessage == null)
+            return false;
+
+        ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(message, channel, timestamp, messageSenderName);
+        if (auctionStarts.Count > 0)
+        {
+            foreach (LiveAuctionInfo auction in auctionStarts)
+            {
+                AuctionStartMessage?.Invoke(this, new AuctionStartEventArgs { AuctionStart = auction });
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CheckForBid(string message, DateTime timestamp, string messageSenderName, EqChannel channel, bool isValidDkpChannel)
+    {
+        if (!isValidDkpChannel || BidInfoMessage == null)
+            return false;
+
+        RawBidInfo rawBidInfo = _activeBiddingAnalyzer.GetBidInfo(message, channel, timestamp, messageSenderName, _auctionItems);
+        if (rawBidInfo != null)
+        {
+            BidInfoMessage?.Invoke(this, new BidInfoEventArgs { BidInfo = rawBidInfo });
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CheckForBossKill(string message)
+    {
+        if (BossKilledMessage == null)
+            return false;
+
+        string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(message);
+        if (!string.IsNullOrWhiteSpace(bossKilledName))
+        {
+            BossKilledMessage?.Invoke(this, new BossKilledEventArgs { BossName = bossKilledName });
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CheckForMezBreak(string message, DateTime timestamp)
+    {
+        if (MezBreakMessage == null)
+            return false;
+
+        MezBreak mezBreak = GetMezBreak(message, timestamp);
+        if (mezBreak != null)
+        {
+            MezBreakMessage?.Invoke(this, new MezBreakEventArgs { MezBreak = mezBreak });
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool CheckForReadyCheck(string message, bool isValidDkpChannel, EqChannel channel)
+    {
+        if ((ReadyCheckInitiatedMessage != null || CharacterReadyCheckMessage != null)
+                && (isValidDkpChannel || channel == EqChannel.ReadyCheck))
+        {
+            bool isReadyCheckMessage = ParseReadyCheck(message);
+            if (isReadyCheckMessage)
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool CheckForRoll(string message, DateTime timestamp)
+    {
+        if (RollMessage == null)
+            return false;
+
+        bool isRoll = _activeBiddingAnalyzer.CheckIfRoll(message, timestamp, out RawRollInfo rollInfo);
+        if (isRoll)
+        {
+            if (rollInfo != null)
+            {
+                RollMessage?.Invoke(this, new RawRollInfoEventArgs { RollInfo = rollInfo });
+            }
 
             return true;
         }
-        else if (noWhitespaceLogLine.ContainsIgnoreCase(Constants.ReadyWithDelimiter)
-            || noWhitespaceLogLine.ContainsIgnoreCase(Constants.ReadyAlternateDelimiter))
-        {
-            string senderName = GetMessageSenderName(logLineNoTimestamp);
-            CharacterReadyCheckMessage?.Invoke(this, new CharacterReadyCheckEventArgs { ReadyCheckStatus = new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = true } });
-            Log.Debug($"{LogPrefix} {senderName} is READY: {logLineNoTimestamp}");
 
-            return true;
-        }
-        else if (noWhitespaceLogLine.ContainsIgnoreCase(Constants.NotReadyWithDelimiter)
-            || noWhitespaceLogLine.ContainsIgnoreCase(Constants.NotReadyAlternateDelimiter))
-        {
-            string senderName = GetMessageSenderName(logLineNoTimestamp);
-            CharacterReadyCheckMessage?.Invoke(this, new CharacterReadyCheckEventArgs { ReadyCheckStatus = new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = false } });
-            Log.Debug($"{LogPrefix} {senderName} is NOT READY: {logLineNoTimestamp}");
+        return false;
+    }
 
+    private bool CheckForSpent(string message, DateTime timestamp, string messageSenderName, EqChannel channel)
+    {
+        if (SpentCallMessage == null)
+            return false;
+
+        LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(message, channel, timestamp, messageSenderName);
+        if (spentCall != null)
+        {
+            SpentCallMessage?.Invoke(this, new LiveSpentCallEventArgs { SpentCall = spentCall });
             return true;
         }
 
@@ -215,6 +303,43 @@ public sealed class EqLogTailFile : IEqLogTailFile
         };
     }
 
+    private bool ParseReadyCheck(string logLineNoTimestamp)
+    {
+        if (!logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter) && !logLineNoTimestamp.Contains(Constants.AlternateDelimiter))
+            return false;
+
+        string sanitizedLogLine = _sanitizer.SanitizeDelimiterString(logLineNoTimestamp);
+        string noWhitespaceLogLine = sanitizedLogLine.RemoveAllWhitespace();
+
+        if (noWhitespaceLogLine.Contains(Constants.ReadyCheckWithDelimiter) || noWhitespaceLogLine.Contains(Constants.ReadyCheckAlternateDelimiter))
+        {
+            Log.Debug($"{LogPrefix} Ready Check initiated: {logLineNoTimestamp}");
+            ReadyCheckInitiatedMessage?.Invoke(this, EventArgs.Empty);
+
+            return true;
+        }
+        else if (noWhitespaceLogLine.ContainsIgnoreCase(Constants.ReadyWithDelimiter)
+            || noWhitespaceLogLine.ContainsIgnoreCase(Constants.ReadyAlternateDelimiter))
+        {
+            string senderName = GetMessageSenderName(logLineNoTimestamp);
+            CharacterReadyCheckMessage?.Invoke(this, new CharacterReadyCheckEventArgs { ReadyCheckStatus = new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = true } });
+            Log.Debug($"{LogPrefix} {senderName} is READY: {logLineNoTimestamp}");
+
+            return true;
+        }
+        else if (noWhitespaceLogLine.ContainsIgnoreCase(Constants.NotReadyWithDelimiter)
+            || noWhitespaceLogLine.ContainsIgnoreCase(Constants.NotReadyAlternateDelimiter))
+        {
+            string senderName = GetMessageSenderName(logLineNoTimestamp);
+            CharacterReadyCheckMessage?.Invoke(this, new CharacterReadyCheckEventArgs { ReadyCheckStatus = new CharacterReadyCheckStatus { CharacterName = senderName, IsReady = false } });
+            Log.Debug($"{LogPrefix} {senderName} is NOT READY: {logLineNoTimestamp}");
+
+            return true;
+        }
+
+        return false;
+    }
+
     private void ProcessMessage(string message)
     {
         Log.Trace($"{LogPrefix} {nameof(message)}: {message}");
@@ -229,39 +354,14 @@ public sealed class EqLogTailFile : IEqLogTailFile
             // +1 to remove the following space.
             string logLineNoTimestamp = message[(Constants.EqLogDateTimeLength + 1)..];
 
-            if (MezBreakMessage != null)
-            {
-                MezBreak mezBreak = GetMezBreak(logLineNoTimestamp, timestamp);
-                if (mezBreak != null)
-                {
-                    MezBreakMessage?.Invoke(this, new MezBreakEventArgs { MezBreak = mezBreak });
-                    return;
-                }
-            }
+            if (CheckForMezBreak(logLineNoTimestamp, timestamp))
+                return;
 
-            if (BossKilledMessage != null)
-            {
-                string bossKilledName = _activeBossKillAnalyzer.GetBossKillName(logLineNoTimestamp);
-                if (!string.IsNullOrWhiteSpace(bossKilledName))
-                {
-                    BossKilledMessage?.Invoke(this, new BossKilledEventArgs { BossName = bossKilledName });
-                    return;
-                }
-            }
+            if (CheckForBossKill(logLineNoTimestamp))
+                return;
 
-            if (RollMessage != null)
-            {
-                bool isRoll = _activeBiddingAnalyzer.CheckIfRoll(logLineNoTimestamp, timestamp, out RawRollInfo rollInfo);
-                if (isRoll)
-                {
-                    if (rollInfo != null)
-                    {
-                        RollMessage?.Invoke(this, new RawRollInfoEventArgs { RollInfo = rollInfo });
-                    }
-
-                    return;
-                }
-            }
+            if (CheckForRoll(logLineNoTimestamp, timestamp))
+                return;
 
             EqChannel channel = _channelAnalyzer.GetChannel(logLineNoTimestamp);
             if (channel == EqChannel.None)
@@ -269,13 +369,8 @@ public sealed class EqLogTailFile : IEqLogTailFile
 
             bool isValidDkpChannel = _channelAnalyzer.IsValidDkpChannel(channel);
 
-            if ((ReadyCheckInitiatedMessage != null || CharacterReadyCheckMessage != null)
-                && (isValidDkpChannel || channel == EqChannel.ReadyCheck))
-            {
-                bool isReadyCheckMessage = CheckForReadyCheck(logLineNoTimestamp);
-                if (isReadyCheckMessage)
-                    return;
-            }
+            if (CheckForReadyCheck(logLineNoTimestamp, isValidDkpChannel, channel))
+                return;
 
             // Include Group so that the tool can be used in xp groups
             if (!isValidDkpChannel && channel != EqChannel.Group)
@@ -285,49 +380,17 @@ public sealed class EqLogTailFile : IEqLogTailFile
             int indexOfFirstQuote = logLineNoTimestamp.IndexOf('\'');
             string messageFromPlayer = logLineNoTimestamp.AsSpan()[(indexOfFirstQuote + 1)..^1].Trim().ToString();
 
-            if (AuctionStartMessage != null)
-            {
-                ICollection<LiveAuctionInfo> auctionStarts = _auctionStartAnalyzer.GetAuctionStart(messageFromPlayer, channel, timestamp, messageSenderName);
-                if (auctionStarts.Count > 0)
-                {
-                    foreach (LiveAuctionInfo auction in auctionStarts)
-                    {
-                        AuctionStartMessage?.Invoke(this, new AuctionStartEventArgs { AuctionStart = auction });
-                    }
-                    return;
-                }
-            }
+            if (CheckForAuctionStart(messageFromPlayer, timestamp, messageSenderName, channel))
+                return;
 
-            if (SpentCallMessage != null)
-            {
-                LiveSpentCall spentCall = _auctionEndAnalyzer.GetSpentCall(messageFromPlayer, channel, timestamp, messageSenderName);
-                if (spentCall != null)
-                {
-                    SpentCallMessage?.Invoke(this, new LiveSpentCallEventArgs { SpentCall = spentCall });
-                    return;
-                }
-            }
+            if (CheckForSpent(messageFromPlayer, timestamp, messageSenderName, channel))
+                return;
 
-            if (isValidDkpChannel && BidInfoMessage != null)
-            {
-                RawBidInfo rawBidInfo = _activeBiddingAnalyzer.GetBidInfo(messageFromPlayer, channel, timestamp, messageSenderName, _auctionItems);
-                if (rawBidInfo != null)
-                {
-                    BidInfoMessage?.Invoke(this, new BidInfoEventArgs { BidInfo = rawBidInfo });
-                    return;
-                }
-            }
+            if (CheckForBid(messageFromPlayer, timestamp, messageSenderName, channel, isValidDkpChannel))
+                return;
 
-            if (AfkCommandMessage != null)
-            {
-                AfkCommandEventArgs afk = GetAfkCommand(logLineNoTimestamp, messageSenderName);
-                if (afk != null)
-                {
-                    AfkCommandMessage?.Invoke(this, afk);
-                    return;
-                }
-            }
-
+            if (CheckForAfk(logLineNoTimestamp, messageSenderName))
+                return;
         }
         catch (Exception ex)
         {

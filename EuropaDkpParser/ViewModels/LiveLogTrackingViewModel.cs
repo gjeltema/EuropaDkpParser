@@ -24,35 +24,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
     private readonly IZealMessageProvider _zealMessages;
-    private ICollection<LiveAuctionDisplay> _activeAuctions;
-    private bool _attendanceNowKillCall;
-    private bool _attendanceNowTimeCall;
-    private string _auctionStatusMessageToPaste;
-    private ICollection<CompletedAuction> _completedAuctions;
-    private ICollection<string> _currentAfks;
-    private ICollection<LiveBidInfo> _currentBids;
     private string _currentCharacterName = string.Empty;
-    private string _currentStatusMarker;
-    private bool _enableReadyCheck;
-    private string _filePath;
-    private bool _forceShowOverlay;
-    private ICollection<LiveBidInfo> _highBids;
-    private bool _isReadingLogFile;
-    private bool _isReadyToTakeZealAttendance;
-    private bool _isZealConnected;
-    private string _itemLinkIdToAdd;
-    private bool _lowRollWins;
-    private ICollection<MezBreak> _mezBreaks;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
-    private bool _remindAttendances;
-    private LiveAuctionDisplay _selectedActiveAuction;
-    private LiveBidInfo _selectedBid;
-    private string _selectedBidCharacterName;
-    private CompletedAuction _selectedCompletedAuction;
-    private SuggestedSpentCall _selectedSpentMessageToPaste;
-    private ICollection<SuggestedSpentCall> _spentMessagesToPaste;
-    private bool _useAudioReminder;
-    private bool _useOverlayForAttendanceReminder;
 
     public LiveLogTrackingViewModel(
         IWindowViewFactory windowViewFactory,
@@ -105,45 +78,21 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _activeBidTracker.StartTracking();
     }
 
-    public ICollection<LiveAuctionDisplay> ActiveAuctions
-    {
-        get => _activeAuctions;
-        private set => SetProperty(ref _activeAuctions, value);
-    }
+    public ICollection<LiveAuctionDisplay> ActiveAuctions { get; private set => SetProperty(ref field, value); }
 
     public DelegateCommand AddItemLinkIdCommand { get; }
 
-    public string AttendanceNowBossName
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    public string AttendanceNowBossName { get; set => SetProperty(ref field, value); }
 
-    public bool AttendanceNowKillCall
-    {
-        get => _attendanceNowKillCall;
-        set => SetProperty(ref _attendanceNowKillCall, value);
-    }
+    public bool AttendanceNowKillCall { get; set => SetProperty(ref field, value); }
 
-    public bool AttendanceNowTimeCall
-    {
-        get => _attendanceNowTimeCall;
-        set => SetProperty(ref _attendanceNowTimeCall, value);
-    }
+    public bool AttendanceNowTimeCall { get; set => SetProperty(ref field, value); }
 
-    public string AuctionStatusMessageToPaste
-    {
-        get => _auctionStatusMessageToPaste;
-        set => SetProperty(ref _auctionStatusMessageToPaste, value);
-    }
+    public string AuctionStatusMessageToPaste { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand ChangeBidCharacterNameCommand { get; }
 
-    public ICollection<CompletedAuction> CompletedAuctions
-    {
-        get => _completedAuctions;
-        private set => SetProperty(ref _completedAuctions, value);
-    }
+    public ICollection<CompletedAuction> CompletedAuctions { get; private set => SetProperty(ref field, value); }
 
     public DelegateCommand CopyRemoveSpentMessageToClipboardCommand { get; }
 
@@ -151,32 +100,20 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public DelegateCommand CopySelectedStatusMessageToClipboardCommand { get; }
 
-    public ICollection<string> CurrentAfks
-    {
-        get => _currentAfks;
-        private set => SetProperty(ref _currentAfks, value);
-    }
+    public ICollection<string> CurrentAfks { get; private set => SetProperty(ref field, value); }
 
-    public ICollection<LiveBidInfo> CurrentBids
-    {
-        get => _currentBids;
-        private set => SetProperty(ref _currentBids, value);
-    }
+    public ICollection<LiveBidInfo> CurrentBids { get; private set => SetProperty(ref field, value); }
 
-    public string CurrentStatusMarker
-    {
-        get => _currentStatusMarker;
-        set => SetProperty(ref _currentStatusMarker, value);
-    }
+    public string CurrentStatusMarker { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand CycleToNextStatusMarkerCommand { get; }
 
     public bool EnableReadyCheck
     {
-        get => _enableReadyCheck;
+        get;
         set
         {
-            if (SetProperty(ref _enableReadyCheck, value))
+            if (SetProperty(ref field, value))
             {
                 Log.Debug($"{LogPrefix} {nameof(EnableReadyCheck)} set to {EnableReadyCheck}");
                 _activeBidTracker.TrackReadyCheck = value;
@@ -186,10 +123,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public string FilePath
     {
-        get => _filePath;
+        get;
         set
         {
-            if (SetProperty(ref _filePath, value))
+            if (SetProperty(ref field, value))
             {
                 Log.Info($"{LogPrefix} {nameof(FilePath)} being set to {value}.");
             }
@@ -201,14 +138,14 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public bool ForceShowOverlay
     {
-        get => _forceShowOverlay;
+        get;
         set
         {
-            if (SetProperty(ref _forceShowOverlay, value))
+            if (SetProperty(ref field, value))
             {
                 if (!_attendanceTimerHandler.TogglePositioningOverlay(value))
                 {
-                    _forceShowOverlay = false;
+                    field = false;
                     RaisePropertyChanged(nameof(ForceShowOverlay));
                 }
             }
@@ -217,58 +154,30 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public DelegateCommand GetUserDkpCommand { get; }
 
-    public ICollection<LiveBidInfo> HighBids
-    {
-        get => _highBids;
-        private set => SetProperty(ref _highBids, value);
-    }
+    public ICollection<LiveBidInfo> HighBids { get; private set => SetProperty(ref field, value); }
 
-    public bool IsReadingLogFile
-    {
-        get => _isReadingLogFile;
-        private set => SetProperty(ref _isReadingLogFile, value);
-    }
+    public bool IsReadingLogFile { get; private set => SetProperty(ref field, value); }
 
-    public bool IsReadyToTakeZealAttendance
-    {
-        get => _isReadyToTakeZealAttendance;
-        set => SetProperty(ref _isReadyToTakeZealAttendance, value);
-    }
+    public bool IsReadyToTakeZealAttendance { get; set => SetProperty(ref field, value); }
 
-    public bool IsZealConnected
-    {
-        get => _isZealConnected;
-        set => SetProperty(ref _isZealConnected, value);
-    }
+    public bool IsZealConnected { get; set => SetProperty(ref field, value); }
 
-    public string ItemLinkIdToAdd
-    {
-        get => _itemLinkIdToAdd;
-        set => SetProperty(ref _itemLinkIdToAdd, value);
-    }
+    public string ItemLinkIdToAdd { get; set => SetProperty(ref field, value); }
 
     public ICollection<string> LogFileNames { get; }
 
-    public bool LowRollWins
-    {
-        get => _lowRollWins;
-        set => SetProperty(ref _lowRollWins, value);
-    }
+    public bool LowRollWins { get; set => SetProperty(ref field, value); }
 
-    public ICollection<MezBreak> MezBreaks
-    {
-        get => _mezBreaks;
-        set => SetProperty(ref _mezBreaks, value);
-    }
+    public ICollection<MezBreak> MezBreaks { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand ReactivateCompletedAuctionCommand { get; }
 
     public bool RemindAttendances
     {
-        get => _remindAttendances;
+        get;
         set
         {
-            if (SetProperty(ref _remindAttendances, value))
+            if (SetProperty(ref field, value))
             {
                 _attendanceTimerHandler.RemindAttendances = value;
                 _activeBidTracker.TrackBossKills = value;
@@ -281,10 +190,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public LiveAuctionDisplay SelectedActiveAuction
     {
-        get => _selectedActiveAuction;
+        get;
         set
         {
-            SetProperty(ref _selectedActiveAuction, value);
+            SetProperty(ref field, value);
             UpdateActiveAuctionSelected();
         }
     }
@@ -293,60 +202,44 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public LiveBidInfo SelectedBid
     {
-        get => _selectedBid;
+        get;
         set
         {
-            SetProperty(ref _selectedBid, value);
+            SetProperty(ref field, value);
             SelectedBidCharacterName = value?.CharacterBeingBidFor ?? string.Empty;
         }
     }
 
-    public string SelectedBidCharacterName
-    {
-        get => _selectedBidCharacterName;
-        set => SetProperty(ref _selectedBidCharacterName, value);
-    }
+    public string SelectedBidCharacterName { get; set => SetProperty(ref field, value); }
 
-    public CompletedAuction SelectedCompletedAuction
-    {
-        get => _selectedCompletedAuction;
-        set => SetProperty(ref _selectedCompletedAuction, value);
-    }
+    public CompletedAuction SelectedCompletedAuction { get; set => SetProperty(ref field, value); }
 
-    public SuggestedSpentCall SelectedSpentMessageToPaste
-    {
-        get => _selectedSpentMessageToPaste;
-        set => SetProperty(ref _selectedSpentMessageToPaste, value);
-    }
+    public SuggestedSpentCall SelectedSpentMessageToPaste { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand SetActiveAuctionToCompletedCommand { get; }
 
     public DelegateCommand SpawnAttendanceCall { get; }
 
-    public ICollection<SuggestedSpentCall> SpentMessagesToPaste
-    {
-        get => _spentMessagesToPaste;
-        private set => SetProperty(ref _spentMessagesToPaste, value);
-    }
+    public ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; private set => SetProperty(ref field, value); }
 
     public DelegateCommand StartReadyCheckCommand { get; }
 
     public bool UseAudioReminder
     {
-        get => _useAudioReminder;
+        get;
         set
         {
-            if (SetProperty(ref _useAudioReminder, value))
+            if (SetProperty(ref field, value))
                 _attendanceTimerHandler.UseAudioReminder = value;
         }
     }
 
     public bool UseOverlayForAttendanceReminder
     {
-        get => _useOverlayForAttendanceReminder;
+        get;
         set
         {
-            if (SetProperty(ref _useOverlayForAttendanceReminder, value))
+            if (SetProperty(ref field, value))
             {
                 Log.Debug($"{LogPrefix} {nameof(UseOverlayForAttendanceReminder)} being set to {value}.");
 

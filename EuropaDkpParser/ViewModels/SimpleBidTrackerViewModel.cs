@@ -17,12 +17,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
-    private ICollection<LiveAuctionDisplay> _activeAuctions;
-    private ICollection<CompletedAuction> _completedAuctions;
-    private bool _lowRollWins;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
-    private int _selectedFontSize;
-    private string _selectedLogFilePath;
 
     public SimpleBidTrackerViewModel(IWindowViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile)
         : base(viewFactory)
@@ -36,47 +31,31 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
 
         SetActiveAuctionsToCompletedCommand = new DelegateCommand(SetActiveAuctionsToCompleted);
 
-        _selectedFontSize = 12;
+        SelectedFontSize = 12;
 
         _activeBidTracker.StartTracking();
     }
 
-    public ICollection<LiveAuctionDisplay> ActiveAuctions
-    {
-        get => _activeAuctions;
-        private set => SetProperty(ref _activeAuctions, value);
-    }
+    public ICollection<LiveAuctionDisplay> ActiveAuctions { get; private set => SetProperty(ref field, value); }
 
-    public ICollection<CompletedAuction> CompletedAuctions
-    {
-        get => _completedAuctions;
-        private set => SetProperty(ref _completedAuctions, value);
-    }
+    public ICollection<CompletedAuction> CompletedAuctions { get; private set => SetProperty(ref field, value); }
 
     public ICollection<int> FontSizeValues { get; } = [10, 12, 14, 16, 18, 20, 24, 28, 32];
 
     public ICollection<string> LogFileNames { get; }
 
-    public bool LowRollWins
-    {
-        get => _lowRollWins;
-        set => SetProperty(ref _lowRollWins, value);
-    }
+    public bool LowRollWins { get; set => SetProperty(ref field, value); }
 
     public ICollection<LiveAuctionDisplay> SelectedActiveAuctions { get; set; } = [];
 
-    public int SelectedFontSize
-    {
-        get => _selectedFontSize;
-        set => SetProperty(ref _selectedFontSize, value);
-    }
+    public int SelectedFontSize { get; set => SetProperty(ref field, value); }
 
     public string SelectedLogFilePath
     {
-        get => _selectedLogFilePath;
+        get;
         set
         {
-            if (SetProperty(ref _selectedLogFilePath, value))
+            if (SetProperty(ref field, value))
             {
                 Log.Info($"{LogPrefix} {nameof(SelectedLogFilePath)} being set to {value}.");
                 _activeBidTracker.StartTracking(value);
