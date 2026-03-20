@@ -260,6 +260,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -344,7 +345,15 @@
                 <CheckBox Grid.Row="2" IsChecked="{Binding EnableReadyCheck}" Content="{StaticResource EnableReadyCheckMonitoring}"/>
             </Grid>
 
-            <Grid Grid.Column="3" Margin="0,0,5,0">
+            <Grid Grid.Column="3" Margin="10,5,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <CheckBox Grid.Row="0" IsChecked="{Binding TrackSpells}" Content="{StaticResource TrackSpells}" Visibility="{Binding TrackSpellsConfigured, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </Grid>
+
+            <Grid Grid.Column="4" Margin="0,0,5,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>

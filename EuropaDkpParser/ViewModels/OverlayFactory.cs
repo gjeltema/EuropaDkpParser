@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// OverlayFactory.cs Copyright 2025 Craig Gjeltema
+// OverlayFactory.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -23,6 +23,9 @@ internal sealed class OverlayFactory : IOverlayFactory
 
     public IReadyCheckOverlayViewModel CreateReadyCheckOverlayViewModel(IDkpParserSettings settings)
         => new ReadyCheckOverlayViewModel(_viewFactory, settings);
+
+    public ISpellTrackerOverlayViewModel CreateSpellTrackerkOverlayViewModel(IDkpParserSettings settings)
+        => new SpellTrackerOverlayViewModel(_viewFactory, settings);
 }
 
 public interface IOverlayFactory
@@ -32,4 +35,6 @@ public interface IOverlayFactory
     IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings);
 
     IReadyCheckOverlayViewModel CreateReadyCheckOverlayViewModel(IDkpParserSettings settings);
+
+    ISpellTrackerOverlayViewModel CreateSpellTrackerkOverlayViewModel(IDkpParserSettings settings);
 }

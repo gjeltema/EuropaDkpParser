@@ -19,6 +19,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly AttendanceTimerHandler _attendanceTimerHandler;
     private readonly IDkpDataRetriever _dkpDataRetriever;
+    private readonly IOverlayFactory _overlayFactory;
     private readonly IReadyCheckOverlayViewModel _readyCheckOverlayViewModel;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
@@ -26,6 +27,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly IZealMessageProvider _zealMessages;
     private string _currentCharacterName = string.Empty;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
+    private ISpellTrackerOverlayViewModel _spellTracker;
 
     public LiveLogTrackingViewModel(
         IWindowViewFactory windowViewFactory,
@@ -37,6 +39,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         : base(windowViewFactory)
     {
         _settings = settings;
+        _overlayFactory = overlayFactory;
 
         _dkpDataRetriever = new DkpDataRetriever(settings);
         _activeBidTracker = new(settings, eqLogTailFile);
@@ -74,6 +77,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         LogFileNames = [.. _settings.SelectedLogFiles];
 
         AttendanceNowTimeCall = true;
+
+        TrackSpellsConfigured = _settings.SpellTrackers.Count > 0;
 
         _activeBidTracker.StartTracking();
     }
@@ -224,6 +229,21 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public DelegateCommand StartReadyCheckCommand { get; }
 
+    public bool TrackSpells
+    {
+        get;
+        set
+        {
+            SetProperty(ref field, value);
+            if (field)
+                ShowSpellTracker();
+            else
+                CloseSpellTracker();
+        }
+    }
+
+    public bool TrackSpellsConfigured { get; set; }
+
     public bool UseAudioReminder
     {
         get;
@@ -271,6 +291,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     protected override sealed void HandleClosing()
     {
+        _spellTracker?.Close();
         _attendanceTimerHandler.CloseAll();
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
@@ -314,6 +335,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             return;
 
         UpdateDisplay();
+    }
+
+    private void CloseSpellTracker()
+    {
+        _spellTracker?.Close();
+        _spellTracker = null;
     }
 
     private void CopyRemoveSelectedSpentCallToClipboard()
@@ -441,6 +468,12 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         StatusMarker marker = _activeBidTracker.GetStatusMarkerFromSelectionString(CurrentStatusMarker);
         AuctionStatusMessageToPaste = _activeBidTracker.GetStatusMessage(SelectedActiveAuction?.Auction, marker, LowRollWins);
+    }
+
+    private void ShowSpellTracker()
+    {
+        _spellTracker = _overlayFactory.CreateSpellTrackerkOverlayViewModel(_settings);
+        _spellTracker.CreateAndShowOverlay();
     }
 
     private void SpawnAttendanceCallNow()
@@ -709,6 +742,10 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; }
 
     DelegateCommand StartReadyCheckCommand { get; }
+
+    bool TrackSpells { get; set; }
+
+    bool TrackSpellsConfigured { get; set; }
 
     bool UseAudioReminder { get; set; }
 

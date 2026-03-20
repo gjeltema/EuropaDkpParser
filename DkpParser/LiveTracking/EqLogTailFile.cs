@@ -17,9 +17,11 @@ public sealed class EqLogTailFile : IEqLogTailFile
     public event EventHandler<BidInfoEventArgs> BidInfoMessage;
     public event EventHandler<BossKilledEventArgs> BossKilledMessage;
     public event EventHandler<CharacterReadyCheckEventArgs> CharacterReadyCheckMessage;
+    public event EventHandler<LogFileChangedEventArgs> LogFileChanged;
     public event EventHandler<MezBreakEventArgs> MezBreakMessage;
     public event EventHandler<EventArgs> ReadyCheckInitiatedMessage;
     public event EventHandler<RawRollInfoEventArgs> RollMessage;
+    public event EventHandler<SpellInfoEventArgs> SpellInfoMessage;
     public event EventHandler<LiveSpentCallEventArgs> SpentCallMessage;
 
     private const string LogPrefix = $"[{nameof(EqLogTailFile)}]";
@@ -92,6 +94,9 @@ public sealed class EqLogTailFile : IEqLogTailFile
             return;
         }
 
+        string characterName = _settings.GetCharacterNameFromLogFileName(filePath);
+        InformListenersOfFileChange(filePath, characterName, string.IsNullOrWhiteSpace(characterName));
+
         SetTailFile(filePath);
         StartMessages();
     }
@@ -101,22 +106,25 @@ public sealed class EqLogTailFile : IEqLogTailFile
         if (IsSendingMessages)
             return;
 
+        string currentCharacterName = ZealAttendanceMessageProvider.Instance.CharacterInfo.CharacterName;
         bool isZealConnected = ZealAttendanceMessageProvider.Instance.IsConnected && !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
         if (!isZealConnected)
         {
             Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file and zeal is not connected.");
+            InformListenersOfFileChange(string.Empty, currentCharacterName, false);
             return;
         }
 
-        string characterName = ZealAttendanceMessageProvider.Instance.CharacterInfo.CharacterName;
-        string logFilePath = _settings.GetLogFileForCharacter(characterName);
+        string logFilePath = _settings.GetLogFileForCharacter(currentCharacterName);
         if (logFilePath != null)
         {
             Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file, starting to read {logFilePath}.");
             SetTailFile(logFilePath);
+            InformListenersOfFileChange(logFilePath, currentCharacterName, true);
             return;
         }
 
+        InformListenersOfFileChange(logFilePath, currentCharacterName, false);
         Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file, Zeal is connected, but character name does not have a matching log file configured.");
     }
 
@@ -303,6 +311,18 @@ public sealed class EqLogTailFile : IEqLogTailFile
         };
     }
 
+    private void InformListenersOfFileChange(string filePath, string characterName, bool isReadingFile)
+    {
+        try
+        {
+            LogFileChanged?.Invoke(this, new LogFileChangedEventArgs { LogFile = filePath, CharacterName = characterName, IsReadingFile = isReadingFile });
+        }
+        catch (Exception ex)
+        {
+            Log.Warning($"{LogPrefix} Listener encountered an error when being informed of updated file {filePath} with character {characterName}: {ex.ToLogMessage()}");
+        }
+    }
+
     private bool ParseReadyCheck(string logLineNoTimestamp)
     {
         if (!logLineNoTimestamp.Contains(Constants.PossibleErrorDelimiter) && !logLineNoTimestamp.Contains(Constants.AlternateDelimiter))
@@ -365,7 +385,10 @@ public sealed class EqLogTailFile : IEqLogTailFile
 
             EqChannel channel = _channelAnalyzer.GetChannel(logLineNoTimestamp);
             if (channel == EqChannel.None)
+            {
+                SpellInfoMessage?.Invoke(this, new SpellInfoEventArgs { Message = logLineNoTimestamp, Timestamp = timestamp });
                 return;
+            }
 
             bool isValidDkpChannel = _channelAnalyzer.IsValidDkpChannel(channel);
 
@@ -401,6 +424,9 @@ public sealed class EqLogTailFile : IEqLogTailFile
     private void SetTailFile(string logFilePath)
     {
         _tailFile?.StopMessages();
+        _tailFile = null;
+        if (string.IsNullOrEmpty(logFilePath))
+            return;
 
         _logFilePath = logFilePath;
         _tailFile = _messageProviderFactory.CreateTailFileProvider(logFilePath, ProcessMessage);
@@ -415,9 +441,11 @@ public interface IEqLogTailFile
     event EventHandler<BidInfoEventArgs> BidInfoMessage;
     event EventHandler<BossKilledEventArgs> BossKilledMessage;
     event EventHandler<CharacterReadyCheckEventArgs> CharacterReadyCheckMessage;
+    event EventHandler<LogFileChangedEventArgs> LogFileChanged;
     event EventHandler<MezBreakEventArgs> MezBreakMessage;
     event EventHandler<EventArgs> ReadyCheckInitiatedMessage;
     event EventHandler<RawRollInfoEventArgs> RollMessage;
+    event EventHandler<SpellInfoEventArgs> SpellInfoMessage;
     event EventHandler<LiveSpentCallEventArgs> SpentCallMessage;
 
     bool IsSendingMessages { get; }
@@ -462,6 +490,15 @@ public sealed class LiveSpentCallEventArgs : EventArgs
     public LiveSpentCall SpentCall { get; init; }
 }
 
+public sealed class LogFileChangedEventArgs : EventArgs
+{
+    public string CharacterName { get; init; }
+
+    public bool IsReadingFile { get; init; }
+
+    public string LogFile { get; init; }
+}
+
 public sealed class MezBreakEventArgs : EventArgs
 {
     public MezBreak MezBreak { get; init; }
@@ -470,4 +507,11 @@ public sealed class MezBreakEventArgs : EventArgs
 public sealed class RawRollInfoEventArgs : EventArgs
 {
     public RawRollInfo RollInfo { get; init; }
+}
+
+public sealed class SpellInfoEventArgs : EventArgs
+{
+    public string Message { get; init; }
+
+    public DateTime Timestamp { get; init; }
 }

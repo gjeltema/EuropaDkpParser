@@ -432,9 +432,18 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool ShowAfkReview { get; set; }
 
+    public ICollection<SpellTrackingConfiguration> SpellTrackers { get; }
+
+    public int SpellTrackerXLoc { get; set; }
+
+    public int SpellTrackerYLoc { get; set; }
+
     public bool UseLightMode { get; set; }
 
     public IDictionary<int, string> ZoneIdMapping { get; }
+
+    public string GetCharacterNameFromLogFileName(string logFilePath)
+        => "Kassandra";
 
     public string GetLogFileForCharacter(string characterName)
         => throw new NotImplementedException();

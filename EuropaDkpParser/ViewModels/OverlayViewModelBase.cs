@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// OverlayViewModelBase.cs Copyright 2025 Craig Gjeltema
+// OverlayViewModelBase.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -32,6 +32,7 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
     public void Close()
     {
+        HandleClose();
         OverlayView?.Close();
         OverlayView = null;
     }
@@ -75,6 +76,8 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
             OverlayView?.Show();
         }
     }
+
+    protected virtual void HandleClose() { }
 }
 
 public interface IOverlayViewModel

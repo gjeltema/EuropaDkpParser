@@ -4,6 +4,7 @@
 
 namespace DkpParser;
 
+using System.Diagnostics;
 using System.IO;
 using Gjeltema.Logging;
 
@@ -41,6 +42,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
+    private const string SpellTrackerSection = "SPELL_TRACKING";
+    private const string SpellTrackerXLocSection = "SPELL_TRACKER_X";
+    private const string SpellTrackerYLocSection = "SPELL_TRACKER_Y";
     private const string UseLightModeSection = "USE_LIGHT_MODE";
     private const string WindowLocationSection = "WINDOW_LOCATION";
     private readonly string _dkpCharactersFileName;
@@ -123,9 +127,27 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool ShowAfkReview { get; set; }
 
+    public ICollection<SpellTrackingConfiguration> SpellTrackers { get; } = [];
+
+    public int SpellTrackerXLoc { get; set; }
+
+    public int SpellTrackerYLoc { get; set; }
+
     public bool UseLightMode { get; set; }
 
     public IDictionary<int, string> ZoneIdMapping { get; private set; }
+
+    public string GetCharacterNameFromLogFileName(string logFilePath)
+    {
+        string[] parts = logFilePath.Split('_');
+        if (parts.Length == 3)
+        {
+            string fileCharName = parts[1];
+            return fileCharName;
+        }
+
+        return null;
+    }
 
     public string GetLogFileForCharacter(string characterName)
     {
@@ -152,6 +174,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetWindowLocation(fileContents);
         SetDirectories(fileContents);
         SetSimpleArchiveSettings(fileContents);
+        SetSpellTrackers(fileContents);
 
         InventoryDirectories = GetAllEntriesInSection(fileContents, InventoryDirectoriesSection);
         SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
@@ -305,18 +328,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
         return settingValue.Equals("TRUE", StringComparison.OrdinalIgnoreCase);
     }
 
-    private string GetCharacterNameFromLogFileName(string logFilePath)
-    {
-        string[] parts = logFilePath.Split('_');
-        if (parts.Length == 3)
-        {
-            string fileCharName = parts[1];
-            return fileCharName;
-        }
-
-        return null;
-    }
-
     private int GetIntValue(string[] fileContents, string key, int defaultValue = 0)
     {
         int index = GetStartingIndex(fileContents, key);
@@ -410,7 +421,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     }
 
     private bool IsValidIndex(int indexOfSection, ICollection<string> fileContents)
-        => 0 <= indexOfSection && indexOfSection < fileContents.Count - 1;
+        => 0 <= indexOfSection && indexOfSection < fileContents.Count;
 
     private bool LogFileCharNameMatchesCharName(string logFilePath, string characterName)
     {
@@ -456,6 +467,33 @@ public sealed class DkpParserSettings : IDkpParserSettings
         ArchiveAllEqLogFiles = GetBoolValue(fileContents, ArchiveAllOrSelectedEqLogFileSection, true);
 
         EqLogFilesToArchive = GetAllEntriesInSection(fileContents, ArchiveSelectedFilesToArchiveSection);
+    }
+
+    private void SetSpellTrackers(string[] fileContents)
+    {
+        ICollection<string> spellTrackerSettings = GetAllEntriesInSection(fileContents, SpellTrackerSection);
+        foreach (string setting in spellTrackerSettings)
+        {
+            string[] settings = setting.Split('|');
+            if (settings.Length != 8)
+                continue;
+
+            SpellTrackingConfiguration config = new()
+            {
+                CasterCharacterName = settings[0],
+                SpellName = settings[1],
+                DisplayName = settings[2],
+                CastTime = int.Parse(settings[3]),
+                EstimatedDuration = int.Parse(settings[4]),
+                SpellLandedSearchString = settings[5],
+                SpellFadedSearchString = settings[6],
+                DisplayColor = settings[7]
+            };
+            SpellTrackers.Add(config);
+        }
+
+        SpellTrackerXLoc = GetIntValue(fileContents, SpellTrackerXLocSection);
+        SpellTrackerYLoc = GetIntValue(fileContents, SpellTrackerYLocSection);
     }
 
     private void SetWindowLocation(string[] fileContents)
@@ -539,9 +577,17 @@ public interface IDkpParserSettings
 
     bool ShowAfkReview { get; set; }
 
+    ICollection<SpellTrackingConfiguration> SpellTrackers { get; }
+
+    int SpellTrackerXLoc { get; set; }
+
+    int SpellTrackerYLoc { get; set; }
+
     bool UseLightMode { get; set; }
 
     IDictionary<int, string> ZoneIdMapping { get; }
+
+    string GetCharacterNameFromLogFileName(string logFilePath);
 
     string GetLogFileForCharacter(string characterName);
 
@@ -552,4 +598,30 @@ public interface IDkpParserSettings
     void LoadOtherFileSettings();
 
     void SaveSettings();
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class SpellTrackingConfiguration
+{
+    public string CasterCharacterName { get; init; }
+
+    public int CastTime { get; init; }
+
+    public string DisplayColor { get; init; }
+
+    public string DisplayName { get; init; }
+
+    public int EstimatedDuration { get; init; }
+
+    public string SpellFadedSearchString { get; init; }
+
+    public string SpellLandedSearchString { get; init; }
+
+    public string SpellName { get; init; }
+
+    private string DebugText
+        => $"{CasterCharacterName} {SpellName} {CastTime} {EstimatedDuration}";
+
+    public override string ToString()
+        => DebugText;
 }

@@ -316,6 +316,7 @@
     <system:String x:Key="RemindAttendances">Prompt for Attendances</system:String>
     <system:String x:Key="TakeAttendanceNow">Take Attendance Now</system:String>
     <system:String x:Key="LowRollWins">Low Roll Wins</system:String>
+    <system:String x:Key="TrackSpells">Track Spells</system:String>
     <system:String x:Key="SetFile">Set File</system:String>
     <system:String x:Key="GetUserDkp">Get DKP</system:String>
     <system:String x:Key="ChangeName">Change Name</system:String>

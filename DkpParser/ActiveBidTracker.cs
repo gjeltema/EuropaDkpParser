@@ -19,7 +19,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly IEqLogTailFile _eqLogTailFile;
     private readonly ItemLinkValues _itemLinkValues;
     private readonly ConcurrentQueue<CharacterReadyCheckStatus> _readyCheckStatus = new();
-    private readonly DelimiterStringSanitizer _sanitizer = new();
     private readonly IDkpParserSettings _settings;
     private ImmutableList<LiveAuctionInfo> _activeAuctions;
     private ImmutableList<LiveBidInfo> _bids;
