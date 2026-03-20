@@ -19,7 +19,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="5">
+        <Grid Grid.Row="0" Margin="5,5,5,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -52,7 +52,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Label Grid.Row="0" Content="{StaticResource CaseInsensitiveSearchTerms}"/>
+                <Label Grid.Row="0" Content="{StaticResource AddSearchTerms}"/>
 
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
@@ -60,11 +60,20 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBox Grid.Column="0" Text="{Binding CaseInsensitiveSearchTerm, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,10,0"/>
-                    <Button Grid.Column="1" Command="{Binding AddCaseInsensitiveSearchTermCommand}" Content="{StaticResource AddText}" Width="85" Height="30" />
+                    <TextBox Grid.Column="0" Text="{Binding SearchTermToAdd, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalAlignment="Top" Margin="0,0,5,0"/>
+
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Button Grid.Row="0" Command="{Binding AddCaseInsensitiveSearchTermCommand}" Content="{StaticResource AddCaseInSensitiveSearchTerms}" Width="115" Height="30" Margin="0,0,0,4" />
+                        <Button Grid.Row="1" Command="{Binding AddCaseSensitiveSearchTermCommand}" Content="{StaticResource AddCaseSensitiveSearchTerms}" Width="115" Height="30" />
+                    </Grid>
                 </Grid>
 
-                <ListBox Grid.Row="2" ItemsSource="{Binding CaseInsensitiveSearchTerms}" Margin="0,5,0,0"/>
+                <ListBox Grid.Row="2" ItemsSource="{Binding SearchTerms}" Margin="0,5,0,0"/>
 
             </Grid>
 
@@ -75,7 +84,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Label Grid.Row="0" Content="{StaticResource CaseSensitiveSearchTerms}"/>
+                <Label Grid.Row="0" Content="{StaticResource ExclusionSearchTerms}"/>
 
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
@@ -83,11 +92,11 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBox Grid.Column="0" Text="{Binding CaseSensitiveSearchTerm, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,10,0"/>
-                    <Button Grid.Column="1" Command="{Binding AddCaseSensitiveSearchTermCommand}" Content="{StaticResource AddText}" Width="85" Height="30" />
+                    <TextBox Grid.Column="0" Text="{Binding ExclusionTermToAdd, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,10,0"/>
+                    <Button Grid.Column="1" Command="{Binding AddExcludedSearchTermCommand}" Content="{StaticResource AddText}" Width="85" Height="30" />
                 </Grid>
 
-                <ListBox Grid.Row="2" ItemsSource="{Binding CaseSensitiveSearchTerms}" Margin="0,5,0,0"/>
+                <ListBox Grid.Row="2" ItemsSource="{Binding ExclusionTerms}" Margin="0,5,0,0"/>
             </Grid>
         </Grid>
 

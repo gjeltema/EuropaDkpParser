@@ -11,6 +11,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
     private const string FactionStandingTerm = "Your faction standing with ";
     private const string YouTerm = "You";
     private readonly List<IEntryParser> _entryParsers = [];
+    private IEnumerable<string> _exclusions;
 
     public ICollection<EqLogFile> GetLogFiles(GeneralEqLogParserSettings settings, IEnumerable<string> logFileNames, DateTime startTime, DateTime endTime)
     {
@@ -106,7 +107,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         }
         if (settings.You)
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YouTerm));
-        if (settings.PeopleConversingWith != null && settings.PeopleConversingWith.Count > 0 && !settings.AllTells)
+        if (!settings.AllTells && settings.PeopleConversingWith != null && settings.PeopleConversingWith.Count > 0)
         {
             _entryParsers.Add(new ConversationEntryParser(settings.PeopleConversingWith));
         }
@@ -125,10 +126,15 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             foreach (string channel in settings.Channels)
                 _entryParsers.Add(new CustomChannelEntryParser(channel));
         }
+
+        _exclusions = settings.ExclusionTerms;
     }
 
     private void ParseLogEntry(EqLogFile logFile, string logLine, DateTime entryTimeStamp)
     {
+        if (_exclusions.Any(x => logLine.Contains(x)))
+            return;
+
         for (int i = 0; i < _entryParsers.Count; i++)
         {
             IEntryParser entryParser = _entryParsers[i];
@@ -164,7 +170,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
     {
         private readonly ICollection<string> _peopleConversingWith;
 
-        public ConversationEntryParser(ICollection<string> peopleConversingWith)
+        public ConversationEntryParser(IEnumerable<string> peopleConversingWith)
         {
             _peopleConversingWith = peopleConversingWith.Select(x => x.NormalizeName()).ToList();
         }
@@ -375,6 +381,8 @@ public sealed class GeneralEqLogParserSettings
     public ICollection<string> CaseSensitiveSearchTerms { get; set; }
 
     public ICollection<string> Channels { get; set; }
+
+    public ICollection<string> ExclusionTerms { get; set; }
 
     public bool FactionStanding { get; set; }
 

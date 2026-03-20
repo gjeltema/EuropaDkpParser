@@ -25,7 +25,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
     private readonly IZealMessageProvider _zealMessages;
-    private string _currentCharacterName = string.Empty;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private ISpellTrackerOverlayViewModel _spellTracker;
 
@@ -501,7 +500,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         if (!_readyCheckOverlayViewModel.ContentIsVisible)
         {
             IEnumerable<string> charactersInRaid = _zealMessages.RaidInfo.RaidAttendees
-                .Where(x => x.Name != _currentCharacterName)
+                .Where(x => x.Name != _zealMessages?.CharacterInfo?.CharacterName)
                 .Select(x => x.Name);
 
             _readyCheckOverlayViewModel.SetInitialCharacterList(charactersInRaid);

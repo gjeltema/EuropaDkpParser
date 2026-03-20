@@ -251,8 +251,10 @@
     <system:String x:Key="PlayerAddedMessage">Player was successfully added to the raid.</system:String>
     
     <!-- GeneralEqLogParserDialog -->
-    <system:String x:Key="CaseInsensitiveSearchTerms">Case Insensitive Search Terms</system:String>
-    <system:String x:Key="CaseSensitiveSearchTerms">Case Sensitive Search Terms</system:String>
+    <system:String x:Key="AddSearchTerms">Add Search Terms</system:String>
+    <system:String x:Key="AddCaseSensitiveSearchTerms">Add Case Sensitive</system:String>
+    <system:String x:Key="AddCaseInSensitiveSearchTerms">Add Case Insensitive</system:String>
+    <system:String x:Key="ExclusionSearchTerms">Terms To Exclude</system:String>
     <system:String x:Key="ConversationWith">Get /tells with (semi-colon separated list):</system:String>
     <system:String x:Key="CustomChannels">Get custom channel msgs (semi-colon separated list):</system:String>
     <system:String x:Key="DeSelectAll">(De)Select All</system:String>

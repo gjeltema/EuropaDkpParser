@@ -26,33 +26,31 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
 
         CaseSensitiveSearchTerms = [];
         CaseInsensitiveSearchTerms = [];
+        ExclusionTerms = [];
+        SearchTerms = [];
 
         DateTime currentTime = DateTime.Now;
         EndTimeText = currentTime.ToString(DateTimeFormat);
         StartTimeText = currentTime.AddHours(-6).ToString(DateTimeFormat);
 
         StartSearchCommand = new DelegateCommand(StartSearch);
-        AddCaseSensitiveSearchTermCommand = new DelegateCommand(AddTermToCaseSensitive, () => !string.IsNullOrWhiteSpace(CaseSensitiveSearchTerm))
-            .ObservesProperty(() => CaseSensitiveSearchTerm);
-        AddCaseInsensitiveSearchTermCommand = new DelegateCommand(AddTermToCaseInsensitive, () => !string.IsNullOrWhiteSpace(CaseInsensitiveSearchTerm))
-            .ObservesProperty(() => CaseInsensitiveSearchTerm);
+        AddCaseSensitiveSearchTermCommand = new DelegateCommand(AddTermToCaseSensitive, () => !string.IsNullOrWhiteSpace(SearchTermToAdd))
+            .ObservesProperty(() => SearchTermToAdd);
+        AddCaseInsensitiveSearchTermCommand = new DelegateCommand(AddTermToCaseInsensitive, () => !string.IsNullOrWhiteSpace(SearchTermToAdd))
+            .ObservesProperty(() => SearchTermToAdd);
+        AddExcludedSearchTermCommand = new DelegateCommand(AddExcludedSearchTerm, () => !string.IsNullOrWhiteSpace(ExclusionTermToAdd))
+            .ObservesProperty(() => ExclusionTermToAdd);
     }
 
     public DelegateCommand AddCaseInsensitiveSearchTermCommand { get; }
 
     public DelegateCommand AddCaseSensitiveSearchTermCommand { get; }
 
+    public DelegateCommand AddExcludedSearchTermCommand { get; }
+
     public bool AllTells { get; set => SetProperty(ref field, value); }
 
     public bool Auction { get; set => SetProperty(ref field, value); }
-
-    public string CaseInsensitiveSearchTerm { get; set => SetProperty(ref field, value); }
-
-    public ICollection<string> CaseInsensitiveSearchTerms { get; set => SetProperty(ref field, value); }
-
-    public string CaseSensitiveSearchTerm { get; set => SetProperty(ref field, value); }
-
-    public ICollection<string> CaseSensitiveSearchTerms { get; set => SetProperty(ref field, value); }
 
     public string Channels { get; set => SetProperty(ref field, value); }
 
@@ -99,6 +97,10 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
         }
     }
 
+    public ICollection<string> ExclusionTerms { get; private set => SetProperty(ref field, value); }
+
+    public string ExclusionTermToAdd { get; set => SetProperty(ref field, value); }
+
     public bool FactionStanding { get; set => SetProperty(ref field, value); }
 
     public bool Group { get; set => SetProperty(ref field, value); }
@@ -123,6 +125,10 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
 
     public bool Say { get; set => SetProperty(ref field, value); }
 
+    public ICollection<string> SearchTerms { get; set => SetProperty(ref field, value); }
+
+    public string SearchTermToAdd { get; set => SetProperty(ref field, value); }
+
     public bool Shout { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand StartSearchCommand { get; }
@@ -139,22 +145,38 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
 
     public bool YouSlain { get; set => SetProperty(ref field, value); }
 
-    private void AddTermToCaseInsensitive()
+    private ICollection<string> CaseInsensitiveSearchTerms { get; init; }
+
+    private ICollection<string> CaseSensitiveSearchTerms { get; init; }
+
+    private void AddExcludedSearchTerm()
     {
-        if (string.IsNullOrWhiteSpace(CaseInsensitiveSearchTerm))
+        if (string.IsNullOrWhiteSpace(ExclusionTermToAdd))
             return;
 
-        CaseInsensitiveSearchTerms.Add(CaseInsensitiveSearchTerm);
-        CaseInsensitiveSearchTerms = CaseInsensitiveSearchTerms.Order().ToList();
+        ExclusionTerms.Add(ExclusionTermToAdd);
+        ExclusionTerms = ExclusionTerms.Order().ToList();
+        ExclusionTermToAdd = string.Empty;
+    }
+
+    private void AddTermToCaseInsensitive()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTermToAdd))
+            return;
+
+        CaseInsensitiveSearchTerms.Add(SearchTermToAdd);
+        SearchTerms = CaseInsensitiveSearchTerms.Select(x => x + "*").Concat(CaseSensitiveSearchTerms).Order().ToList();
+        SearchTermToAdd = string.Empty;
     }
 
     private void AddTermToCaseSensitive()
     {
-        if (string.IsNullOrWhiteSpace(CaseSensitiveSearchTerm))
+        if (string.IsNullOrWhiteSpace(SearchTermToAdd))
             return;
 
-        CaseSensitiveSearchTerms.Add(CaseSensitiveSearchTerm);
-        CaseSensitiveSearchTerms = CaseSensitiveSearchTerms.Order().ToList();
+        CaseSensitiveSearchTerms.Add(SearchTermToAdd);
+        SearchTerms = CaseSensitiveSearchTerms.Concat(CaseInsensitiveSearchTerms.Select(x => x + "*")).Order().ToList();
+        SearchTermToAdd = string.Empty;
     }
 
     private async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
@@ -210,8 +232,9 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             Looted = Looted,
             OtherDeath = OtherDeath,
             Channels = Channels?.Split(';'),
-            CaseInsensitiveSearchTerms = CaseInsensitiveSearchTerms,
+            CaseInsensitiveSearchTerms = SearchTerms,
             CaseSensitiveSearchTerms = CaseSensitiveSearchTerms,
+            ExclusionTerms = ExclusionTerms,
             PeopleConversingWith = PeopleConversingWith?.Split(';')
         };
 
@@ -253,23 +276,21 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
 
     DelegateCommand AddCaseSensitiveSearchTermCommand { get; }
 
+    DelegateCommand AddExcludedSearchTermCommand { get; }
+
     bool AllTells { get; set; }
 
     bool Auction { get; set; }
-
-    string CaseInsensitiveSearchTerm { get; set; }
-
-    ICollection<string> CaseInsensitiveSearchTerms { get; }
-
-    string CaseSensitiveSearchTerm { get; set; }
-
-    ICollection<string> CaseSensitiveSearchTerms { get; }
 
     string Channels { get; set; }
 
     bool CheckAll { get; set; }
 
     string EndTimeText { get; set; }
+
+    ICollection<string> ExclusionTerms { get; }
+
+    string ExclusionTermToAdd { get; set; }
 
     bool FactionStanding { get; set; }
 
@@ -294,6 +315,10 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
     bool Rampage { get; set; }
 
     bool Say { get; set; }
+
+    ICollection<string> SearchTerms { get; }
+
+    string SearchTermToAdd { get; set; }
 
     bool Shout { get; set; }
 
