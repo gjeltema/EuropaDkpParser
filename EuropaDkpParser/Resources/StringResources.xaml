@@ -332,6 +332,8 @@
     <system:String x:Key="ZealConnected">Zeal Connected</system:String>
     <system:String x:Key="ReadyForZealAttendance">Zeal Attendance Ready</system:String>
     <system:String x:Key="ReadingLogFile">Reading Log File</system:String>
+    <system:String x:Key="DkpBidCrafter">DKP Bid Crafter</system:String>
+    <system:String x:Key="DkpText">DKP</system:String>
 
     <!-- ReminderDialog -->
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>

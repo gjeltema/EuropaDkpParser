@@ -57,7 +57,7 @@ internal sealed class ActiveBossKillAnalyzer
             int inIndex = logLine.IndexOf(In);
             int killedIndex = logLine.IndexOf(HasKilled) + HasKilled.Length;
 
-            string bossName = logLine[killedIndex..inIndex];
+            string bossName = logLine[killedIndex..inIndex].Trim();
             Log.Debug($"{LogPrefix} Returning boss name: {bossName}");
             return bossName;
         }
