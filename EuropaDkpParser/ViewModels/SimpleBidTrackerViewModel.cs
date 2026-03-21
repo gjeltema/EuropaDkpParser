@@ -29,8 +29,6 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
         _activeBidTracker = new(settings, eqLogTailFile);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
-        LogFileNames = [.. _settings.SelectedLogFiles];
-
         SetActiveAuctionsToCompletedCommand = new DelegateCommand(SetActiveAuctionsToCompleted);
         CopyBidTextToClipboardCommand = new DelegateCommand(CopyBidTextToClipboard, () => !string.IsNullOrWhiteSpace(DkpBidAmount))
             .ObservesProperty(() => DkpBidAmount);
@@ -56,8 +54,6 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
 
     public ICollection<int> FontSizeValues { get; } = [10, 12, 14, 16, 18, 20, 24, 28, 32];
 
-    public ICollection<string> LogFileNames { get; }
-
     public bool LowRollWins { get; set => SetProperty(ref field, value); }
 
     public ICollection<LiveAuctionDisplay> SelectedActiveAuctions { get; set; } = [];
@@ -65,19 +61,6 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     public string SelectedCharacterName { get; set => SetProperty(ref field, value); }
 
     public int SelectedFontSize { get; set => SetProperty(ref field, value); }
-
-    public string SelectedLogFilePath
-    {
-        get;
-        set
-        {
-            if (SetProperty(ref field, value))
-            {
-                Log.Info($"{LogPrefix} {nameof(SelectedLogFilePath)} being set to {value}.");
-                _activeBidTracker.StartTracking(value);
-            }
-        }
-    }
 
     public DelegateCommand SetActiveAuctionsToCompletedCommand { get; }
 
@@ -186,8 +169,6 @@ public interface ISimpleBidTrackerViewModel : IWindowViewModel
 
     ICollection<int> FontSizeValues { get; }
 
-    ICollection<string> LogFileNames { get; }
-
     bool LowRollWins { get; set; }
 
     ICollection<LiveAuctionDisplay> SelectedActiveAuctions { get; set; }
@@ -195,8 +176,6 @@ public interface ISimpleBidTrackerViewModel : IWindowViewModel
     string SelectedCharacterName { get; set; }
 
     int SelectedFontSize { get; set; }
-
-    string SelectedLogFilePath { get; set; }
 
     DelegateCommand SetActiveAuctionsToCompletedCommand { get; }
 }

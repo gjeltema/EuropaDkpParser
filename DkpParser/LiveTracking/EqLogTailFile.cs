@@ -106,6 +106,12 @@ public sealed class EqLogTailFile : IEqLogTailFile
         if (IsSendingMessages)
             return;
 
+        if (!ZealAttendanceMessageProvider.Instance.IsConnected)
+        {
+            ZealAttendanceMessageProvider.Instance.StartMessageProcessing();
+            return;
+        }
+
         string currentCharacterName = ZealAttendanceMessageProvider.Instance.CharacterInfo.CharacterName;
         bool isZealConnected = ZealAttendanceMessageProvider.Instance.IsConnected && !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
         if (!isZealConnected)

@@ -29,9 +29,9 @@ internal sealed class TailFile : IMessageProvider
     {
         get
         {
-            bool sending = (_fileReaderThread?.IsAlive ?? false) && (DateTime.Now.AddSeconds(-40) < LastUpdate);
+            bool sending = (_fileReaderThread?.IsAlive ?? false) && (DateTime.Now.AddSeconds(-60) < LastUpdate);
             if (!sending)
-                Log.Debug($"{LogPrefix} In {nameof(IsSendingMessages)}, Last Update: {LastUpdate:T}, LastUpdate result: {DateTime.Now.AddSeconds(-30) < LastUpdate:T}, Thread is alive: '{_fileReaderThread?.IsAlive}'");
+                Log.Debug($"{LogPrefix}{ThreadIdText}[{nameof(IsSendingMessages)}] Last Update: {LastUpdate:T}, LastUpdate result: {DateTime.Now.AddSeconds(-60) < LastUpdate:T}, Thread is alive: '{_fileReaderThread?.IsAlive}'");
             return sending;
         }
     }
@@ -51,15 +51,15 @@ internal sealed class TailFile : IMessageProvider
     }
 
     private string ThreadIdText
-        => $" Thread ID [{Environment.CurrentManagedThreadId}]";
+        => $" Thread ID [{Environment.CurrentManagedThreadId}] ";
 
     public void StartMessages()
     {
-        Log.Info($"{LogPrefix}{ThreadIdText} Entering {nameof(StartMessages)} with file: {_filePath}.");
+        Log.Info($"{LogPrefix}{ThreadIdText}[{nameof(StartMessages)}] Starting with file: {_filePath}.");
 
         if (IsSendingMessages)
         {
-            Log.Info($"{LogPrefix} {nameof(IsSendingMessages)} is true, exiting.");
+            Log.Info($"{LogPrefix}{ThreadIdText}[{nameof(StartMessages)}] {nameof(IsSendingMessages)} is true, exiting.");
             return;
         }
 
@@ -68,7 +68,7 @@ internal sealed class TailFile : IMessageProvider
 
         if (!File.Exists(_filePath))
         {
-            Log.Info($"{LogPrefix} File {_filePath} does not exist.  Existing {nameof(StartMessages)}.");
+            Log.Info($"{LogPrefix}{ThreadIdText}[{nameof(StartMessages)}] File {_filePath} does not exist.  Exiting.");
             return;
         }
 
@@ -82,7 +82,7 @@ internal sealed class TailFile : IMessageProvider
 
     public void StopMessages()
     {
-        Log.Info($"{LogPrefix} Entering {nameof(StopMessages)}, for base thread ID: {Environment.CurrentManagedThreadId}.");
+        Log.Info($"{LogPrefix}{ThreadIdText}[{nameof(StopMessages)}] Stopping messages.");
 
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
@@ -96,7 +96,7 @@ internal sealed class TailFile : IMessageProvider
         string filePath = _filePath;
         try
         {
-            Log.Info($"{LogPrefix}{ThreadIdText} Starting {nameof(ReadFile)} with filepath: {filePath}.");
+            Log.Info($"{LogPrefix}{ThreadIdText}[{nameof(ReadFile)}] Reading filepath: {filePath}.");
 
             using FileStream fileStream = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using StreamReader reader = new(fileStream);
@@ -110,7 +110,7 @@ internal sealed class TailFile : IMessageProvider
 
                 if (cancelToken.IsCancellationRequested)
                 {
-                    Log.Info($"{LogPrefix}{ThreadIdText} Cancellation Token cancel requested for filepath: {filePath}.");
+                    Log.Info($"{LogPrefix}{ThreadIdText}[{nameof(ReadFile)}] Cancellation Token cancel requested for filepath: {filePath}.");
                     break;
                 }
 
@@ -123,12 +123,12 @@ internal sealed class TailFile : IMessageProvider
                     try
                     {
                         LastUpdate = DateTime.Now;
-                        Log.Trace($"{LogPrefix}{ThreadIdText} Line read: {line}");
+                        Log.Trace($"{LogPrefix}{ThreadIdText}[{nameof(ReadFile)}] Line read: {line}");
                         _lineHandler(line);
                     }
                     catch (Exception e)
                     {
-                        Log.Error($"{LogPrefix}{ThreadIdText} Error encountered in filepath {filePath} when processing line: {line}{Environment.NewLine}Error: {e.ToLogMessage()}");
+                        Log.Error($"{LogPrefix}{ThreadIdText}]{nameof(ReadFile)}] Error encountered in filepath {filePath} when processing line: {line}{Environment.NewLine}Error: {e.ToLogMessage()}");
                     }
                 }
 
@@ -140,10 +140,10 @@ internal sealed class TailFile : IMessageProvider
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix}{ThreadIdText} Error encountered when processing messages from filepath {filePath}: Error: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix}{ThreadIdText}[{nameof(ReadFile)}] Error encountered when processing messages from filepath {filePath}: Error: {ex.ToLogMessage()}");
         }
 
-        Log.Info($"{LogPrefix}{ThreadIdText} Leaving {nameof(ReadFile)} for filepath: {filePath}");
+        Log.Info($"{LogPrefix}{ThreadIdText}[{nameof(ReadFile)}] Leaving {nameof(ReadFile)} for filepath: {filePath}");
     }
 }
 

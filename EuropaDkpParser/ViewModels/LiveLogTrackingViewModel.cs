@@ -601,9 +601,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             }
         }
 
-        if (!_zealMessages.IsConnected)
-            _zealMessages.StartMessageProcessing();
-
         IsZealConnected = _zealMessages.IsConnected && !_zealMessages.CharacterInfo.IsDataStale;
 
         IsReadyToTakeZealAttendance = _zealMessages.IsConnected && !_zealMessages.CharacterInfo.IsDataStale
