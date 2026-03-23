@@ -1,14 +1,18 @@
 ﻿// -----------------------------------------------------------------------
-// IOverlayView.cs Copyright 2025 Craig Gjeltema
+// IOverlayView.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
 
 public interface IOverlayView
 {
+    double Height { get; set; }
+
     double Left { get; set; }
 
     double Top { get; set; }
+
+    double Width { get; set; }
 
     void Close();
 

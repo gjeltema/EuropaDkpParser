@@ -20,6 +20,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string ArchiveGeneratedLogFileAgeSection = "ARCHIVE_GEN_LOGS_AGE";
     private const string ArchiveGeneratedLogFileDirectorySection = "ARCHIVE_GEN_LOG_DIRECTORY";
     private const string ArchiveSelectedFilesToArchiveSection = "ARCHIVE_SELECTED_EQ_LOG_FILES";
+    private const string AuctionOverlayHeightSection = "AUCTION_OVERLAY_HEIGHT";
+    private const string AuctionOverlayWidthSection = "AUCTION_OVERLAY_WIDTH";
+    private const string AuctionOverlayXLocSection = "AUCTION_OVERLAY_X";
+    private const string AuctionOverlayYLocSection = "AUCTION_OVERLAY_Y";
     private const string DefaultMatchPattern = "*eqlog*.txt";
     private const string DefaultOverlayFontColor = "#CCCCCC";
     private const int DefaultWindowLocation = 200;
@@ -71,6 +75,14 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public string ApiWriteToken { get; set; }
 
     public bool ArchiveAllEqLogFiles { get; set; }
+
+    public int AuctionOverlayHeight { get; set; }
+
+    public int AuctionOverlayWidth { get; set; }
+
+    public int AuctionOverlayXLoc { get; set; }
+
+    public int AuctionOverlayYLoc { get; set; }
 
     public DkpServerCharacters CharactersOnDkpServer { get; private set; }
 
@@ -199,6 +211,11 @@ public sealed class DkpParserSettings : IDkpParserSettings
         OverlayFontColor = GetStringValue(fileContents, OverlayFontColorSection, DefaultOverlayFontColor);
         OverlayFontSize = GetIntValue(fileContents, OverlayFontSizeSection, 20);
 
+        AuctionOverlayXLoc = GetIntValue(fileContents, AuctionOverlayXLocSection, 100);
+        AuctionOverlayYLoc = GetIntValue(fileContents, AuctionOverlayYLocSection, 100);
+        AuctionOverlayWidth = GetIntValue(fileContents, AuctionOverlayWidthSection, 100);
+        AuctionOverlayHeight = GetIntValue(fileContents, AuctionOverlayHeightSection, 100);
+
         EnableZealDetailLogging = GetBoolValue(fileContents, EnableZealDetailLoggingSection, false);
 
         int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Info);
@@ -252,7 +269,13 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(OverlayLocationYSection, OverlayLocationY),
             CreateFileEntry(OverlayFontColorSection, OverlayFontColor),
             CreateFileEntry(OverlayFontSizeSection, OverlayFontSize),
+            CreateFileEntry(AuctionOverlayXLocSection, AuctionOverlayXLoc),
+            CreateFileEntry(AuctionOverlayYLocSection, AuctionOverlayYLoc),
+            CreateFileEntry(AuctionOverlayWidthSection, AuctionOverlayWidth),
+            CreateFileEntry(AuctionOverlayHeightSection, AuctionOverlayHeight),
             CreateFileEntry(MezBreaksToShowSection, MezBreaksToShow),
+            CreateFileEntry(SpellTrackerXLocSection, SpellTrackerXLoc) ,
+            CreateFileEntry(SpellTrackerYLocSection, SpellTrackerYLoc) ,
             CreateFileEntry(EnableZealDetailLoggingSection, EnableZealDetailLogging),
             CreateFileEntry(LogLevelSection, (int)LoggingLevel),
         };
@@ -262,6 +285,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         AddCollection(settingsFileContent, EqLogFilesToArchive, ArchiveSelectedFilesToArchiveSection);
 
         AddCollection(settingsFileContent, InventoryDirectories, InventoryDirectoriesSection);
+
+        AddCollection(settingsFileContent, SpellTrackers.Select(SpellTrackerToConfigString), SpellTrackerSection);
 
         try
         {
@@ -275,6 +300,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     private static int GetStartingIndex(string[] fileContents, string configurationSectionName)
         => Array.FindIndex(fileContents, x => x.StartsWith(configurationSectionName));
+
+    private static string SpellTrackerToConfigString(SpellTrackingConfiguration config)
+        => $"{config.CasterCharacterName}|{config.SpellName}|{config.DisplayName}|{config.CastTime}|{config.EstimatedDuration}|{config.SpellLandedSearchString}|{config.SpellFadedSearchString}|{config.DisplayColor}";
 
     private void AddCollection(List<string> settingsFileContent, IEnumerable<string> contentsToAdd, string sectionName)
     {
@@ -522,6 +550,14 @@ public interface IDkpParserSettings
     string ApiWriteToken { get; set; }
 
     bool ArchiveAllEqLogFiles { get; set; }
+
+    int AuctionOverlayHeight { get; set; }
+
+    int AuctionOverlayWidth { get; set; }
+
+    int AuctionOverlayXLoc { get; set; }
+
+    int AuctionOverlayYLoc { get; set; }
 
     DkpServerCharacters CharactersOnDkpServer { get; }
 

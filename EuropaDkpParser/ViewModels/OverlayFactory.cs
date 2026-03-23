@@ -5,6 +5,7 @@
 namespace EuropaDkpParser.ViewModels;
 
 using DkpParser;
+using DkpParser.LiveTracking;
 
 internal sealed class OverlayFactory : IOverlayFactory
 {
@@ -17,6 +18,9 @@ internal sealed class OverlayFactory : IOverlayFactory
 
     public IAttendanceOverlayViewModel CreateAttendanceOverlayViewModel(IDkpParserSettings settings, IAttendanceSnapshot attendanceSnapshot)
         => new AttendanceOverlayViewModel(_viewFactory, settings, attendanceSnapshot);
+
+    public IAuctioneerOverlayViewModel CreateAuctioneerOverlayViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile)
+        => new AuctioneerOverlayViewModel(_viewFactory, settings, eqLogTailFile);
 
     public IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings)
         => new OverlayPositioningViewModel(_viewFactory, settings);
@@ -31,6 +35,8 @@ internal sealed class OverlayFactory : IOverlayFactory
 public interface IOverlayFactory
 {
     IAttendanceOverlayViewModel CreateAttendanceOverlayViewModel(IDkpParserSettings settings, IAttendanceSnapshot attendanceSnapshot);
+
+    IAuctioneerOverlayViewModel CreateAuctioneerOverlayViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile);
 
     IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings);
 

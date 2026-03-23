@@ -10,7 +10,6 @@
         d:DataContext="{d:DesignInstance Type=overlayViewModel:OverlayViewModelBase}"
         ShowInTaskbar="False"
         WindowStyle="None"
-        SizeToContent="WidthAndHeight"
         AllowsTransparency="True"
         Topmost="True">
     <Window.Background>
@@ -36,6 +35,9 @@
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type overlayViewModel:SpellTrackerOverlayViewModel}">
                             <overlayView:SpellTrackerOverlay/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type overlayViewModel:AuctioneerOverlayViewModel}">
+                            <overlayView:AuctioneerOverlay/>
                         </DataTemplate>
                     </ResourceDictionary>
                 </ContentPresenter.Resources>

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// OverlayPositioningViewModel.cs Copyright 2025 Craig Gjeltema
+// OverlayPositioningViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -13,6 +13,8 @@ internal sealed class OverlayPositioningViewModel : OverlayViewModelBase, IOverl
     {
         XPos = settings.OverlayLocationX;
         YPos = settings.OverlayLocationY;
+        Width = 300;
+        Height = 60;
 
         DisplayFontSize = settings.OverlayFontSize;
         DisplayColor = settings.OverlayFontColor;

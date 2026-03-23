@@ -19,12 +19,14 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly AttendanceTimerHandler _attendanceTimerHandler;
     private readonly IDkpDataRetriever _dkpDataRetriever;
+    private readonly IEqLogTailFile _eqLogTailFile;
     private readonly IOverlayFactory _overlayFactory;
     private readonly IReadyCheckOverlayViewModel _readyCheckOverlayViewModel;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
     private readonly IZealMessageProvider _zealMessages;
+    private IAuctioneerOverlayViewModel _auctioneerOverlay;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private ISpellTrackerOverlayViewModel _spellTracker;
 
@@ -39,6 +41,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         _settings = settings;
         _overlayFactory = overlayFactory;
+        _eqLogTailFile = eqLogTailFile;
 
         _dkpDataRetriever = new DkpDataRetriever(settings);
         _activeBidTracker = new(settings, eqLogTailFile);
@@ -112,6 +115,21 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public DelegateCommand CycleToNextStatusMarkerCommand { get; }
 
+    public bool EnableAuctionOverlayMove
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value))
+            {
+                if (field)
+                    _auctioneerOverlay.EnableMove();
+                else
+                    _auctioneerOverlay.DisableMove();
+            }
+        }
+    }
+
     public bool EnableReadyCheck
     {
         get;
@@ -135,7 +153,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
                 Log.Info($"{LogPrefix} {nameof(FilePath)} being set to {value}.");
             }
 
-            if (!IsReadingLogFile)
+            if (!IsReadingLogFile && !string.IsNullOrWhiteSpace(field))
                 _activeBidTracker.StartTracking(value);
         }
     }
@@ -222,6 +240,16 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     public DelegateCommand SetActiveAuctionToCompletedCommand { get; }
 
+    public bool ShowAuctionOverlay
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value))
+                DisplayAuctionOverlay(field);
+        }
+    }
+
     public DelegateCommand SpawnAttendanceCall { get; }
 
     public ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; private set => SetProperty(ref field, value); }
@@ -290,12 +318,13 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     protected override sealed void HandleClosing()
     {
-        _spellTracker?.Close();
-        _attendanceTimerHandler.CloseAll();
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
         _zealMessages.StopMessageProcessing();
+        _attendanceTimerHandler.CloseAll();
         _readyCheckOverlayViewModel?.Close();
+        _auctioneerOverlay?.Close();
+        _spellTracker?.Close();
     }
 
     private void AddItemLinkId()
@@ -379,6 +408,20 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection(CurrentStatusMarker);
         SetAuctionStatusMessage();
+    }
+
+    private void DisplayAuctionOverlay(bool showOverlay)
+    {
+        _auctioneerOverlay?.Close();
+        if (showOverlay)
+        {
+            _auctioneerOverlay = _overlayFactory.CreateAuctioneerOverlayViewModel(_settings, _eqLogTailFile);
+            _auctioneerOverlay.CreateAndShowOverlay();
+        }
+        else
+        {
+            _auctioneerOverlay = null;
+        }
     }
 
     private DateTime GetSortingTimestamp(CompletedAuction completed)
@@ -689,6 +732,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
 
     DelegateCommand CycleToNextStatusMarkerCommand { get; }
 
+    bool EnableAuctionOverlayMove { get; set; }
+
     bool EnableReadyCheck { get; set; }
 
     string FilePath { get; set; }
@@ -732,6 +777,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     SuggestedSpentCall SelectedSpentMessageToPaste { get; set; }
 
     DelegateCommand SetActiveAuctionToCompletedCommand { get; }
+
+    bool ShowAuctionOverlay { get; set; }
 
     DelegateCommand SpawnAttendanceCall { get; }
 

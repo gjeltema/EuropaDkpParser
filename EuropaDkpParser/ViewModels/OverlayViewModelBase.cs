@@ -7,7 +7,6 @@ namespace EuropaDkpParser.ViewModels;
 internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayViewModel
 {
     protected IOverlayViewFactory _viewFactory;
-    private bool _contentIsVisible;
     private Action _hideAction;
     private bool _windowHasBeenShown;
 
@@ -16,13 +15,13 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
         _viewFactory = viewFactory;
     }
 
-    public bool ContentIsVisible
-    {
-        get => _contentIsVisible;
-        set => SetProperty(ref _contentIsVisible, value);
-    }
+    public bool AllowResizing { get; set; }
 
-    public bool PositionChanged { get; private set; }
+    public bool ContentIsVisible { get; set => SetProperty(ref field, value); }
+
+    public int Height { get; set; }
+
+    public int Width { get; set; }
 
     public int XPos { get; set; }
 
@@ -43,25 +42,40 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
         OverlayView.Top = YPos;
         OverlayView.Left = XPos;
+        OverlayView.Width = Width;
+        OverlayView.Height = Height;
         ContentIsVisible = true;
         ShowOverlay();
     }
 
     public void DisableMove()
-        => OverlayView?.DisableMove();
+    {
+        OverlayView?.DisableMove();
+        SaveLocation();
+        HandleDisableMove();
+    }
+
+    protected virtual void HandleDisableMove()
+    { }
 
     public void EnableMove()
-        => OverlayView?.EnableMove();
+    {
+        OverlayView?.EnableMove();
+        HandleEnableMove();
+    }
+
+    protected virtual void HandleEnableMove()
+    { }
 
     public void HideOverlay()
     {
         if (OverlayView != null)
         {
             OverlayView.DisableMove();
-            //OverlayView?.Hide();
             ContentIsVisible = false;
         }
 
+        _windowHasBeenShown = false;
         _hideAction?.Invoke();
     }
 
@@ -78,13 +92,19 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
     }
 
     protected virtual void HandleClose() { }
+
+    protected virtual void SaveLocation() { }
 }
 
 public interface IOverlayViewModel
 {
+    bool AllowResizing { get; }
+
     bool ContentIsVisible { get; set; }
 
-    bool PositionChanged { get; }
+    int Height { get; set; }
+
+    int Width { get; set; }
 
     int XPos { get; set; }
 

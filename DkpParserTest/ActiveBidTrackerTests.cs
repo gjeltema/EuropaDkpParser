@@ -378,6 +378,14 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool ArchiveAllEqLogFiles { get; set; }
 
+    public int AuctionOverlayHeight { get; set; }
+
+    public int AuctionOverlayWidth { get; set; }
+
+    public int AuctionOverlayXLoc { get; set; }
+
+    public int AuctionOverlayYLoc { get; set; }
+
     public DkpServerCharacters CharactersOnDkpServer { get; } = new DkpServerCharacters("");
 
     public bool DkpspentGuEnabled { get; set; }

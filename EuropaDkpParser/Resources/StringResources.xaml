@@ -319,10 +319,12 @@
     <system:String x:Key="TakeAttendanceNow">Take Attendance Now</system:String>
     <system:String x:Key="LowRollWins">Low Roll Wins</system:String>
     <system:String x:Key="TrackSpells">Track Spells</system:String>
+    <system:String x:Key="AuctionOverlay">Show Auction Overlay</system:String>
+    <system:String x:Key="MoveAuctionOverlay">Move Auction Overlay</system:String>
     <system:String x:Key="SetFile">Set File</system:String>
     <system:String x:Key="GetUserDkp">Get DKP</system:String>
     <system:String x:Key="ChangeName">Change Name</system:String>
-    <system:String x:Key="UseOverlay">Use Overlay</system:String>
+    <system:String x:Key="UseAttendanceOverlay">Use Overlay</system:String>
     <system:String x:Key="ShowOverlayForMoving">Show Overlay For Moving</system:String>
     <system:String x:Key="AudioReminder">Audio Reminder</system:String>
     <system:String x:Key="AttendanceReminderGroupBoxLabel">Attendance Reminder</system:String>
@@ -330,7 +332,7 @@
     <system:String x:Key="EnableReadyCheckMonitoring">Enable Ready Check Monitor</system:String>
     <system:String x:Key="FontSizeLabel">Font Size</system:String>
     <system:String x:Key="ZealConnected">Zeal Connected</system:String>
-    <system:String x:Key="ReadyForZealAttendance">Zeal Attendance Ready</system:String>
+    <system:String x:Key="ReadyForZealAttendance">Zeal Attendance</system:String>
     <system:String x:Key="ReadingLogFile">Reading Log File</system:String>
     <system:String x:Key="DkpBidCrafter">DKP Bid Crafter</system:String>
     <system:String x:Key="DkpText">DKP</system:String>

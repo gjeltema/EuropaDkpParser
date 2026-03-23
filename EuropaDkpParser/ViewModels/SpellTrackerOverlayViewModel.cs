@@ -24,6 +24,8 @@ internal sealed class SpellTrackerOverlayViewModel : OverlayViewModelBase, ISpel
 
         XPos = _settings.SpellTrackerXLoc;
         YPos = _settings.SpellTrackerYLoc;
+        Height = 450;
+        Width = 400;
 
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
     }

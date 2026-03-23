@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// OverlayView.xaml.cs Copyright 2025 Craig Gjeltema
+// OverlayView.xaml.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Views;
@@ -24,28 +24,37 @@ public partial class OverlayView : Window, IOverlayView
         _overlayViewModel = overlayViewModel;
 
         LocationChanged += HandleLocationChanged;
+        SizeChanged += HandleSizeChanged;
     }
 
     public void DisableMove()
     {
-        //WindowResizeChrome.ResizeBorderThickness = new Thickness(0);
         WindowBorder.BorderThickness = new Thickness(0, 0, 0, 0);
         _enableMove = false;
         Background.Opacity = 0;
+        if (_overlayViewModel.AllowResizing)
+            ResizeMode = ResizeMode.NoResize;
     }
 
     public void EnableMove()
     {
-        //WindowResizeChrome.ResizeBorderThickness = new Thickness(8);
         WindowBorder.BorderThickness = new Thickness(1, 1, 1, 1);
         _enableMove = true;
         Background.Opacity = 0.2;
+        if (_overlayViewModel.AllowResizing)
+            ResizeMode = ResizeMode.CanResizeWithGrip;
     }
 
     private void HandleLocationChanged(object sender, EventArgs e)
     {
         _overlayViewModel.XPos = (int)Left;
         _overlayViewModel.YPos = (int)Top;
+    }
+
+    private void HandleSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        _overlayViewModel.Height = (int)Height;
+        _overlayViewModel.Width = (int)Width;
     }
 
     private void MouseDownHandler(object sender, MouseEventArgs e)

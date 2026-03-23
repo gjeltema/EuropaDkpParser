@@ -20,6 +20,8 @@ internal sealed class ReadyCheckOverlayViewModel : OverlayViewModelBase, IReadyC
 
         XPos = _settings.OverlayLocationX;
         YPos = _settings.OverlayLocationY;
+        Height = 300;
+        Width = 400;
 
         Hide = new DelegateCommand(HideOverlay);
     }
