@@ -213,8 +213,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         AuctionOverlayXLoc = GetIntValue(fileContents, AuctionOverlayXLocSection, 100);
         AuctionOverlayYLoc = GetIntValue(fileContents, AuctionOverlayYLocSection, 100);
-        AuctionOverlayWidth = GetIntValue(fileContents, AuctionOverlayWidthSection, 100);
-        AuctionOverlayHeight = GetIntValue(fileContents, AuctionOverlayHeightSection, 100);
+        AuctionOverlayWidth = GetIntValue(fileContents, AuctionOverlayWidthSection, 430);
+        AuctionOverlayHeight = GetIntValue(fileContents, AuctionOverlayHeightSection, 410);
 
         EnableZealDetailLogging = GetBoolValue(fileContents, EnableZealDetailLoggingSection, false);
 

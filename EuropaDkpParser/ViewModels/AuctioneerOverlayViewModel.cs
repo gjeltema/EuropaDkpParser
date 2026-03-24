@@ -38,8 +38,8 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
             .ObservesProperty(() => SelectedSpentMessageToPaste);
         CopySelectedStatusMessageToClipboardCommand = new DelegateCommand(CopySelectedStatusMessageToClipboard,
-            () => _activeBidTracker.Bids.Any(x => x.ParentAuctionId == SelectedActiveAuction.Id))
-            .ObservesProperty(() => ActiveAuctions);
+            () => SelectedActiveAuction != null && _activeBidTracker.Bids.Any(x => x.ParentAuctionId == SelectedActiveAuction?.Id))
+            .ObservesProperty(() => SelectedActiveAuction);
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
         SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted, () => SelectedActiveAuction != null)
             .ObservesProperty(() => SelectedActiveAuction);

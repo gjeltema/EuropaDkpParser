@@ -55,7 +55,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
             .ObservesProperty(() => SelectedSpentMessageToPaste);
-        CopySelectedStatusMessageToClipboardCommand = new DelegateCommand(CopySelectedStatusMessageToClipboard, () => AuctionStatusMessageToPaste != null)
+        CopySelectedStatusMessageToClipboardCommand = new DelegateCommand(CopySelectedStatusMessageToClipboard, () => !string.IsNullOrWhiteSpace(AuctionStatusMessageToPaste))
             .ObservesProperty(() => AuctionStatusMessageToPaste);
         CopyRemoveSpentMessageToClipboardCommand = new DelegateCommand(CopyRemoveSelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)
             .ObservesProperty(() => SelectedSpentMessageToPaste);
@@ -390,18 +390,18 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         string spentCallWithLink = _activeBidTracker.GetSpentMessageWithLink(selectedSpentCall);
         Clip.Copy(spentCallWithLink);
 
-        SelectedActiveAuction.HasNewBidsAdded = false;
+        SelectedActiveAuction?.HasNewBidsAdded = false;
     }
 
     private void CopySelectedStatusMessageToClipboard()
     {
         string selectedStatsuMessage = AuctionStatusMessageToPaste;
-        if (selectedStatsuMessage == null)
+        if (string.IsNullOrWhiteSpace(selectedStatsuMessage))
             return;
 
         Clip.Copy(selectedStatsuMessage);
 
-        SelectedActiveAuction.HasNewBidsAdded = false;
+        SelectedActiveAuction?.HasNewBidsAdded = false;
     }
 
     private void CycleToNextStatusMarker()

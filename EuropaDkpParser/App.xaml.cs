@@ -102,7 +102,7 @@ public partial class App : Application
     private static void HandleFatalException(Exception ex)
     {
         Log.Critical($"Fatal exception: {ex?.ToLogMessage()}");
-        MessageBox.Show(ex.Message);
+        MessageBox.Show(ex?.Message ?? "An unknown fatal error occurred.");
         Current?.Shutdown(1);
     }
 

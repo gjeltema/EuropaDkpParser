@@ -75,7 +75,12 @@ public static class LoggingExtensions
     public static string ToLogMessage(this AggregateException aex, int innerExceptionLimit = 20)
     {
         var logMessage = new StringBuilder();
-        logMessage.AppendLine("AggregateException error message: " + aex.Message);
+        logMessage.Append("AggregateException error message: ");
+        if (aex.TargetSite != null)
+        {
+            logMessage.Append($"Target site: {aex.TargetSite.DeclaringType}.{aex.TargetSite.Name}: ");
+        }
+        logMessage.AppendLine(aex.Message);
         logMessage.Append("STACK: ").AppendLine(aex.StackTrace);
         logMessage.AppendLine("Contained exceptions of the AggregateException:");
         logMessage.AppendLine("==================================");
@@ -107,7 +112,12 @@ public static class LoggingExtensions
 
         var logMessage = new StringBuilder();
         logMessage.Append(ex.GetType()).Append(": ");
+        if (ex.TargetSite != null)
+        {
+            logMessage.Append($"Target site: {ex.TargetSite.DeclaringType}.{ex.TargetSite.Name}: ");
+        }
         logMessage.Append(ex.Message);
+
         if (!string.IsNullOrEmpty(ex.StackTrace))
         {
             logMessage.AppendLine().Append("STACK: ").Append(ex.StackTrace);

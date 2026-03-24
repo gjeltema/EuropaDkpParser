@@ -26,7 +26,7 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
         _attendanceSnapshot = attendanceSnapshot;
         XPos = _settings.OverlayLocationX;
         YPos = _settings.OverlayLocationY;
-        Width = 300;
+        Width = 400;
         Height = 60;
 
         DisplayFontSize = _settings.OverlayFontSize;
