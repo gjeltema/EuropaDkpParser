@@ -9,23 +9,23 @@
              mc:Ignorable="d" 
              MaxHeight="300"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Visibility="{Binding DisplayControls, Converter={StaticResource BoolToVisibilityConverter}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" VerticalAlignment="Top">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Label Grid.Column="0" Content="Ready Check" />
+            <Label Grid.Column="0" Content="Ready Check" Margin="0,0,5,0"/>
             <Button Grid.Column="1" Content="Done" Command="{Binding Hide}"/>
         </Grid>
 
-        <ListView Height="250" MaxHeight="250" Grid.Row="1" ItemsSource="{Binding CharactersNotReady}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+        <ListView Grid.Row="1" ItemsSource="{Binding CharactersNotReady}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>

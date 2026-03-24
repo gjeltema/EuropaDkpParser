@@ -43,6 +43,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string OverlayFontSizeSection = "OVERLAY_FONT_SIZE";
     private const string OverlayLocationXSection = "OVERLAY_LOCATION_X";
     private const string OverlayLocationYSection = "OVERLAY_LOCATION_Y";
+    private const string ReadyCheckHeightSection = "READY_CHECK_HEIGHT";
+    private const string ReadyCheckWidthSection = "READY_CHECK_WIDTH";
+    private const string ReadyCheckXLocSection = "READY_CHECK_X";
+    private const string ReadyCheckYLocSection = "READY_CHECK_Y";
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
@@ -135,6 +139,14 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public IRaidValues RaidValue { get; private set; }
 
+    public int ReadyCheckOverlayHeight { get; set; }
+
+    public int ReadyCheckOverlayWidth { get; set; }
+
+    public int ReadyCheckOverlayXLoc { get; set; }
+
+    public int ReadyCheckOverlayYLoc { get; set; }
+
     public ICollection<string> SelectedLogFiles { get; set; } = [];
 
     public bool ShowAfkReview { get; set; }
@@ -176,10 +188,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool LoadBaseSettings()
     {
-        if (!File.Exists(_settingsFilePath))
+        bool fileExists = File.Exists(_settingsFilePath);
+        if (!fileExists)
         {
             SaveSettings();
-            return false;
         }
 
         string[] fileContents = File.ReadAllLines(_settingsFilePath);
@@ -216,6 +228,11 @@ public sealed class DkpParserSettings : IDkpParserSettings
         AuctionOverlayWidth = GetIntValue(fileContents, AuctionOverlayWidthSection, 430);
         AuctionOverlayHeight = GetIntValue(fileContents, AuctionOverlayHeightSection, 410);
 
+        ReadyCheckOverlayXLoc = GetIntValue(fileContents, ReadyCheckXLocSection, 100);
+        ReadyCheckOverlayYLoc = GetIntValue(fileContents, ReadyCheckYLocSection, 100);
+        ReadyCheckOverlayHeight = GetIntValue(fileContents, ReadyCheckHeightSection, 300);
+        ReadyCheckOverlayWidth = GetIntValue(fileContents, ReadyCheckWidthSection, 400);
+
         EnableZealDetailLogging = GetBoolValue(fileContents, EnableZealDetailLoggingSection, false);
 
         int loggingLevelRaw = GetIntValue(fileContents, LogLevelSection, (int)LogLevel.Info);
@@ -223,7 +240,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         MezBreaksToShow = GetIntValue(fileContents, MezBreaksToShowSection, 4);
 
-        return true;
+        return fileExists;
     }
 
     public void LoadOtherFileSettings()
@@ -273,6 +290,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(AuctionOverlayYLocSection, AuctionOverlayYLoc),
             CreateFileEntry(AuctionOverlayWidthSection, AuctionOverlayWidth),
             CreateFileEntry(AuctionOverlayHeightSection, AuctionOverlayHeight),
+            CreateFileEntry(ReadyCheckXLocSection, ReadyCheckOverlayXLoc),
+            CreateFileEntry(ReadyCheckYLocSection, ReadyCheckOverlayYLoc),
+            CreateFileEntry(ReadyCheckHeightSection, ReadyCheckOverlayHeight),
+            CreateFileEntry(ReadyCheckWidthSection, ReadyCheckOverlayWidth),
             CreateFileEntry(MezBreaksToShowSection, MezBreaksToShow),
             CreateFileEntry(SpellTrackerXLocSection, SpellTrackerXLoc) ,
             CreateFileEntry(SpellTrackerYLocSection, SpellTrackerYLoc) ,
@@ -608,6 +629,14 @@ public interface IDkpParserSettings
     int OverlayLocationY { get; set; }
 
     IRaidValues RaidValue { get; }
+
+    int ReadyCheckOverlayHeight { get; set; }
+
+    int ReadyCheckOverlayWidth { get; set; }
+
+    int ReadyCheckOverlayXLoc { get; set; }
+
+    int ReadyCheckOverlayYLoc { get; set; }
 
     ICollection<string> SelectedLogFiles { get; set; }
 

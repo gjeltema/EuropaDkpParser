@@ -8,6 +8,7 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 {
     protected IOverlayViewFactory _viewFactory;
     private Action _hideAction;
+    private bool _moveIsEnabled = false;
     private bool _windowHasBeenShown;
 
     protected OverlayViewModelBase(IOverlayViewFactory viewFactory)
@@ -18,6 +19,9 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
     public bool AllowResizing { get; set; }
 
     public bool ContentIsVisible { get; set => SetProperty(ref field, value); }
+
+    public bool DisplayControls
+        => _moveIsEnabled || ShouldDisplayControls();
 
     public int Height { get; set; }
 
@@ -50,22 +54,18 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
     public void DisableMove()
     {
+        _moveIsEnabled = false;
         OverlayView?.DisableMove();
+        RefreshDisplayControls();
         SaveLocation();
-        HandleDisableMove();
     }
-
-    protected virtual void HandleDisableMove()
-    { }
 
     public void EnableMove()
     {
+        _moveIsEnabled = true;
         OverlayView?.EnableMove();
-        HandleEnableMove();
+        RefreshDisplayControls();
     }
-
-    protected virtual void HandleEnableMove()
-    { }
 
     public void HideOverlay()
     {
@@ -75,7 +75,6 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
             ContentIsVisible = false;
         }
 
-        _windowHasBeenShown = false;
         _hideAction?.Invoke();
     }
 
@@ -84,6 +83,8 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
     public void ShowOverlay()
     {
+        // Only call Show once.  After that, the visibility is controlled by the ContentIsVisible property.
+        // This helps to prevent the Overlay from grabbing focus.
         if (!_windowHasBeenShown)
         {
             _windowHasBeenShown = true;
@@ -93,7 +94,13 @@ internal abstract class OverlayViewModelBase : EuropaViewModelBase, IOverlayView
 
     protected virtual void HandleClose() { }
 
+    protected void RefreshDisplayControls()
+        => RaisePropertyChanged(nameof(DisplayControls));
+
     protected virtual void SaveLocation() { }
+
+    protected virtual bool ShouldDisplayControls()
+        => true;
 }
 
 public interface IOverlayViewModel
@@ -101,6 +108,8 @@ public interface IOverlayViewModel
     bool AllowResizing { get; }
 
     bool ContentIsVisible { get; set; }
+
+    bool DisplayControls { get; }
 
     int Height { get; set; }
 

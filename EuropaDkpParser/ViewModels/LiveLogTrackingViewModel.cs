@@ -143,6 +143,27 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         }
     }
 
+    public bool EnableReadyCheckOverlayMove
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value))
+            {
+                if (field)
+                {
+                    _readyCheckOverlayViewModel.CreateAndShowOverlay();
+                    _readyCheckOverlayViewModel.EnableMove();
+                }
+                else
+                {
+                    _readyCheckOverlayViewModel.DisableMove();
+                    _readyCheckOverlayViewModel.HideOverlay();
+                }
+            }
+        }
+    }
+
     public string FilePath
     {
         get;
@@ -551,7 +572,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         Log.Debug($"{LogPrefix} Showing ReadyCheck overlay.");
 
-        _readyCheckOverlayViewModel.Show();
+        _readyCheckOverlayViewModel.CreateAndShowOverlay();
     }
 
     private void UpdateActiveAuctionSelected()
@@ -735,6 +756,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     bool EnableAuctionOverlayMove { get; set; }
 
     bool EnableReadyCheck { get; set; }
+
+    bool EnableReadyCheckOverlayMove { get; set; }
 
     string FilePath { get; set; }
 

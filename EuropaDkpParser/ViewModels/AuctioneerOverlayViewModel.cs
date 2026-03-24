@@ -18,7 +18,6 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
     private readonly DispatcherTimer _updateTimer;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
-    private bool isMovingEnabled = false;
 
     public AuctioneerOverlayViewModel(IOverlayViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile)
         : base(viewFactory)
@@ -49,7 +48,15 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         _activeBidTracker.StartTracking();
     }
 
-    public ICollection<LiveAuctionDisplay> ActiveAuctions { get; private set => SetProperty(ref field, value); }
+    public ICollection<LiveAuctionDisplay> ActiveAuctions
+    {
+        get;
+        private set
+        {
+            if (SetProperty(ref field, value))
+                RefreshDisplayControls();
+        }
+    }
 
     public DelegateCommand CopySelectedSpentCallToClipboardCommand { get; }
 
@@ -58,9 +65,6 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
     public string CurrentStatusMarker { get; private set => SetProperty(ref field, value); }
 
     public DelegateCommand CycleToNextStatusMarkerCommand { get; }
-
-    public bool DisplayControls
-        => isMovingEnabled || ActiveAuctions?.Count > 0;
 
     public LiveAuctionDisplay SelectedActiveAuction
     {
@@ -86,18 +90,6 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         _activeBidTracker.StopTracking();
     }
 
-    protected override void HandleDisableMove()
-    {
-        isMovingEnabled = false;
-        RaisePropertyChanged(nameof(DisplayControls));
-    }
-
-    protected override void HandleEnableMove()
-    {
-        isMovingEnabled = true;
-        RaisePropertyChanged(nameof(DisplayControls));
-    }
-
     protected override void SaveLocation()
     {
         _settings.AuctionOverlayXLoc = XPos;
@@ -106,6 +98,9 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         _settings.AuctionOverlayHeight = Height;
         _settings.SaveSettings();
     }
+
+    protected override bool ShouldDisplayControls()
+    => ActiveAuctions?.Count > 0;
 
     private void CopySelectedSpentCallToClipboard()
     {
@@ -208,8 +203,6 @@ public interface IAuctioneerOverlayViewModel : IOverlayViewModel
     string CurrentStatusMarker { get; }
 
     DelegateCommand CycleToNextStatusMarkerCommand { get; }
-
-    bool DisplayControls { get; }
 
     LiveAuctionDisplay SelectedActiveAuction { get; set; }
 

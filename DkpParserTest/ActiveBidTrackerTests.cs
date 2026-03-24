@@ -436,6 +436,14 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public IRaidValues RaidValue { get; } = new RaidValueMock();
 
+    public int ReadyCheckOverlayHeight { get; set; }
+
+    public int ReadyCheckOverlayWidth { get; set; }
+
+    public int ReadyCheckOverlayXLoc { get; set; }
+
+    public int ReadyCheckOverlayYLoc { get; set; }
+
     public ICollection<string> SelectedLogFiles { get; set; }
 
     public bool ShowAfkReview { get; set; }

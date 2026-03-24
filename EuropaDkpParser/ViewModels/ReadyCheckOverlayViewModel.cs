@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// ReadyCheckOverlayViewModel.cs Copyright 2025 Craig Gjeltema
+// ReadyCheckOverlayViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -11,26 +11,23 @@ using Prism.Commands;
 internal sealed class ReadyCheckOverlayViewModel : OverlayViewModelBase, IReadyCheckOverlayViewModel
 {
     private readonly IDkpParserSettings _settings;
-    private ICollection<CharacterReadyCheckStatus> _charactersNotReady = [];
 
     public ReadyCheckOverlayViewModel(IOverlayViewFactory viewFactory, IDkpParserSettings settings)
         : base(viewFactory)
     {
         _settings = settings;
 
-        XPos = _settings.OverlayLocationX;
-        YPos = _settings.OverlayLocationY;
-        Height = 300;
-        Width = 400;
+        AllowResizing = true;
+
+        XPos = _settings.ReadyCheckOverlayXLoc;
+        YPos = _settings.ReadyCheckOverlayYLoc;
+        Height = _settings.ReadyCheckOverlayHeight;
+        Width = _settings.ReadyCheckOverlayWidth;
 
         Hide = new DelegateCommand(HideOverlay);
     }
 
-    public ICollection<CharacterReadyCheckStatus> CharactersNotReady
-    {
-        get => _charactersNotReady;
-        private set => SetProperty(ref _charactersNotReady, value);
-    }
+    public ICollection<CharacterReadyCheckStatus> CharactersNotReady { get; private set => SetProperty(ref field, value); } = [];
 
     public DelegateCommand Hide { get; }
 
@@ -59,12 +56,13 @@ internal sealed class ReadyCheckOverlayViewModel : OverlayViewModelBase, IReadyC
     public void SetInitialCharacterList(IEnumerable<string> characterNames)
         => CharactersNotReady = characterNames.Select(x => new CharacterReadyCheckStatus { CharacterName = x, IsReady = null }).ToList();
 
-    public void Show()
+    protected override void SaveLocation()
     {
-        XPos = _settings.OverlayLocationX;
-        YPos = _settings.OverlayLocationY;
-
-        CreateAndShowOverlay();
+        _settings.ReadyCheckOverlayXLoc = XPos;
+        _settings.ReadyCheckOverlayYLoc = YPos;
+        _settings.ReadyCheckOverlayWidth = Width;
+        _settings.ReadyCheckOverlayHeight = Height;
+        _settings.SaveSettings();
     }
 }
 
@@ -77,6 +75,4 @@ public interface IReadyCheckOverlayViewModel : IOverlayViewModel
     void SetCharacterReadyStatus(CharacterReadyCheckStatus newCharacterStatus);
 
     void SetInitialCharacterList(IEnumerable<string> characterNames);
-
-    void Show();
 }
