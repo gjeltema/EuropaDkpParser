@@ -44,6 +44,7 @@ public sealed class SpellTracker
 
     public void StartListening()
     {
+        Log.Info($"{LogPrefix} In {nameof(StartListening)}.");
         _eqLogTailFile.SpellInfoMessage += HandleSpellInfoMessage;
         _eqLogTailFile.LogFileChanged += HandleLogFileChanged;
         _eqLogTailFile.StartMessages();
@@ -51,6 +52,7 @@ public sealed class SpellTracker
 
     public void StopListening()
     {
+        Log.Info($"{LogPrefix} In {nameof(StopListening)}.");
         _eqLogTailFile.SpellInfoMessage -= HandleSpellInfoMessage;
         _eqLogTailFile.LogFileChanged -= HandleLogFileChanged;
     }

@@ -12,7 +12,6 @@ using Prism.Commands;
 
 internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctioneerOverlayViewModel
 {
-    private const string LogPrefix = $"[{nameof(AuctioneerOverlayViewModel)}]";
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
@@ -109,7 +108,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         string spentCallWithLink = _activeBidTracker.GetSpentMessageWithLink(selectedSpentCall);
         Clip.Copy(spentCallWithLink);
 
-        SelectedActiveAuction.HasNewBidsAdded = false;
+        SelectedActiveAuction?.HasNewBidsAdded = false;
     }
 
     private void CopySelectedStatusMessageToClipboard()
@@ -121,7 +120,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
 
         Clip.Copy(selectedStatsuMessage);
 
-        SelectedActiveAuction.HasNewBidsAdded = false;
+        SelectedActiveAuction?.HasNewBidsAdded = false;
     }
 
     private void CycleToNextStatusMarker()

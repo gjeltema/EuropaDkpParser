@@ -46,23 +46,7 @@ public partial class App : Application
 
         Log.Info($"Application Version: {Strings.ApplicationVersion}");
 
-        try
-        {
-            _settings.LoadOtherFileSettings();
-        }
-        catch (FileNotFoundException fnf)
-        {
-            MessageBox.Show(
-               $"{fnf.FileName} was unable to be loaded. Obtain a correct version of this file and place it in the same folder as this executable.",
-               "Configuration File Not Loaded",
-               MessageBoxButton.OK,
-               MessageBoxImage.Error);
-
-            Log.Critical($"Unable to locate necessary configuration file {fnf.FileName}.  Exiting application. Exception: {fnf.ToLogMessage()}");
-
-            Current?.Shutdown(1);
-            return;
-        }
+        LoadSettings();
 
         if (_settings.UseLightMode)
         {
@@ -151,5 +135,39 @@ public partial class App : Application
 
         Log.Logger.Default = simpleAsyncLogTarget;
         Log.Info($"Logging started. LogLevel set to: {Log.Logger.Default.LoggingLevel}");
+    }
+
+    private void LoadSettings()
+    {
+        try
+        {
+            _settings.LoadOtherFileSettings();
+        }
+        catch (FileNotFoundException fnf)
+        {
+            MessageBox.Show(
+               $"{fnf.FileName} was unable to be loaded. Obtain a correct version of this file and place it in the same folder as this executable.",
+               "Configuration File Not Loaded",
+               MessageBoxButton.OK,
+               MessageBoxImage.Error);
+
+            Log.Critical($"Unable to locate necessary configuration file {fnf.FileName}.  Exiting application. Exception: {fnf.ToLogMessage()}");
+
+            Current?.Shutdown(1);
+            return;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+               $"Unexpected error when loading the configuration files: {ex.Message}.",
+               "Configuration File Not Loaded",
+               MessageBoxButton.OK,
+               MessageBoxImage.Error);
+
+            Log.Critical($"Unexpected error when loading the configuration file: {ex.ToLogMessage()}");
+
+            Current?.Shutdown(1);
+            return;
+        }
     }
 }

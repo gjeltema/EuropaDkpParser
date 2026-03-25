@@ -319,7 +319,7 @@ public sealed class CharacterReadyCheckStatus
     public bool? IsReady { get; set; }
 
     private string DebugText
-        => ToString();
+        => ToDebugString();
 
     public string ToDebugString()
         => $"{CharacterName} '{IsReady}'";
