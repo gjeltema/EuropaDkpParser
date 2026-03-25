@@ -25,6 +25,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         _settings = settings;
 
         AllowResizing = true;
+        ActiveAuctions = [];
 
         XPos = _settings.AuctionOverlayXLoc;
         YPos = _settings.AuctionOverlayYLoc;
@@ -99,9 +100,6 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         _settings.SaveSettings();
     }
 
-    protected override bool ShouldDisplayControls()
-        => ActiveAuctions?.Count > 0;
-
     private void CopySelectedSpentCallToClipboard()
     {
         SuggestedSpentCall selectedSpentCall = SelectedSpentMessageToPaste;
@@ -137,6 +135,23 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
             return;
 
         UpdateDisplay();
+    }
+
+    private void RefreshDisplayControls()
+    {
+        if (IsInMoveMode)
+            return;
+
+        if (ActiveAuctions.Count == 0)
+        {
+            if (ContentIsVisible)
+                HideOverlay();
+        }
+        else
+        {
+            if (!ContentIsVisible)
+                ShowOverlay();
+        }
     }
 
     private void SetActiveAuctionToCompleted()
@@ -185,8 +200,6 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         }
 
         UpdateActiveAuctionSelected(selectedAuction);
-
-        RaisePropertyChanged(nameof(DisplayControls));
 
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }

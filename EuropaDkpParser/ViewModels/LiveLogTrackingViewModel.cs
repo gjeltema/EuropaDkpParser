@@ -123,9 +123,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             if (SetProperty(ref field, value))
             {
                 if (field)
-                    _auctioneerOverlay.EnableMove();
+                    _auctioneerOverlay?.EnableMove();
                 else
-                    _auctioneerOverlay.DisableMove();
+                    _auctioneerOverlay?.DisableMove();
             }
         }
     }
@@ -138,7 +138,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             if (SetProperty(ref field, value))
             {
                 Log.Debug($"{LogPrefix} {nameof(EnableReadyCheck)} set to {EnableReadyCheck}");
-                _activeBidTracker.TrackReadyCheck = value;
+                _activeBidTracker.TrackReadyCheck = field;
+                if (!field)
+                    EnableReadyCheckOverlayMove = false;
             }
         }
     }
@@ -152,7 +154,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             {
                 if (field)
                 {
-                    _readyCheckOverlayViewModel.CreateAndShowOverlay();
+                    _readyCheckOverlayViewModel.CreateShowAndHideOverlay();
                     _readyCheckOverlayViewModel.EnableMove();
                 }
                 else
@@ -236,9 +238,15 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         {
             if (SetProperty(ref field, value))
             {
-                _attendanceTimerHandler.RemindAttendances = value;
-                _activeBidTracker.TrackBossKills = value;
+                _attendanceTimerHandler.RemindAttendances = field;
+                _activeBidTracker.TrackBossKills = field;
                 Log.Debug($"{LogPrefix} {nameof(RemindAttendances)} set to {value}.");
+
+                if (!field)
+                {
+                    ForceShowOverlay = false;
+                    UseOverlayForAttendanceReminder = false;
+                }
             }
         }
     }
@@ -325,10 +333,13 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             {
                 Log.Debug($"{LogPrefix} {nameof(UseOverlayForAttendanceReminder)} being set to {value}.");
 
-                _attendanceTimerHandler.UseOverlayForAttendanceReminder = value;
+                _attendanceTimerHandler.UseOverlayForAttendanceReminder = field;
 
-                if (!value)
+                if (!field)
+                {
+                    ForceShowOverlay = false;
                     _attendanceTimerHandler.CloseOverlays();
+                }
             }
         }
     }
@@ -452,10 +463,11 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         if (showOverlay)
         {
             _auctioneerOverlay = _overlayFactory.CreateAuctioneerOverlayViewModel(_settings, _eqLogTailFile);
-            _auctioneerOverlay.CreateAndShowOverlay();
+            _auctioneerOverlay.CreateShowAndHideOverlay();
         }
         else
         {
+            EnableAuctionOverlayMove = false;
             _auctioneerOverlay = null;
         }
     }

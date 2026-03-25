@@ -20,15 +20,14 @@
     </WindowChrome.WindowChrome>-->
 
     <Border CornerRadius="0" BorderBrush="White" Name="WindowBorder" MouseLeftButtonDown="MouseDownHandler">
-        <Grid MouseLeftButtonDown="MouseDownHandler" Visibility="{Binding ContentIsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-            <ContentPresenter Content="{Binding}">
+        <Grid MouseLeftButtonDown="MouseDownHandler">
+            <Label Content="{StaticResource OverlayMoveMessage}" Foreground="#CCCCCC" FontSize="20" HorizontalContentAlignment="Left" VerticalContentAlignment="Top"
+                   Visibility="{Binding IsInMoveMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <ContentPresenter Content="{Binding}" Visibility="{Binding ContentIsVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                 <ContentPresenter.Resources>
                     <ResourceDictionary>
                         <DataTemplate DataType="{x:Type overlayViewModel:AttendanceOverlayViewModel}">
                             <overlayView:AttendanceOverlay/>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type overlayViewModel:OverlayPositioningViewModel}">
-                            <overlayView:OverlayPositioningOverlay/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type overlayViewModel:ReadyCheckOverlayViewModel}">
                             <overlayView:ReadyCheckOerlay/>

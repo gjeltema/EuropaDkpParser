@@ -22,9 +22,6 @@ internal sealed class OverlayFactory : IOverlayFactory
     public IAuctioneerOverlayViewModel CreateAuctioneerOverlayViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile)
         => new AuctioneerOverlayViewModel(_viewFactory, settings, eqLogTailFile);
 
-    public IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings)
-        => new OverlayPositioningViewModel(_viewFactory, settings);
-
     public IReadyCheckOverlayViewModel CreateReadyCheckOverlayViewModel(IDkpParserSettings settings)
         => new ReadyCheckOverlayViewModel(_viewFactory, settings);
 
@@ -37,8 +34,6 @@ public interface IOverlayFactory
     IAttendanceOverlayViewModel CreateAttendanceOverlayViewModel(IDkpParserSettings settings, IAttendanceSnapshot attendanceSnapshot);
 
     IAuctioneerOverlayViewModel CreateAuctioneerOverlayViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile);
-
-    IOverlayPositioningViewModel CreateOverlayPositioningViewModel(IDkpParserSettings settings);
 
     IReadyCheckOverlayViewModel CreateReadyCheckOverlayViewModel(IDkpParserSettings settings);
 

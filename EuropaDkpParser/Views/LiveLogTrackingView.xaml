@@ -353,7 +353,8 @@
 
                 <CheckBox Grid.Row="0" IsChecked="{Binding ShowAuctionOverlay}" Content="{StaticResource AuctionOverlay}" />
                 <CheckBox Grid.Row="1" IsChecked="{Binding EnableAuctionOverlayMove}" Content="{StaticResource MoveAuctionOverlay}"
-                    IsEnabled="{Binding ShowAuctionOverlay}" Margin="20,5,0,0"/>
+                    IsEnabled="{Binding ShowAuctionOverlay}" Margin="20,5,0,0" Visibility="{Binding ShowAuctionOverlay, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                
                 <CheckBox Grid.Row="2" IsChecked="{Binding TrackSpells}" Content="{StaticResource TrackSpells}" Margin="0,10,0,0"
                     Visibility="{Binding TrackSpellsConfigured, Converter={StaticResource BoolToVisibilityConverter}}"/>
                 <CheckBox Grid.Row="3" IsChecked="{Binding EnableSpellCheckOverlayMove}" Content="{StaticResource MoveTrackSpells}" Margin="20,5,0,0"

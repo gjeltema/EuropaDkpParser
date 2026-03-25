@@ -29,7 +29,6 @@ internal sealed class AttendanceTimerHandler
     private IAttendanceOverlayViewModel _attendanceOverlayViewModel;
     private DispatcherTimer _attendanceReminderTimer;
     private DispatcherTimer _killCallReminderTimer;
-    private IOverlayPositioningViewModel _movingOverlay;
     private OverlayType _overlayTypeShowing;
     private bool _remindAttendances;
     private int _timeCallIndex = 0;
@@ -88,9 +87,6 @@ internal sealed class AttendanceTimerHandler
 
         _attendanceOverlayViewModel?.Close();
         _attendanceOverlayViewModel = null;
-
-        _movingOverlay?.Close();
-        _movingOverlay = null;
     }
 
     public void CloseOverlays()
@@ -98,7 +94,6 @@ internal sealed class AttendanceTimerHandler
         _pendingOverlays.Clear();
 
         _attendanceOverlayViewModel?.HideOverlay();
-        _movingOverlay?.HideOverlay();
     }
 
     public void RemindForKillAttendance(string bossName)
@@ -212,8 +207,10 @@ internal sealed class AttendanceTimerHandler
             else if (_overlayTypeShowing == OverlayType.None)
             {
                 Log.Debug($"{LogPrefix} Displaying positioning overlay.");
-                _movingOverlay ??= _overlayFactory.CreateOverlayPositioningViewModel(_settings);
-                _movingOverlay.ShowToMove();
+                InitializeAttendanceOverlay();
+
+                _attendanceOverlayViewModel.EnableMove();
+
                 _overlayTypeShowing = OverlayType.Positioning;
                 return true;
             }
@@ -228,25 +225,8 @@ internal sealed class AttendanceTimerHandler
             Log.Debug($"{LogPrefix} Attempting to close positioning overlay.");
             if (_overlayTypeShowing == OverlayType.Positioning)
             {
-                int newXPosition = _movingOverlay.XPos;
-                int newYPosition = _movingOverlay.YPos;
-                if (_settings.OverlayLocationX != newXPosition || _settings.OverlayLocationY != newYPosition)
-                {
-                    _settings.OverlayLocationX = newXPosition;
-                    _settings.OverlayLocationY = newYPosition;
-                    _settings.SaveSettings();
-
-                    // Have to recreate the VM/window as Windows wont accept the position changes if they shift the window
-                    // to another monitor.
-                    _attendanceOverlayViewModel = null;
-                }
-
-                _movingOverlay.Close();
-                _movingOverlay = null;
-
+                _attendanceOverlayViewModel?.DisableMove();
                 _overlayTypeShowing = OverlayType.None;
-                HandleOverlayHide();
-
                 Log.Debug($"{LogPrefix} Closed positioning overlay.");
             }
             return true;
@@ -315,6 +295,7 @@ internal sealed class AttendanceTimerHandler
         {
             _attendanceOverlayViewModel = _overlayFactory.CreateAttendanceOverlayViewModel(_settings, _attendanceSnapshot);
             _attendanceOverlayViewModel.SetHideHandler(HandleOverlayHide);
+            _attendanceOverlayViewModel.CreateShowAndHideOverlay();
         }
     }
 

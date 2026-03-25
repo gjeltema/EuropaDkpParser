@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// AttendanceOverlayViewModel.cs Copyright 2025 Craig Gjeltema
+// AttendanceOverlayViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -106,6 +106,13 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
         DisplayMessage = $"{AttendanceType} attendance: {AttendanceName}";
 
         CreateAndShowOverlay();
+    }
+
+    protected override void SaveLocation()
+    {
+        _settings.OverlayLocationX = XPos;
+        _settings.OverlayLocationY = YPos;
+        _settings.SaveSettings();
     }
 
     private void CopyAttendanceCall()

@@ -10,8 +10,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <ListView ItemsSource="{Binding Spells}"  Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
-                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                >
+                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Vertical" Background="Transparent"/>
