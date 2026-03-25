@@ -30,7 +30,7 @@
                             <overlayView:AttendanceOverlay/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type overlayViewModel:ReadyCheckOverlayViewModel}">
-                            <overlayView:ReadyCheckOerlay/>
+                            <overlayView:ReadyCheckOverlay/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type overlayViewModel:SpellTrackerOverlayViewModel}">
                             <overlayView:SpellTrackerOverlay/>

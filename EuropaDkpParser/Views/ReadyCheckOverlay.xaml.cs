@@ -1,14 +1,14 @@
 ﻿// -----------------------------------------------------------------------
-// ReadyCheckOerlay.xaml.cs Copyright 2025 Craig Gjeltema
+// ReadyCheckOverlay.xaml.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.Views;
 
 using System.Windows.Controls;
 
-public partial class ReadyCheckOerlay : UserControl
+public partial class ReadyCheckOverlay : UserControl
 {
-    public ReadyCheckOerlay()
+    public ReadyCheckOverlay()
     {
         InitializeComponent();
     }
