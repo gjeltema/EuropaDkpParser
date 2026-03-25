@@ -448,7 +448,11 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool ShowAfkReview { get; set; }
 
+    public int SpellTrackerHeight { get; set; }
+
     public ICollection<SpellTrackingConfiguration> SpellTrackers { get; }
+
+    public int SpellTrackerWidth { get; set; }
 
     public int SpellTrackerXLoc { get; set; }
 

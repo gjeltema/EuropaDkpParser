@@ -19,13 +19,15 @@ internal sealed class SpellTrackerOverlayViewModel : OverlayViewModelBase, ISpel
         : base(viewFactory)
     {
         _settings = settings;
+
+        AllowResizing = true;
         _spellTracker = new SpellTracker(EqLogTailFile.Instance, _settings);
         _spellTracker.StartListening();
 
         XPos = _settings.SpellTrackerXLoc;
         YPos = _settings.SpellTrackerYLoc;
-        Height = 450;
-        Width = 400;
+        Height = _settings.SpellTrackerHeight;
+        Width = _settings.SpellTrackerWidth;
 
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
     }
@@ -36,6 +38,15 @@ internal sealed class SpellTrackerOverlayViewModel : OverlayViewModelBase, ISpel
     {
         _updateTimer.Stop();
         _spellTracker.StopListening();
+    }
+
+    protected override void SaveLocation()
+    {
+        _settings.SpellTrackerXLoc = XPos;
+        _settings.SpellTrackerYLoc = YPos;
+        _settings.SpellTrackerWidth = Width;
+        _settings.SpellTrackerHeight = Height;
+        _settings.SaveSettings();
     }
 
     private void HandleUpdate(object sender, EventArgs e)
@@ -60,7 +71,7 @@ public sealed class SpellTrackerItemViewModel : EuropaViewModelBase
     public SpellTrackerItemViewModel(ActiveSpellInfo spellInfo)
     {
         double secondsRemaining = spellInfo.BaseInfo.EstimatedDuration - (DateTime.Now - spellInfo.StartTime).TotalSeconds;
-        TextDisplay = $"{spellInfo.BaseInfo.SpellName} {spellInfo.Target} {(int)secondsRemaining}s";
+        TextDisplay = $"{spellInfo.BaseInfo.DisplayName} {spellInfo.Target} {(int)secondsRemaining}s";
 
         Color = spellInfo.BaseInfo.DisplayColor;
 

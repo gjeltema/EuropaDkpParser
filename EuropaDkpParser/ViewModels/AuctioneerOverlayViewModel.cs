@@ -100,7 +100,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
     }
 
     protected override bool ShouldDisplayControls()
-    => ActiveAuctions?.Count > 0;
+        => ActiveAuctions?.Count > 0;
 
     private void CopySelectedSpentCallToClipboard()
     {

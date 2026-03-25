@@ -50,7 +50,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string SectionEnding = "_END";
     private const string SelectedLogFilesSection = "SELECTED_LOG_FILES";
     private const string ShowAfkReviewSection = "SHOW_AFK_REVIEW";
+    private const string SpellTrackerHeightSection = "SPELL_TRACKER_HEIGHT";
     private const string SpellTrackerSection = "SPELL_TRACKING";
+    private const string SpellTrackerWidthSection = "SPELL_TRACKER_WIDTH";
     private const string SpellTrackerXLocSection = "SPELL_TRACKER_X";
     private const string SpellTrackerYLocSection = "SPELL_TRACKER_Y";
     private const string UseLightModeSection = "USE_LIGHT_MODE";
@@ -151,7 +153,11 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool ShowAfkReview { get; set; }
 
+    public int SpellTrackerHeight { get; set; }
+
     public ICollection<SpellTrackingConfiguration> SpellTrackers { get; } = [];
+
+    public int SpellTrackerWidth { get; set; }
 
     public int SpellTrackerXLoc { get; set; }
 
@@ -295,8 +301,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(ReadyCheckHeightSection, ReadyCheckOverlayHeight),
             CreateFileEntry(ReadyCheckWidthSection, ReadyCheckOverlayWidth),
             CreateFileEntry(MezBreaksToShowSection, MezBreaksToShow),
-            CreateFileEntry(SpellTrackerXLocSection, SpellTrackerXLoc) ,
-            CreateFileEntry(SpellTrackerYLocSection, SpellTrackerYLoc) ,
+            CreateFileEntry(SpellTrackerXLocSection, SpellTrackerXLoc),
+            CreateFileEntry(SpellTrackerYLocSection, SpellTrackerYLoc),
+            CreateFileEntry(SpellTrackerHeightSection, SpellTrackerHeight),
+            CreateFileEntry(SpellTrackerWidthSection, SpellTrackerWidth),
             CreateFileEntry(EnableZealDetailLoggingSection, EnableZealDetailLogging),
             CreateFileEntry(LogLevelSection, (int)LoggingLevel),
         };
@@ -541,8 +549,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
             SpellTrackers.Add(config);
         }
 
-        SpellTrackerXLoc = GetIntValue(fileContents, SpellTrackerXLocSection);
-        SpellTrackerYLoc = GetIntValue(fileContents, SpellTrackerYLocSection);
+        SpellTrackerXLoc = GetIntValue(fileContents, SpellTrackerXLocSection, 100);
+        SpellTrackerYLoc = GetIntValue(fileContents, SpellTrackerYLocSection, 100);
+        SpellTrackerHeight = GetIntValue(fileContents, SpellTrackerHeightSection, 450);
+        SpellTrackerWidth = GetIntValue(fileContents, SpellTrackerWidthSection, 450);
     }
 
     private void SetWindowLocation(string[] fileContents)
@@ -642,7 +652,11 @@ public interface IDkpParserSettings
 
     bool ShowAfkReview { get; set; }
 
+    int SpellTrackerHeight { get; set; }
+
     ICollection<SpellTrackingConfiguration> SpellTrackers { get; }
+
+    int SpellTrackerWidth { get; set; }
 
     int SpellTrackerXLoc { get; set; }
 

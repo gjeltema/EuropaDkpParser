@@ -9,8 +9,9 @@
              d:DataContext="{d:DesignInstance Type=viewmodels:SpellTrackerOverlayViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <ListView Height="450" MaxHeight="450" Width="400" ItemsSource="{Binding Spells}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
-          ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <ListView ItemsSource="{Binding Spells}" Width="450" Height="450" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Vertical" Background="Transparent"/>
@@ -20,7 +21,7 @@
                 <DataTemplate>
                     <Grid>
                         <ProgressBar Value="{Binding PercentRemaining, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Transparent" 
-                             Width="370" Height="40" Opacity="0.5" />
+                             Height="40" Opacity="0.5" />
                         <TextBlock Text="{Binding TextDisplay}" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="1" FontSize="26" FontWeight="Bold"
                                    Margin="10,0,0,3" Foreground="{Binding Color, Converter={StaticResource StringToBrushConverter}}" />
                     </Grid>
@@ -29,6 +30,7 @@
             <ListView.ItemContainerStyle>
                 <Style TargetType="{x:Type ListViewItem}">
                     <Setter Property="Focusable" Value="False"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>

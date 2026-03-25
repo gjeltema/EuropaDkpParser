@@ -158,8 +158,22 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
                 else
                 {
                     _readyCheckOverlayViewModel.DisableMove();
-                    _readyCheckOverlayViewModel.HideOverlay();
                 }
+            }
+        }
+    }
+
+    public bool EnableSpellCheckOverlayMove
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value))
+            {
+                if (field)
+                    _spellTracker?.EnableMove();
+                else
+                    _spellTracker?.DisableMove();
             }
         }
     }
@@ -345,7 +359,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _attendanceTimerHandler.CloseAll();
         _readyCheckOverlayViewModel?.Close();
         _auctioneerOverlay?.Close();
-        _spellTracker?.Close();
+        CloseSpellTracker();
     }
 
     private void AddItemLinkId()
@@ -388,6 +402,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     private void CloseSpellTracker()
     {
+        EnableSpellCheckOverlayMove = false;
         _spellTracker?.Close();
         _spellTracker = null;
     }
@@ -758,6 +773,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     bool EnableReadyCheck { get; set; }
 
     bool EnableReadyCheckOverlayMove { get; set; }
+
+    bool EnableSpellCheckOverlayMove { get; set; }
 
     string FilePath { get; set; }
 

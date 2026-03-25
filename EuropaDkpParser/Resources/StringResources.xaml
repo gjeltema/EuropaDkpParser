@@ -319,6 +319,7 @@
     <system:String x:Key="TakeAttendanceNow">Take Attendance Now</system:String>
     <system:String x:Key="LowRollWins">Low Roll Wins</system:String>
     <system:String x:Key="TrackSpells">Track Spells</system:String>
+    <system:String x:Key="MoveTrackSpells">Move Track Spells</system:String>
     <system:String x:Key="AuctionOverlay">Show Auction Overlay</system:String>
     <system:String x:Key="MoveAuctionOverlay">Move Auction Overlay</system:String>
     <system:String x:Key="MoveReadyCheckOverlay">Move Ready Check</system:String>
