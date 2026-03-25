@@ -9,9 +9,9 @@
              d:DataContext="{d:DesignInstance Type=viewmodels:SpellTrackerOverlayViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <ListView ItemsSource="{Binding Spells}" Width="450" Height="450" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+        <ListView ItemsSource="{Binding Spells}"  Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                 ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch">
+                >
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Vertical" Background="Transparent"/>
@@ -23,7 +23,7 @@
                         <ProgressBar Value="{Binding PercentRemaining, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Transparent" 
                              Height="40" Opacity="0.5" />
                         <TextBlock Text="{Binding TextDisplay}" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="1" FontSize="26" FontWeight="Bold"
-                                   Margin="10,0,0,3" Foreground="{Binding Color, Converter={StaticResource StringToBrushConverter}}" />
+                                   Margin="10,0,10,3" Foreground="{Binding Color, Converter={StaticResource StringToBrushConverter}}" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
