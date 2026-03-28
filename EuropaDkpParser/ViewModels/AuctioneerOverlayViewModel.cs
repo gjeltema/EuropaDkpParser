@@ -8,13 +8,15 @@ using System.Windows.Threading;
 using DkpParser;
 using DkpParser.LiveTracking;
 using EuropaDkpParser.Utility;
+using Gjeltema.Logging;
 using Prism.Commands;
 
 internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctioneerOverlayViewModel
 {
+    private const string LogPrefix = $"[{nameof(AuctioneerOverlayViewModel)}]";
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly IDkpParserSettings _settings;
-    private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(2);
     private readonly DispatcherTimer _updateTimer;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
 
@@ -92,6 +94,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
 
     protected override void SaveLocation()
     {
+        Log.Debug($"{LogPrefix} Saving overlay location and size.");
         _settings.AuctionOverlayXLoc = XPos;
         _settings.AuctionOverlayYLoc = YPos;
         _settings.AuctionOverlayWidth = Width;
@@ -144,12 +147,18 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         if (ActiveAuctions.Count == 0)
         {
             if (ContentIsVisible)
+            {
+                Log.Debug($"{LogPrefix} No more active auctions - hiding overlay.");
                 HideOverlay();
+            }
         }
         else
         {
             if (!ContentIsVisible)
+            {
+                Log.Debug($"{LogPrefix} New active auctions - showing overlay.");
                 ShowOverlay();
+            }
         }
     }
 

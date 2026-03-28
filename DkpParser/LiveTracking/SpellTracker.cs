@@ -6,6 +6,7 @@ namespace DkpParser.LiveTracking;
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using DkpParser.Zeal;
 using Gjeltema.Logging;
 
 public sealed class SpellTracker
@@ -48,6 +49,8 @@ public sealed class SpellTracker
         _eqLogTailFile.SpellInfoMessage += HandleSpellInfoMessage;
         _eqLogTailFile.LogFileChanged += HandleLogFileChanged;
         _eqLogTailFile.StartMessages();
+
+        SetReading(_eqLogTailFile.IsSendingMessages, ZealAttendanceMessageProvider.Instance.CharacterInfo?.CharacterName);
     }
 
     public void StopListening()
@@ -62,23 +65,18 @@ public sealed class SpellTracker
         foreach (ActiveSpellInfo activeSpell in _activeSpells.OrderBy(x => x.StartTime))
         {
             string spellFadedString = activeSpell.BaseInfo.SpellFadedSearchString;
-            if (string.IsNullOrEmpty(spellFadedString))
-            {
-                if ((timestamp - activeSpell.StartTime).TotalSeconds > activeSpell.BaseInfo.EstimatedDuration)
-                {
-                    _activeSpells = _activeSpells.Remove(activeSpell);
-                    Log.Debug($"{LogPrefix} Closed out spell without faded string: {activeSpell}");
-                    Updated = true;
-                }
-
-                continue;
-            }
-            else if (message.Contains(activeSpell.BaseInfo.SpellFadedSearchString))
+            if (!string.IsNullOrEmpty(spellFadedString) && message.Contains(activeSpell.BaseInfo.SpellFadedSearchString))
             {
                 _activeSpells = _activeSpells.Remove(activeSpell);
                 Log.Debug($"{LogPrefix} Spell faded: {activeSpell}");
                 Updated = true;
                 return true;
+            }
+            else if ((timestamp - activeSpell.StartTime).TotalSeconds > activeSpell.BaseInfo.EstimatedDuration)
+            {
+                _activeSpells = _activeSpells.Remove(activeSpell);
+                Log.Debug($"{LogPrefix} Closed out spell without faded string: {activeSpell}");
+                Updated = true;
             }
         }
 
@@ -119,25 +117,7 @@ public sealed class SpellTracker
     }
 
     private void HandleLogFileChanged(object sender, LogFileChangedEventArgs e)
-    {
-        if (!e.IsReadingFile)
-        {
-            Log.Debug($"{LogPrefix} Not reading any file.");
-            _currentCharacterName = string.Empty;
-            _activeSpells.Clear();
-            _cachedConfigurations.Clear();
-            return;
-        }
-
-        string characterName = e.CharacterName;
-        if (_currentCharacterName == characterName)
-            return;
-
-        Log.Debug($"{LogPrefix} Reading file for character name: {characterName}.");
-        _currentCharacterName = characterName;
-        _cachedConfigurations = [.. _spellConfigurations.Where(x => x.CasterCharacterName == characterName)];
-        Log.Debug($"{LogPrefix} Found {_cachedConfigurations.Count} spell configs for {characterName}.");
-    }
+        => SetReading(e.IsReadingFile, e.CharacterName);
 
     private bool HandleNewSpellCast(string message, DateTime timestamp)
     {
@@ -173,6 +153,26 @@ public sealed class SpellTracker
 
         if (HandleNewSpellCast(message, timestamp))
             return;
+    }
+
+    private void SetReading(bool isReadingFile, string characterName)
+    {
+        if (!isReadingFile)
+        {
+            Log.Debug($"{LogPrefix} Not reading any file.");
+            _currentCharacterName = string.Empty;
+            _activeSpells.Clear();
+            _cachedConfigurations.Clear();
+            return;
+        }
+
+        if (_currentCharacterName == characterName)
+            return;
+
+        Log.Debug($"{LogPrefix} Reading file for character name: {characterName}.");
+        _currentCharacterName = characterName;
+        _cachedConfigurations = [.. _spellConfigurations.Where(x => x.CasterCharacterName == characterName)];
+        Log.Debug($"{LogPrefix} Found {_cachedConfigurations.Count} spell configs for {characterName}.");
     }
 
     [DebuggerDisplay("{DebugText,nq}")]

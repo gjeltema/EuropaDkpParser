@@ -23,7 +23,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly IOverlayFactory _overlayFactory;
     private readonly IReadyCheckOverlayViewModel _readyCheckOverlayViewModel;
     private readonly IDkpParserSettings _settings;
-    private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(2);
     private readonly DispatcherTimer _updateTimer;
     private readonly IZealMessageProvider _zealMessages;
     private IAuctioneerOverlayViewModel _auctioneerOverlay;

@@ -71,7 +71,7 @@ public sealed class SpellTrackerItemViewModel : EuropaViewModelBase
     public SpellTrackerItemViewModel(ActiveSpellInfo spellInfo)
     {
         double secondsRemaining = spellInfo.BaseInfo.EstimatedDuration - (DateTime.Now - spellInfo.StartTime).TotalSeconds;
-        TextDisplay = $"{spellInfo.BaseInfo.DisplayName} {spellInfo.Target} {(int)secondsRemaining}s";
+        TextDisplay = $"{spellInfo.BaseInfo.DisplayName} - {spellInfo.Target}: {(int)secondsRemaining}s";
 
         Color = spellInfo.BaseInfo.DisplayColor;
 
