@@ -34,6 +34,8 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
     /// </summary>
     public string ItemName { get; init; }
 
+    public string LastStatusMessage { get; private set; }
+
     public int RandValue { get; init; }
 
     public DateTime Timestamp { get; init; }
@@ -83,15 +85,19 @@ public sealed class LiveAuctionInfo : IEquatable<LiveAuctionInfo>
     public override int GetHashCode()
         => ItemName.GetHashCode();
 
-    public void SetStatusUpdate(string auctioneer, DateTime timestamp, string updateState)
+    public void SetStatusUpdate(RawBidInfo bidInfo)
     {
-        _lastStatusUpdate = new StatusUpdateInfo
+        LastStatusMessage = bidInfo.StatusMessage;
+        SetStatusUpdate(bidInfo.CharacterPlacingBid, bidInfo.Timestamp, bidInfo.StatusValue);
+    }
+
+    public void SetStatusUpdate(string auctioneer, DateTime timestamp, string updateState)
+        => _lastStatusUpdate = new StatusUpdateInfo
         {
             Auctioneer = auctioneer,
             Timestamp = timestamp,
             UpdateState = updateState
         };
-    }
 
     public override string ToString()
         => IsRoll
@@ -298,6 +304,8 @@ public sealed class SuggestedSpentCall
 
     public string ItemName { get; init; }
 
+    public LiveAuctionInfo ParentAuction { get; init; }
+
     public bool SpentCallSent { get; init; }
 
     public string Winner { get; init; }
@@ -375,6 +383,8 @@ public sealed class RawBidInfo
     public bool IsStatusUpdate { get; init; } = false;
 
     public string ItemName { get; init; }
+
+    public string StatusMessage { get; init; }
 
     public string StatusValue { get; init; }
 

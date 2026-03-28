@@ -113,6 +113,12 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
     public bool Updated { get; set; }
 
+    public bool CheckIfSnipe(SuggestedSpentCall spentCall)
+    {
+        bool spentNameInLastStatusMessage = spentCall.ParentAuction.LastStatusMessage?.Contains(spentCall.Winner, StringComparison.OrdinalIgnoreCase) ?? true;
+        return !spentNameInLastStatusMessage;
+    }
+
     public string GetBossKilledName()
     {
         string bossName = null;
@@ -174,6 +180,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         return highBids
             .Select(x => new SuggestedSpentCall
             {
+                ParentAuction = auction,
                 Channel = auction.Channel,
                 ItemName = x.ItemName,
                 DkpSpent = x.BidAmount,
@@ -434,20 +441,19 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private void HandleBid(object sender, BidInfoEventArgs e)
     {
         LiveBidInfo bid = _activeBiddingAnalyzer.ProcessBidInfo(e.BidInfo, _activeAuctions);
-        if (bid != null)
-        {
-            LiveBidInfo possibleDuplicateBid = _bids.FirstOrDefault(x => x == bid);
-            if (possibleDuplicateBid != null)
-            {
-                _bids = _bids.Remove(possibleDuplicateBid);
-                Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
-            }
-
-            _bids = _bids.Add(bid);
-
-            Updated = true;
+        if (bid == null)
             return;
+
+        LiveBidInfo possibleDuplicateBid = _bids.FirstOrDefault(x => x == bid);
+        if (possibleDuplicateBid != null)
+        {
+            _bids = _bids.Remove(possibleDuplicateBid);
+            Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
         }
+
+        _bids = _bids.Add(bid);
+
+        Updated = true;
     }
 
     private void HandleBossKilled(object sender, BossKilledEventArgs e)
@@ -618,6 +624,8 @@ public interface IActiveBidTracker
     bool TrackReadyCheck { get; set; }
 
     bool Updated { get; set; }
+
+    bool CheckIfSnipe(SuggestedSpentCall spentCall);
 
     string GetBossKilledName();
 

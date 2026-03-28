@@ -111,6 +111,10 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         string spentCallWithLink = _activeBidTracker.GetSpentMessageWithLink(selectedSpentCall);
         Clip.Copy(spentCallWithLink);
 
+        bool mayBeSnipe = _activeBidTracker.CheckIfSnipe(selectedSpentCall);
+        if (mayBeSnipe)
+            MessageDialog.ShowDialog($"Possible snipe by {selectedSpentCall.Winner}.", "Possible Snipe");
+
         SelectedActiveAuction?.HasNewBidsAdded = false;
     }
 

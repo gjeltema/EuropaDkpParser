@@ -115,7 +115,8 @@ internal sealed partial class ActiveBiddingAnalyzer
                 CharacterPlacingBid = messageSenderName,
                 ItemName = auctionItemName,
                 IsStatusUpdate = true,
-                StatusValue = updateState
+                StatusValue = updateState,
+                StatusMessage = messageFromPlayer
             };
 
             return statusUpdate;
@@ -172,7 +173,7 @@ internal sealed partial class ActiveBiddingAnalyzer
 
         if (bidInfo.IsStatusUpdate)
         {
-            relatedAuction.SetStatusUpdate(bidInfo.CharacterPlacingBid, bidInfo.Timestamp, bidInfo.StatusValue);
+            relatedAuction.SetStatusUpdate(bidInfo);
             return null;
         }
 
