@@ -113,7 +113,10 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
 
         bool mayBeSnipe = _activeBidTracker.CheckIfSnipe(selectedSpentCall);
         if (mayBeSnipe)
+        {
+            System.Media.SystemSounds.Exclamation.Play();
             MessageDialog.ShowDialog($"Possible snipe by {selectedSpentCall.Winner}.", "Possible Snipe");
+        }
 
         SelectedActiveAuction?.HasNewBidsAdded = false;
     }
