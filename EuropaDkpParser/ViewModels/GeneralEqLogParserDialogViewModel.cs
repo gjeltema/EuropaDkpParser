@@ -233,6 +233,8 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             You = You,
             YourHeals = YourHeals,
             OthersHealed = OthersHealed,
+            YourInterrupts = YourInterrupts,
+            OtherInterrupts = OtherInterrupts,
             Twitches = Twitches,
             Rampage = Rampage,
             Looted = Looted,
