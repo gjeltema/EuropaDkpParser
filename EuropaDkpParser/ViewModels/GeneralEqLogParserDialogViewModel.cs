@@ -79,6 +79,8 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             Rampage = value;
             Looted = value;
             OtherDeath = value;
+            YourInterrupts = value;
+            OtherInterrupts = value;
         }
     }
 
@@ -115,6 +117,8 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
 
     public bool OtherDeath { get; set => SetProperty(ref field, value); }
 
+    public bool OtherInterrupts { get; set => SetProperty(ref field, value); }
+
     public bool OthersHealed { get; set => SetProperty(ref field, value); }
 
     public string PeopleConversingWith { get; set => SetProperty(ref field, value); }
@@ -142,6 +146,8 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
     public bool You { get; set => SetProperty(ref field, value); }
 
     public bool YourHeals { get; set => SetProperty(ref field, value); }
+
+    public bool YourInterrupts { get; set => SetProperty(ref field, value); }
 
     public bool YouSlain { get; set => SetProperty(ref field, value); }
 
@@ -306,6 +312,8 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
 
     bool OtherDeath { get; set; }
 
+    bool OtherInterrupts { get; set; }
+
     bool OthersHealed { get; set; }
 
     string PeopleConversingWith { get; set; }
@@ -333,6 +341,8 @@ public interface IGeneralEqLogParserDialogViewModel : IDialogViewModel
     bool You { get; set; }
 
     bool YourHeals { get; set; }
+
+    bool YourInterrupts { get; set; }
 
     bool YouSlain { get; set; }
 }

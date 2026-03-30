@@ -275,6 +275,8 @@
     <system:String x:Key="RampageText">Rampage</system:String>
     <system:String x:Key="YourHealsText">You Healed</system:String>
     <system:String x:Key="OthersHealedText">Others Healed</system:String>
+    <system:String x:Key="YourInterruptsText">Your Interrupts</system:String>
+    <system:String x:Key="OtherInterruptsText">Other Interrupts</system:String>
     <system:String x:Key="TwitchesText">Twitches</system:String>
     <system:String x:Key="LootedText">Looted</system:String>
     <system:String x:Key="YouText">You</system:String>

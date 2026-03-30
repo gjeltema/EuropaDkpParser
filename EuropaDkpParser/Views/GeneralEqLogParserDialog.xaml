@@ -136,7 +136,7 @@
             <WrapPanel Grid.Row="1" Margin="0,10,5,5">
                 <WrapPanel.Resources>
                     <Style TargetType="{x:Type CheckBox}">
-                        <Setter Property="Margin" Value="0,5,25,10"/>
+                        <Setter Property="Margin" Value="0,5,15,10"/>
                         <Setter Property="Foreground" Value="{StaticResource DefaultForegroundColor}" />
                     </Style>
                 </WrapPanel.Resources>
@@ -156,6 +156,8 @@
                 <CheckBox IsChecked="{Binding FactionStanding}" Content="{StaticResource FactionStandingText}" ToolTip="{StaticResource FactionStandingTooltipText}"/>
                 <CheckBox IsChecked="{Binding YourHeals}" Content="{StaticResource YourHealsText}" ToolTip="{StaticResource YouHealedTooltipText}"/>
                 <CheckBox IsChecked="{Binding OthersHealed}" Content="{StaticResource OthersHealedText}"/>
+                <CheckBox IsChecked="{Binding YourInterrupts}" Content="{StaticResource YourInterruptsText}"/>
+                <CheckBox IsChecked="{Binding OtherInterrupts}" Content="{StaticResource OtherInterruptsText}"/>
                 <CheckBox IsChecked="{Binding Twitches}" Content="{StaticResource TwitchesText}"/>
                 <CheckBox IsChecked="{Binding Looted}" Content="{StaticResource LootedText}" ToolTip="{StaticResource LootedTooltipText}"/>
                 <CheckBox IsChecked="{Binding AllTells}" Content="{StaticResource AllTellsText}"/>

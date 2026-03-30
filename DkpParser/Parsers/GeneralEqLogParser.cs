@@ -9,6 +9,8 @@ using System.IO;
 public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
 {
     private const string FactionStandingTerm = "Your faction standing with ";
+    private const string OtherInterruptsTerm = "'s casting is interrupted!";
+    private const string YourInterruptsTerm = "Your spell is interrupted.";
     private const string YouTerm = "You";
     private readonly List<IEntryParser> _entryParsers = [];
     private IEnumerable<string> _exclusions;
@@ -96,6 +98,10 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouHealed));
         if (settings.OthersHealed)
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.FeelsMuchBetter));
+        if (settings.YourInterrupts)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YourInterruptsTerm));
+        if (settings.OtherInterrupts)
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(OtherInterruptsTerm));
         if (settings.Twitches)
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.Twitches));
         if (settings.Looted)
@@ -400,6 +406,8 @@ public sealed class GeneralEqLogParserSettings
 
     public bool OtherDeath { get; set; }
 
+    public bool OtherInterrupts { get; set; }
+
     public bool OthersHealed { get; set; }
 
     public ICollection<string> PeopleConversingWith { get; set; }
@@ -419,6 +427,8 @@ public sealed class GeneralEqLogParserSettings
     public bool You { get; set; }
 
     public bool YourHeals { get; set; }
+
+    public bool YourInterrupts { get; set; }
 
     public bool YouSlain { get; set; }
 }
