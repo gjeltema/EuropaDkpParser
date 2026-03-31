@@ -621,12 +621,19 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             HighBids = new List<LiveBidInfo>(_activeBidTracker.GetHighBids(SelectedActiveAuction.Auction, LowRollWins));
 
             SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(SelectedActiveAuction.Auction, LowRollWins);
-            if (selectedSpent != null)
+            if (SpentMessagesToPaste.Count > 0)
             {
-                SuggestedSpentCall matchingSpent = SpentMessagesToPaste.FirstOrDefault(x => x.Winner == selectedSpent.Winner
-                    && x.ItemName == selectedSpent.ItemName
-                    && x.DkpSpent == selectedSpent.DkpSpent);
-                SelectedSpentMessageToPaste = matchingSpent;
+                if (selectedSpent != null)
+                {
+                    SuggestedSpentCall matchingSpent = SpentMessagesToPaste.FirstOrDefault(x => x.Winner == selectedSpent.Winner
+                        && x.ItemName == selectedSpent.ItemName
+                        && x.DkpSpent == selectedSpent.DkpSpent);
+                    SelectedSpentMessageToPaste = matchingSpent;
+                }
+                else
+                {
+                    SelectedSpentMessageToPaste = SpentMessagesToPaste.First();
+                }
             }
         }
         else

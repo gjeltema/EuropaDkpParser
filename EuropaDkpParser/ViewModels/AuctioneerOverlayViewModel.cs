@@ -73,8 +73,8 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         get;
         set
         {
-            SetProperty(ref field, value);
-            UpdateActiveAuctionSelected();
+            if (SetProperty(ref field, value))
+                UpdateActiveAuctionSelected(field);
         }
     }
 
@@ -183,18 +183,33 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         }
     }
 
-    private void UpdateActiveAuctionSelected()
-        => UpdateActiveAuctionSelected(SelectedActiveAuction);
-
     private void UpdateActiveAuctionSelected(LiveAuctionDisplay selectedAuction)
     {
-        if (selectedAuction != null)
+        // SelectedAuction should only be set to null when the ActiveAuctions collection is refreshed
+        // in UpdateDisplay.  Therefore, dont clear out SuggestedSpents if SelectedSpent is null, let 
+        // UpdateDisplay handle it.
+        if (selectedAuction == null)
         {
-            SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(selectedAuction.Auction, true);
+            return;
+        }
+
+        SuggestedSpentCall selectedSpent = SelectedSpentMessageToPaste;
+        SpentMessagesToPaste = _activeBidTracker.GetSpentInfoForCurrentHighBids(selectedAuction.Auction, true);
+
+        if (SpentMessagesToPaste.Count == 0)
+            return;
+
+        if (selectedSpent != null)
+        {
+            SuggestedSpentCall matchingSpent = SpentMessagesToPaste.FirstOrDefault(x => x.Winner == selectedSpent.Winner
+                && x.ItemName == selectedSpent.ItemName
+                && x.DkpSpent == selectedSpent.DkpSpent);
+
+            SelectedSpentMessageToPaste = matchingSpent ?? SpentMessagesToPaste.First();
         }
         else
         {
-            SpentMessagesToPaste = [];
+            SelectedSpentMessageToPaste = SpentMessagesToPaste.First();
         }
     }
 
@@ -203,6 +218,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         _activeBidTracker.Updated = false;
 
         LiveAuctionDisplay selectedAuction = SelectedActiveAuction;
+        SuggestedSpentCall selectedSpent = SelectedSpentMessageToPaste;
         ActiveAuctions = _activeBidTracker.ActiveAuctions
             .OrderByDescending(x => x.Timestamp)
             .Select(x => new LiveAuctionDisplay(x))
@@ -212,9 +228,31 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         {
             LiveAuctionDisplay matchingAuction = ActiveAuctions.FirstOrDefault(x => x.Id == selectedAuction.Id);
             SelectedActiveAuction = matchingAuction;
-        }
 
-        UpdateActiveAuctionSelected(selectedAuction);
+            if (matchingAuction != null && SpentMessagesToPaste.Count > 0)
+            {
+                if (selectedSpent != null)
+                {
+                    SuggestedSpentCall matchingSpent = SpentMessagesToPaste.FirstOrDefault(x => x.Winner == selectedSpent.Winner
+                        && x.ItemName == selectedSpent.ItemName
+                        && x.DkpSpent == selectedSpent.DkpSpent);
+
+                    SelectedSpentMessageToPaste = matchingSpent ?? SpentMessagesToPaste.First();
+                }
+                else
+                {
+                    SelectedSpentMessageToPaste = SpentMessagesToPaste.First();
+                }
+            }
+            else
+            {
+                SpentMessagesToPaste = [];
+            }
+        }
+        else
+        {
+            SpentMessagesToPaste = [];
+        }
 
         _nextForcedUpdate = DateTime.Now.AddSeconds(10);
     }

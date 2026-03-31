@@ -70,8 +70,9 @@ public sealed class SpellTrackerItemViewModel : EuropaViewModelBase
 {
     public SpellTrackerItemViewModel(ActiveSpellInfo spellInfo)
     {
+        string targetName = spellInfo.Target.Length > 12 ? spellInfo.Target[0..10] + "..." : spellInfo.Target;
         double secondsRemaining = spellInfo.BaseInfo.EstimatedDuration - (DateTime.Now - spellInfo.StartTime).TotalSeconds;
-        TextDisplay = $"{spellInfo.BaseInfo.DisplayName} - {spellInfo.Target}: {(int)secondsRemaining}s";
+        TextDisplay = $"{spellInfo.BaseInfo.DisplayName} - {targetName}: {(int)secondsRemaining}s";
 
         Color = spellInfo.BaseInfo.DisplayColor;
 
