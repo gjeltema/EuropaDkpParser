@@ -60,6 +60,15 @@ public sealed class SpellTracker
         _eqLogTailFile.LogFileChanged -= HandleLogFileChanged;
     }
 
+    private void CancelSpells()
+    {
+        foreach (ActiveSpellInfo activeSpell in _activeSpells)
+        {
+            if (activeSpell.IsCancelled)
+                _activeSpells = _activeSpells.Remove(activeSpell);
+        }
+    }
+
     private bool HandleActiveSpells(string message, DateTime timestamp)
     {
         foreach (ActiveSpellInfo activeSpell in _activeSpells.OrderBy(x => x.StartTime))
@@ -143,6 +152,8 @@ public sealed class SpellTracker
         if (_cachedConfigurations.Count == 0)
             return;
 
+        CancelSpells();
+
         string message = e.Message;
         DateTime timestamp = e.Timestamp;
         if (HandleCurrentCasting(message, timestamp))
@@ -194,6 +205,8 @@ public sealed class SpellTracker
 public sealed class ActiveSpellInfo
 {
     public SpellTrackingConfiguration BaseInfo { get; init; }
+
+    public bool IsCancelled { get; set; }
 
     public DateTime StartTime { get; init; }
 

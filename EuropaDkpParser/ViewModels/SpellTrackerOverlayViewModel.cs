@@ -68,22 +68,28 @@ public interface ISpellTrackerOverlayViewModel : IOverlayViewModel
 
 public sealed class SpellTrackerItemViewModel : EuropaViewModelBase
 {
+    private readonly ActiveSpellInfo _spellInfo;
+
     public SpellTrackerItemViewModel(ActiveSpellInfo spellInfo)
     {
+        _spellInfo = spellInfo;
+
         string targetName = spellInfo.Target.Length > 12 ? spellInfo.Target[0..10] + "..." : spellInfo.Target;
         double secondsRemaining = spellInfo.BaseInfo.EstimatedDuration - (DateTime.Now - spellInfo.StartTime).TotalSeconds;
         TextDisplay = $"{spellInfo.BaseInfo.DisplayName} - {targetName}: {(int)secondsRemaining}s";
-
-        Color = spellInfo.BaseInfo.DisplayColor;
 
         PercentRemaining = 0;
         if (secondsRemaining > 0 && secondsRemaining <= spellInfo.BaseInfo.EstimatedDuration)
             PercentRemaining = (int)(secondsRemaining * 100 / spellInfo.BaseInfo.EstimatedDuration);
     }
 
-    public string Color { get; }
+    public string Color
+        => _spellInfo.BaseInfo.DisplayColor;
 
     public int PercentRemaining { get; set; }
 
     public string TextDisplay { get; }
+
+    public void CancelSpell()
+        => _spellInfo.IsCancelled = true;
 }

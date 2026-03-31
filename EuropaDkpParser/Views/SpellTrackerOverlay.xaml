@@ -20,7 +20,7 @@
                 <DataTemplate>
                     <Grid>
                         <ProgressBar Value="{Binding PercentRemaining, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Transparent" 
-                             Height="40" Opacity="0.5" />
+                             Height="40" Opacity="0.5" MouseDoubleClick="HandleDoubleClick"/>
                         <TextBlock Text="{Binding TextDisplay}" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="1" FontSize="24" FontWeight="Bold"
                                    Margin="10,0,10,3" Foreground="{Binding Color, Converter={StaticResource StringToBrushConverter}}" />
                     </Grid>
