@@ -366,7 +366,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     {
         _updateTimer.Stop();
         _activeBidTracker.StopTracking();
-        _zealMessages.StopMessageProcessing();
         _attendanceTimerHandler.CloseAll();
         _readyCheckOverlayViewModel?.Close();
         _auctioneerOverlay?.Close();

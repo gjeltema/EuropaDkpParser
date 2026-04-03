@@ -103,14 +103,14 @@ public sealed class EqLogTailFile : IEqLogTailFile
 
     private void CheckAndSetTailFile(object sender, ElapsedEventArgs args)
     {
-        if (IsSendingMessages)
-            return;
-
         if (!ZealAttendanceMessageProvider.Instance.IsConnected)
         {
             ZealAttendanceMessageProvider.Instance.StartMessageProcessing();
             return;
         }
+
+        if (IsSendingMessages)
+            return;
 
         string currentCharacterName = ZealAttendanceMessageProvider.Instance.CharacterInfo.CharacterName;
         bool isZealConnected = ZealAttendanceMessageProvider.Instance.IsConnected && !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
