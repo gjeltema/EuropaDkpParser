@@ -60,7 +60,8 @@ internal sealed partial class ActiveBiddingAnalyzer
             {
                 Timestamp = timestamp,
                 CharacterRolling = _currentMagicMessage.CharacterName,
-                RollAmount = rollResult
+                RollAmount = randNumber,
+                RollResult = rollResult
             };
             Log.Debug($"{LogPrefix} Roll performed: {rollInfo}");
             return true;
@@ -212,7 +213,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             CharacterPlacingBid = rollInfo.CharacterRolling,
             CharacterBeingBidFor = rollInfo.CharacterRolling,
             ItemName = parentAuction.ItemName,
-            BidAmount = rollInfo.RollAmount,
+            BidAmount = rollInfo.RollResult,
             IsRoll = true
         };
         Log.Debug($"{LogPrefix} Roll performed: {newRoll}");

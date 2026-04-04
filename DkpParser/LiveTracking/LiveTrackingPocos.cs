@@ -361,10 +361,15 @@ public sealed class RawRollInfo
 
     public int RollAmount { get; init; }
 
+    public int RollResult { get; init; }
+
     public DateTime Timestamp { get; init; }
 
     private string DebugText
-        => $"{Timestamp:HH:mm:ss} {CharacterRolling} {RollAmount}";
+        => $"{Timestamp:HH:mm:ss} {CharacterRolling} {RollAmount} {RollResult}";
+
+    public override string ToString()
+        => DebugText;
 }
 
 [DebuggerDisplay("{DebugText,nq}")]
@@ -392,4 +397,7 @@ public sealed class RawBidInfo
 
     private string DebugText
         => $"{Timestamp:HH:mm:ss} {ItemName} {CharacterBeingBidFor} {BidAmount}";
+
+    public override string ToString()
+        => DebugText;
 }

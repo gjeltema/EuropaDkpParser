@@ -429,6 +429,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 Log.Debug($"{LogPrefix} Overwiting existing auction [{existingAuction}] {nameof(LiveAuctionInfo.TotalNumberOfItems)} with {newNumberOfItems} due to auction [{newAuction}]");
                 existingAuction.TotalNumberOfItems = newNumberOfItems;
                 existingAuction.Channel = newAuction.Channel;
+                Updated = true;
             }
 
             return;
@@ -436,6 +437,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         _activeAuctions = _activeAuctions.Add(newAuction);
         _eqLogTailFile.AddAuctionItem(newAuction.ItemName);
+        Updated = true;
     }
 
     private void HandleBid(object sender, BidInfoEventArgs e)
