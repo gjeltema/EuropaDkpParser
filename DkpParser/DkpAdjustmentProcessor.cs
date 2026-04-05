@@ -9,25 +9,22 @@ using Gjeltema.Logging;
 public sealed class DkpAdjustmentProcessor : IDkpAdjustments
 {
     private const string LogPrefix = $"[{nameof(DkpAdjustmentProcessor)}]";
-    private const int NumberOfRaids = 250;
     private readonly DkpServerCharacters _charactersOnDkpServer;
     private readonly List<string> _classesWithDiscounts;
     private readonly List<DkpDiscountConfiguration> _discounts;
-    private readonly IDkpServer _dkpServer;
-    private readonly Dictionary<string, int> _raidAttendance = [];
-    private static ICollection<PreviousRaid> _previousRaids = [];
+    private readonly IRaidAttendance _raidAttendances;
 
-    public DkpAdjustmentProcessor(IDkpServer dkpServer, DkpServerCharacters charactersOnDkpServer, IEnumerable<DkpDiscountConfiguration> discounts)
+    public DkpAdjustmentProcessor(IDkpParserSettings settings, IRaidAttendance raidAttendances)
     {
-        _dkpServer = dkpServer;
-        _charactersOnDkpServer = charactersOnDkpServer;
-        _discounts = discounts.ToList();
+        _charactersOnDkpServer = settings.CharactersOnDkpServer;
+        _raidAttendances = raidAttendances;
+        _discounts = settings.RaidValue.DkpDiscounts.ToList();
         _classesWithDiscounts = _discounts.Select(x => x.ClassName).Distinct().ToList();
     }
 
     public async Task<int> GetDkpDiscountedAmount(DkpEntry dkpEntry, string className, AttendanceEntry associatedAttendance)
     {
-        Log.Trace($"{LogPrefix} Starting discount analysys for: {dkpEntry} {className}");
+        Log.Trace($"{LogPrefix} Starting discount analysis for: {dkpEntry} {className}");
 
         if (string.IsNullOrEmpty(className))
         {
@@ -52,8 +49,8 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
         }
 
         Log.Debug($"{LogPrefix} Evaluating {dkpEntry} for possible discount.");
-        int raidAttendance = await GetRaidAttendance(dkpEntry.CharacterName);
-        Log.Debug($"Calculated Raid Attendance for {dkpEntry.CharacterName}: {raidAttendance}%");
+        double raidAttendance = await GetRaidAttendance(dkpEntry.CharacterName);
+        Log.Debug($"Calculated Raid Attendance for {dkpEntry.CharacterName}: {raidAttendance:0.00}%");
 
         DkpDiscountConfiguration discountRule = possibleDiscountRules
             .Where(x => x.MinimumRAThreshold <= raidAttendance)
@@ -72,16 +69,6 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
         return discountedAmount < 1 ? 1 : discountedAmount;
     }
 
-    private async Task<int> GetCharacterId(string characterName)
-    {
-        DkpUserCharacter character = _charactersOnDkpServer.AllUserCharacters.FirstOrDefault(x => x.Name == characterName);
-        if (character != null)
-            return character.CharacterId;
-
-        int characterId = await _dkpServer.GetCharacterId(characterName);
-        return characterId;
-    }
-
     private List<DkpDiscountConfiguration> GetPossibleDiscountRules(string className, AttendanceEntry associatedAttendance)
     {
         List<DkpDiscountConfiguration> discountRules = _discounts
@@ -92,41 +79,10 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
         return discountRules;
     }
 
-    private async Task<int> GetRaidAttendance(string characterName)
+    private async Task<double> GetRaidAttendance(string characterName)
     {
-        if (_raidAttendance.TryGetValue(characterName, out int ra))
-            return ra;
-
-        int characterId = await GetCharacterId(characterName);
-        Log.Debug($"{LogPrefix} CharacterID obtained: {characterId}.");
-        if (characterId < 1)
-            return 0;
-
-        await SetPriorRaidsForAttendance();
-
-        int numberOfRaidsAttended = _previousRaids.Count(x => x.CharacterIds.Contains(characterId));
-        Log.Debug($"{LogPrefix} Character raids/Total raids: {numberOfRaidsAttended}/{_previousRaids.Count}.");
-        if (numberOfRaidsAttended == 0)
-            return 0;
-
-        int raidAtt = numberOfRaidsAttended * 100 / _previousRaids.Count;
-        _raidAttendance[characterName] = raidAtt;
-
-        Log.Debug($"{LogPrefix} Calculated RA for ID {characterId}: {raidAtt}.");
-
-        return raidAtt;
-    }
-
-    private async Task SetPriorRaidsForAttendance()
-    {
-        if (_previousRaids.Count > 0)
-            return;
-
-        DateTime thirtyDaysAgo = DateTime.Now.AddDays(-30);
-        ICollection<PreviousRaid> priorRaids = await _dkpServer.GetPriorRaids(NumberOfRaids);
-        _previousRaids = priorRaids.Where(x => x.RaidTime > thirtyDaysAgo).OrderBy(x => x.RaidTime).ToList();
-
-        Log.Debug($"{LogPrefix} Last 30 days of raids:{Environment.NewLine}{string.Join(Environment.NewLine, _previousRaids.Select(x => x.ToString()))}");
+        RaidAttendanceInfo raidAttInfo = await _raidAttendances.Get30DayRaidAttendance(characterName);
+        return raidAttInfo.ThirtyDayRA;
     }
 }
 

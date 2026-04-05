@@ -38,7 +38,8 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         _raidEntries = raidEntries;
         _settings = settings;
 
-        _dkpAdjustments = new DkpAdjustmentProcessor(new DkpServer(settings), settings.CharactersOnDkpServer, settings.RaidValue.DkpDiscounts);
+        DkpServer dkpServer = new(settings);
+        _dkpAdjustments = new DkpAdjustmentProcessor(settings, new RaidAttendanceCalculator(dkpServer, settings));
 
         StatusMessage = Strings.GetString("BeginStatus");
 
