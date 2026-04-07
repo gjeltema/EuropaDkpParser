@@ -10,10 +10,10 @@ public sealed class ZealAttendanceMessageProvider : IZealMessageUpdater, IZealMe
 {
     public event EventHandler<ZealPipeErrorEventArgs> PipeError;
 
+    public static readonly ZealAttendanceMessageProvider Instance = new();
+
     private ZealAttendanceMessageProvider()
     { }
-
-    public static ZealAttendanceMessageProvider Instance { get; } = new();
 
     public ZealCharacterInfo CharacterInfo { get; private set; } = new();
 

@@ -49,12 +49,12 @@ internal sealed class DkpLogGenerator
 
         Log.Trace($"{LogPrefix} {nameof(directoryName)}:{directoryName}; {nameof(directoryForFiles)}:{directoryForFiles}; {nameof(fullLogOutputFile)}:{fullLogOutputFile}; {nameof(fullLogOutputFullPath)}{fullLogOutputFullPath}");
 
-        if (!await TryCreateDirectory(directoryForFiles))
+        if (!await TryCreateDirectoryAsync(directoryForFiles))
             return;
 
         foreach (EqLogFile logFile in logFiles.OrderBy(x => x.LogEntries[0].Timestamp))
         {
-            await CreateFile(fullLogOutputFullPath, logFile.GetAllLogLines());
+            await CreateFileAsync(fullLogOutputFullPath, logFile.GetAllLogLines());
         }
 
         RaidParticipationFilesParser listFilesParser = new();
@@ -62,9 +62,9 @@ internal sealed class DkpLogGenerator
         IEnumerable<RaidListFile> raidListFiles = listFilesParser.GetRelevantRaidListFiles(_settings.EqDirectory, startTime, endTime);
         foreach (RaidListFile raidListFile in raidListFiles)
         {
-            if (!await TryCopyFile(raidListFile.FullFilePath, Path.Combine(directoryForFiles, raidListFile.FileName)))
+            if (!await TryCopyFileAsync(raidListFile.FullFilePath, Path.Combine(directoryForFiles, raidListFile.FileName)))
             {
-                await DeleteDirectory(directoryForFiles);
+                await DeleteDirectoryAsync(directoryForFiles);
                 return;
             }
         }
@@ -72,9 +72,9 @@ internal sealed class DkpLogGenerator
         IEnumerable<ZealRaidAttendanceFile> zealRaidFiles = listFilesParser.GetRelevantZealRaidAttendanceFiles(_settings.EqDirectory, startTime, endTime);
         foreach (ZealRaidAttendanceFile zealRaidFile in zealRaidFiles)
         {
-            if (!await TryCopyFile(zealRaidFile.FullFilePath, Path.Combine(directoryForFiles, zealRaidFile.FileName)))
+            if (!await TryCopyFileAsync(zealRaidFile.FullFilePath, Path.Combine(directoryForFiles, zealRaidFile.FileName)))
             {
-                await DeleteDirectory(directoryForFiles);
+                await DeleteDirectoryAsync(directoryForFiles);
                 return;
             }
         }
@@ -82,22 +82,22 @@ internal sealed class DkpLogGenerator
         IEnumerable<RaidDumpFile> raidDumpFiles = listFilesParser.GetRelevantRaidDumpFiles(_settings.EqDirectory, startTime, endTime);
         foreach (RaidDumpFile raidDumpFile in raidDumpFiles)
         {
-            await TryCopyFile(raidDumpFile.FullFilePath, Path.Combine(directoryForFiles, raidDumpFile.FileName));
+            await TryCopyFileAsync(raidDumpFile.FullFilePath, Path.Combine(directoryForFiles, raidDumpFile.FileName));
         }
 
-        await TryCopyApplicationLogFiles(directoryForFiles);
+        await TryCopyApplicationLogFilesAsync(directoryForFiles);
 
         string zipFullFilePath = Path.Combine(outputPath, directoryName + ".zip");
 
-        if (!await TryCreateZip(directoryForFiles, zipFullFilePath))
+        if (!await TryCreateZipAsync(directoryForFiles, zipFullFilePath))
         {
-            await DeleteDirectory(directoryForFiles);
+            await DeleteDirectoryAsync(directoryForFiles);
             return;
         }
 
         Log.Debug($"Zip file {zipFullFilePath} created.");
 
-        await DeleteDirectory(directoryForFiles);
+        await DeleteDirectoryAsync(directoryForFiles);
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(zipFullFilePath);
         completedDialog.ShowDialog();
@@ -110,7 +110,7 @@ internal sealed class DkpLogGenerator
     {
         Log.Debug($"{LogPrefix} Starting {nameof(StartLogParseAsync)}");
 
-        RaidEntries raidEntries = await ParseAndAnalyzeLogFiles(sessionSettings);
+        RaidEntries raidEntries = await ParseAndAnalyzeLogFilesAsync(sessionSettings);
 
         if (raidEntries == null)
         {
@@ -171,7 +171,7 @@ internal sealed class DkpLogGenerator
 
         IOutputGenerator generator = new FileOutputGenerator();
         IEnumerable<string> fileContents = generator.GenerateOutput(raidEntries, _settings.RaidValue.GetZoneRaidAlias);
-        bool success = await CreateFile(sessionSettings.GeneratedFile, fileContents);
+        bool success = await CreateFileAsync(sessionSettings.GeneratedFile, fileContents);
         if (!success)
             return;
 
@@ -190,11 +190,11 @@ internal sealed class DkpLogGenerator
         completedDialog.ShowDialog();
     }
 
-    public async Task UploadGeneratedLogFile(string generatedLogFile)
+    public async Task UploadGeneratedLogFileAsync(string generatedLogFile)
     {
-        Log.Debug($"{LogPrefix} Starting {nameof(UploadGeneratedLogFile)}");
+        Log.Debug($"{LogPrefix} Starting {nameof(UploadGeneratedLogFileAsync)}");
 
-        RaidEntries raidEntries = await ParseGeneratedLogFile(generatedLogFile);
+        RaidEntries raidEntries = await ParseGeneratedLogFileAsync(generatedLogFile);
 
         if (raidEntries == null || (raidEntries.DkpEntries.Count == 0 && raidEntries.AttendanceEntries.Count == 0))
         {
@@ -215,15 +215,15 @@ internal sealed class DkpLogGenerator
             return;
         }
 
-        Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFile)}, {nameof(finalSummaryDialog.UploadToServer)}: {finalSummaryDialog.UploadToServer}, {nameof(_settings.IsApiConfigured)}: {_settings.IsApiConfigured}.");
+        Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFileAsync)}, {nameof(finalSummaryDialog.UploadToServer)}: {finalSummaryDialog.UploadToServer}, {nameof(_settings.IsApiConfigured)}: {_settings.IsApiConfigured}.");
         if (finalSummaryDialog.UploadToServer && _settings.IsApiConfigured)
         {
-            Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFile)}, beginning upload.");
+            Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFileAsync)}, beginning upload.");
             IRaidUploadDialogViewModel raidUpload = _dialogFactory.CreateRaidUploadDialogViewModel(_dialogFactory, raidEntries, _settings);
             raidUpload.ShowDialog();
         }
 
-        Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFile)}, finished upload.");
+        Log.Debug($"{LogPrefix} {nameof(UploadGeneratedLogFileAsync)}, finished upload.");
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel("No file generated, uploaded existing generated file");
         completedDialog.SummaryDisplay = GetSummaryDisplay(raidEntries);
@@ -256,7 +256,7 @@ internal sealed class DkpLogGenerator
         return true;
     }
 
-    private async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
+    private async Task<bool> CreateFileAsync(string fileToWriteTo, IEnumerable<string> fileContents)
     {
         try
         {
@@ -265,13 +265,13 @@ internal sealed class DkpLogGenerator
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {nameof(CreateFile)} failed to create {fileToWriteTo}: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(CreateFileAsync)} failed to create {fileToWriteTo}: {ex.ToLogMessage()}");
             MessageBox.Show(Strings.GetString("LogGenerationErrorMessage") + ex.Message, Strings.GetString("LogGenerationError"), MessageBoxButton.OK, MessageBoxImage.Error);
             return false;
         }
     }
 
-    private async Task DeleteDirectory(string directoryName)
+    private async Task DeleteDirectoryAsync(string directoryName)
     {
         try
         {
@@ -321,7 +321,7 @@ internal sealed class DkpLogGenerator
         return summaryDisplayText;
     }
 
-    private async Task<RaidEntries> ParseAndAnalyzeLogFiles(DkpLogGenerationSessionSettings sessionSettings)
+    private async Task<RaidEntries> ParseAndAnalyzeLogFilesAsync(DkpLogGenerationSessionSettings sessionSettings)
     {
         try
         {
@@ -361,7 +361,7 @@ internal sealed class DkpLogGenerator
         }
     }
 
-    private async Task<RaidEntries> ParseGeneratedLogFile(string generatedLogFile)
+    private async Task<RaidEntries> ParseGeneratedLogFileAsync(string generatedLogFile)
     {
         try
         {
@@ -386,7 +386,7 @@ internal sealed class DkpLogGenerator
         }
     }
 
-    private async Task TryCopyApplicationLogFiles(string destinationDirectory)
+    private async Task TryCopyApplicationLogFilesAsync(string destinationDirectory)
     {
         try
         {
@@ -400,7 +400,7 @@ internal sealed class DkpLogGenerator
                 if (File.Exists(logFileSourcePath))
                 {
                     string logFileDestinationPath = Path.Combine(destinationDirectory, logFileName);
-                    await TryCopyFile(logFileSourcePath, logFileDestinationPath);
+                    await TryCopyFileAsync(logFileSourcePath, logFileDestinationPath);
                 }
             }
         }
@@ -410,7 +410,7 @@ internal sealed class DkpLogGenerator
         }
     }
 
-    private async Task<bool> TryCopyFile(string sourceFilePath, string destinationFilePath)
+    private async Task<bool> TryCopyFileAsync(string sourceFilePath, string destinationFilePath)
     {
         try
         {
@@ -438,7 +438,7 @@ internal sealed class DkpLogGenerator
         }
     }
 
-    private async Task<bool> TryCreateDirectory(string directoryName)
+    private async Task<bool> TryCreateDirectoryAsync(string directoryName)
     {
         try
         {
@@ -465,7 +465,7 @@ internal sealed class DkpLogGenerator
         }
     }
 
-    private async Task<bool> TryCreateZip(string sourceDirectory, string zipFullFilePath)
+    private async Task<bool> TryCreateZipAsync(string sourceDirectory, string zipFullFilePath)
     {
         try
         {

@@ -19,6 +19,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     private readonly IOverlayFactory _overlayFactory;
     private readonly IDkpParserSettings _settings;
     private readonly IWindowFactory _windowFactory;
+    private static bool _raCalculatorInitialized = false;
     private bool _ableToUpload;
     private ILiveLogTrackingViewModel _adminBiddingDialogVM;
     private ISimpleBidTrackerViewModel _simpleBidTrackerVM;
@@ -74,6 +75,16 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         RaiseBiddingDialogCommandsCanExecuteChanged();
     }
 
+    private async Task InitializeRaidAttendanceCalculatorAsync()
+    {
+        if (_raCalculatorInitialized)
+            return;
+
+        DkpServer dkpServer = new(_settings);
+        await RaidAttendanceCalculator.InitializeAsync(dkpServer, _settings);
+        _raCalculatorInitialized = true;
+    }
+
     private void OpenArchiveFilesDialog()
     {
         IFileArchiveDialogViewModel fileArchiveDialog = _dialogFactory.CreateFileArchiveDialogViewModel(_settings);
@@ -83,17 +94,25 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         fileArchiveDialog.UpdateSettings(_settings);
     }
 
-    private void OpenBiddingTrackerDialog()
+    private async void OpenBiddingTrackerDialog()
+        => await OpenBiddingTrackerDialogAsync();
+
+    private async Task OpenBiddingTrackerDialogAsync()
     {
-        _adminBiddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, EqLogTailFile.Instance, _dialogFactory, _overlayFactory, _windowFactory);
+        _adminBiddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, EqLogTailFile.Instance, RaidAttendanceCalculator.Instance, _dialogFactory, _overlayFactory, _windowFactory);
         _adminBiddingDialogVM.WindowClosing += HandleAdminBiddingWindowClosed;
         _adminBiddingDialogVM.Show();
 
         RaiseBiddingDialogCommandsCanExecuteChanged();
+        await InitializeRaidAttendanceCalculatorAsync();
     }
 
-    private void OpenDkpParserDialog()
+    private async void OpenDkpParserDialog()
+        => await OpenDkpParserDialogAsync();
+
+    private async Task OpenDkpParserDialogAsync()
     {
+        await InitializeRaidAttendanceCalculatorAsync();
         IDkpParseDialogViewModel dkpDialog = _dialogFactory.CreateDkpParseDialogViewModel(_settings, _dialogFactory);
         dkpDialog.ShowDialog();
     }
@@ -115,13 +134,17 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         AbleToUpload = _settings.IsApiConfigured;
     }
 
-    private void OpenSimpleBidTrackerDialog()
+    private async void OpenSimpleBidTrackerDialog()
+        => await OpenSimpleBidTrackerDialogAsync();
+
+    private async Task OpenSimpleBidTrackerDialogAsync()
     {
-        _simpleBidTrackerVM = _windowFactory.CreateSimpleBidTrackerViewModel(_settings, EqLogTailFile.Instance);
+        _simpleBidTrackerVM = _windowFactory.CreateSimpleBidTrackerViewModel(_settings, EqLogTailFile.Instance, RaidAttendanceCalculator.Instance);
         _simpleBidTrackerVM.WindowClosing += HandleSimpleBiddingWindowClosed;
         _simpleBidTrackerVM.Show();
 
         RaiseBiddingDialogCommandsCanExecuteChanged();
+        await InitializeRaidAttendanceCalculatorAsync();
     }
 
     private void RaiseBiddingDialogCommandsCanExecuteChanged()
@@ -150,7 +173,8 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
             return;
         }
 
-        await _logGenerator.UploadGeneratedLogFile(generatedLogFile);
+        await InitializeRaidAttendanceCalculatorAsync();
+        await _logGenerator.UploadGeneratedLogFileAsync(generatedLogFile);
     }
 }
 

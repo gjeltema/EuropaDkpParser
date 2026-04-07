@@ -319,7 +319,8 @@ internal sealed class ActiveBidTrackerTests
 
     private void InitializeSystemUnderTest()
     {
-        _systemUnderTest = new ActiveBidTracker(_settingsMock, EqLogTailFile.Instance);
+        //** need to add a mock for the IRaidAttendance
+        _systemUnderTest = new ActiveBidTracker(_settingsMock, EqLogTailFile.Instance, null);
     }
 }
 

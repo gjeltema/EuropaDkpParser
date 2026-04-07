@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// FileArchiveDialogViewModel.cs Copyright 2025 Craig Gjeltema
+// FileArchiveDialogViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -248,13 +248,13 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
     }
 
     private async void AggregateInventoryFiles()
-        => await AggregateInventoryFilesExecute();
+        => await AggregateInventoryFilesAsync();
 
-    private async Task AggregateInventoryFilesExecute()
+    private async Task AggregateInventoryFilesAsync()
     {
         Log.Debug($"{LogPrefix} Aggregating Inventory log files.");
         string fileName = Path.Combine(_settings.OutputDirectory, $"AggregatedInventory-{DateTime.Now:HHmmss}.txt");
-        await _inventoryParser.AggregateInventoryFromDirectories(_settings.InventoryDirectories, fileName);
+        await _inventoryParser.AggregateInventoryFromDirectoriesAsync(_settings.InventoryDirectories, fileName);
     }
 
     private void ArchiveAttendanceFiles(TimeSpan maxAgeOfFile, string fileNamePrefix)
@@ -278,9 +278,9 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
     }
 
     private void ArchiveEqLogFiles()
-        => Task.Run(ArchiveEqLogFilesExecute);
+        => Task.Run(ArchiveEqLogFilesAsync);
 
-    private void ArchiveEqLogFilesExecute()
+    private void ArchiveEqLogFilesAsync()
     {
         try
         {
@@ -324,9 +324,9 @@ internal sealed class FileArchiveDialogViewModel : DialogViewModelBase, IFileArc
     }
 
     private async void ArchiveGeneratedLogFiles()
-        => await Task.Run(ArchiveGeneratedLogFilesExecute);
+        => await Task.Run(ArchiveGeneratedLogFilesAsync);
 
-    private void ArchiveGeneratedLogFilesExecute()
+    private async void ArchiveGeneratedLogFilesAsync()
     {
         try
         {

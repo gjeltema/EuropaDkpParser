@@ -185,7 +185,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
         SearchTermToAdd = string.Empty;
     }
 
-    private async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
+    private async Task<bool> CreateFileAsync(string fileToWriteTo, IEnumerable<string> fileContents)
     {
         try
         {
@@ -262,7 +262,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
         {
             if (logFile.LogEntries.Count > 0)
             {
-                await CreateFile(outputFilePath, logFile.GetAllLogLines());
+                await CreateFileAsync(outputFilePath, logFile.GetAllLogLines());
                 anyEntriesFound = true;
             }
         }

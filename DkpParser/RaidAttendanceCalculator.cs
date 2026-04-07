@@ -10,53 +10,25 @@ public sealed class RaidAttendanceCalculator : IRaidAttendance
 {
     private const string LogPrefix = $"[{nameof(RaidAttendanceCalculator)}]";
     private const int NumberOfRaids = 250;
+    public static readonly RaidAttendanceCalculator Instance = new();
     private static readonly Dictionary<string, RaidAttendanceInfo> _raidAttendances = [];
-    private readonly IDkpServer _dkpServer;
-    private readonly IDkpParserSettings _settings;
+    private static IDkpServer _dkpServer;
     private static ICollection<PreviousRaid> _previousRaids = [];
+    private static IDkpParserSettings _settings;
 
-    public RaidAttendanceCalculator(IDkpServer dkpServer, IDkpParserSettings settings)
-    {
-        _dkpServer = dkpServer;
-        _settings = settings;
-    }
+    private RaidAttendanceCalculator() { }
 
-    public async Task<RaidAttendanceInfo> Get30DayRaidAttendance(string characterName)
-    {
-        await CalculateAllRaidAttendances();
-
-        string normalizedCharacterName = characterName.NormalizeName();
-
-        if (_raidAttendances.TryGetValue(normalizedCharacterName, out RaidAttendanceInfo ra))
-            return ra;
-
-        int characterId = await GetCharacterId(normalizedCharacterName);
-        Log.Debug($"{LogPrefix} CharacterID for {normalizedCharacterName} obtained: {characterId}.");
-        if (characterId < 1)
-            return CreateRaidAttendanceInfo(normalizedCharacterName, characterId);
-
-        double raidAtt = CalculateRaidAttendance(characterId);
-        RaidAttendanceInfo raidAttInfo = CreateRaidAttendanceInfo(normalizedCharacterName, characterId, 0, raidAtt);
-        _raidAttendances[normalizedCharacterName] = raidAttInfo;
-        Log.Debug($"{LogPrefix} Calculated RA for ID {characterId}: {raidAtt}.");
-
-        return raidAttInfo;
-    }
-
-    public async Task<IEnumerable<RaidAttendanceInfo>> GetAll30DayRaidAttendances()
-    {
-        await CalculateAllRaidAttendances();
-        return _raidAttendances.Values;
-    }
-
-    private async Task CalculateAllRaidAttendances()
+    public static async Task InitializeAsync(IDkpServer dkpServer, IDkpParserSettings settings)
     {
         if (_previousRaids.Count > 0)
             return;
 
+        _dkpServer = dkpServer;
+        _settings = settings;
+
         DateTime thirtyDaysAgo = DateTime.Now.AddDays(-30);
 
-        ICollection<PreviousRaid> priorRaids = await _dkpServer.GetPriorRaids(NumberOfRaids);
+        ICollection<PreviousRaid> priorRaids = await _dkpServer.GetPriorRaidsAsync(NumberOfRaids);
         _previousRaids = priorRaids.Where(x => x.RaidTime > thirtyDaysAgo).OrderBy(x => x.RaidTime).ToList();
 
         Log.Trace($"{LogPrefix} Last 30 days of raids:{Environment.NewLine}{string.Join(Environment.NewLine, _previousRaids.Select(x => x.ToString()))}");
@@ -69,7 +41,30 @@ public sealed class RaidAttendanceCalculator : IRaidAttendance
         }
     }
 
-    private double CalculateRaidAttendance(int characterId)
+    public async Task<RaidAttendanceInfo> Get30DayRaidAttendanceAsync(string characterName)
+    {
+        string normalizedCharacterName = characterName.NormalizeName();
+
+        if (_raidAttendances.TryGetValue(normalizedCharacterName, out RaidAttendanceInfo ra))
+            return ra;
+
+        int characterId = await GetCharacterIdAsync(normalizedCharacterName);
+        Log.Debug($"{LogPrefix} CharacterID for {normalizedCharacterName} obtained: {characterId}.");
+        if (characterId < 1)
+            return CreateRaidAttendanceInfo(normalizedCharacterName, characterId);
+
+        double raidAtt = CalculateRaidAttendance(characterId);
+        RaidAttendanceInfo raidAttInfo = CreateRaidAttendanceInfo(normalizedCharacterName, characterId, 0, raidAtt);
+        _raidAttendances[normalizedCharacterName] = raidAttInfo;
+        Log.Debug($"{LogPrefix} Calculated RA for ID {characterId}: {raidAtt}.");
+
+        return raidAttInfo;
+    }
+
+    public IEnumerable<RaidAttendanceInfo> GetAll30DayRaidAttendances()
+        => _raidAttendances.Values;
+
+    private static double CalculateRaidAttendance(int characterId)
     {
         int numberOfRaidsAttended = _previousRaids.Count(x => x.CharacterIds.Contains(characterId));
         Log.Debug($"{LogPrefix} Character raids/Total raids: {numberOfRaidsAttended}/{_previousRaids.Count}.");
@@ -80,10 +75,10 @@ public sealed class RaidAttendanceCalculator : IRaidAttendance
         return raidAtt;
     }
 
-    private RaidAttendanceInfo CreateRaidAttendanceInfo(DkpUserCharacter eqCharacter, double thirtyDayRA)
+    private static RaidAttendanceInfo CreateRaidAttendanceInfo(DkpUserCharacter eqCharacter, double thirtyDayRA)
         => CreateRaidAttendanceInfo(eqCharacter.Name, eqCharacter.CharacterId, eqCharacter.UserId, thirtyDayRA);
 
-    private RaidAttendanceInfo CreateRaidAttendanceInfo(string characterName, int characterId, int userId = 0, double thirtyDayRA = 0)
+    private static RaidAttendanceInfo CreateRaidAttendanceInfo(string characterName, int characterId, int userId = 0, double thirtyDayRA = 0)
         => new()
         {
             CharacterId = characterId,
@@ -92,22 +87,22 @@ public sealed class RaidAttendanceCalculator : IRaidAttendance
             UserId = userId
         };
 
-    private async Task<int> GetCharacterId(string characterName)
+    private async Task<int> GetCharacterIdAsync(string characterName)
     {
         DkpUserCharacter character = _settings.CharactersOnDkpServer.AllUserCharacters.FirstOrDefault(x => x.Name == characterName);
         if (character != null)
             return character.CharacterId;
 
-        int characterId = await _dkpServer.GetCharacterId(characterName);
+        int characterId = await _dkpServer.GetCharacterIdAsync(characterName);
         return characterId;
     }
 }
 
 public interface IRaidAttendance
 {
-    Task<RaidAttendanceInfo> Get30DayRaidAttendance(string characterName);
+    Task<RaidAttendanceInfo> Get30DayRaidAttendanceAsync(string characterName);
 
-    Task<IEnumerable<RaidAttendanceInfo>> GetAll30DayRaidAttendances();
+    IEnumerable<RaidAttendanceInfo> GetAll30DayRaidAttendances();
 }
 
 public sealed class RaidAttendanceInfo

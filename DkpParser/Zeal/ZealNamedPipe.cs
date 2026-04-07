@@ -13,12 +13,11 @@ using Gjeltema.Logging;
 internal sealed class ZealNamedPipe
 {
     private const string LogPrefix = $"[{nameof(ZealNamedPipe)}]";
+    public static readonly ZealNamedPipe Instance = new();
     private CancellationTokenSource _cancelTokenSource;
     private Thread _messageListenerThread;
 
     private ZealNamedPipe() { }
-
-    public static ZealNamedPipe Instance { get; } = new();
 
     public bool IsConnected
         => _messageListenerThread?.IsAlive ?? false;

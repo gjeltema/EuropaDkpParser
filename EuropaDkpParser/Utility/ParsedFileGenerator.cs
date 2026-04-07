@@ -24,7 +24,7 @@ internal sealed class ParsedFileGenerator
         _dialogFactory = dialogFactory;
     }
 
-    public async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
+    public async Task<bool> CreateFileAsync(string fileToWriteTo, IEnumerable<string> fileContents)
     {
         try
         {
@@ -51,7 +51,7 @@ internal sealed class ParsedFileGenerator
         {
             if (logFile.LogEntries.Count > 0)
             {
-                await CreateFile(communicationOutputFullPath, logFile.GetAllLogLines());
+                await CreateFileAsync(communicationOutputFullPath, logFile.GetAllLogLines());
                 anyCommunicationFound = true;
             }
         }
@@ -78,7 +78,7 @@ internal sealed class ParsedFileGenerator
         {
             if (logFile.LogEntries.Count > 0)
             {
-                await CreateFile(raidSummaryOutputFullPath, logFile.GetAllLogLines());
+                await CreateFileAsync(raidSummaryOutputFullPath, logFile.GetAllLogLines());
                 anySummaryFound = true;
             }
         }
@@ -105,7 +105,7 @@ internal sealed class ParsedFileGenerator
         {
             if (logFile.LogEntries.Count > 0)
             {
-                await CreateFile(searchTermOutputFullPath, logFile.GetAllLogLines());
+                await CreateFileAsync(searchTermOutputFullPath, logFile.GetAllLogLines());
                 anySearchTermFound = true;
             }
         }
@@ -133,7 +133,7 @@ internal sealed class ParsedFileGenerator
         {
             if (logFile.LogEntries.Count > 0)
             {
-                await CreateFile(conversationOutputFullPath, logFile.GetAllLogLines());
+                await CreateFileAsync(conversationOutputFullPath, logFile.GetAllLogLines());
                 anyConversationFound = true;
             }
         }

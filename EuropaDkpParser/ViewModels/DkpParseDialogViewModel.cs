@@ -81,7 +81,7 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
         }
     }
 
-    private async Task ExecuteParse(Func<DateTime, DateTime, Task> parseToExecute)
+    private async Task ExecuteParseAsync(Func<DateTime, DateTime, Task> parseToExecute)
     {
         if (!_logGenerator.ValidateTimeSettings(StartTimeText, EndTimeText, out DateTime startTime, out DateTime endTime))
             return;
@@ -104,13 +104,13 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
         => string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? _logGenerator.GetUserProfilePath() : _settings.OutputDirectory;
 
     private async void GetRawLogFilesParse()
-        => await ExecuteParse(GetRawLogFilesParseAsync);
+        => await ExecuteParseAsync(GetRawLogFilesParseAsync);
 
     private async Task GetRawLogFilesParseAsync(DateTime startTime, DateTime endTime)
         => await _logGenerator.GetRawLogFilesParseAsync(startTime, endTime, GetOutputPath());
 
     private async void ParseSelectedFile()
-        => await ExecuteParse(ParseSelectedFileAsync);
+        => await ExecuteParseAsync(ParseSelectedFileAsync);
 
     private async Task ParseSelectedFileAsync(DateTime startTime, DateTime endTime)
     {
@@ -165,7 +165,7 @@ internal class DkpParseDialogViewModel : DialogViewModelBase, IDkpParseDialogVie
     }
 
     private async void StartLogParse()
-        => await ExecuteParse(StartLogParseAsync);
+        => await ExecuteParseAsync(StartLogParseAsync);
 
     private async Task StartLogParseAsync(DateTime startTime, DateTime endTime)
     {

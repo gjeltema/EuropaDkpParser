@@ -158,6 +158,8 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
 
     public int ParentAuctionId { get; init; }
 
+    public double RaidAttendance { get; set; } = 0.0;
+
     public DateTime Timestamp { get; init; }
 
     private string DebugText
@@ -210,8 +212,8 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
             return $"{Timestamp:HH:mm:ss} {ItemName} {CharacterPlacingBid} rolled {BidAmount}";
         else
             return CharacterNotOnDkpServer
-            ? $"{Timestamp:HH:mm:ss} {ItemName} {CharacterBeingBidFor} {BidAmount} MAYBE NOT ON SERVER"
-            : $"{Timestamp:HH:mm:ss} {ItemName} {CharacterBeingBidFor} {BidAmount}";
+            ? $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} MAYBE NOT ON SERVER"
+            : $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} {RaidAttendance:0}%RA";
     }
 }
 
@@ -306,6 +308,8 @@ public sealed class SuggestedSpentCall
 
     public LiveAuctionInfo ParentAuction { get; init; }
 
+    public double RaidAttendance { get; init; }
+
     public bool SpentCallSent { get; init; }
 
     public string Winner { get; init; }
@@ -316,7 +320,7 @@ public sealed class SuggestedSpentCall
     public override string ToString()
         => IsRoll
         ? $"{ItemName} {Winner} rolled {DkpSpent}"
-        : $"{Channel} {Constants.AttendanceDelimiter}{ItemName}{Constants.AttendanceDelimiter} {Winner} {DkpSpent} {Constants.DkpSpent}";
+        : $"{ItemName} {Winner} {DkpSpent} {RaidAttendance:0}%RA";
 }
 
 [DebuggerDisplay("{DebugText,nq}")]

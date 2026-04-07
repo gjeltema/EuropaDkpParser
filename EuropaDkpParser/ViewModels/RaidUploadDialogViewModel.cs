@@ -38,8 +38,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         _raidEntries = raidEntries;
         _settings = settings;
 
-        DkpServer dkpServer = new(settings);
-        _dkpAdjustments = new DkpAdjustmentProcessor(settings, new RaidAttendanceCalculator(dkpServer, settings));
+        _dkpAdjustments = new DkpAdjustmentProcessor(settings, RaidAttendanceCalculator.Instance);
 
         StatusMessage = Strings.GetString("BeginStatus");
 
@@ -168,11 +167,11 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
             }
             else
             {
-                raidsToUpload = await UploadRaidInfo.Create(_dkpAdjustments, _raidEntries, _settings);
+                raidsToUpload = await UploadRaidInfo.CreateAsync(_dkpAdjustments, _raidEntries, _settings);
             }
 
             RaidUploader server = new(_settings);
-            RaidUploadResults uploadResults = await server.UploadRaid(raidsToUpload);
+            RaidUploadResults uploadResults = await server.UploadRaidAsync(raidsToUpload);
 
             _raidEntries.DkpUploadErrors = uploadResults.DkpFailures.Select(
                 x => _raidEntries.DkpEntries.FirstOrDefault(z => z.Timestamp == x.Dkp.Timestamp && z.Item == x.Dkp.Item && z.CharacterName == x.Dkp.CharacterName))
@@ -212,19 +211,19 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         return true;
     }
 
-    private async Task<ICollection<string>> GetAllBiddingLogEntriesForDkpspentCalls(ICollection<DkpEntry> dkpSpentEntriesRemoved)
+    private async Task<ICollection<string>> GetAllBiddingLogEntriesForDkpspentCallsAsync(ICollection<DkpEntry> dkpSpentEntriesRemoved)
     {
         List<string> logEntries = new(dkpSpentEntriesRemoved.Count * 12);
         foreach (DkpEntry entry in dkpSpentEntriesRemoved)
         {
-            IEnumerable<string> logLines = await GetBiddingLogEntries(entry);
+            IEnumerable<string> logLines = await GetBiddingLogEntriesAsync(entry);
             logEntries.AddRange(logLines);
         }
 
         return logEntries;
     }
 
-    private async Task<IEnumerable<string>> GetBiddingLogEntries(DkpEntry entry)
+    private async Task<IEnumerable<string>> GetBiddingLogEntriesAsync(DkpEntry entry)
     {
         ITermParser termParser = new TermParser(_settings, entry.Item, true);
         ICollection<EqLogFile> logFiles = await Task.Run(() => termParser.GetEqLogFiles(entry.Timestamp.AddMinutes(-15), entry.Timestamp));
@@ -268,7 +267,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
         ICollection<DkpEntry> dkpSpentEntriesRemoved = _raidEntries.RemoveCharacter(characterName);
 
-        ICollection<string> bidLogEntries = await GetAllBiddingLogEntriesForDkpspentCalls(dkpSpentEntriesRemoved);
+        ICollection<string> bidLogEntries = await GetAllBiddingLogEntriesForDkpspentCallsAsync(dkpSpentEntriesRemoved);
 
         IEnumerable<string> displayLines;
         if (dkpSpentEntriesRemoved.Count > 0)

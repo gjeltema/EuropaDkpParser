@@ -41,11 +41,11 @@ public sealed class DkpServer : IDkpServer
         //LocalHttpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en");
     }
 
-    public async Task<int> GetCharacterId(string characterName)
+    public async Task<int> GetCharacterIdAsync(string characterName)
     {
         try
         {
-            return await GetCharacterIdFromServer(characterName);
+            return await GetCharacterIdFromServerAsync(characterName);
         }
         catch (Exception ex)
         {
@@ -54,31 +54,31 @@ public sealed class DkpServer : IDkpServer
         }
     }
 
-    public async Task<ICollection<PreviousRaid>> GetPriorRaids(int numbeOfRaids)
+    public async Task<ICollection<PreviousRaid>> GetPriorRaidsAsync(int numbeOfRaids)
     {
         try
         {
             string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=raids&number={numbeOfRaids}";
 
-            XDocument responseDoc = await MakeGetCall(uri);
+            XDocument responseDoc = await MakeGetCallAsync(uri);
 
             ICollection<PreviousRaid> userCharacters = GetPriorRaidsFromResponse(responseDoc);
             return userCharacters;
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {nameof(GetPriorRaids)} Error encountered in getting previous raids: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(GetPriorRaidsAsync)} Error encountered in getting previous raids: {ex.ToLogMessage()}");
             return [];
         }
     }
 
-    public async Task<ICollection<DkpUserCharacter>> GetUserCharacters(int userId)
+    public async Task<ICollection<DkpUserCharacter>> GetUserCharactersAsync(int userId)
     {
         try
         {
             string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=user_chars&userid={userId}";
 
-            XDocument responseDoc = await MakeGetCall(uri);
+            XDocument responseDoc = await MakeGetCallAsync(uri);
 
             ICollection<DkpUserCharacter> userCharacters = GetUserCharactersFromResponse(responseDoc, userId);
             if (userCharacters.Count == 0)
@@ -88,73 +88,73 @@ public sealed class DkpServer : IDkpServer
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {nameof(GetUserCharacters)} Error encountered in getting users for user ID: {userId}: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(GetUserCharactersAsync)} Error encountered in getting users for user ID: {userId}: {ex.ToLogMessage()}");
         }
 
         return null;
     }
 
-    public async Task<int> GetUserDkp(int userId)
+    public async Task<int> GetUserDkpAsync(int userId)
     {
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=points&filter=user&filterid={userId}";
 
         try
         {
-            XDocument responseDoc = await MakeGetCall(uri);
+            XDocument responseDoc = await MakeGetCallAsync(uri);
 
             int userDkp = GetUserDkpFromResponse(responseDoc);
             return userDkp;
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {nameof(GetUserDkp)} Error encountered in retrieving DKP for user ID {userId}: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(GetUserDkpAsync)} Error encountered in retrieving DKP for user ID {userId}: {ex.ToLogMessage()}");
         }
 
         return int.MinValue;
     }
 
-    public async Task<int> GetUserDkp(string characterName)
+    public async Task<int> GetUserDkpAsync(string characterName)
     {
         try
         {
-            int characterId = await GetCharacterIdFromServer(characterName);
+            int characterId = await GetCharacterIdFromServerAsync(characterName);
             if (characterId < 0)
                 return int.MinValue;
 
-            int userDkp = await GetUserDkpFromCharacterId(characterId);
+            int userDkp = await GetUserDkpFromCharacterIdAsync(characterId);
             return userDkp;
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {nameof(GetUserDkp)} Error encountered retrieving character ID or DKP for {characterName}: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(GetUserDkpAsync)} Error encountered retrieving character ID or DKP for {characterName}: {ex.ToLogMessage()}");
         }
         return int.MinValue;
     }
 
-    public async Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
+    public async Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
     {
         Log.Debug($"{LogPrefix} ------- Starting retrieval of IDs -------");
 
-        await GetEventIds(zoneNames, results);
+        await GetEventIdsAsync(zoneNames, results);
 
         foreach (string playerName in playerNames)
         {
-            await GetCharacterIdFromServer(playerName, results);
+            await GetCharacterIdFromServerAsync(playerName, results);
         }
 
         Log.Debug($"{LogPrefix} ------- Completed retrieval of IDs -------");
     }
 
-    public async Task UploadAdjustment(AdjustmentUploadInfo adjustment)
+    public async Task UploadAdjustmentAsync(AdjustmentUploadInfo adjustment)
     {
         string postBody = CraftAdjustmentString(adjustment);
-        await UploadMessage("add_adjustment", postBody);
+        await UploadMessageAsync("add_adjustment", postBody);
     }
 
-    public async Task UploadAttendance(AttendanceUploadInfo attendanceEntry)
+    public async Task UploadAttendanceAsync(AttendanceUploadInfo attendanceEntry)
     {
         string postBody = CraftAttendanceString(attendanceEntry);
-        string response = await UploadMessage("add_raid", postBody);
+        string response = await UploadMessageAsync("add_raid", postBody);
 
         XElement root = XDocument.Parse(response).Root;
         int raidId = (int)root.Descendants("raid_id").FirstOrDefault();
@@ -164,10 +164,10 @@ public sealed class DkpServer : IDkpServer
         _raidIdCache[attendanceEntry.CallName] = raidId;
     }
 
-    public async Task UploadDkpSpent(DkpUploadInfo dkpEntry)
+    public async Task UploadDkpSpentAsync(DkpUploadInfo dkpEntry)
     {
         string postBody = CraftDkpString(dkpEntry);
-        await UploadMessage("add_item", postBody);
+        await UploadMessageAsync("add_item", postBody);
     }
 
     private string CraftAdjustmentString(AdjustmentUploadInfo adjustment)
@@ -240,11 +240,11 @@ public sealed class DkpServer : IDkpServer
         return characterId;
     }
 
-    private async Task<int> GetCharacterIdFromServer(string characterName)
+    private async Task<int> GetCharacterIdFromServerAsync(string characterName)
     {
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=search&in=charname&for={characterName}";
 
-        XDocument responseDoc = await MakeGetCall(uri);
+        XDocument responseDoc = await MakeGetCallAsync(uri);
 
         int characterId = GetCharacterIdFromResponse(responseDoc);
 
@@ -255,11 +255,11 @@ public sealed class DkpServer : IDkpServer
         return characterId;
     }
 
-    private async Task GetCharacterIdFromServer(string characterName, RaidUploadResults results)
+    private async Task GetCharacterIdFromServerAsync(string characterName, RaidUploadResults results)
     {
         try
         {
-            await GetCharacterIdFromServer(characterName);
+            await GetCharacterIdFromServerAsync(characterName);
         }
         catch (Exception ex)
         {
@@ -273,9 +273,9 @@ public sealed class DkpServer : IDkpServer
         }
     }
 
-    private async Task GetEventIds(IEnumerable<string> zoneNames, RaidUploadResults results)
+    private async Task GetEventIdsAsync(IEnumerable<string> zoneNames, RaidUploadResults results)
     {
-        XDocument eventIdsDoc = await GetEventIdsFromServer(results);
+        XDocument eventIdsDoc = await GetEventIdsFromServerAsync(results);
         if (results.EventIdCallFailure != null || eventIdsDoc == null)
             return;
 
@@ -318,13 +318,13 @@ public sealed class DkpServer : IDkpServer
         }
     }
 
-    private async Task<XDocument> GetEventIdsFromServer(RaidUploadResults results)
+    private async Task<XDocument> GetEventIdsFromServerAsync(RaidUploadResults results)
     {
         try
         {
             string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=events";
 
-            XDocument responseDoc = await MakeGetCall(uri);
+            XDocument responseDoc = await MakeGetCallAsync(uri);
             return responseDoc;
         }
         catch (Exception ex)
@@ -388,10 +388,10 @@ public sealed class DkpServer : IDkpServer
         return userChars;
     }
 
-    private async Task<int> GetUserDkpFromCharacterId(int characterId)
+    private async Task<int> GetUserDkpFromCharacterIdAsync(int characterId)
     {
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=points&filter=character&filterid={characterId}";
-        XDocument responseDoc = await MakeGetCall(uri);
+        XDocument responseDoc = await MakeGetCallAsync(uri);
 
         int userDkp = GetUserDkpFromResponse(responseDoc);
         return userDkp;
@@ -406,7 +406,7 @@ public sealed class DkpServer : IDkpServer
         return (int)currentPointsElement;
     }
 
-    private async Task<XDocument> MakeGetCall(string url)
+    private async Task<XDocument> MakeGetCallAsync(string url)
     {
         Log.Debug($"{LogPrefix} ---- Making GET call with URL: {url}");
 
@@ -430,7 +430,7 @@ public sealed class DkpServer : IDkpServer
         return new string(sanitizedChars);
     }
 
-    private async Task<string> UploadMessage(string function, string content)
+    private async Task<string> UploadMessageAsync(string function, string content)
     {
         Log.Trace($"{LogPrefix} Uploading to function '{function}' with POST body:{Environment.NewLine}{content}");
 
@@ -473,21 +473,21 @@ public sealed class DkpUserCharacter
 
 public interface IDkpServer
 {
-    Task<int> GetCharacterId(string characterName);
+    Task<int> GetCharacterIdAsync(string characterName);
 
-    Task<ICollection<PreviousRaid>> GetPriorRaids(int numbeOfRaids);
+    Task<ICollection<PreviousRaid>> GetPriorRaidsAsync(int numbeOfRaids);
 
-    Task<ICollection<DkpUserCharacter>> GetUserCharacters(int userId);
+    Task<ICollection<DkpUserCharacter>> GetUserCharactersAsync(int userId);
 
-    Task<int> GetUserDkp(int userId);
+    Task<int> GetUserDkpAsync(int userId);
 
-    Task<int> GetUserDkp(string characterName);
+    Task<int> GetUserDkpAsync(string characterName);
 
-    Task InitializeIdentifiers(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
+    Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
 
-    Task UploadAdjustment(AdjustmentUploadInfo adjustment);
+    Task UploadAdjustmentAsync(AdjustmentUploadInfo adjustment);
 
-    Task UploadAttendance(AttendanceUploadInfo attendanceEntry);
+    Task UploadAttendanceAsync(AttendanceUploadInfo attendanceEntry);
 
-    Task UploadDkpSpent(DkpUploadInfo dkpEntry);
+    Task UploadDkpSpentAsync(DkpUploadInfo dkpEntry);
 }

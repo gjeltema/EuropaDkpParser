@@ -78,7 +78,7 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
 
     private bool PerformingParse { get; set => SetProperty(ref field, value); }
 
-    private async Task ExecuteParse(Func<DateTime, DateTime, Task> parseToExecute)
+    private async Task ExecuteParseAsync(Func<DateTime, DateTime, Task> parseToExecute)
     {
         if (!_logGenerator.ValidateTimeSettings(StartTimeText, EndTimeText, out DateTime startTime, out DateTime endTime))
             return;
@@ -102,7 +102,7 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         if (!TimesAreValid())
             return;
 
-        await ExecuteParse(GetAllCommunicationAsync);
+        await ExecuteParseAsync(GetAllCommunicationAsync);
     }
 
     private async Task GetAllCommunicationAsync(DateTime startTime, DateTime endTime)
@@ -116,7 +116,7 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         if (!TimesAreValid())
             return;
 
-        await ExecuteParse(GetRaidSummaryAsync);
+        await ExecuteParseAsync(GetRaidSummaryAsync);
     }
 
     private async Task GetRaidSummaryAsync(DateTime startTime, DateTime endTime)
@@ -127,7 +127,7 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         if (!TimesAreValid())
             return;
 
-        await ExecuteParse(GetSearchTermAsync);
+        await ExecuteParseAsync(GetSearchTermAsync);
     }
 
     private async Task GetSearchTermAsync(DateTime startTime, DateTime endTime)
@@ -145,7 +145,7 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         if (!TimesAreValid())
             return;
 
-        await ExecuteParse(ParseConversationAsync);
+        await ExecuteParseAsync(ParseConversationAsync);
     }
 
     private async Task ParseConversationAsync(DateTime startTime, DateTime endTime)

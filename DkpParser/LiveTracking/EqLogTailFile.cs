@@ -26,6 +26,7 @@ public sealed class EqLogTailFile : IEqLogTailFile
 
     private const string LogPrefix = $"[{nameof(EqLogTailFile)}]";
     private const string MezBreakIdentifier = " is no longer mezzed. (";
+    public static readonly EqLogTailFile Instance = new();
     private readonly DelimiterStringSanitizer _sanitizer = new();
     private ActiveBiddingAnalyzer _activeBiddingAnalyzer;
     private ActiveBossKillAnalyzer _activeBossKillAnalyzer;
@@ -40,8 +41,6 @@ public sealed class EqLogTailFile : IEqLogTailFile
     private Timer _updateTimer;
 
     private EqLogTailFile() { }
-
-    public static EqLogTailFile Instance { get; } = new EqLogTailFile();
 
     public bool IsSendingMessages
         => _tailFile?.IsSendingMessages ?? false;

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// CharacterInventoryParser.cs Copyright 2025 Craig Gjeltema
+// CharacterInventoryParser.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser.Parsers;
@@ -11,7 +11,7 @@ public sealed class CharacterInventoryParser
 {
     private const string LogPrefix = $"[{nameof(CharacterInventoryParser)}]";
 
-    public async Task AggregateInventoryFromDirectories(IEnumerable<string> inventoryDirectories, string outputFilePath)
+    public async Task AggregateInventoryFromDirectoriesAsync(IEnumerable<string> inventoryDirectories, string outputFilePath)
     {
         IEnumerable<string> fileContents = [];
         foreach (string inventoryDirectory in inventoryDirectories)
@@ -22,14 +22,14 @@ public sealed class CharacterInventoryParser
                 continue;
 
             IEnumerable<string> inventoryFiles = Directory.EnumerateFiles(inventoryDirectory, "*-Inventory.txt");
-            ICollection<string> inventoryFileContentsFromDir = await GetAggregateInventoryFilesContents(inventoryFiles);
+            ICollection<string> inventoryFileContentsFromDir = await GetAggregateInventoryFilesContentsAsync(inventoryFiles);
             fileContents = fileContents.Concat(inventoryFileContentsFromDir);
         }
 
-        await CreateFile(outputFilePath, fileContents);
+        await CreateFileAsync(outputFilePath, fileContents);
     }
 
-    public async Task<ICollection<string>> GetAggregateInventoryFilesContents(IEnumerable<string> inventoryFilePaths)
+    public async Task<ICollection<string>> GetAggregateInventoryFilesContentsAsync(IEnumerable<string> inventoryFilePaths)
     {
         List<string> fileContents = [];
         fileContents.Add($"{"Name",-37} {"Count",-3} {"Loc",-17} {"Slots",-3} {"ID",-2}");
@@ -38,7 +38,7 @@ public sealed class CharacterInventoryParser
         foreach (string inventoryFilePath in inventoryFilePaths)
         {
             fileContents.Add(inventoryFilePath);
-            ICollection<InventoryItem> inventoryItems = await GetInventoryItemsFromFile(inventoryFilePath);
+            ICollection<InventoryItem> inventoryItems = await GetInventoryItemsFromFileAsync(inventoryFilePath);
             fileContents.AddRange(inventoryItems.Select(x => x.ToAggregateFileString()));
             fileContents.Add(string.Empty);
         }
@@ -77,7 +77,7 @@ public sealed class CharacterInventoryParser
         return inventoryItems;
     }
 
-    public async Task<ICollection<InventoryItem>> GetInventoryItemsFromFile(string inventoryFilePath)
+    public async Task<ICollection<InventoryItem>> GetInventoryItemsFromFileAsync(string inventoryFilePath)
     {
         if (File.Exists(inventoryFilePath))
         {
@@ -95,7 +95,7 @@ public sealed class CharacterInventoryParser
         return GetInventoryItems(inventoryFileContents.Skip(1));
     }
 
-    private async Task<bool> CreateFile(string fileToWriteTo, IEnumerable<string> fileContents)
+    private async Task<bool> CreateFileAsync(string fileToWriteTo, IEnumerable<string> fileContents)
     {
         try
         {
@@ -105,7 +105,7 @@ public sealed class CharacterInventoryParser
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {nameof(CreateFile)} failed to create {fileToWriteTo}: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(CreateFileAsync)} failed to create {fileToWriteTo}: {ex.ToLogMessage()}");
             return false;
         }
     }

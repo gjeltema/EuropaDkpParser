@@ -19,38 +19,6 @@ public sealed class UploadRaidInfo
 
     public ICollection<DkpUploadInfo> DkpInfo { get; init; }
 
-    public async static Task<UploadRaidInfo> Create(IDkpAdjustments dkpAdjustments, RaidEntries raidEntries, IDkpParserSettings settings)
-    {
-        ICollection<AttendanceUploadInfo> attendanceUploadInfo = raidEntries.AttendanceEntries
-            .OrderBy(x => x.Timestamp)
-            .Select(x => new AttendanceUploadInfo
-            {
-                Timestamp = x.Timestamp,
-                CallName = x.CallName,
-                ZoneName = x.ZoneName,
-                AttendanceCallType = x.AttendanceCallType,
-                Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
-                DkpAwarded = GetDkpAwarded(x, raidEntries, settings)
-            }).ToList();
-
-        IOrderedEnumerable<DkpEntry> dkpEntries = raidEntries.DkpEntries.OrderBy(x => x.Timestamp);
-        ICollection<DkpUploadInfo> dkpUploadInfo = await GetDkpInfo(dkpEntries, raidEntries, dkpAdjustments);
-
-        ICollection<string> allCharacterNames = raidEntries.AllCharactersInRaid
-            .Select(x => x.CharacterName)
-            .Union(raidEntries.DkpEntries.Select(x => x.CharacterName))
-            .Union(raidEntries.Transfers.Select(x => x.ToCharacterName))
-            .Order()
-            .ToList();
-
-        return new UploadRaidInfo
-        {
-            AttendanceInfo = attendanceUploadInfo,
-            DkpInfo = dkpUploadInfo,
-            CharacterNames = allCharacterNames
-        };
-    }
-
     /// <summary>
     /// Used for uploading only select attendances, assumes zone names are already sanitized.
     /// </summary>
@@ -71,6 +39,38 @@ public sealed class UploadRaidInfo
             }).ToList(),
             DkpInfo = [],
             CharacterNames = charactersToBeUploaded.Select(x => x.CharacterName).ToList()
+        };
+    }
+
+    public async static Task<UploadRaidInfo> CreateAsync(IDkpAdjustments dkpAdjustments, RaidEntries raidEntries, IDkpParserSettings settings)
+    {
+        ICollection<AttendanceUploadInfo> attendanceUploadInfo = raidEntries.AttendanceEntries
+            .OrderBy(x => x.Timestamp)
+            .Select(x => new AttendanceUploadInfo
+            {
+                Timestamp = x.Timestamp,
+                CallName = x.CallName,
+                ZoneName = x.ZoneName,
+                AttendanceCallType = x.AttendanceCallType,
+                Characters = ConvertTransfers(x.Characters, raidEntries.Transfers),
+                DkpAwarded = GetDkpAwarded(x, raidEntries, settings)
+            }).ToList();
+
+        IOrderedEnumerable<DkpEntry> dkpEntries = raidEntries.DkpEntries.OrderBy(x => x.Timestamp);
+        ICollection<DkpUploadInfo> dkpUploadInfo = await GetDkpInfoAsync(dkpEntries, raidEntries, dkpAdjustments);
+
+        ICollection<string> allCharacterNames = raidEntries.AllCharactersInRaid
+            .Select(x => x.CharacterName)
+            .Union(raidEntries.DkpEntries.Select(x => x.CharacterName))
+            .Union(raidEntries.Transfers.Select(x => x.ToCharacterName))
+            .Order()
+            .ToList();
+
+        return new UploadRaidInfo
+        {
+            AttendanceInfo = attendanceUploadInfo,
+            DkpInfo = dkpUploadInfo,
+            CharacterNames = allCharacterNames
         };
     }
 
@@ -105,7 +105,7 @@ public sealed class UploadRaidInfo
         return dkpValue;
     }
 
-    private async static Task<ICollection<DkpUploadInfo>> GetDkpInfo(IEnumerable<DkpEntry> dkpEntries, RaidEntries raidEntries, IDkpAdjustments dkpAdjustments)
+    private async static Task<ICollection<DkpUploadInfo>> GetDkpInfoAsync(IEnumerable<DkpEntry> dkpEntries, RaidEntries raidEntries, IDkpAdjustments dkpAdjustments)
     {
         // Need to clear this in case of an error in uploading, and the user clears the error and re-uploads.  If not cleared, there may be multiple identical entries.
         raidEntries.Discounts.Clear();
@@ -121,7 +121,7 @@ public sealed class UploadRaidInfo
                 // Verify that the character was present for more than 2 attendance calls, to ensure they were not just popping in to loot
                 int numberOfAttendances = raidEntries.AttendanceEntries.Where(x => x.Characters.Contains(character)).Take(3).Count();
                 if (numberOfAttendances > 2)
-                    dkpAmount = await dkpAdjustments.GetDkpDiscountedAmount(dkpEntry, character.ClassName, associatedCall);
+                    dkpAmount = await dkpAdjustments.GetDkpDiscountedAmountAsync(dkpEntry, character.ClassName, associatedCall);
             }
 
             if (dkpAmount != dkpEntry.DkpSpent)

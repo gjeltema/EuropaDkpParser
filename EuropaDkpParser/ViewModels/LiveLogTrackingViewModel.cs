@@ -21,6 +21,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly IDkpDataRetriever _dkpDataRetriever;
     private readonly IEqLogTailFile _eqLogTailFile;
     private readonly IOverlayFactory _overlayFactory;
+    private readonly IRaidAttendance _raidAttendance;
     private readonly IReadyCheckOverlayViewModel _readyCheckOverlayViewModel;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(2);
@@ -34,6 +35,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         IWindowViewFactory windowViewFactory,
         IDkpParserSettings settings,
         IEqLogTailFile eqLogTailFile,
+        IRaidAttendance raidAttendance,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory)
@@ -42,9 +44,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _settings = settings;
         _overlayFactory = overlayFactory;
         _eqLogTailFile = eqLogTailFile;
+        _raidAttendance = raidAttendance;
 
         _dkpDataRetriever = new DkpDataRetriever(settings);
-        _activeBidTracker = new(settings, eqLogTailFile);
+        _activeBidTracker = new(settings, eqLogTailFile, raidAttendance);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, this, overlayFactory, dialogFactory);
 
@@ -468,7 +471,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _auctioneerOverlay?.Close();
         if (showOverlay)
         {
-            _auctioneerOverlay = _overlayFactory.CreateAuctioneerOverlayViewModel(_settings, _eqLogTailFile);
+            _auctioneerOverlay = _overlayFactory.CreateAuctioneerOverlayViewModel(_settings, _eqLogTailFile, _raidAttendance);
             _auctioneerOverlay.CreateShowAndHideOverlay();
         }
         else
@@ -503,8 +506,10 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
         DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(characterName);
         int userDkp = dkpCharacter == null
-            ? await _dkpDataRetriever.GetUserDkp(characterName)
-            : await _dkpDataRetriever.GetUserDkp(dkpCharacter);
+            ? await _dkpDataRetriever.GetUserDkpAsync(characterName)
+            : await _dkpDataRetriever.GetUserDkpAsync(dkpCharacter);
+
+        RaidAttendanceInfo ra = await _raidAttendance.Get30DayRaidAttendanceAsync(dkpCharacter?.Name ?? characterName);
 
         if (userDkp < -100000)
         {
@@ -512,7 +517,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         }
         else
         {
-            MessageDialog.ShowDialog($"{characterName} has {userDkp} DKP", "DKP Amount", fontSize: DkpDisplayFontSize);
+            MessageDialog.ShowDialog($"{characterName} has {userDkp} DKP, {ra.ThirtyDayRA:0}%RA", "DKP Amount", fontSize: DkpDisplayFontSize);
         }
     }
 

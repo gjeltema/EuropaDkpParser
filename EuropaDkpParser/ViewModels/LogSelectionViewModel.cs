@@ -208,7 +208,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         try
         {
             ShowProgress = true;
-            ICollection<DkpUserCharacter> dkpCharacters = await _dkpDataRetriever.GetUserCharacters();
+            ICollection<DkpUserCharacter> dkpCharacters = await _dkpDataRetriever.GetUserCharactersAsync();
             _settings.CharactersOnDkpServer.SaveValues(dkpCharacters);
         }
         finally
