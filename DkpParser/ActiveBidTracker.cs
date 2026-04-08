@@ -458,7 +458,9 @@ public sealed class ActiveBidTracker : IActiveBidTracker
 
         double bidderRA = _raidAttendance.GetAll30DayRaidAttendances().FirstOrDefault(x => x.CharacterName == bid.CharacterBeingBidFor)?.ThirtyDayRA ?? 0.0;
         bid.RaidAttendance = bidderRA;
-        bid.CharacterNotOnDkpServer = bid.CharacterNotOnDkpServer || bidderRA > 0.0;
+        if (bid.CharacterNotOnDkpServer && bidderRA > 0.0)
+            bid.CharacterNotOnDkpServer = false;
+
         _bids = _bids.Add(bid);
 
         Updated = true;

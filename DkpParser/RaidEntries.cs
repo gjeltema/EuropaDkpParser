@@ -9,7 +9,7 @@ using System.Diagnostics;
 [DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllCharactersInRaid.Count}")]
 public sealed class RaidEntries
 {
-    private static readonly TimeSpan KillCallToClose = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan KillCallTooClose = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan MaxTimeThresholdForKillCall = TimeSpan.FromMinutes(15);
 
     public ICollection<AfkEntry> AfkEntries { get; } = new List<AfkEntry>();
@@ -152,7 +152,7 @@ public sealed class RaidEntries
         if (killCallPrior != null)
         {
             TimeSpan timeDifference = referenceTime - killCallPrior.Timestamp;
-            if (timeDifference <= KillCallToClose)
+            if (timeDifference <= KillCallTooClose)
             {
                 AttendanceEntry killCallSecondPrior = AttendanceEntries
                     .Where(x => x.AttendanceCallType == AttendanceCallType.Kill && x.Timestamp < killCallPrior.Timestamp)
