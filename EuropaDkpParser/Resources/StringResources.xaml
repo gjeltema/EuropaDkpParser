@@ -340,6 +340,8 @@
     <system:String x:Key="ReadingLogFile">Reading Log File</system:String>
     <system:String x:Key="DkpBidCrafter">DKP Bid Crafter</system:String>
     <system:String x:Key="DkpText">DKP</system:String>
+    <system:String x:Key="CopyStatusText">Copy Status</system:String>
+    <system:String x:Key="CopySpentText">Copy SPENT</system:String>
 
     <!-- ReminderDialog -->
     <system:String x:Key="RemindInInterval">Remind me again in</system:String>

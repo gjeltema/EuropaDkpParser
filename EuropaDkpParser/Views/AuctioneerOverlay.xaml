@@ -15,57 +15,57 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
-        <!-- ActiveAuctions -->
-            <ListView Grid.Row="0" x:Name="ActiveAuctionListing" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" 
-                Margin="0,0,0,5" Background="Transparent" BorderBrush="#55101010" BorderThickness="1">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=Auctioneer}" Value="You">
-                                <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundOkBrush}"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=HasNewBidsAdded}" Value="True">
-                                <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListView.ItemContainerStyle>
-            </ListView>
 
-            <!-- Buttons -->
+        <!-- ActiveAuctions -->
+        <ListView Grid.Row="0" x:Name="ActiveAuctionListing" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" 
+                Margin="0,0,0,5" Background="Transparent" BorderBrush="#55101010" BorderThickness="1">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=Auctioneer}" Value="You">
+                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundOkBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=HasNewBidsAdded}" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+
+        <!-- Buttons -->
         <Grid Grid.Row="1" Margin="0,5,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            
+
             <Button Grid.Column="0" Content="{StaticResource SetAuctionToCompleted}" Command="{Binding SetActiveAuctionToCompletedCommand}" 
                     HorizontalAlignment="Left" Width="110" Height="30" Opacity=".7"/>
 
-                <Button Grid.Column="1" Content="{Binding CurrentStatusMarker}" Command="{Binding CycleToNextStatusMarkerCommand}" 
+            <Button Grid.Column="1" Content="{Binding CurrentStatusMarker}" Command="{Binding CycleToNextStatusMarkerCommand}" 
                     VerticalAlignment="Top" Width="50" Height="30" Margin="0,0,5,0" Opacity=".7"/>
 
-                <Button Grid.Column="2" Content="{StaticResource CopyText}" Command="{Binding CopySelectedStatusMessageToClipboardCommand}" 
-                    VerticalAlignment="Top" Width="85" Height="30" Opacity=".7"/>
-            </Grid>
+            <Button Grid.Column="2" Content="{StaticResource CopyStatusText}" Command="{Binding CopySelectedStatusMessageToClipboardCommand}" 
+                    VerticalAlignment="Top" Width="100" Height="30" Opacity=".7"/>
+        </Grid>
 
-            <!-- SPENT calls -->
-            <ListView Grid.Row="2" ItemsSource="{Binding SpentMessagesToPaste}" SelectedItem="{Binding SelectedSpentMessageToPaste}"
+        <!-- SPENT calls -->
+        <ListView Grid.Row="2" ItemsSource="{Binding SpentMessagesToPaste}" SelectedItem="{Binding SelectedSpentMessageToPaste}"
                        Background="Transparent" BorderBrush="#55101010" BorderThickness="1">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=SpentCallSent}" Value="True">
-                                <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundOkBrush}"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListView.ItemContainerStyle>
-            </ListView>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=SpentCallSent}" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundOkBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
 
-        <Button Grid.Row="3" Content="{StaticResource CopyText}" Command="{Binding CopySelectedSpentCallToClipboardCommand}" 
-                    HorizontalAlignment="Right" Width="85" Height="30" Margin="0,5,0,0" Opacity=".7"/>
+        <Button Grid.Row="3" Content="{StaticResource CopySpentText}" Command="{Binding CopySelectedSpentCallToClipboardCommand}" 
+                    HorizontalAlignment="Right" Width="100" Height="30" Margin="0,5,0,0" Opacity=".7"/>
     </Grid>
 </UserControl>
