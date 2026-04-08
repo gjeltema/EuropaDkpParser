@@ -107,12 +107,9 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         await InitializeRaidAttendanceCalculatorAsync();
     }
 
-    private async void OpenDkpParserDialog()
-        => await OpenDkpParserDialogAsync();
-
-    private async Task OpenDkpParserDialogAsync()
+    private void OpenDkpParserDialog()
     {
-        await InitializeRaidAttendanceCalculatorAsync();
+        Task.Run(() => InitializeRaidAttendanceCalculatorAsync());
         IDkpParseDialogViewModel dkpDialog = _dialogFactory.CreateDkpParseDialogViewModel(_settings, _dialogFactory);
         dkpDialog.ShowDialog();
     }
