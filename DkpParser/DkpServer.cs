@@ -94,41 +94,37 @@ public sealed class DkpServer : IDkpServer
         return null;
     }
 
-    public async Task<int> GetUserDkpAsync(int userId)
+    public async Task<CharacterDkpAmounts> GetUserDkpAsync(int characterId)
     {
-        string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=points&filter=user&filterid={userId}";
-
         try
         {
-            XDocument responseDoc = await MakeGetCallAsync(uri);
-
-            int userDkp = GetUserDkpFromResponse(responseDoc);
-            return userDkp;
+            CharacterDkpAmounts userDkp = await GetUserDkpFromCharacterIdAsync(characterId);
+            return userDkp ?? new CharacterDkpAmounts { CharacterId = characterId };
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {nameof(GetUserDkpAsync)} Error encountered in retrieving DKP for user ID {userId}: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(GetUserDkpAsync)} Error encountered in retrieving DKP for user ID {characterId}: {ex.ToLogMessage()}");
         }
 
-        return int.MinValue;
+        return new CharacterDkpAmounts { CharacterId = characterId };
     }
 
-    public async Task<int> GetUserDkpAsync(string characterName)
+    public async Task<CharacterDkpAmounts> GetUserDkpAsync(string characterName)
     {
         try
         {
             int characterId = await GetCharacterIdFromServerAsync(characterName);
             if (characterId < 0)
-                return int.MinValue;
+                return new CharacterDkpAmounts { CharacterName = characterName };
 
-            int userDkp = await GetUserDkpFromCharacterIdAsync(characterId);
-            return userDkp;
+            CharacterDkpAmounts userDkp = await GetUserDkpFromCharacterIdAsync(characterId);
+            return userDkp ?? new CharacterDkpAmounts { CharacterId = characterId, CharacterName = characterName };
         }
         catch (Exception ex)
         {
             Log.Error($"{LogPrefix} {nameof(GetUserDkpAsync)} Error encountered retrieving character ID or DKP for {characterName}: {ex.ToLogMessage()}");
         }
-        return int.MinValue;
+        return new CharacterDkpAmounts { CharacterName = characterName };
     }
 
     public async Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
@@ -388,22 +384,56 @@ public sealed class DkpServer : IDkpServer
         return userChars;
     }
 
-    private async Task<int> GetUserDkpFromCharacterIdAsync(int characterId)
+    private async Task<CharacterDkpAmounts> GetUserDkpFromCharacterIdAsync(int characterId)
     {
         string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=points&filter=character&filterid={characterId}";
         XDocument responseDoc = await MakeGetCallAsync(uri);
 
-        int userDkp = GetUserDkpFromResponse(responseDoc);
+        Log.Trace($"{LogPrefix} {nameof(GetUserDkpFromCharacterIdAsync)} response:{Environment.NewLine}{responseDoc}");
+
+        CharacterDkpAmounts userDkp = GetUserDkpFromResponse(responseDoc);
         return userDkp;
     }
 
-    private int GetUserDkpFromResponse(XDocument responseDoc)
+    private CharacterDkpAmounts GetUserDkpFromResponse(XDocument responseDoc)
     {
-        XElement currentPointsElement = responseDoc.Root.Descendants("points_current_with_twink").FirstOrDefault();
-        if (currentPointsElement == null)
-            return int.MinValue;
+        XElement playerElement = responseDoc.Root.Descendants("player").FirstOrDefault();
+        if (playerElement == null)
+            return null;
 
-        return (int)currentPointsElement;
+        int characterId = (int)playerElement.Element("id");
+        string characterName = (string)playerElement.Element("name");
+        string characterClass = (string)playerElement.Element("class_name");
+        int mainId = (int)playerElement.Element("main_id");
+        string mainName = (string)playerElement.Element("main_name");
+
+        XElement multiDkpPoints = responseDoc.Root.Descendants("multidkp_points").FirstOrDefault();
+        int characterCurrentDkp = (int)multiDkpPoints.Element("points_current");
+        int characterEarnedDkp = (int)multiDkpPoints.Element("points_earned");
+        int characterSpentDkp = (int)multiDkpPoints.Element("points_spent");
+        int characterAdjustedDkp = (int)multiDkpPoints.Element("points_adjustment");
+
+        int userCurrentDkp = (int)multiDkpPoints.Element("points_current_with_twink");
+        int userEarnedDkp = (int)multiDkpPoints.Element("points_earned_with_twink");
+        int userSpentDkp = (int)multiDkpPoints.Element("points_spent_with_twink");
+        int userAdjustedDkp = (int)multiDkpPoints.Element("points_adjustment_with_twink");
+
+        return new CharacterDkpAmounts
+        {
+            CharacterId = characterId,
+            CharacterName = characterName,
+            MainCharacterId = mainId,
+            MainCharacterName = mainName,
+            ClassName = characterClass,
+            CharacterCurrentDkp = characterCurrentDkp,
+            CharacterTotalEarnedDkp = characterEarnedDkp,
+            CharacterTotalSpentDkp = characterSpentDkp,
+            CharacterAdjustedDkp = characterAdjustedDkp,
+            UserCurrentDkp = userCurrentDkp,
+            UserTotalEarnedDkp = userEarnedDkp,
+            UserTotalSpentDkp = userSpentDkp,
+            UserAdjustedDkp = userAdjustedDkp
+        };
     }
 
     private async Task<XDocument> MakeGetCallAsync(string url)
@@ -471,6 +501,39 @@ public sealed class DkpUserCharacter
         => $"{UserId,-4} {Name} {Level} {ClassName}";
 }
 
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class CharacterDkpAmounts
+{
+    public int CharacterAdjustedDkp { get; init; } = int.MinValue;
+
+    public int CharacterCurrentDkp { get; init; } = int.MinValue;
+
+    public int CharacterId { get; init; } = -1;
+
+    public string CharacterName { get; init; } = string.Empty;
+
+    public int CharacterTotalEarnedDkp { get; init; } = int.MinValue;
+
+    public int CharacterTotalSpentDkp { get; init; } = int.MinValue;
+
+    public string ClassName { get; init; }
+
+    public int MainCharacterId { get; init; } = int.MinValue;
+
+    public string MainCharacterName { get; init; } = string.Empty;
+
+    public int UserAdjustedDkp { get; init; } = int.MinValue;
+
+    public int UserCurrentDkp { get; init; } = int.MinValue;
+
+    public int UserTotalEarnedDkp { get; init; } = int.MinValue;
+
+    public int UserTotalSpentDkp { get; init; } = int.MinValue;
+
+    private string DebugText
+       => $"{CharacterName} ID:{CharacterId} {UserCurrentDkp} DKP";
+}
+
 public interface IDkpServer
 {
     Task<int> GetCharacterIdAsync(string characterName);
@@ -479,9 +542,9 @@ public interface IDkpServer
 
     Task<ICollection<DkpUserCharacter>> GetUserCharactersAsync(int userId);
 
-    Task<int> GetUserDkpAsync(int userId);
+    Task<CharacterDkpAmounts> GetUserDkpAsync(int userId);
 
-    Task<int> GetUserDkpAsync(string characterName);
+    Task<CharacterDkpAmounts> GetUserDkpAsync(string characterName);
 
     Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
 

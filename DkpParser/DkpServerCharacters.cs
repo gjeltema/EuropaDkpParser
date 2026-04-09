@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpServerCharacters.cs Copyright 2025 Craig Gjeltema
+// DkpServerCharacters.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -22,6 +22,15 @@ public sealed class DkpServerCharacters
 
     public IEnumerable<DkpUserCharacter> AllUserCharacters
         => _userCharacters;
+
+    public bool AddCharacter(DkpUserCharacter userCharacter)
+    {
+        if (_userCharacters.Any(x => x.UserId == userCharacter.UserId && x.CharacterId == userCharacter.CharacterId))
+            return false;
+
+        _userCharacters.Add(userCharacter);
+        return true;
+    }
 
     public bool CharacterConfirmedExistsOnDkpServer(string characterName)
         => _userCharacters.Count > 0 && _userCharacters.Any(x => x.Name == characterName);
@@ -130,13 +139,13 @@ public sealed class DkpServerCharacters
     public void SaveValues()
         => SaveValues(_userCharacters);
 
-    public void SaveValues(ICollection<DkpUserCharacter> characters)
+    public void SaveValues(IEnumerable<DkpUserCharacter> characters)
     {
         try
         {
-            _userCharacters = characters;
-            IEnumerable<string> lines = GetFileLines(characters);
-            File.WriteAllLines(_dkpCharactersFileName, lines);
+            _userCharacters = characters.OrderBy(x => x.UserId).ThenBy(x => x.CharacterId).ToList();
+            IEnumerable<string> lines = GetFileLines(_userCharacters);
+            Task.Run(() => File.WriteAllLines(_dkpCharactersFileName, lines));
         }
         catch (Exception ex)
         {

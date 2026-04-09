@@ -41,17 +41,20 @@ public sealed class RaidAttendanceCalculator : IRaidAttendance
         }
     }
 
-    public async Task<RaidAttendanceInfo> Get30DayRaidAttendanceAsync(string characterName)
+    public async Task<RaidAttendanceInfo> Get30DayRaidAttendanceAsync(string characterName, int characterId = -1)
     {
         string normalizedCharacterName = characterName.NormalizeName();
 
         if (_raidAttendances.TryGetValue(normalizedCharacterName, out RaidAttendanceInfo ra))
             return ra;
 
-        int characterId = await GetCharacterIdAsync(normalizedCharacterName);
-        Log.Debug($"{LogPrefix} CharacterID for {normalizedCharacterName} obtained: {characterId}.");
         if (characterId < 1)
-            return CreateRaidAttendanceInfo(normalizedCharacterName, characterId);
+        {
+            characterId = await GetCharacterIdAsync(normalizedCharacterName);
+            Log.Debug($"{LogPrefix} CharacterID for {normalizedCharacterName} obtained: {characterId}.");
+            if (characterId < 1)
+                return CreateRaidAttendanceInfo(normalizedCharacterName, characterId);
+        }
 
         double raidAtt = CalculateRaidAttendance(characterId);
         RaidAttendanceInfo raidAttInfo = CreateRaidAttendanceInfo(normalizedCharacterName, characterId, 0, raidAtt);
@@ -100,7 +103,7 @@ public sealed class RaidAttendanceCalculator : IRaidAttendance
 
 public interface IRaidAttendance
 {
-    Task<RaidAttendanceInfo> Get30DayRaidAttendanceAsync(string characterName);
+    Task<RaidAttendanceInfo> Get30DayRaidAttendanceAsync(string characterName, int characterid = -1);
 
     IEnumerable<RaidAttendanceInfo> GetAll30DayRaidAttendances();
 }

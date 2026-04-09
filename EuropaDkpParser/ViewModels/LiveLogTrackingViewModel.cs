@@ -28,6 +28,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly DispatcherTimer _updateTimer;
     private readonly IZealMessageProvider _zealMessages;
     private IAuctioneerOverlayViewModel _auctioneerOverlay;
+    private bool _gettingCharacterDkp = false;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private ISpellTrackerOverlayViewModel _spellTracker;
 
@@ -494,6 +495,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     private async Task GetUserDkpAsync()
     {
+        if (_gettingCharacterDkp)
+            return;
+
         if (SelectedBid == null)
             return;
 
@@ -504,20 +508,27 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             return;
         }
 
-        DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(characterName);
-        int userDkp = dkpCharacter == null
-            ? await _dkpDataRetriever.GetUserDkpAsync(characterName)
-            : await _dkpDataRetriever.GetUserDkpAsync(dkpCharacter);
-
-        RaidAttendanceInfo ra = await _raidAttendance.Get30DayRaidAttendanceAsync(dkpCharacter?.Name ?? characterName);
-
-        if (userDkp < -100000)
+        try
         {
-            MessageDialog.ShowDialog($"Unable to retrieve DKP for {characterName}, likely does not exist on server.", "Unable To Retrieve DKP");
-        }
-        else
-        {
+            _gettingCharacterDkp = true;
+            DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(characterName);
+            CharacterDkpAmounts userDkp = dkpCharacter == null
+                ? await _dkpDataRetriever.GetUserDkpAsync(characterName)
+                : await _dkpDataRetriever.GetUserDkpAsync(dkpCharacter);
+
+            if (userDkp.CharacterCurrentDkp < -100000)
+            {
+                MessageDialog.ShowDialog($"Unable to retrieve DKP for {characterName}, likely does not exist on server.", "Unable To Retrieve DKP");
+                return;
+            }
+
+            RaidAttendanceInfo ra = await _raidAttendance.Get30DayRaidAttendanceAsync(dkpCharacter?.Name ?? characterName);
+
             MessageDialog.ShowDialog($"{characterName} has {userDkp} DKP, {ra.ThirtyDayRA:0}%RA", "DKP Amount", fontSize: DkpDisplayFontSize);
+        }
+        finally
+        {
+            _gettingCharacterDkp = false;
         }
     }
 

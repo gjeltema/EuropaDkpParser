@@ -18,7 +18,7 @@ public sealed class DkpDataRetriever : IDkpDataRetriever
     {
         int userId = 1;
         int numberOfEmptyResponses = 0;
-        List<DkpUserCharacter> allUserCharacters = new(1200);
+        List<DkpUserCharacter> allUserCharacters = new(1600);
         while (numberOfEmptyResponses < EmptyResponsesThreshold)
         {
             userId++;
@@ -37,18 +37,18 @@ public sealed class DkpDataRetriever : IDkpDataRetriever
         return allUserCharacters;
     }
 
-    public async Task<int> GetUserDkpAsync(string characterName)
+    public async Task<CharacterDkpAmounts> GetUserDkpAsync(string characterName)
     {
         if (string.IsNullOrWhiteSpace(characterName))
-            return int.MinValue;
+            return new CharacterDkpAmounts();
 
         return await _server.GetUserDkpAsync(characterName);
     }
 
-    public async Task<int> GetUserDkpAsync(DkpUserCharacter userCharacter)
+    public async Task<CharacterDkpAmounts> GetUserDkpAsync(DkpUserCharacter userCharacter)
     {
         if (userCharacter == null || userCharacter.UserId < 2)
-            return int.MinValue;
+            return new CharacterDkpAmounts { CharacterId = userCharacter.CharacterId, CharacterName = userCharacter.Name };
 
         return await _server.GetUserDkpAsync(userCharacter.UserId);
     }
@@ -62,11 +62,11 @@ public interface IDkpDataRetriever
     /// Gets the DKP amount for the character name from the DKP server.</br>
     /// If unable to retrieve the DKP amount, returns <see cref="int.MinValue"/>.
     /// </summary>
-    Task<int> GetUserDkpAsync(string characterName);
+    Task<CharacterDkpAmounts> GetUserDkpAsync(string characterName);
 
     /// <summary>
     /// Gets the DKP amount for the user account from the DKP server.</br>
     /// If unable to retrieve the DKP amount, returns <see cref="int.MinValue"/>.
     /// </summary>
-    Task<int> GetUserDkpAsync(DkpUserCharacter userCharacter);
+    Task<CharacterDkpAmounts> GetUserDkpAsync(DkpUserCharacter userCharacter);
 }
