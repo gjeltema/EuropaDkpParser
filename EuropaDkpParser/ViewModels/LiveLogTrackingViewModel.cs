@@ -524,7 +524,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
             RaidAttendanceInfo ra = await _raidAttendance.Get30DayRaidAttendanceAsync(dkpCharacter?.Name ?? characterName);
 
-            MessageDialog.ShowDialog($"{characterName} has {userDkp} DKP, {ra.ThirtyDayRA:0}%RA", "DKP Amount", fontSize: DkpDisplayFontSize);
+            MessageDialog.ShowDialog($"{characterName} has {userDkp.CharacterCurrentDkp} DKP, {ra.ThirtyDayRA:0}%RA", "DKP Amount", fontSize: DkpDisplayFontSize);
         }
         finally
         {
