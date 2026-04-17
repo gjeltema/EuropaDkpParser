@@ -17,8 +17,8 @@
         </Grid.RowDefinitions>
 
         <!-- ActiveAuctions -->
-        <ListView Grid.Row="0" x:Name="ActiveAuctionListing" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" 
-                Margin="0,0,0,5" Background="Transparent" BorderBrush="#55101010" BorderThickness="1">
+        <ListView Grid.Row="0" x:Name="ActiveAuctionListing" Opacity="0.5" ItemsSource="{Binding ActiveAuctions}" SelectedItem="{Binding SelectedActiveAuction}" 
+                Margin="0,0,0,5" BorderBrush="#55101010" BorderThickness="1">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Style.Triggers>
@@ -52,8 +52,8 @@
         </Grid>
 
         <!-- SPENT calls -->
-        <ListView Grid.Row="2" ItemsSource="{Binding SpentMessagesToPaste}" SelectedItem="{Binding SelectedSpentMessageToPaste}"
-                       Background="Transparent" BorderBrush="#55101010" BorderThickness="1">
+        <ListView Grid.Row="2" Opacity="0.5" ItemsSource="{Binding SpentMessagesToPaste}" SelectedItem="{Binding SelectedSpentMessageToPaste}"
+                       BorderBrush="#55101010" BorderThickness="1">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Style.Triggers>
