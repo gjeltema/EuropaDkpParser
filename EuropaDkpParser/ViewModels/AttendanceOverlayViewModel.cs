@@ -24,13 +24,17 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
     {
         _settings = settings;
         _attendanceSnapshot = attendanceSnapshot;
+
+        AllowResizing = true;
+
         XPos = _settings.OverlayLocationX;
         YPos = _settings.OverlayLocationY;
-        Width = 400;
-        Height = 60;
+        Width = _settings.OverlayWidth;
+        Height = _settings.OverlayHeight;
 
         DisplayFontSize = _settings.OverlayFontSize;
         DisplayColor = _settings.OverlayFontColor;
+        BackgroundColor = _settings.OverlayBackgroundColor;
 
         CopyAttendanceCallCommand = new DelegateCommand(CopyAttendanceCall);
     }
@@ -53,6 +57,8 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
     }
 
     public AttendanceCallType AttendanceType { get; set; }
+
+    public string BackgroundColor { get; }
 
     public DelegateCommand CopyAttendanceCallCommand { get; }
 
@@ -93,7 +99,7 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
 
         AttendanceName = _timeCalls[_timeCallIndex];
 
-        DisplayMessage = $"{AttendanceType} attendance:";
+        DisplayMessage = $"";
 
         CreateAndShowOverlay();
     }
@@ -103,7 +109,7 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
         AttendanceType = AttendanceCallType.Kill;
         IsTimeCall = false;
         AttendanceName = bossName;
-        DisplayMessage = $"{AttendanceType} attendance: {AttendanceName}";
+        DisplayMessage = $"{AttendanceName}";
 
         CreateAndShowOverlay();
     }
@@ -112,6 +118,8 @@ internal sealed class AttendanceOverlayViewModel : OverlayViewModelBase, IAttend
     {
         _settings.OverlayLocationX = XPos;
         _settings.OverlayLocationY = YPos;
+        _settings.OverlayHeight = Height;
+        _settings.OverlayWidth = Width;
         _settings.SaveSettings();
     }
 
@@ -129,6 +137,8 @@ public interface IAttendanceOverlayViewModel : IOverlayViewModel
     string AttendanceName { get; set; }
 
     AttendanceCallType AttendanceType { get; set; }
+
+    string BackgroundColor { get; }
 
     DelegateCommand CopyAttendanceCallCommand { get; }
 

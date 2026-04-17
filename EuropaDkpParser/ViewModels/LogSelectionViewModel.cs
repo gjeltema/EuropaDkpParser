@@ -57,6 +57,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
         OverlayFontSize = _settings.OverlayFontSize.ToString();
         OverlayFontColor = _settings.OverlayFontColor;
+        OverlayBackgroundColor = _settings.OverlayBackgroundColor;
 
         SelectedLoggingLevel = _settings.LoggingLevel.ToString();
 
@@ -107,6 +108,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public string OutputDirectory { get; set => SetProperty(ref field, value); }
 
+    public string OverlayBackgroundColor { get; set => SetProperty(ref field, value); }
+
     public string OverlayFontColor { get; set => SetProperty(ref field, value); }
 
     public string OverlayFontSize { get; set => SetProperty(ref field, value); }
@@ -151,6 +154,7 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.DkpspentGuEnabled = DkpspentGuEnable;
         _settings.UseLightMode = UseLightMode;
         _settings.OverlayFontColor = OverlayFontColor;
+        _settings.OverlayBackgroundColor = OverlayBackgroundColor;
         if (int.TryParse(OverlayFontSize, out int fontSize))
         {
             _settings.OverlayFontSize = fontSize;
@@ -297,6 +301,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     int MezBreaksToShow { get; set; }
 
     string OutputDirectory { get; set; }
+
+    string OverlayBackgroundColor { get; set; }
 
     string OverlayFontColor { get; set; }
 

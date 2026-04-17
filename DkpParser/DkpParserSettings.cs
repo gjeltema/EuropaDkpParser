@@ -25,7 +25,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string AuctionOverlayXLocSection = "AUCTION_OVERLAY_X";
     private const string AuctionOverlayYLocSection = "AUCTION_OVERLAY_Y";
     private const string DefaultMatchPattern = "*eqlog*.txt";
-    private const string DefaultOverlayFontColor = "#CCCCCC";
+    private const string DefaultOverlayBackgroundColor = "#CC3366";
+    private const string DefaultOverlayFontColor = "#000000";
     private const int DefaultWindowLocation = 200;
     private const char Delimiter = '=';
     private const string DkpspentGuildEnableSection = "DKPSPENT_GU_ENABLE";
@@ -38,11 +39,15 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string LogMatchPatternSection = "LOG_MATCH_PATTERN";
     private const string LogPrefix = $"[{nameof(DkpParserSettings)}]";
     private const string MezBreaksToShowSection = "MEZ_BREAKS_TO_SHOW";
+    private const string OldDefaultOverlayFontColor = "#CCCCCC";
     private const string OutputDirectorySection = "OUTPUT_DIRECTORY";
+    private const string OverlayBackgroundColorSection = "OVERLAY_BACKGROUND_COLOR";
     private const string OverlayFontColorSection = "OVERLAY_FONT_COLOR";
     private const string OverlayFontSizeSection = "OVERLAY_FONT_SIZE";
+    private const string OverlayHeightSection = "OVERLAY_HEIGHT";
     private const string OverlayLocationXSection = "OVERLAY_LOCATION_X";
     private const string OverlayLocationYSection = "OVERLAY_LOCATION_Y";
+    private const string OverlayWidthSection = "OVERLAY_WIDTH";
     private const string ReadyCheckHeightSection = "READY_CHECK_HEIGHT";
     private const string ReadyCheckWidthSection = "READY_CHECK_WIDTH";
     private const string ReadyCheckXLocSection = "READY_CHECK_X";
@@ -131,13 +136,19 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public string OutputDirectory { get; set; }
 
+    public string OverlayBackgroundColor { get; set; }
+
     public string OverlayFontColor { get; set; } = DefaultOverlayFontColor;
 
     public int OverlayFontSize { get; set; } = 20;
 
+    public int OverlayHeight { get; set; } = 60;
+
     public int OverlayLocationX { get; set; } = 100;
 
     public int OverlayLocationY { get; set; } = 100;
+
+    public int OverlayWidth { get; set; } = 400;
 
     public IRaidValues RaidValue { get; private set; }
 
@@ -226,8 +237,13 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         OverlayLocationX = GetIntValue(fileContents, OverlayLocationXSection, 100);
         OverlayLocationY = GetIntValue(fileContents, OverlayLocationYSection, 100);
+        OverlayHeight = GetIntValue(fileContents, OverlayHeightSection, 60);
+        OverlayWidth = GetIntValue(fileContents, OverlayWidthSection, 400);
         OverlayFontColor = GetStringValue(fileContents, OverlayFontColorSection, DefaultOverlayFontColor);
+        if (OverlayFontColor == OldDefaultOverlayFontColor)
+            OverlayFontColor = DefaultOverlayFontColor;
         OverlayFontSize = GetIntValue(fileContents, OverlayFontSizeSection, 20);
+        OverlayBackgroundColor = GetStringValue(fileContents, OverlayBackgroundColorSection, DefaultOverlayBackgroundColor);
 
         AuctionOverlayXLoc = GetIntValue(fileContents, AuctionOverlayXLocSection, 100);
         AuctionOverlayYLoc = GetIntValue(fileContents, AuctionOverlayYLocSection, 100);
@@ -290,8 +306,11 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(UseLightModeSection, UseLightMode),
             CreateFileEntry(OverlayLocationXSection, OverlayLocationX),
             CreateFileEntry(OverlayLocationYSection, OverlayLocationY),
+            CreateFileEntry(OverlayHeightSection, OverlayHeight),
+            CreateFileEntry(OverlayWidthSection, OverlayWidth),
             CreateFileEntry(OverlayFontColorSection, OverlayFontColor),
             CreateFileEntry(OverlayFontSizeSection, OverlayFontSize),
+            CreateFileEntry(OverlayBackgroundColorSection, OverlayBackgroundColor),
             CreateFileEntry(AuctionOverlayXLocSection, AuctionOverlayXLoc),
             CreateFileEntry(AuctionOverlayYLocSection, AuctionOverlayYLoc),
             CreateFileEntry(AuctionOverlayWidthSection, AuctionOverlayWidth),
@@ -630,13 +649,19 @@ public interface IDkpParserSettings
 
     string OutputDirectory { get; set; }
 
+    string OverlayBackgroundColor { get; set; }
+
     string OverlayFontColor { get; set; }
 
     int OverlayFontSize { get; set; }
 
+    int OverlayHeight { get; set; }
+
     int OverlayLocationX { get; set; }
 
     int OverlayLocationY { get; set; }
+
+    int OverlayWidth { get; set; }
 
     IRaidValues RaidValue { get; }
 

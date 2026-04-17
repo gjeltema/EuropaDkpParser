@@ -427,13 +427,19 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public string OutputDirectory { get; set; } = "C:\\";
 
+    public string OverlayBackgroundColor { get; set; }
+
     public string OverlayFontColor { get; set; }
 
     public int OverlayFontSize { get; set; }
 
+    public int OverlayHeight { get; set; }
+
     public int OverlayLocationX { get; set; }
 
     public int OverlayLocationY { get; set; }
+
+    public int OverlayWidth { get; set; }
 
     public IRaidValues RaidValue { get; } = new RaidValueMock();
 
