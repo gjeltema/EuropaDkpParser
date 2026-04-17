@@ -19,13 +19,13 @@ public sealed class WindowFactory : IWindowFactory
     public ILiveLogTrackingViewModel CreateLiveLogTrackingViewModel(
         IDkpParserSettings settings,
         IEqLogTailFile eqLogTailFile,
-        IRaidAttendance raidAttendance,
+        IRaidAttendanceCalc raidAttendance,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory)
         => new LiveLogTrackingViewModel(_viewFactory, settings, eqLogTailFile, raidAttendance, dialogFactory, overlayFactory, windowFactory);
 
-    public ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendance raidAttendance)
+    public ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendanceCalc raidAttendance)
         => new SimpleBidTrackerViewModel(_viewFactory, settings, eqLogTailFile, raidAttendance);
 }
 
@@ -34,10 +34,10 @@ public interface IWindowFactory
     ILiveLogTrackingViewModel CreateLiveLogTrackingViewModel(
         IDkpParserSettings settings,
         IEqLogTailFile eqLogTailFile,
-        IRaidAttendance raidAttendance,
+        IRaidAttendanceCalc raidAttendance,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory);
 
-    ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendance raidAttendance);
+    ISimpleBidTrackerViewModel CreateSimpleBidTrackerViewModel(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendanceCalc raidAttendance);
 }

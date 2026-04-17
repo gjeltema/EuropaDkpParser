@@ -12,9 +12,9 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
     private readonly DkpServerCharacters _charactersOnDkpServer;
     private readonly List<string> _classesWithDiscounts;
     private readonly List<DkpDiscountConfiguration> _discounts;
-    private readonly IRaidAttendance _raidAttendances;
+    private readonly IRaidAttendanceCalc _raidAttendances;
 
-    public DkpAdjustmentProcessor(IDkpParserSettings settings, IRaidAttendance raidAttendances)
+    public DkpAdjustmentProcessor(IDkpParserSettings settings, IRaidAttendanceCalc raidAttendances)
     {
         _charactersOnDkpServer = settings.CharactersOnDkpServer;
         _raidAttendances = raidAttendances;

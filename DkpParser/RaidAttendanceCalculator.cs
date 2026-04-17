@@ -6,7 +6,7 @@ namespace DkpParser;
 
 using Gjeltema.Logging;
 
-public sealed class RaidAttendanceCalculator : IRaidAttendance
+public sealed class RaidAttendanceCalculator : IRaidAttendanceCalc
 {
     private const string LogPrefix = $"[{nameof(RaidAttendanceCalculator)}]";
     private const int NumberOfRaids = 250;
@@ -101,7 +101,7 @@ public sealed class RaidAttendanceCalculator : IRaidAttendance
     }
 }
 
-public interface IRaidAttendance
+public interface IRaidAttendanceCalc
 {
     Task<RaidAttendanceInfo> Get30DayRaidAttendanceAsync(string characterName, int characterid = -1);
 

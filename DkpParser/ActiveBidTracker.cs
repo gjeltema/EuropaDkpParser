@@ -18,7 +18,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly object _bossKilledLock = new();
     private readonly IEqLogTailFile _eqLogTailFile;
     private readonly ItemLinkValues _itemLinkValues;
-    private readonly IRaidAttendance _raidAttendance;
+    private readonly IRaidAttendanceCalc _raidAttendance;
     private readonly ConcurrentQueue<CharacterReadyCheckStatus> _readyCheckStatus = new();
     private readonly IDkpParserSettings _settings;
     private ImmutableList<LiveAuctionInfo> _activeAuctions;
@@ -33,7 +33,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private bool _readyCheckInitiated;
     private ImmutableList<LiveSpentCall> _spentCalls;
 
-    public ActiveBidTracker(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendance raidAttendance)
+    public ActiveBidTracker(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendanceCalc raidAttendance)
     {
         _settings = settings;
         _eqLogTailFile = eqLogTailFile;

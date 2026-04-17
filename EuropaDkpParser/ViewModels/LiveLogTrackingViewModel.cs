@@ -21,7 +21,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly IDkpDataRetriever _dkpDataRetriever;
     private readonly IEqLogTailFile _eqLogTailFile;
     private readonly IOverlayFactory _overlayFactory;
-    private readonly IRaidAttendance _raidAttendance;
+    private readonly IRaidAttendanceCalc _raidAttendance;
     private readonly IReadyCheckOverlayViewModel _readyCheckOverlayViewModel;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(2);
@@ -36,7 +36,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         IWindowViewFactory windowViewFactory,
         IDkpParserSettings settings,
         IEqLogTailFile eqLogTailFile,
-        IRaidAttendance raidAttendance,
+        IRaidAttendanceCalc raidAttendance,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory)
