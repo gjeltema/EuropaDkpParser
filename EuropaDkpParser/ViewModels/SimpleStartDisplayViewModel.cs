@@ -20,7 +20,6 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     private readonly IDkpParserSettings _settings;
     private readonly IWindowFactory _windowFactory;
     private static bool _raProviderInitialized = false;
-    private bool _ableToUpload;
     private ILiveLogTrackingViewModel _adminBiddingDialogVM;
     private ISimpleBidTrackerViewModel _simpleBidTrackerVM;
 
@@ -36,18 +35,14 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         OpenDkpParserCommand = new DelegateCommand(OpenDkpParserDialog);
         UploadGeneratedLogCommand = new DelegateCommand(UploadGeneratedLog);
         OpenOtherParserCommand = new DelegateCommand(OpenOtherParserDialog);
-        OpenAdminBiddingTrackerDialogCommand = new DelegateCommand(OpenBiddingTrackerDialog, () => _adminBiddingDialogVM == null && _simpleBidTrackerVM == null);
-        OpenSimpleBiddingTrackerDialogCommand = new DelegateCommand(OpenSimpleBidTrackerDialog, () => _adminBiddingDialogVM == null && _simpleBidTrackerVM == null);
+        OpenAdminBiddingTrackerDialogCommand = new DelegateCommand(OpenBiddingTrackerDialog);
+        OpenSimpleBiddingTrackerDialogCommand = new DelegateCommand(OpenSimpleBidTrackerDialog);
 
         _logGenerator = new DkpLogGenerator(settings, dialogFactory);
         AbleToUpload = _settings.IsApiConfigured;
     }
 
-    public bool AbleToUpload
-    {
-        get => _ableToUpload;
-        set => SetProperty(ref _ableToUpload, value);
-    }
+    public bool AbleToUpload { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand OpenAdminBiddingTrackerDialogCommand { get; }
 
@@ -66,13 +61,11 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     private void HandleAdminBiddingWindowClosed(object sender, EventArgs e)
     {
         _adminBiddingDialogVM = null;
-        RaiseBiddingDialogCommandsCanExecuteChanged();
     }
 
     private void HandleSimpleBiddingWindowClosed(object sender, EventArgs e)
     {
         _simpleBidTrackerVM = null;
-        RaiseBiddingDialogCommandsCanExecuteChanged();
     }
 
     private async Task InitializeRaidAttendanceProvider()
@@ -116,7 +109,6 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         _adminBiddingDialogVM.WindowClosing += HandleAdminBiddingWindowClosed;
         _adminBiddingDialogVM.Show();
 
-        RaiseBiddingDialogCommandsCanExecuteChanged();
         await InitializeRaidAttendanceProvider();
     }
 
@@ -152,14 +144,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         _simpleBidTrackerVM.WindowClosing += HandleSimpleBiddingWindowClosed;
         _simpleBidTrackerVM.Show();
 
-        RaiseBiddingDialogCommandsCanExecuteChanged();
         await InitializeRaidAttendanceProvider();
-    }
-
-    private void RaiseBiddingDialogCommandsCanExecuteChanged()
-    {
-        OpenAdminBiddingTrackerDialogCommand.RaiseCanExecuteChanged();
-        OpenSimpleBiddingTrackerDialogCommand.RaiseCanExecuteChanged();
     }
 
     private async void UploadGeneratedLog()
