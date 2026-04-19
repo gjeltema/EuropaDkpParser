@@ -103,6 +103,7 @@
     
     <!-- FinalSummaryDisplay -->
     <system:String x:Key="AttendanceCalls">Attendance Calls</system:String>
+    <system:String x:Key="Transfers">Transfers</system:String>
     <system:String x:Key="DkpSpentCalls">DKPSPENT Calls</system:String>
     <system:String x:Key="EditDkp">Edit DKPSPENT</system:String>
     <system:String x:Key="RemoveDkp">Remove DKPSPENT</system:String>

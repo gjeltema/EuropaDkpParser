@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// DkpTransfer.cs Copyright 2025 Craig Gjeltema
+// DkpTransfer.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -18,8 +18,11 @@ public sealed class DkpTransfer
     public string ToCharacterName { get; init; }
 
     private string DebugText
-        => $"From:{FromCharacter.CharacterName} To:{ToCharacterName}";
+        => ToString();
 
     public string ToDisplayString()
         => $"Transfer from: {FromCharacter} to {ToCharacterName}";
+
+    public override string ToString()
+        => $"{FromCharacter.CharacterName} -> {ToCharacterName}";
 }

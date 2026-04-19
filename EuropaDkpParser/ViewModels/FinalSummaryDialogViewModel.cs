@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// FinalSummaryDialogViewModel.cs Copyright 2025 Craig Gjeltema
+// FinalSummaryDialogViewModel.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace EuropaDkpParser.ViewModels;
@@ -14,10 +14,6 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
     private readonly IDialogFactory _dialogFactory;
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
-    private ICollection<AttendanceEntry> _attendanceCalls;
-    private ICollection<DkpEntry> _dkpSpentCalls;
-    private DkpEntry _selectedDkpspent;
-    private bool _uploadToServer;
 
     internal FinalSummaryDialogViewModel(IDialogViewFactory viewFactory, IDialogFactory dialogFactory, IDkpParserSettings settings, RaidEntries raidEntries, bool canUploadToServer)
         : base(viewFactory)
@@ -34,46 +30,41 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
 
         AttendanceCalls = new List<AttendanceEntry>(_raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp));
         DkpSpentCalls = new List<DkpEntry>(_raidEntries.DkpEntries.OrderBy(x => x.Timestamp));
+        Transfers = new List<DkpTransfer>(_raidEntries.Transfers.OrderBy(x => x.Timestamp));
 
         AddOrModifyAttendanceEntryCommand = new DelegateCommand(AddOrModifyAttendanceEntry);
         EditDkpSpentCommand = new DelegateCommand(EditDkpSpent, () => SelectedDkpspent != null).ObservesProperty(() => SelectedDkpspent);
         EditAttendeesCommand = new DelegateCommand(EditAttendees);
         RemoveDkpSpentCommand = new DelegateCommand(RemoveDkpspent, () => SelectedDkpspent != null).ObservesProperty(() => SelectedDkpspent);
+        RemoveTransferCommand = new DelegateCommand(RemoveTransfer, () => SelectedTransfer != null).ObservesProperty(() => SelectedTransfer);
     }
 
     public DelegateCommand AddOrModifyAttendanceEntryCommand { get; }
 
-    public ICollection<AttendanceEntry> AttendanceCalls
-    {
-        get => _attendanceCalls;
-        private set => SetProperty(ref _attendanceCalls, value);
-    }
+    public ICollection<AttendanceEntry> AttendanceCalls { get; private set => SetProperty(ref field, value); }
 
-    public ICollection<DkpEntry> DkpSpentCalls
-    {
-        get => _dkpSpentCalls;
-        private set => SetProperty(ref _dkpSpentCalls, value);
-    }
+    public ICollection<DkpEntry> DkpSpentCalls { get; private set => SetProperty(ref field, value); }
 
     public DelegateCommand EditAttendeesCommand { get; }
 
     public DelegateCommand EditDkpSpentCommand { get; }
 
+    public bool HasTransfers
+        => Transfers.Count > 0;
+
     public DelegateCommand RemoveDkpSpentCommand { get; }
 
-    public DkpEntry SelectedDkpspent
-    {
-        get => _selectedDkpspent;
-        set => SetProperty(ref _selectedDkpspent, value);
-    }
+    public DelegateCommand RemoveTransferCommand { get; }
+
+    public DkpEntry SelectedDkpspent { get; set => SetProperty(ref field, value); }
+
+    public DkpTransfer SelectedTransfer { get; set => SetProperty(ref field, value); }
 
     public bool ShowUploadToServer { get; }
 
-    public bool UploadToServer
-    {
-        get => _uploadToServer;
-        set => SetProperty(ref _uploadToServer, value);
-    }
+    public ICollection<DkpTransfer> Transfers { get; private set => SetProperty(ref field, value); }
+
+    public bool UploadToServer { get; set => SetProperty(ref field, value); }
 
     private void AddOrModifyAttendanceEntry()
     {
@@ -120,6 +111,17 @@ internal sealed class FinalSummaryDialogViewModel : DialogViewModelBase, IFinalS
 
         DkpSpentCalls = new List<DkpEntry>(_raidEntries.DkpEntries.OrderBy(x => x.Timestamp));
     }
+
+    private void RemoveTransfer()
+    {
+        DkpTransfer selected = SelectedTransfer;
+        if (selected == null)
+            return;
+
+        _raidEntries.Transfers.Remove(selected);
+        Transfers = new List<DkpTransfer>(_raidEntries.Transfers.OrderBy(x => x.Timestamp));
+        RaisePropertyChanged(nameof(HasTransfers));
+    }
 }
 
 public interface IFinalSummaryDialogViewModel : IDialogViewModel
@@ -134,11 +136,19 @@ public interface IFinalSummaryDialogViewModel : IDialogViewModel
 
     DelegateCommand EditDkpSpentCommand { get; }
 
+    bool HasTransfers { get; }
+
     DelegateCommand RemoveDkpSpentCommand { get; }
+
+    DelegateCommand RemoveTransferCommand { get; }
 
     DkpEntry SelectedDkpspent { get; set; }
 
+    DkpTransfer SelectedTransfer { get; set; }
+
     bool ShowUploadToServer { get; }
+
+    ICollection<DkpTransfer> Transfers { get; }
 
     bool UploadToServer { get; set; }
 }

@@ -12,87 +12,104 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <Grid Grid.Row="0" Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-
-            <Label Content="{StaticResource AttendanceCalls}" Grid.Row="0"/>
-            <ListView ItemsSource="{Binding AttendanceCalls}" Grid.Row="1"/>
-        </Grid>
-
-        <Grid Grid.Row="0" Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-
-            <Label Content="{StaticResource DkpSpentCalls}" Grid.Row="0"/>
-            <ListView ItemsSource="{Binding DkpSpentCalls}" Grid.Row="1" SelectedItem="{Binding SelectedDkpspent}">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListViewItem}">
-                        <Setter Property="ToolTip">
-                            <Setter.Value>
-                                <UniformGrid Columns="1">
-                                    <TextBlock Text="{Binding RawLogLine}"/>
-                                </UniformGrid>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListView.ItemContainerStyle>
-            </ListView>
-        </Grid>
-
-        <Grid Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Attendances -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <Label Grid.Row="0" Content="{StaticResource AttendanceCalls}"/>
+                <ListView Grid.Row="1" ItemsSource="{Binding AttendanceCalls}"/>
+
+                <Grid Grid.Row="2" Margin="0,5,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="{StaticResource AddModify}" Command="{Binding AddOrModifyAttendanceEntryCommand}" 
+                        Height="30" Width="110" HorizontalAlignment="Left">
+                        <Button.ToolTip>
+                            <TextBlock Text="{StaticResource AddModifyTooltip}"/>
+                        </Button.ToolTip>
+                    </Button>
+
+                    <Button Grid.Column="1" Margin="15,0,0,0" Content="{StaticResource EditAttendees}" Command="{Binding EditAttendeesCommand}" 
+                        Height="30" Width="110"/>
+                </Grid>
+
+                <!-- Transfers -->
+                <Grid Grid.Row="3" Visibility="{Binding HasTransfers, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Content="{StaticResource Transfers}"/>
+                    <ListView Grid.Row="1" ItemsSource="{Binding Transfers}" SelectedItem="{Binding SelectedTransfer}" Height="80"/>
+                    <Button Grid.Row="2" Content="{StaticResource Remove}" Command="{Binding RemoveTransferCommand}" Height="30" Width="110" HorizontalAlignment="Left" Margin="0,5,0,0"/>
+                </Grid>
+            </Grid>
+
+            <!-- DKP SPENT -->
+            <Grid Grid.Column="1" Margin="5,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="{StaticResource DkpSpentCalls}"/>
+                <ListView Grid.Row="1" ItemsSource="{Binding DkpSpentCalls}" SelectedItem="{Binding SelectedDkpspent}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="ToolTip">
+                                <Setter.Value>
+                                    <UniformGrid Columns="1">
+                                        <TextBlock Text="{Binding RawLogLine}"/>
+                                    </UniformGrid>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+
+                <Grid Grid.Row="2" HorizontalAlignment="Right" Margin="0,5,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="{StaticResource RemoveDkp}" Command="{Binding RemoveDkpSpentCommand}" Height="30" Width="110" Margin="0,0,10,0"/>
+                    <Button Grid.Column="1" Content="{StaticResource EditDkp}" Command="{Binding EditDkpSpentCommand}" Height="30" Width="110"/>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="1" Margin="0,15,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            
-            <Button Grid.Column="0" Content="{StaticResource AddModify}" Command="{Binding AddOrModifyAttendanceEntryCommand}" 
-                    Height="30" Width="110" HorizontalAlignment="Left">
-                <Button.ToolTip>
-                    <TextBlock Text="{StaticResource AddModifyTooltip}"/>
-                </Button.ToolTip>
-            </Button>
 
-            <Button Grid.Column="1" Margin="15,0,0,0" Content="{StaticResource EditAttendees}" Command="{Binding EditAttendeesCommand}" 
-                Height="30" Width="110"/>
-        </Grid>
-        
-        <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0" Margin="0,10,0,0" IsChecked="{Binding UploadToServer}" Content="{StaticResource UploadToServerText}" HorizontalAlignment="Left"
+                Visibility="{Binding ShowUploadToServer, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-            <Button Grid.Column="0" Content="{StaticResource RemoveDkp}" Command="{Binding RemoveDkpSpentCommand}" Height="30" Width="110" Margin="0,0,10,0"/>
-            <Button Grid.Column="1" Content="{StaticResource EditDkp}" Command="{Binding EditDkpSpentCommand}" Height="30" Width="110"/>
-        </Grid>
-
-        <Grid Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" Margin="0,15,0,0">
-            <CheckBox Margin="0,10,0,0" IsChecked="{Binding UploadToServer}" Content="{StaticResource UploadToServerText}" HorizontalAlignment="Left"
-                      Visibility="{Binding ShowUploadToServer, Converter={StaticResource BoolToVisibilityConverter}}"/>
-        </Grid>
-
-        <Grid Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <Button Grid.Column="0" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Height="30" Width="85" Margin="0,0,10,0"/>
-            <Button Grid.Column="1" Content="{StaticResource OkButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Height="30" Width="85"/>
+            <Button Grid.Column="1" Content="{StaticResource CancelButtonText}" IsCancel="True" HorizontalAlignment="Right" Height="30" Width="85" Margin="0,0,10,0"/>
+            <Button Grid.Column="2" Content="{StaticResource OkButtonText}" Command="{Binding CloseOkCommand}" IsDefault="True" HorizontalAlignment="Right" Height="30" Width="85"/>
         </Grid>
     </Grid>
 </UserControl>
