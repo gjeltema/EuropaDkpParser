@@ -21,7 +21,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly IDkpDataRetriever _dkpDataRetriever;
     private readonly IEqLogTailFile _eqLogTailFile;
     private readonly IOverlayFactory _overlayFactory;
-    private readonly IRaidAttendanceCalc _raidAttendance;
+    private readonly IRaidAttendance _raidAttendance;
     private readonly IReadyCheckOverlayViewModel _readyCheckOverlayViewModel;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(2);
@@ -36,7 +36,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         IWindowViewFactory windowViewFactory,
         IDkpParserSettings settings,
         IEqLogTailFile eqLogTailFile,
-        IRaidAttendanceCalc raidAttendance,
+        IRaidAttendance raidAttendance,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory)
@@ -522,9 +522,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
                 return;
             }
 
-            RaidAttendanceInfo ra = await _raidAttendance.Get30DayRaidAttendanceAsync(dkpCharacter?.Name ?? characterName);
+            CharacterRaidAttendance ra = _raidAttendance.GetCharacterRaidAttendance(dkpCharacter?.Name ?? characterName);
 
-            MessageDialog.ShowDialog($"{characterName} has {userDkp.CharacterCurrentDkp} DKP, {ra.ThirtyDayRA:0}%RA", "DKP Amount", fontSize: DkpDisplayFontSize);
+            MessageDialog.ShowDialog($"{characterName} has {userDkp.CharacterCurrentDkp} DKP, {ra.Character30DayRa:0} ({ra.Player30DayRa:0})%RA", "DKP Amount", fontSize: DkpDisplayFontSize);
         }
         finally
         {

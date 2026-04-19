@@ -21,7 +21,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     private readonly DispatcherTimer _updateTimer;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
 
-    public SimpleBidTrackerViewModel(IWindowViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendanceCalc raidAttendance)
+    public SimpleBidTrackerViewModel(IWindowViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendance raidAttendance)
         : base(viewFactory)
     {
         _settings = settings;

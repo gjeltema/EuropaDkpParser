@@ -41,6 +41,24 @@ public sealed class DkpServer : IDkpServer
         //LocalHttpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en");
     }
 
+    public async Task<ICollection<CharacterRaidAttendance>> GetAllCharacterAttendancesAsync()
+    {
+        try
+        {
+            string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=points&add_columns=1";
+
+            XDocument responseDoc = await MakeGetCallAsync(uri);
+
+            ICollection<CharacterRaidAttendance> raidAttendances = GetRaidAttendancesFromResponse(responseDoc);
+            return raidAttendances;
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogPrefix} {nameof(GetAllCharacterAttendancesAsync)} Error encountered in getting raid attendances: {ex.ToLogMessage()}");
+            return [];
+        }
+    }
+
     public async Task<int> GetCharacterIdAsync(string characterName)
     {
         try
@@ -54,11 +72,11 @@ public sealed class DkpServer : IDkpServer
         }
     }
 
-    public async Task<ICollection<PreviousRaid>> GetPriorRaidsAsync(int numbeOfRaids)
+    public async Task<ICollection<PreviousRaid>> GetPriorRaidsAsync(int numberOfRaids)
     {
         try
         {
-            string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=raids&number={numbeOfRaids}";
+            string uri = $"{_settings.ApiUrl}&atoken={_settings.ApiReadToken}&function=raids&number={numberOfRaids}";
 
             XDocument responseDoc = await MakeGetCallAsync(uri);
 
@@ -360,6 +378,112 @@ public sealed class DkpServer : IDkpServer
         return raids;
     }
 
+    private ICollection<CharacterRaidAttendance> GetRaidAttendancesFromResponse(XDocument responseDoc)
+    {
+        /*
+<response>
+	<eqdkp>
+		...
+	</eqdkp>
+	<game>
+		...
+	</game>
+	<info>
+		...
+	</info>
+	<players>
+		<player>
+			<id>814</id>
+			<name>Willam</name>
+			<active>1</active>
+			<hidden>0</hidden>
+			<main_id>192</main_id>
+			<main_name>Kassandra</main_name>
+			<class_id>7</class_id>
+			<class_name>Necromancer</class_name>
+			<points>
+				<multidkp_points>
+					<multidkp_id>1</multidkp_id>
+					<points_current>-1470</points_current>
+					<points_current_with_twink>22777</points_current_with_twink>
+					<points_earned>6797</points_earned>
+					<points_earned_with_twink>62151</points_earned_with_twink>
+					<points_spent>8267</points_spent>
+					<points_spent_with_twink>39374</points_spent_with_twink>
+					<points_adjustment>0</points_adjustment>
+					<points_adjustment_with_twink>0</points_adjustment_with_twink>
+					<add_earned>6797</add_earned>
+					<add_earned_with_twink>62151</add_earned_with_twink>
+					<add_spent>8267</add_spent>
+					<add_spent_with_twink>39374</add_spent_with_twink>
+					<add_adjustment>0</add_adjustment>
+					<add_adjustment_with_twink>0</add_adjustment_with_twink>
+					<add_current>-1470</add_current>
+					<add_current_with_twink>22777</add_current_with_twink>
+					<add_mlink>
+					https://dkp.europaguild.eu/index.php/Character/Willam-814.html?
+					</add_mlink>
+					<add_mlink_with_twink>
+					https://dkp.europaguild.eu/index.php/Character/Willam-814.html?
+					</add_mlink_with_twink>
+					<add_profile_alt_status>
+						<i0>alt_char_yes</i0>
+					</add_profile_alt_status>
+					<add_profile_alt_status_with_twink>
+						<i0>alt_char_yes</i0>
+					</add_profile_alt_status_with_twink>
+					<add_mtwink>Twink</add_mtwink>
+					<add_mtwink_with_twink>Twink</add_mtwink_with_twink>
+					<add_last_raid>1776294000</add_last_raid>
+					<add_last_raid_with_twink/>
+					<add_attendance_30>0.3671875</add_attendance_30>
+					<add_attendance_30_with_twink>1</add_attendance_30_with_twink>
+					<add_attendance_lt>0.044371405094495</add_attendance_lt>
+					<add_attendance_lt_with_twink>0.60216738477608</add_attendance_lt_with_twink>
+					<add_mlast_item_name>Bracer of the Silent Star</add_mlast_item_name>
+					<add_mlast_item_name_with_twink/>
+					<add_mlast_item_date>1775688422</add_mlast_item_date>
+					<add_mlast_item_date_with_twink>0</add_mlast_item_date_with_twink>
+					<add_mmainname>Kassandra</add_mmainname>
+					<add_mmainname_with_twink>Kassandra</add_mmainname_with_twink>
+				</multidkp_points>
+			</points>
+			<items/>
+			<adjustments/>
+		</player>
+        */
+
+        List<CharacterRaidAttendance> charactersRa = [];
+        IEnumerable<XElement> playerNodes = responseDoc.Descendants("player");
+        foreach (XElement playerNode in playerNodes)
+        {
+            int idValue = (int)playerNode.Element("id");
+            string characterName = (string)playerNode.Element("name");
+            string className = (string)playerNode.Element("class_name");
+            string mainCharacterName = (string)playerNode.Element("main_name");
+            int mainCharacterId = (int)playerNode.Element("main_id");
+
+            XElement multiDkpNode = playerNode.Descendants("multidkp_points").FirstOrDefault();
+            int currentPlayerDkp = (int)multiDkpNode.Element("points_current_with_twink");
+            double thirtyDayPlayerRa = (double)multiDkpNode.Element("add_attendance_30_with_twink");
+            double thirtyDayCharacterRa = (double)multiDkpNode.Element("add_attendance_30");
+
+            charactersRa.Add(new CharacterRaidAttendance
+            {
+                CharacterName = characterName.NormalizeName(),
+                CharacterId = idValue,
+                ClassName = className,
+                MainCharacterId = mainCharacterId,
+                MainCharacterName = mainCharacterName.NormalizeName(),
+                PlayerCurrentDkp = currentPlayerDkp,
+                Character30DayRa = thirtyDayCharacterRa * 100,
+                Player30DayRa = thirtyDayPlayerRa * 100,
+            });
+        }
+
+        return charactersRa;
+    }
+
     private ICollection<DkpUserCharacter> GetUserCharactersFromResponse(XDocument response, int userId)
     {
         List<DkpUserCharacter> userChars = [];
@@ -534,8 +658,33 @@ public sealed class CharacterDkpAmounts
        => $"{CharacterName} ID:{CharacterId} {UserCurrentDkp} DKP";
 }
 
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class CharacterRaidAttendance
+{
+    public double Character30DayRa { get; init; } = 0.0;
+
+    public int CharacterId { get; init; } = -1;
+
+    public string CharacterName { get; init; } = string.Empty;
+
+    public string ClassName { get; init; }
+
+    public int MainCharacterId { get; init; } = int.MinValue;
+
+    public string MainCharacterName { get; init; } = string.Empty;
+
+    public double Player30DayRa { get; init; } = 0.0;
+
+    public int PlayerCurrentDkp { get; init; } = int.MinValue;
+
+    private string DebugText
+       => $"{CharacterName} ID:{CharacterId} {Character30DayRa:0.0} ({Player30DayRa:0.0})%RA";
+}
+
 public interface IDkpServer
 {
+    Task<ICollection<CharacterRaidAttendance>> GetAllCharacterAttendancesAsync();
+
     Task<int> GetCharacterIdAsync(string characterName);
 
     Task<ICollection<PreviousRaid>> GetPriorRaidsAsync(int numbeOfRaids);

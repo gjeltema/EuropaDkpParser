@@ -18,7 +18,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private readonly object _bossKilledLock = new();
     private readonly IEqLogTailFile _eqLogTailFile;
     private readonly ItemLinkValues _itemLinkValues;
-    private readonly IRaidAttendanceCalc _raidAttendance;
+    private readonly IRaidAttendance _raidAttendance;
     private readonly ConcurrentQueue<CharacterReadyCheckStatus> _readyCheckStatus = new();
     private readonly IDkpParserSettings _settings;
     private ImmutableList<LiveAuctionInfo> _activeAuctions;
@@ -33,7 +33,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     private bool _readyCheckInitiated;
     private ImmutableList<LiveSpentCall> _spentCalls;
 
-    public ActiveBidTracker(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendanceCalc raidAttendance)
+    public ActiveBidTracker(IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendance raidAttendance)
     {
         _settings = settings;
         _eqLogTailFile = eqLogTailFile;
@@ -176,7 +176,6 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             return [];
 
         IEnumerable<LiveBidInfo> highBids = GetHighBids(auction, lowRollWins);
-        IEnumerable<RaidAttendanceInfo> raidAttendances = _raidAttendance.GetAll30DayRaidAttendances();
 
         string channel = GetChannelShortcut(auction.Channel);
         return highBids
@@ -188,7 +187,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 DkpSpent = x.BidAmount,
                 Winner = x.CharacterBeingBidFor,
                 IsRoll = auction.IsRoll,
-                RaidAttendance = raidAttendances.FirstOrDefault(r => r.CharacterName == x.CharacterBeingBidFor)?.ThirtyDayRA ?? 0.0,
+                ThirtyDayCharacterRa = _raidAttendance.GetCharacterRaidAttendance(x.CharacterBeingBidFor)?.Character30DayRa ?? 0.0,
+                ThirtyDayPlayerRa = _raidAttendance.GetCharacterRaidAttendance(x.CharacterBeingBidFor)?.Player30DayRa ?? 0.0,
                 SpentCallSent = SpentCallExists(x)
             })
             .ToList();
@@ -456,10 +456,13 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
         }
 
-        double bidderRA = _raidAttendance.GetAll30DayRaidAttendances().FirstOrDefault(x => x.CharacterName == bid.CharacterBeingBidFor)?.ThirtyDayRA ?? 0.0;
-        bid.RaidAttendance = bidderRA;
-        if (bid.CharacterNotOnDkpServer && bidderRA > 0.0)
+        CharacterRaidAttendance bidderRa = _raidAttendance.GetCharacterRaidAttendance(bid.CharacterBeingBidFor);
+        if (bidderRa != null)
+        {
+            bid.ThirtyDayCharacterRa = bidderRa.Character30DayRa;
+            bid.ThirtyDayPlayerRa = bidderRa.Player30DayRa;
             bid.CharacterNotOnDkpServer = false;
+        }
 
         _bids = _bids.Add(bid);
 

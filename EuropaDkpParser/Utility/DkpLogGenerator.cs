@@ -110,6 +110,10 @@ internal sealed class DkpLogGenerator
     {
         Log.Debug($"{LogPrefix} Starting {nameof(StartLogParseAsync)}");
 
+        bool successInit = await InitializeRaidAttendanceProvider();
+        if (!successInit)
+            return;
+
         RaidEntries raidEntries = await ParseAndAnalyzeLogFilesAsync(sessionSettings);
 
         if (raidEntries == null)
@@ -193,6 +197,10 @@ internal sealed class DkpLogGenerator
     public async Task UploadGeneratedLogFileAsync(string generatedLogFile)
     {
         Log.Debug($"{LogPrefix} Starting {nameof(UploadGeneratedLogFileAsync)}");
+
+        bool successInit = await InitializeRaidAttendanceProvider();
+        if (!successInit)
+            return;
 
         RaidEntries raidEntries = await ParseGeneratedLogFileAsync(generatedLogFile);
 
@@ -319,6 +327,23 @@ internal sealed class DkpLogGenerator
         string summaryDisplayText = summaryDisplay.ToString();
         Log.Trace($"{LogPrefix} Summary Display:{Environment.NewLine}{summaryDisplayText}");
         return summaryDisplayText;
+    }
+
+    private async Task<bool> InitializeRaidAttendanceProvider()
+    {
+        DkpServer dkpServer = new(_settings);
+        bool success = false;
+        int attempt = 0;
+        while (!success && attempt < 3)
+        {
+            success = await RaidAttendanceProvider.InitializeAsync(dkpServer);
+            attempt++;
+        }
+
+        if (!success)
+            MessageDialog.ShowDialog("Error initializing RA from DKP server. Ending file processing. Check log file.", "Error Initializing RA");
+
+        return success;
     }
 
     private async Task<RaidEntries> ParseAndAnalyzeLogFilesAsync(DkpLogGenerationSessionSettings sessionSettings)

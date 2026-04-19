@@ -12,9 +12,9 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
     private readonly DkpServerCharacters _charactersOnDkpServer;
     private readonly List<string> _classesWithDiscounts;
     private readonly List<DkpDiscountConfiguration> _discounts;
-    private readonly IRaidAttendanceCalc _raidAttendances;
+    private readonly IRaidAttendance _raidAttendances;
 
-    public DkpAdjustmentProcessor(IDkpParserSettings settings, IRaidAttendanceCalc raidAttendances)
+    public DkpAdjustmentProcessor(IDkpParserSettings settings, IRaidAttendance raidAttendances)
     {
         _charactersOnDkpServer = settings.CharactersOnDkpServer;
         _raidAttendances = raidAttendances;
@@ -49,7 +49,7 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
         }
 
         Log.Debug($"{LogPrefix} Evaluating {dkpEntry} for possible discount.");
-        double raidAttendance = await GetRaidAttendanceAsync(dkpEntry.CharacterName);
+        double raidAttendance = GetRaidAttendance(dkpEntry.CharacterName);
         Log.Debug($"Calculated Raid Attendance for {dkpEntry.CharacterName}: {raidAttendance:0.00}%");
 
         DkpDiscountConfiguration discountRule = possibleDiscountRules
@@ -79,10 +79,10 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
         return discountRules;
     }
 
-    private async Task<double> GetRaidAttendanceAsync(string characterName)
+    private double GetRaidAttendance(string characterName)
     {
-        RaidAttendanceInfo raidAttInfo = await _raidAttendances.Get30DayRaidAttendanceAsync(characterName);
-        return raidAttInfo.ThirtyDayRA;
+        CharacterRaidAttendance raidAttInfo = _raidAttendances.GetCharacterRaidAttendance(characterName);
+        return raidAttInfo.Character30DayRa;
     }
 }
 
