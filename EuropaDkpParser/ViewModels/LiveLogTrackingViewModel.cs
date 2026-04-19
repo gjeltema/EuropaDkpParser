@@ -68,6 +68,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         RemoveBidCommand = new DelegateCommand(RemoveBid, () => SelectedBid != null).ObservesProperty(() => SelectedBid);
         SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted, () => SelectedActiveAuction != null)
             .ObservesProperty(() => SelectedActiveAuction);
+        SetAllAuctionsToCompletedCommand = new DelegateCommand(SetAllAuctionsToCompleted);
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
         AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
             .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
@@ -286,6 +287,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     public SuggestedSpentCall SelectedSpentMessageToPaste { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand SetActiveAuctionToCompletedCommand { get; }
+
+    public DelegateCommand SetAllAuctionsToCompletedCommand { get; }
 
     public bool ShowAuctionOverlay
     {
@@ -576,6 +579,15 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         }
     }
 
+    private void SetAllAuctionsToCompleted()
+    {
+        SelectedActiveAuction = null;
+        foreach (LiveAuctionDisplay auction in ActiveAuctions)
+        {
+            _activeBidTracker.SetAuctionToCompleted(auction.Auction);
+        }
+    }
+
     private void SetAuctionStatusMessage()
     {
         StatusMarker marker = _activeBidTracker.GetStatusMarkerFromSelectionString(CurrentStatusMarker);
@@ -858,6 +870,8 @@ public interface ILiveLogTrackingViewModel : IAttendanceSnapshot, IWindowViewMod
     SuggestedSpentCall SelectedSpentMessageToPaste { get; set; }
 
     DelegateCommand SetActiveAuctionToCompletedCommand { get; }
+
+    DelegateCommand SetAllAuctionsToCompletedCommand { get; }
 
     bool ShowAuctionOverlay { get; set; }
 

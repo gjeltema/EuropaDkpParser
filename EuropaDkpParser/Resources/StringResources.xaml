@@ -307,6 +307,7 @@
     <system:String x:Key="ActiveAuctions">Active Auctions</system:String>
     <system:String x:Key="AddItemLink">Add Item Link ID</system:String>
     <system:String x:Key="SetAuctionToCompleted">Finish Auction</system:String>
+    <system:String x:Key="SetAllAuctionsToCompleted">Finish All Auctions</system:String>
     <system:String x:Key="MoveAuctionToCompleted">Move Selections To Completed</system:String>
     <system:String x:Key="CompletedAuctions">Completed Auctions</system:String>
     <system:String x:Key="ReactivateCompletedAuction">Reactivate Auction</system:String>

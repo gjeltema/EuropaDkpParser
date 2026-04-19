@@ -44,6 +44,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
         SetActiveAuctionToCompletedCommand = new DelegateCommand(SetActiveAuctionToCompleted, () => SelectedActiveAuction != null)
             .ObservesProperty(() => SelectedActiveAuction);
+        SetAllAuctionsToCompletedCommand = new DelegateCommand(SetAllAuctionsToCompleted);
 
         CurrentStatusMarker = _activeBidTracker.GetNextStatusMarkerForSelection("");
 
@@ -83,6 +84,8 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
     public SuggestedSpentCall SelectedSpentMessageToPaste { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand SetActiveAuctionToCompletedCommand { get; }
+
+    public DelegateCommand SetAllAuctionsToCompletedCommand { get; }
 
     public ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; private set => SetProperty(ref field, value); }
 
@@ -183,6 +186,15 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         }
     }
 
+    private void SetAllAuctionsToCompleted()
+    {
+        SelectedActiveAuction = null;
+        foreach (LiveAuctionDisplay auction in ActiveAuctions)
+        {
+            _activeBidTracker.SetAuctionToCompleted(auction.Auction);
+        }
+    }
+
     private void UpdateActiveAuctionSelected(LiveAuctionDisplay selectedAuction)
     {
         // SelectedAuction should only be set to null when the ActiveAuctions collection is refreshed
@@ -277,6 +289,8 @@ public interface IAuctioneerOverlayViewModel : IOverlayViewModel
     SuggestedSpentCall SelectedSpentMessageToPaste { get; set; }
 
     DelegateCommand SetActiveAuctionToCompletedCommand { get; }
+
+    DelegateCommand SetAllAuctionsToCompletedCommand { get; }
 
     ICollection<SuggestedSpentCall> SpentMessagesToPaste { get; }
 }
