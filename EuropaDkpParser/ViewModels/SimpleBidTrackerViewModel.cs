@@ -30,6 +30,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
         SetActiveAuctionsToCompletedCommand = new DelegateCommand(SetActiveAuctionsToCompleted);
+        SetAllAuctionsToCompletedCommand = new DelegateCommand(SetAllAuctionsToCompleted);
         CopyBidTextToClipboardCommand = new DelegateCommand(CopyBidTextToClipboard, () => !string.IsNullOrWhiteSpace(DkpBidAmount))
             .ObservesProperty(() => DkpBidAmount);
 
@@ -63,6 +64,8 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     public int SelectedFontSize { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand SetActiveAuctionsToCompletedCommand { get; }
+
+    public DelegateCommand SetAllAuctionsToCompletedCommand { get; }
 
     protected override sealed IWindowView CreateWindowView(IWindowViewFactory viewFactory)
         => viewFactory.CreateSimpleBidTrackerWindow(this);
@@ -110,7 +113,7 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
         ICollection<LiveBidInfo> highBidders = _activeBidTracker.GetHighBids(auctionInfo, LowRollWins);
         string highBiddersDisplay = "";
         if (highBidders.Count > 0)
-            highBiddersDisplay = $"({string.Join(", ", highBidders.Select(x => $"{x.CharacterBeingBidFor} {x.BidAmount} DKP"))})";
+            highBiddersDisplay = $"-- [[{string.Join(", ", highBidders.Select(x => $"{x.CharacterBeingBidFor} {x.BidAmount} DKP"))}]]";
         string fullInfo = auctionInfo.IsRoll
             ? $"{auctionInfo.Timestamp:HH:mm} {auctionInfo.ItemName}{(auctionInfo.TotalNumberOfItems > 1 ? " x" + auctionInfo.TotalNumberOfItems.ToString() : "")} roll:{auctionInfo.RandValue} {highBiddersDisplay}"
             : $"{auctionInfo.Timestamp:HH:mm} {auctionInfo.ItemName}{(auctionInfo.TotalNumberOfItems > 1 ? " x" + auctionInfo.TotalNumberOfItems.ToString() : "")} {highBiddersDisplay}";
@@ -131,6 +134,17 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
         }
 
         SelectedActiveAuctions.Clear();
+    }
+
+    private void SetAllAuctionsToCompleted()
+    {
+        if (ActiveAuctions == null)
+            return;
+
+        foreach (LiveAuctionDisplay auction in ActiveAuctions)
+        {
+            _activeBidTracker.SetAuctionToCompleted(auction.Auction);
+        }
     }
 
     private void UpdateDisplay()
@@ -178,4 +192,6 @@ public interface ISimpleBidTrackerViewModel : IWindowViewModel
     int SelectedFontSize { get; set; }
 
     DelegateCommand SetActiveAuctionsToCompletedCommand { get; }
+
+    DelegateCommand SetAllAuctionsToCompletedCommand { get; }
 }
