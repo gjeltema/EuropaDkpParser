@@ -338,6 +338,19 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         try
         {
+            if (File.Exists(_settingsFilePath))
+            {
+                FileInfo existingSettingsFile = new(_settingsFilePath);
+                if (existingSettingsFile.Length > 10)
+                {
+                    string backupFileFullPath = _settingsFilePath + ".BU";
+                    Log.Debug($"{LogPrefix} Backing up settings file '{_settingsFilePath}' to '{backupFileFullPath}'");
+                    File.Move(_settingsFilePath, backupFileFullPath, true);
+                    Log.Debug($"{LogPrefix} Settings file backed up to: {backupFileFullPath}");
+                }
+            }
+
+            Log.Debug($"{LogPrefix} Writing settings to: {_settingsFilePath}");
             File.WriteAllLines(_settingsFilePath, settingsFileContent);
         }
         catch (Exception ex)
