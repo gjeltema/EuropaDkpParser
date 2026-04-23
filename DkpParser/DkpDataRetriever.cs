@@ -47,10 +47,10 @@ public sealed class DkpDataRetriever : IDkpDataRetriever
 
     public async Task<CharacterDkpAmounts> GetUserDkpAsync(DkpUserCharacter userCharacter)
     {
-        if (userCharacter == null || userCharacter.UserId < 2)
+        if (userCharacter == null || userCharacter.CharacterId < 2)
             return new CharacterDkpAmounts { CharacterId = userCharacter.CharacterId, CharacterName = userCharacter.Name };
 
-        return await _server.GetUserDkpAsync(userCharacter.UserId);
+        return await _server.GetUserDkpAsync(userCharacter.CharacterId);
     }
 }
 

@@ -27,6 +27,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string DefaultMatchPattern = "*eqlog*.txt";
     private const string DefaultOverlayBackgroundColor = "#CC3366";
     private const string DefaultOverlayFontColor = "#000000";
+    private const string DefaultReadToken = "ro65dcb6bc6c58800b58f9e22e8ee03c58efbc009a220a71";
+    private const string DefaultURL = "https://dkp.europaguild.eu/api.php?";
     private const int DefaultWindowLocation = 200;
     private const char Delimiter = '=';
     private const string DkpspentGuildEnableSection = "DKPSPENT_GU_ENABLE";
@@ -79,9 +81,9 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public bool AddBonusDkpRaid { get; set; }
 
-    public string ApiReadToken { get; set; }
+    public string ApiReadToken { get; set; } = DefaultReadToken;
 
-    public string ApiUrl { get; set; }
+    public string ApiUrl { get; set; } = DefaultURL;
 
     public string ApiWriteToken { get; set; }
 
@@ -220,9 +222,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
         InventoryDirectories = GetAllEntriesInSection(fileContents, InventoryDirectoriesSection);
         SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
 
-        ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection);
-        if (string.IsNullOrWhiteSpace(ApiReadToken))
-            ApiReadToken = "";
+        ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection, DefaultReadToken);
         ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
 
         SetApiUrl(fileContents);
@@ -525,10 +525,13 @@ public sealed class DkpParserSettings : IDkpParserSettings
     {
         string rawApiUrl = GetStringValue(fileContents, ApiUrlSection);
         if (string.IsNullOrEmpty(rawApiUrl))
+        {
+            ApiUrl = DefaultURL;
             return;
+        }
 
         // People keep forgetting to add the ? at the end of the URL, so just adding it
-        if (rawApiUrl.Contains("http://", StringComparison.OrdinalIgnoreCase) && !rawApiUrl.EndsWith('?'))
+        if (rawApiUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && !rawApiUrl.EndsWith('?'))
             rawApiUrl += '?';
 
         ApiUrl = rawApiUrl;
