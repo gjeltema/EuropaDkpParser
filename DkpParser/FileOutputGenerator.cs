@@ -10,44 +10,44 @@ public sealed class FileOutputGenerator : IOutputGenerator
 
     public IEnumerable<string> GenerateOutput(RaidEntries raidEntries, Func<string, string> getZoneRaidAlias)
     {
-        int currentTransferIndex = -1;
-        List<DkpTransfer> transfers = [.. raidEntries.Transfers];
-        DkpTransfer currentTransfer = GetNextTransfer(transfers, currentTransferIndex);
+        Dictionary<DateTime, string> outputLines = new();
 
-        var dkpEntries = raidEntries.DkpEntries.Select(x => new { AssociatedAttendance = raidEntries.GetAssociatedAttendance(x), Dkp = x }).ToList();
         string currentRaidZone = string.Empty;
-        foreach (AttendanceEntry attendance in raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp))
+        foreach (AttendanceEntry entry in raidEntries.AttendanceEntries.OrderBy(x => x.Timestamp))
         {
-            if (currentTransfer != null && currentTransfer.Timestamp <= attendance.Timestamp)
-            {
-                yield return EqLogLine.LogMessage(currentTransfer.Timestamp, currentTransfer.LogLine);
-                currentTransferIndex++;
-                currentTransfer = GetNextTransfer(transfers, currentTransferIndex);
-            }
-
-            string attendanceRaidZone = getZoneRaidAlias(attendance.ZoneName);
+            string attendanceRaidZone = getZoneRaidAlias(entry.ZoneName);
             if (currentRaidZone != attendanceRaidZone)
             {
                 currentRaidZone = attendanceRaidZone;
-                yield return Environment.NewLine;
-                yield return EqLogLine.LogMessage(attendance.Timestamp.AddSeconds(-5), $"=========================== {currentRaidZone} ===========================");
+                DateTime timestamp = entry.Timestamp.AddSeconds(-5);
+                outputLines.Add(timestamp.AddSeconds(-1), string.Empty);
+                string line = EqLogLine.LogMessage(timestamp, $"=========================== {currentRaidZone} ===========================");
+                outputLines.Add(timestamp, line);
             }
 
-            foreach (string attendanceLine in CreateAttendanceEntry(attendance))
-                yield return attendanceLine;
-
-            foreach (var dkpEntryWithAttendance in dkpEntries.Where(x => x.AssociatedAttendance == attendance).OrderBy(x => x.Dkp.Timestamp))
-            {
-                if (currentTransfer != null && currentTransfer.Timestamp <= dkpEntryWithAttendance.Dkp.Timestamp)
-                {
-                    yield return EqLogLine.LogMessage(currentTransfer.Timestamp, currentTransfer.LogLine);
-                    currentTransferIndex++;
-                    currentTransfer = GetNextTransfer(transfers, currentTransferIndex);
-                }
-
-                yield return dkpEntryWithAttendance.Dkp.ToLogString();
-            }
+            string attendanceCallLines = string.Join(Environment.NewLine, CreateAttendanceEntry(entry));
+            outputLines.Add(entry.Timestamp, attendanceCallLines);
         }
+
+        foreach (DkpTransfer transfer in raidEntries.Transfers)
+        {
+            string transferLine = EqLogLine.LogMessage(transfer.Timestamp, transfer.LogLine);
+            outputLines.Add(transfer.Timestamp, transferLine);
+        }
+
+        foreach (DkpEntry dkpEntry in raidEntries.DkpEntries)
+        {
+            outputLines.Add(dkpEntry.Timestamp, dkpEntry.ToLogString());
+        }
+
+        foreach (DkpAwardOverride setDkpEntry in raidEntries.DkpAwardOverrides)
+        {
+            outputLines.Add(setDkpEntry.StartTime, setDkpEntry.LogLine);
+            if (setDkpEntry.EndTime != DateTime.MaxValue)
+                outputLines.Add(setDkpEntry.EndTime, EqLogLine.YouTellRaid(setDkpEntry.EndTime, Constants.SetAwardedDKPEndAlternateDelimiter));
+        }
+
+        return outputLines.OrderBy(x => x.Key).Select(x => x.Value);
     }
 
     private static IEnumerable<string> CreateAttendanceEntry(AttendanceEntry call)
@@ -83,15 +83,6 @@ public sealed class FileOutputGenerator : IOutputGenerator
         }
 
         yield return EqLogLine.ZonePlayers(call.Timestamp, call.Characters.Count, call.ZoneName);
-    }
-
-    private static DkpTransfer GetNextTransfer(List<DkpTransfer> transfers, int currentIndex)
-    {
-        int nextIndex = currentIndex + 1;
-        if (nextIndex >= transfers.Count)
-            return null;
-
-        return transfers[nextIndex];
     }
 }
 
