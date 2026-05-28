@@ -498,6 +498,8 @@ internal sealed class RaidValueMock : IRaidValues
 
     public IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; }
 
+    public double MinimumRaForSecondMain { get; }
+
     public IEnumerable<string> OnlyKillCalls { get; } = ["Innoruuk", "Lord Nagafen", "King Tranix"];
 
     public bool UseTimeOnlyWithConfiguredKillCalls

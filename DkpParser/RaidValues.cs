@@ -18,6 +18,7 @@ public sealed class RaidValues : IRaidValues
     private const char Delimiter = '\t';
     private const string DkpDiscountsSection = "DKP_DISCOUNTS_SECTION";
     private const string LogPrefix = $"[{nameof(RaidValues)}]";
+    private const string MinimumRaForSecondMainSection = "MINIMUM_RA_FOR_SECOND_MAIN";
     private const string OnlyTimeCallsKillSection = "ONLY_TIME_CALLS_KILL_SECTION";
     private const string SectionEnding = "_END";
     private const string TierSection = "TIER_SECTION";
@@ -46,6 +47,8 @@ public sealed class RaidValues : IRaidValues
         => _bossesNoDruzzil;
 
     public IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; private set; }
+
+    public double MinimumRaForSecondMain { get; private set; }
 
     public IEnumerable<string> OnlyKillCalls
         => _onlyKillCalls;
@@ -90,6 +93,7 @@ public sealed class RaidValues : IRaidValues
 
         UseTimeOnlyWithConfiguredKillCalls = GetBoolValue(fileContents, UseTimeOnlyWithConfiguredKillCallsSection);
         AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).Union(_zoneRaidAliases.Keys).Order().ToList();
+        MinimumRaForSecondMain = GetDoubleValue(fileContents, MinimumRaForSecondMainSection);
     }
 
     private static int GetStartingIndex(IList<string> fileContents, string configurationSectionName)
@@ -150,6 +154,23 @@ public sealed class RaidValues : IRaidValues
             : GetTimeBasedValue(zoneName);
 
         return tierValue;
+    }
+
+    private double GetDoubleValue(string[] fileContents, string key, double defaultValue = 0.0)
+    {
+        int index = Array.FindIndex(fileContents, x => x.StartsWith(key));
+        if (!IsValidIndex(index, fileContents))
+            return defaultValue;
+
+        string setting = fileContents[index];
+        string[] split = setting.Split(Delimiter);
+        if (split.Length > 1)
+        {
+            if (double.TryParse(split[1], out double ra))
+                return ra;
+        }
+
+        return defaultValue;
     }
 
     private int GetTierValue(int tier)
@@ -347,6 +368,8 @@ public interface IRaidValues
     IEnumerable<string> BossesWithNoDruzzilMessage { get; }
 
     IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; }
+
+    double MinimumRaForSecondMain { get; }
 
     IEnumerable<string> OnlyKillCalls { get; }
 

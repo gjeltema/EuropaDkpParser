@@ -158,6 +158,8 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
 
     public int ParentAuctionId { get; init; }
 
+    public bool RaidAttendanceBelowThreshold { get; set; }
+
     public double ThirtyDayCharacterRa { get; set; } = 0.0;
 
     public double ThirtyDayPlayerRa { get; set; } = 0.0;
@@ -309,6 +311,8 @@ public sealed class SuggestedSpentCall
     public string ItemName { get; init; }
 
     public LiveAuctionInfo ParentAuction { get; init; }
+
+    public bool RaidAttendanceBelowThreshold { get; set; }
 
     public bool SpentCallSent { get; init; }
 

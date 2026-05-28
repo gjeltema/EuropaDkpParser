@@ -189,6 +189,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 IsRoll = auction.IsRoll,
                 ThirtyDayCharacterRa = _raidAttendance.GetCharacterRaidAttendance(x.CharacterBeingBidFor)?.Character30DayRa ?? 0.0,
                 ThirtyDayPlayerRa = _raidAttendance.GetCharacterRaidAttendance(x.CharacterBeingBidFor)?.Player30DayRa ?? 0.0,
+                RaidAttendanceBelowThreshold = (_raidAttendance.GetCharacterRaidAttendance(x.CharacterBeingBidFor)?.Player30DayRa ?? 0.0) < _settings.RaidValue.MinimumRaForSecondMain,
                 SpentCallSent = SpentCallExists(x)
             })
             .ToList();
@@ -462,6 +463,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             bid.ThirtyDayCharacterRa = bidderRa.Character30DayRa;
             bid.ThirtyDayPlayerRa = bidderRa.Player30DayRa;
             bid.CharacterNotOnDkpServer = false;
+            bid.RaidAttendanceBelowThreshold = bidderRa.Player30DayRa < _settings.RaidValue.MinimumRaForSecondMain;
         }
 
         _bids = _bids.Add(bid);

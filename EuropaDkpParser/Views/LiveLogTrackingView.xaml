@@ -145,6 +145,9 @@
                                     <DataTrigger Binding="{Binding Path=CharacterNotOnDkpServer}" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=RaidAttendanceBelowThreshold}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </ListView.ItemContainerStyle>
@@ -242,6 +245,9 @@
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=RaidAttendanceBelowThreshold}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
+                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding Path=SpentCallSent}" Value="True">
                                             <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundOkBrush}"/>
                                         </DataTrigger>
