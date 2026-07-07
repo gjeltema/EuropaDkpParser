@@ -146,7 +146,7 @@
                                         <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding Path=RaidAttendanceBelowThreshold}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundWarningBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -246,7 +246,7 @@
                                 <Style TargetType="ListViewItem">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Path=RaidAttendanceBelowThreshold}" Value="True">
-                                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundWarningBrush}"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Path=SpentCallSent}" Value="True">
                                             <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundOkBrush}"/>
