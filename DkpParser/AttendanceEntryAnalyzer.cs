@@ -664,11 +664,16 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
                 DkpAwardOverride lastEntry = overrides.LastOrDefault();
                 if (setEntry.EntryType == LogEntryType.SetAwardedDkp)
                 {
-                    // If the previous SET entry doesnt yet have an EndTime set, then this SET is redundant.
-                    if (lastEntry != null && lastEntry.EndTime == DateTime.MaxValue)
-                        continue;
-
                     int dkpAmount = GetDkpFromSetDkpEntry(setEntry.LogLine);
+
+                    if (lastEntry != null && lastEntry.EndTime == DateTime.MaxValue)
+                    {
+                        // If the previous SET entry doesnt yet have an EndTime set and has the same value, then this SET is redundant.
+                        if (dkpAmount == lastEntry.DkpAmount)
+                            continue;
+                        else // If it's a different DKP value, then end the lastEntry and move on to add the new entry as a new SET
+                            lastEntry.EndTime = setEntry.Timestamp.AddSeconds(-1);
+                    }
 
                     DkpAwardOverride dkpOverride = new()
                     {

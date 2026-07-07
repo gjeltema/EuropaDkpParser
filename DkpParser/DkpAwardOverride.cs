@@ -9,7 +9,7 @@ using System.Diagnostics;
 [DebuggerDisplay("{DebugText}")]
 public sealed class DkpAwardOverride
 {
-    public int DkpAmount { get; init; }
+    public int DkpAmount { get; set; }
 
     public DateTime EndTime { get; set; } = DateTime.MaxValue;
 
