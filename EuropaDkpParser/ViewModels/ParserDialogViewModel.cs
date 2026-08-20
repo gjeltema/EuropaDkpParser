@@ -12,6 +12,7 @@ using Prism.Commands;
 
 internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewModel
 {
+    private const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
     private readonly IDialogFactory _dialogFactory;
     private readonly DkpLogGenerator _logGenerator;
     private readonly ParsedFileGenerator _parsedFileGenerator;
@@ -26,6 +27,10 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         _dialogFactory = dialogFactory;
         _logGenerator = new(settings, dialogFactory);
         _parsedFileGenerator = new(settings, dialogFactory);
+
+        DateTime currentTime = DateTime.Now;
+        EndTimeText = currentTime.ToString(DateTimeFormat);
+        StartTimeText = currentTime.AddHours(-6).ToString(DateTimeFormat);
 
         ResetTimeCommand = new DelegateCommand(ResetTime);
         GetConversationCommand = new DelegateCommand(ParseConversation, () => !PerformingParse && !string.IsNullOrWhiteSpace(ConversationPlayer) && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))

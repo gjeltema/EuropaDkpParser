@@ -97,7 +97,10 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         if (settings.YourHeals)
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.YouHealed));
         if (settings.OthersHealed)
+        {
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.FeelsMuchBetter));
+            _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(Constants.CompletelyHealed));
+        }
         if (settings.YourInterrupts)
             _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(YourInterruptsTerm));
         if (settings.OtherInterrupts)
