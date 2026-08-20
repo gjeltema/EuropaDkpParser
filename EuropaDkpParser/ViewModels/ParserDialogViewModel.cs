@@ -42,7 +42,14 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         OpenGeneralParserCommand = new DelegateCommand(OpenGeneralParser);
         GetRaidSummaryCommand = new DelegateCommand(GetRaidSummary, () => !PerformingParse && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => PerformingParse);
+        GetCharacterDeathsCommand = new DelegateCommand(GetCharacterDeathsSummary,
+            () => !PerformingParse && !string.IsNullOrWhiteSpace(_settings.OutputDirectory) && !string.IsNullOrWhiteSpace(CharacterName) && !string.IsNullOrWhiteSpace(BossName))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => PerformingParse).ObservesProperty(() => CharacterName).ObservesProperty(() => BossName);
     }
+
+    public string BossName { get; set => SetProperty(ref field, value); }
+
+    public string CharacterName { get; set => SetProperty(ref field, value); }
 
     public string ConversationPlayer { get; set => SetProperty(ref field, value); }
 
@@ -62,6 +69,8 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
     }
 
     public DelegateCommand GetAllCommunicationCommand { get; }
+
+    public DelegateCommand GetCharacterDeathsCommand { get; }
 
     public DelegateCommand GetConversationCommand { get; }
 
@@ -112,6 +121,17 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
 
     private async Task GetAllCommunicationAsync(DateTime startTime, DateTime endTime)
         => await _parsedFileGenerator.GetAllCommunicationAsync(startTime, endTime, GetOutputPath());
+
+    private async void GetCharacterDeathsSummary()
+    {
+        if (!TimesAreValid())
+            return;
+
+        await ExecuteParseAsync(GetCharacterDeathsSummaryAsync);
+    }
+
+    private async Task GetCharacterDeathsSummaryAsync(DateTime startTime, DateTime endTime)
+        => await _parsedFileGenerator.GetCharacterSlainSummaryAsync(startTime, endTime, CharacterName, BossName, GetOutputPath());
 
     private string GetOutputPath()
         => string.IsNullOrWhiteSpace(_settings.OutputDirectory) ? _logGenerator.GetUserProfilePath() : _settings.OutputDirectory;
@@ -191,11 +211,17 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
 
 public interface IParserDialogViewModel : IDialogViewModel
 {
+    string BossName { get; set; }
+
+    string CharacterName { get; set; }
+
     string ConversationPlayer { get; set; }
 
     string EndTimeText { get; set; }
 
     DelegateCommand GetAllCommunicationCommand { get; }
+
+    DelegateCommand GetCharacterDeathsCommand { get; }
 
     DelegateCommand GetConversationCommand { get; }
 

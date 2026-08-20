@@ -26,6 +26,7 @@ public static class Constants
     public const string AuctionOther = " auctions, '";
     public const string AuctionYou = "You auction, '";
     public const string BeginsCastSpell = " begins to cast a spell.";
+    public const string CharacterDeathFileNamePrefix = "CharacterDeath-";
     public const string CommunicationFileNamePrefix = "CommunicationOutput-";
     public const string CompletelyHealed = " is completely healed.";
     public const string ConversationFileNamePrefix = "ConversationOutput-";

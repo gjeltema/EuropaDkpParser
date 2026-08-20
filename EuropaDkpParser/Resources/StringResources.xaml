@@ -169,7 +169,9 @@
     <system:String x:Key="NoCommunicationFoundTitle">No communications found.</system:String>
     <system:String x:Key="NoCommunicationFound">No communication entries were found.</system:String>
     <system:String x:Key="NoRaidSummaryFoundTitle">No raid summary found.</system:String>
-    <system:String x:Key="NoRaisSummaryFound">No raid summary entries were found.</system:String>
+    <system:String x:Key="NoRaidSummaryFound">No raid summary entries were found.</system:String>
+    <system:String x:Key="NoCharacterDeathsFoundTitle">No character deaths found.</system:String>
+    <system:String x:Key="NoCharacterDeathsFound">No character death entries were found.</system:String>
     <system:String x:Key="ParseCommunication">Parse all comms (/t, ooc, say, rs, shout, guild, channels)</system:String>
     <system:String x:Key="StartCommunicationParse">Get All Comm</system:String>
     <system:String x:Key="NoSearchTermFoundTitle">No Search Term Found.</system:String>
@@ -182,7 +184,11 @@
     <system:String x:Key="CaseSensitive">Case senstive</system:String>
     <system:String x:Key="RaidSummaryLabel">Get Raid Summary</system:String>
     <system:String x:Key="RaidSummaryButtonText">Get Summary</system:String>
+    <system:String x:Key="CharacterDeathsLabel">Get Character Death Info</system:String>
+    <system:String x:Key="CharacterDeathsButtonText">Get Info</system:String>
     <system:String x:Key="IncludeTellsLabel">Include Tells</system:String>
+    <system:String x:Key="CharacterNameLabel">Character Name</system:String>
+    <system:String x:Key="BossNameLabel">Boss Name</system:String>
     <system:String x:Key="OpenGeneralLogParser">General Parser</system:String>
     <system:String x:Key="UnexpectedError">Unexpected Error Encountered</system:String>
     <system:String x:Key="OutputAnalyzerErrors">Output analyzer errors to file name starting with 'AnalyzerErrors'</system:String>

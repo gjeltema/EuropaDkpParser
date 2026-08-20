@@ -66,12 +66,39 @@ internal sealed class ParsedFileGenerator
         completedDialog.ShowDialog();
     }
 
+    public async Task GetCharacterSlainSummaryAsync(DateTime startTime, DateTime endTime, string characterName, string bossName, string outputDirectory)
+    {
+        ICharacterDeathParser characterDeathParser = new CharacterDeathParser(_settings, characterName, bossName);
+        ICollection<EqLogFile> logFiles = await Task.Run(() => characterDeathParser.GetEqLogFiles(startTime, endTime));
+
+        string characterDeathOutputFile = $"{Constants.RaidSummaryFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string characterDeathOutputFullPath = Path.Combine(outputDirectory, characterDeathOutputFile);
+        bool anyDeathsFound = false;
+        foreach (EqLogFile logFile in logFiles)
+        {
+            if (logFile.LogEntries.Count > 0)
+            {
+                await CreateFileAsync(characterDeathOutputFullPath, logFile.GetAllLogLines());
+                anyDeathsFound = true;
+            }
+        }
+
+        if (!anyDeathsFound)
+        {
+            MessageBox.Show(Strings.GetString("NoCharacterDeathsFound"), Strings.GetString("NoCharacterDeathsFoundTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(characterDeathOutputFullPath);
+        completedDialog.ShowDialog();
+    }
+
     public async Task GetRaidSummaryAsync(DateTime startTime, DateTime endTime, bool includeTells, string outputDirectory)
     {
         IRaidSummaryParser raidSummaryParser = new RaidSummaryParser(_settings, includeTells);
         ICollection<EqLogFile> logFiles = await Task.Run(() => raidSummaryParser.GetEqLogFiles(startTime, endTime));
 
-        string raidSummaryOutputFile = $"{Constants.RaidSummaryFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string raidSummaryOutputFile = $"{Constants.CharacterDeathFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string raidSummaryOutputFullPath = Path.Combine(outputDirectory, raidSummaryOutputFile);
         bool anySummaryFound = false;
         foreach (EqLogFile logFile in logFiles)
