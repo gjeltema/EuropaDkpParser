@@ -412,11 +412,13 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     {
         if (e.StartAfk)
         {
-            _currentAfks = _currentAfks.Add(e.CharacterName);
+            if (!_currentAfks.Contains(e.CharacterName))
+                _currentAfks = _currentAfks.Add(e.CharacterName);
         }
         else
         {
-            _currentAfks = _currentAfks.Remove(e.CharacterName);
+            if (_currentAfks.Contains(e.CharacterName))
+                _currentAfks = _currentAfks.Remove(e.CharacterName);
         }
         Updated = true;
     }
