@@ -25,7 +25,9 @@ public static class Constants
     // [Wed Mar 13 20:37:58 2024] Musse auctions, 'xxx - CH - Eorderth'
     public const string AuctionOther = " auctions, '";
     public const string AuctionYou = "You auction, '";
+    public const string BeginsCastSpell = " begins to cast a spell.";
     public const string CommunicationFileNamePrefix = "CommunicationOutput-";
+    public const string CompletelyHealed = " is completely healed.";
     public const string ConversationFileNamePrefix = "ConversationOutput-";
     public const string Crashed = "CRASHED";
     public const string CrashedAlternateDelimiter = $"{AlternateDelimiter}{Crashed}{AlternateDelimiter}";

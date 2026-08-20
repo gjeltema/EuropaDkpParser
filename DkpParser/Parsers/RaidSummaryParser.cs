@@ -44,11 +44,12 @@ public sealed class RaidSummaryParser : EqLogParserBase, IRaidSummaryParser
             || logLine.StartsWith(Constants.OocYou) || logLine.Contains(Constants.OocOther)
             || logLine.StartsWith(Constants.GuildYou) || logLine.Contains(Constants.GuildOther)
             || logLine.StartsWith(Constants.GroupYou) || logLine.Contains(Constants.GroupOther)
+            || logLine.StartsWith(Constants.SayYou) || logLine.Contains(Constants.SayOther)
             || logLine.Contains(Constants.JoinedRaid) || logLine.Contains(Constants.LeftRaid)
             || logLine.StartsWith(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)
             || logLine.EndsWith(Constants.EndLootedDashes) || logLine.StartsWith(Constants.SlainYou)
-            || logLine.StartsWith(Constants.YouHealed) || logLine.Contains(Constants.FeelsMuchBetter)
-            || logLine.StartsWith(Constants.Twitches) || logLine.Contains(Constants.Rampage) || logLine.Contains(Constants.Slain)
+            || logLine.StartsWith(Constants.YouHealed) || logLine.EndsWith(Constants.FeelsMuchBetter) || logLine.EndsWith(Constants.CompletelyHealed)
+            || logLine.StartsWith(Constants.Twitches) || logLine.Contains(Constants.Rampage) || logLine.EndsWith(Constants.BeginsCastSpell) || logLine.Contains(Constants.Slain)
             || logLine.Contains(" Eu.heals:") || logLine.Contains(" Eu.ch:") || logLine.Contains(" Eu.officers:"))
             {
                 AddLogEntry(logLine, entryTimeStamp);
