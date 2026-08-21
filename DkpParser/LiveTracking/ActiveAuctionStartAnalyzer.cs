@@ -30,11 +30,11 @@ internal sealed partial class ActiveAuctionStartAnalyzer
         return [];
     }
 
-    [GeneratedRegex("x\\d", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
-    private static partial Regex MultipleItemsAuctionedRegex();
-
     [GeneratedRegex("\\(\\d\\)", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
     private static partial Regex MultipleItemsAuctionedParensRegex();
+
+    [GeneratedRegex("x\\d", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
+    private static partial Regex MultipleItemsAuctionedRegex();
 
     [GeneratedRegex("\\d+", RegexOptions.Compiled)]
     private static partial Regex NumbersRegex();
@@ -118,14 +118,22 @@ internal sealed partial class ActiveAuctionStartAnalyzer
                 int multiplier = GetMultiplier(itemName, out string multiplierDeclaration);
                 string itemNameWithoutMultiplier = itemName;
                 if (multiplier > 1)
-                    itemNameWithoutMultiplier = itemNameWithoutMultiplier.Replace(multiplierDeclaration, "");
+                    itemNameWithoutMultiplier = itemNameWithoutMultiplier.Replace(multiplierDeclaration, "").Trim();
+
+                // If the user has the badword filter on, items with mutliple drops will have the message will look like: A Glowing Orb of Luclinite )
+                // If the ending paren is detected, assume it's a garbled multiple, and go with the most likely amount - 2x
+                if (itemNameWithoutMultiplier.EndsWith(')'))
+                {
+                    multiplier = 2;
+                    itemNameWithoutMultiplier = itemNameWithoutMultiplier.TrimEnd(')').Trim();
+                }
 
                 auctions.Add(new LiveAuctionInfo
                 {
                     Timestamp = timeStamp,
                     Channel = channel,
                     Auctioneer = messageSender,
-                    ItemName = itemNameWithoutMultiplier.Trim(),
+                    ItemName = itemNameWithoutMultiplier,
                     TotalNumberOfItems = multiplier,
                 });
             }
@@ -137,8 +145,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
             auctions.Clear();
             foreach (var auctionGroup in auctionGrouping)
             {
-                //if(auctionGroup.ItemCount > 1)
-                    auctionGroup.Auction.TotalNumberOfItems = auctionGroup.ItemCount;
+                auctionGroup.Auction.TotalNumberOfItems = auctionGroup.ItemCount;
                 Log.Debug($"{LogPrefix} New auction: {auctionGroup.Auction}");
                 auctions.Add(auctionGroup.Auction);
             }
