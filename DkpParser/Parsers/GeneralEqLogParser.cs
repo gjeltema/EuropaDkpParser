@@ -4,6 +4,7 @@
 
 namespace DkpParser.Parsers;
 
+using System.Diagnostics;
 using System.IO;
 
 public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
@@ -127,7 +128,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         }
         if (settings.CaseSensitiveSearchTerms != null && settings.CaseSensitiveSearchTerms.Count > 0)
         {
-            foreach (string searchTerm in settings.CaseInsensitiveSearchTerms)
+            foreach (string searchTerm in settings.CaseSensitiveSearchTerms)
                 _entryParsers.Add(new SearchTermCaseSensitiveEntryParser(searchTerm));
         }
         if (settings.Channels != null && settings.Channels.Count > 0)
@@ -216,6 +217,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         }
     }
 
+    [DebuggerDisplay("{SearchTerm,nq}")]
     private sealed class SearchTermCaseInsensitiveEntryParser : IEntryParser
     {
         private readonly string _searchTerm;
@@ -224,6 +226,9 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         {
             _searchTerm = searchTerm;
         }
+
+        public string SearchTerm
+            => _searchTerm;
 
         public bool TryParseEntry(string logLine, DateTime entryTimeStamp, out EqLogEntry eqLogEntry)
         {
@@ -246,6 +251,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         }
     }
 
+    [DebuggerDisplay("{SearchTerm,nq}")]
     private sealed class SearchTermCaseSensitiveEntryParser : IEntryParser
     {
         private readonly string _searchTerm;
@@ -254,6 +260,9 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         {
             _searchTerm = searchTerm;
         }
+
+        public string SearchTerm
+            => _searchTerm;
 
         public bool TryParseEntry(string logLine, DateTime entryTimeStamp, out EqLogEntry eqLogEntry)
         {
@@ -276,6 +285,7 @@ public sealed partial class GeneralEqLogParser : IGeneralEqLogParser
         }
     }
 
+    [DebuggerDisplay("{LimitTimestamp,nq}")]
     private sealed class WhoBodyEntryParser : IEntryParser
     {
         public DateTime LimitTimestamp { get; set; } = DateTime.MinValue;

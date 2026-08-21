@@ -240,7 +240,7 @@ internal sealed class GeneralEqLogParserDialogViewModel : DialogViewModelBase, I
             Looted = Looted,
             OtherDeath = OtherDeath,
             Channels = Channels?.Split(';'),
-            CaseInsensitiveSearchTerms = SearchTerms,
+            CaseInsensitiveSearchTerms = CaseInsensitiveSearchTerms,
             CaseSensitiveSearchTerms = CaseSensitiveSearchTerms,
             ExclusionTerms = ExclusionTerms,
             PeopleConversingWith = PeopleConversingWith?.Split(';')

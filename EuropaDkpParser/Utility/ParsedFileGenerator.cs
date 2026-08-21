@@ -71,7 +71,7 @@ internal sealed class ParsedFileGenerator
         ICharacterDeathParser characterDeathParser = new CharacterDeathParser(_settings, characterName, bossName);
         ICollection<EqLogFile> logFiles = await Task.Run(() => characterDeathParser.GetEqLogFiles(startTime, endTime));
 
-        string characterDeathOutputFile = $"{Constants.RaidSummaryFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string characterDeathOutputFile = $"{Constants.CharacterDeathFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string characterDeathOutputFullPath = Path.Combine(outputDirectory, characterDeathOutputFile);
         bool anyDeathsFound = false;
         foreach (EqLogFile logFile in logFiles)
@@ -98,7 +98,7 @@ internal sealed class ParsedFileGenerator
         IRaidSummaryParser raidSummaryParser = new RaidSummaryParser(_settings, includeTells);
         ICollection<EqLogFile> logFiles = await Task.Run(() => raidSummaryParser.GetEqLogFiles(startTime, endTime));
 
-        string raidSummaryOutputFile = $"{Constants.CharacterDeathFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string raidSummaryOutputFile = $"{Constants.RaidSummaryFileNamePrefix}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string raidSummaryOutputFullPath = Path.Combine(outputDirectory, raidSummaryOutputFile);
         bool anySummaryFound = false;
         foreach (EqLogFile logFile in logFiles)
@@ -125,7 +125,8 @@ internal sealed class ParsedFileGenerator
         ITermParser termParser = new TermParser(_settings, searchTermText, isCaseSensitive);
         ICollection<EqLogFile> logFiles = await Task.Run(() => termParser.GetEqLogFiles(startTime, endTime));
 
-        string searchTermOutputFile = $"{Constants.SearchTermFileNamePrefix}{searchTermText}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
+        string searchTermFilepathText = searchTermText.ReplaceInvalidFilenameChars();
+        string searchTermOutputFile = $"{Constants.SearchTermFileNamePrefix}{searchTermFilepathText}-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
         string searchTermOutputFullPath = Path.Combine(outputDirectory, searchTermOutputFile);
         bool anySearchTermFound = false;
         foreach (EqLogFile logFile in logFiles)

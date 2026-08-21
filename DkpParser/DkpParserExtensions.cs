@@ -4,6 +4,7 @@
 
 namespace DkpParser;
 
+using System.IO;
 using DkpParser.Parsers;
 
 public static class DkpParserExtensions
@@ -56,6 +57,9 @@ public static class DkpParserExtensions
         }
         return index;
     }
+
+    public static string ReplaceInvalidFilenameChars(this string fileName, char replacementChar = '_')
+        => string.Join(replacementChar, fileName.Split(Path.GetInvalidFileNameChars()));
 
     public static string ToEqLogTimestamp(this DateTime timeStamp)
         => timeStamp.ToUsTimestamp(Constants.EqLogDateTimeFormat);
