@@ -4,31 +4,35 @@
 
 namespace EuropaDkpParser.Utility;
 
+using System.Runtime.InteropServices;
 using Gjeltema.Logging;
 
 internal static class Clip
 {
+    private const uint ClipboardCantOpenErrorCode = 0x800401D0;
     private const string LogPrefix = $"[{nameof(Clip)}]";
+    private const int NumberOfRetries = 3;
 
     public static void Copy(string text)
     {
-        try
+        for (int i = 0; i < NumberOfRetries; i++)
         {
-            System.Windows.Clipboard.SetText(text);
-            return;
-        }
-        catch (Exception e)
-        {
-            Log.Warning($"{LogPrefix} Error copying to clipboard: {e.ToLogMessage()}");
-        }
+            try
+            {
+                System.Windows.Clipboard.SetDataObject(text, true);
+                return;
+            }
+            catch (COMException e)
+            {
+                bool clipboardCantOpen = ((uint)e.ErrorCode) == ClipboardCantOpenErrorCode;
+                Log.Warning($"{LogPrefix} COM error copying to clipboard - Clipboard cant open:{clipboardCantOpen}: {e.ToLogMessage()}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{LogPrefix} Error copying to clipboard: {ex.ToLogMessage()}");
+            }
 
-        try
-        {
-            System.Windows.Clipboard.SetText(text);
-        }
-        catch (Exception e)
-        {
-            Log.Warning($"{LogPrefix} Error copying to clipboard: {e.ToLogMessage()}");
+            Thread.Sleep(1);
         }
     }
 }

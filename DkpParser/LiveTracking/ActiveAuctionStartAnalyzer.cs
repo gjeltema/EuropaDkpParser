@@ -116,7 +116,7 @@ internal sealed partial class ActiveAuctionStartAnalyzer
             foreach (string itemName in itemNames)
             {
                 int multiplier = GetMultiplier(itemName, out string multiplierDeclaration);
-                string itemNameWithoutMultiplier = itemName;
+                string itemNameWithoutMultiplier = itemName.Trim();
                 if (multiplier > 1)
                     itemNameWithoutMultiplier = itemNameWithoutMultiplier.Replace(multiplierDeclaration, "").Trim();
 
