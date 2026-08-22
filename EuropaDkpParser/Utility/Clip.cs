@@ -19,7 +19,7 @@ internal static class Clip
         {
             try
             {
-                System.Windows.Clipboard.SetDataObject(text, true);
+                System.Windows.Clipboard.SetDataObject(text, false);
                 return;
             }
             catch (COMException e)
