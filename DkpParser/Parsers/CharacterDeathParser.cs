@@ -35,7 +35,9 @@ public sealed class CharacterDeathParser : EqLogParserBase, ICharacterDeathParse
 
     protected override void InitializeEntryParsers(EqLogFile logFile, DateTime startTime, DateTime endTime)
     {
-        CharacterDeathOtherEntryParser characterDeathEntryParser = new(logFile, _characterName, _bossName);
+        IParseEntry characterDeathEntryParser = string.IsNullOrEmpty(_bossName)
+            ? new CharacterDeathOtherEntryParser(logFile, _characterName)
+            : new CharacterDeathOtherWithBossNameEntryParser(logFile, _characterName, _bossName);
         FindStartTimeEntryParser findStartParser = new(this, startTime, characterDeathEntryParser);
 
         SetEntryParser(findStartParser);
@@ -55,27 +57,42 @@ public sealed class CharacterDeathParser : EqLogParserBase, ICharacterDeathParse
                 if (startTimestamp <= entry.Timestamp && entry.Timestamp <= endTimestamp)
                     processedFile.LogEntries.Add(entry);
             }
+
+            processedFile.LogEntries.Add(new EqLogEntry
+            {
+                Channel = EqChannel.None,
+                EntryType = LogEntryType.Unknown,
+                LogLine = "==================================================================",
+                Timestamp = endTimestamp
+            });
         }
 
         return processedFile;
     }
 
-    private sealed class CharacterDeathOtherEntryParser : IParseEntry
+    internal sealed class CharacterDeathOtherEntryParser : IParseEntry
     {
-        private readonly string _bossName;
         private readonly string _characterName;
         private readonly EqLogFile _logFile;
 
-        public CharacterDeathOtherEntryParser(EqLogFile logFile, string characterName, string bossName)
+        public CharacterDeathOtherEntryParser(EqLogFile logFile, string characterName)
         {
             _logFile = logFile;
             _characterName = characterName;
-            _bossName = bossName;
         }
 
         public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
         {
-            if (logLine.Contains(_characterName) || logLine.Contains(_bossName)
+            if (ParseCharacterDeathInfoWithoutBossName(logLine, _characterName))
+            {
+                AddLogEntry(logLine, entryTimeStamp);
+                return;
+            }
+        }
+
+        internal static bool ParseCharacterDeathInfoWithoutBossName(ReadOnlySpan<char> logLine, string characterName)
+        {
+            return logLine.Contains(characterName)
             || logLine.StartsWith(Constants.RaidYou) || logLine.Contains(Constants.RaidOther)
             || logLine.StartsWith(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)
             || logLine.StartsWith(Constants.OocYou) || logLine.Contains(Constants.OocOther)
@@ -84,7 +101,39 @@ public sealed class CharacterDeathParser : EqLogParserBase, ICharacterDeathParse
             || logLine.StartsWith(Constants.SayYou) || logLine.Contains(Constants.SayOther)
             || logLine.StartsWith(Constants.AuctionYou) || logLine.Contains(Constants.AuctionOther)
             || logLine.StartsWith(Constants.Twitches) || logLine.Contains(Constants.Rampage) || logLine.EndsWith(Constants.BeginsCastSpell) || logLine.Contains(Constants.Slain)
-            || logLine.Contains(" Eu.heals:") || logLine.Contains(" Eu.ch:") || logLine.Contains(" Eu.officers:"))
+            || logLine.Contains(" Eu.heals:") || logLine.Contains(" Eu.ch:") || logLine.Contains(" Eu.officers:");
+        }
+
+        private void AddLogEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
+        {
+            EqLogEntry logEntry = new()
+            {
+                EntryType = LogEntryType.Unknown,
+                LogLine = logLine.ToString(),
+                Timestamp = entryTimeStamp
+            };
+
+            _logFile.LogEntries.Add(logEntry);
+        }
+    }
+
+    private sealed class CharacterDeathOtherWithBossNameEntryParser : IParseEntry
+    {
+        private readonly string _bossName;
+        private readonly string _characterName;
+        private readonly EqLogFile _logFile;
+
+        public CharacterDeathOtherWithBossNameEntryParser(EqLogFile logFile, string characterName, string bossName)
+        {
+            _logFile = logFile;
+            _characterName = characterName;
+            _bossName = bossName;
+        }
+
+        public void ParseEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
+        {
+            if (logLine.Contains(_bossName)
+                || CharacterDeathOtherEntryParser.ParseCharacterDeathInfoWithoutBossName(logLine, _characterName))
             {
                 AddLogEntry(logLine, entryTimeStamp);
                 return;

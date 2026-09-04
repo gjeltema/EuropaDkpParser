@@ -43,8 +43,8 @@ internal class ParserDialogViewModel : DialogViewModelBase, IParserDialogViewMod
         GetRaidSummaryCommand = new DelegateCommand(GetRaidSummary, () => !PerformingParse && !string.IsNullOrWhiteSpace(_settings.OutputDirectory))
             .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => PerformingParse);
         GetCharacterDeathsCommand = new DelegateCommand(GetCharacterDeathsSummary,
-            () => !PerformingParse && !string.IsNullOrWhiteSpace(_settings.OutputDirectory) && !string.IsNullOrWhiteSpace(CharacterName) && !string.IsNullOrWhiteSpace(BossName))
-            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => PerformingParse).ObservesProperty(() => CharacterName).ObservesProperty(() => BossName);
+            () => !PerformingParse && !string.IsNullOrWhiteSpace(_settings.OutputDirectory) && !string.IsNullOrWhiteSpace(CharacterName))
+            .ObservesProperty(() => StartTimeText).ObservesProperty(() => EndTimeText).ObservesProperty(() => PerformingParse).ObservesProperty(() => CharacterName);
     }
 
     public string BossName { get; set => SetProperty(ref field, value); }
