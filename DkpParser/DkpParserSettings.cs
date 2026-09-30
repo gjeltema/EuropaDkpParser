@@ -10,6 +10,8 @@ using Gjeltema.Logging;
 
 public sealed class DkpParserSettings : IDkpParserSettings
 {
+    private const string ApiMusterTokenSection = "API_MUSTER_TOKEN";
+    private const string ApiMusterUrlSection = "API_MUSTER_URL";
     private const string ApiReadTokenSection = "API_READ_TOKEN";
     private const string ApiUrlSection = "API_URL";
     private const string ApiWriteTokenSection = "API_WRITE_TOKEN";
@@ -62,6 +64,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string SpellTrackerWidthSection = "SPELL_TRACKER_WIDTH";
     private const string SpellTrackerXLocSection = "SPELL_TRACKER_X";
     private const string SpellTrackerYLocSection = "SPELL_TRACKER_Y";
+    private const string UploadToEqDkpSection = "UPLOAD_TO_EQ_DKP";
     private const string UseLightModeSection = "USE_LIGHT_MODE";
     private const string WindowLocationSection = "WINDOW_LOCATION";
     private readonly string _dkpCharactersFileName;
@@ -80,6 +83,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
     }
 
     public bool AddBonusDkpRaid { get; set; }
+
+    public string ApiMusterToken { get; set; }
+
+    public string ApiMusterUrl { get; set; }
 
     public string ApiReadToken { get; set; } = DefaultReadToken;
 
@@ -176,6 +183,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public int SpellTrackerYLoc { get; set; }
 
+    public bool UploadToEqDkp { get; set; } = true;
+
     public bool UseLightMode { get; set; }
 
     public IDictionary<int, string> ZoneIdMapping { get; private set; }
@@ -228,6 +237,10 @@ public sealed class DkpParserSettings : IDkpParserSettings
         SetApiUrl(fileContents);
         if (string.IsNullOrWhiteSpace(ApiUrl))
             ApiUrl = "";
+
+        ApiMusterUrl = GetStringValue(fileContents, ApiMusterUrlSection);
+        ApiMusterToken = GetStringValue(fileContents, ApiMusterTokenSection);
+
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
         ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
         LogFileMatchPattern = GetStringValue(fileContents, LogMatchPatternSection, DefaultMatchPattern);
@@ -261,6 +274,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         LoggingLevel = (LogLevel)loggingLevelRaw;
 
         MezBreaksToShow = GetIntValue(fileContents, MezBreaksToShowSection, 4);
+
+        UploadToEqDkp = GetBoolValue(fileContents, UploadToEqDkpSection, true);
 
         return fileExists;
     }
@@ -298,6 +313,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(ApiReadTokenSection, ApiReadToken),
             CreateFileEntry(ApiWriteTokenSection, ApiWriteToken),
             CreateFileEntry(ApiUrlSection, ApiUrl),
+            CreateFileEntry(ApiMusterTokenSection, ApiMusterToken),
+            CreateFileEntry(ApiMusterUrlSection, ApiMusterUrl),
             CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid),
             CreateFileEntry(ShowAfkReviewSection, ShowAfkReview),
             CreateFileEntry(LogMatchPatternSection, LogFileMatchPattern),
@@ -326,6 +343,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(SpellTrackerWidthSection, SpellTrackerWidth),
             CreateFileEntry(EnableZealDetailLoggingSection, EnableZealDetailLogging),
             CreateFileEntry(LogLevelSection, (int)LoggingLevel),
+            CreateFileEntry(UploadToEqDkpSection, UploadToEqDkp),
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -609,6 +627,10 @@ public interface IDkpParserSettings
 {
     bool AddBonusDkpRaid { get; set; }
 
+    string ApiMusterToken { get; set; }
+
+    string ApiMusterUrl { get; set; }
+
     string ApiReadToken { get; set; }
 
     string ApiUrl { get; set; }
@@ -702,6 +724,8 @@ public interface IDkpParserSettings
     int SpellTrackerXLoc { get; set; }
 
     int SpellTrackerYLoc { get; set; }
+
+    bool UploadToEqDkp { get; set; }
 
     bool UseLightMode { get; set; }
 

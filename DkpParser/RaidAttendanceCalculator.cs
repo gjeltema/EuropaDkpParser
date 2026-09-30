@@ -4,6 +4,7 @@
 
 namespace DkpParser;
 
+using DkpParser.Uploading;
 using Gjeltema.Logging;
 
 public sealed class RaidAttendanceCalculator : IRaidAttendanceCalc

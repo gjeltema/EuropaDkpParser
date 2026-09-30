@@ -49,6 +49,9 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         ApiReadToken = _settings.ApiReadToken;
         ApiWriteToken = _settings.ApiWriteToken;
 
+        ApiMusterUrl = _settings.ApiMusterUrl;
+        ApiMusterToken = _settings.ApiMusterToken;
+
         UseLightMode = _settings.UseLightMode;
         ShowAfkReview = _settings.ShowAfkReview;
         IncludeTellsInRawLog = _settings.IncludeTellsInRawLog;
@@ -63,12 +66,18 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
         MezBreaksToShow = _settings.MezBreaksToShow;
 
+        UploadToEqDkp = _settings.UploadToEqDkp;
+
         SetAllCharacterLogFiles();
     }
 
     public DelegateCommand AddLogFileToListCommand { get; }
 
     public ICollection<string> AllCharacterLogFiles { get; private set; }
+
+    public string ApiMusterUrl { get; set => SetProperty(ref field, value); }
+
+    public string ApiMusterToken { get; set => SetProperty(ref field, value); }
 
     public string ApiReadToken { get; set => SetProperty(ref field, value); }
 
@@ -135,6 +144,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public bool ShowProgress { get; private set => SetProperty(ref field, value); }
 
+    public bool UploadToEqDkp { get; set => SetProperty(ref field, value); }
+
     public bool UseLightMode { get; set => SetProperty(ref field, value); }
 
     public void UpdateSettings(IDkpParserSettings settings)
@@ -148,6 +159,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.ApiUrl = ApiUrl;
         _settings.ApiReadToken = ApiReadToken;
         _settings.ApiWriteToken = ApiWriteToken;
+        _settings.ApiMusterUrl = ApiMusterUrl;
+        _settings.ApiMusterToken = ApiMusterToken;
         _settings.ShowAfkReview = ShowAfkReview;
         _settings.LogFileMatchPattern = LogFileMatchPattern;
         _settings.IncludeTellsInRawLog = IncludeTellsInRawLog;
@@ -163,6 +176,8 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         _settings.MezBreaksToShow = MezBreaksToShow;
         _settings.LoggingLevel = Log.ConvertToLogLevel(SelectedLoggingLevel);
         Log.Logger.Default.LoggingLevel = _settings.LoggingLevel;
+
+        _settings.UploadToEqDkp = UploadToEqDkp;
 
         _settings.SaveSettings();
     }
@@ -282,6 +297,10 @@ public interface ILogSelectionViewModel : IDialogViewModel
 
     ICollection<string> AllCharacterLogFiles { get; }
 
+    string ApiMusterUrl { get; set; }
+
+    string ApiMusterToken { get; set; }
+
     string ApiReadToken { get; set; }
 
     string ApiUrl { get; set; }
@@ -327,6 +346,8 @@ public interface ILogSelectionViewModel : IDialogViewModel
     bool ShowAfkReview { get; set; }
 
     bool ShowProgress { get; }
+
+    bool UploadToEqDkp { get; set; }
 
     bool UseLightMode { get; set; }
 

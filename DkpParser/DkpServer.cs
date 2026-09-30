@@ -4,7 +4,6 @@
 
 namespace DkpParser;
 
-using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Net.Http;
@@ -145,7 +144,7 @@ public sealed class DkpServer : IDkpServer
         return new CharacterDkpAmounts { CharacterName = characterName };
     }
 
-    public async Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results)
+    public async Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, EqDkpRaidUploadResults results)
     {
         Log.Debug($"{LogPrefix} ------- Starting retrieval of IDs -------");
 
@@ -269,7 +268,7 @@ public sealed class DkpServer : IDkpServer
         return characterId;
     }
 
-    private async Task GetCharacterIdFromServerAsync(string characterName, RaidUploadResults results)
+    private async Task GetCharacterIdFromServerAsync(string characterName, EqDkpRaidUploadResults results)
     {
         try
         {
@@ -287,7 +286,7 @@ public sealed class DkpServer : IDkpServer
         }
     }
 
-    private async Task GetEventIdsAsync(IEnumerable<string> zoneNames, RaidUploadResults results)
+    private async Task GetEventIdsAsync(IEnumerable<string> zoneNames, EqDkpRaidUploadResults results)
     {
         XDocument eventIdsDoc = await GetEventIdsFromServerAsync(results);
         if (results.EventIdCallFailure != null || eventIdsDoc == null)
@@ -332,7 +331,7 @@ public sealed class DkpServer : IDkpServer
         }
     }
 
-    private async Task<XDocument> GetEventIdsFromServerAsync(RaidUploadResults results)
+    private async Task<XDocument> GetEventIdsFromServerAsync(EqDkpRaidUploadResults results)
     {
         try
         {
@@ -471,10 +470,10 @@ public sealed class DkpServer : IDkpServer
             charactersRa.Add(new CharacterRaidAttendance
             {
                 CharacterName = characterName.NormalizeName(),
-                CharacterId = idValue,
+                CharacterId = idValue.ToString(),
                 ClassName = className,
-                MainCharacterId = mainCharacterId,
-                MainCharacterName = mainCharacterName.NormalizeName(),
+                UserId = mainCharacterId.ToString(),
+                UserName = mainCharacterName.NormalizeName(),
                 PlayerCurrentDkp = currentPlayerDkp,
                 Character30DayRa = thirtyDayCharacterRa * 100,
                 Player30DayRa = thirtyDayPlayerRa * 100,
@@ -663,43 +662,34 @@ public sealed class CharacterRaidAttendance
 {
     public double Character30DayRa { get; init; } = 0.0;
 
-    public int CharacterId { get; init; } = -1;
+    public double Character60DayRa { get; init; } = 0.0;
+
+    public double Character90DayRa { get; init; } = 0.0;
+
+    public string CharacterId { get; init; }
 
     public string CharacterName { get; init; } = string.Empty;
 
     public string ClassName { get; init; }
 
-    public int MainCharacterId { get; init; } = int.MinValue;
+    public bool IsMainCharacter { get; init; }
 
-    public string MainCharacterName { get; init; } = string.Empty;
+    public int Level { get; init; } = -1;
 
     public double Player30DayRa { get; init; } = 0.0;
 
+    public double Player60DayRa { get; init; } = 0.0;
+
+    public double Player90DayRa { get; init; } = 0.0;
+
     public int PlayerCurrentDkp { get; init; } = int.MinValue;
+
+    public string Rank { get; init; }
+
+    public string UserId { get; init; }
+
+    public string UserName { get; init; } = string.Empty;
 
     private string DebugText
        => $"{CharacterName} ID:{CharacterId} {Character30DayRa:0.0} ({Player30DayRa:0.0})%RA";
-}
-
-public interface IDkpServer
-{
-    Task<ICollection<CharacterRaidAttendance>> GetAllCharacterAttendancesAsync();
-
-    Task<int> GetCharacterIdAsync(string characterName);
-
-    Task<ICollection<PreviousRaid>> GetPriorRaidsAsync(int numbeOfRaids);
-
-    Task<ICollection<DkpUserCharacter>> GetUserCharactersAsync(int userId);
-
-    Task<CharacterDkpAmounts> GetUserDkpAsync(int userId);
-
-    Task<CharacterDkpAmounts> GetUserDkpAsync(string characterName);
-
-    Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, RaidUploadResults results);
-
-    Task UploadAdjustmentAsync(AdjustmentUploadInfo adjustment);
-
-    Task UploadAttendanceAsync(AttendanceUploadInfo attendanceEntry);
-
-    Task UploadDkpSpentAsync(DkpUploadInfo dkpEntry);
 }

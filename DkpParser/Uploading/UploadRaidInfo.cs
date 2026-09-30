@@ -19,6 +19,8 @@ public sealed class UploadRaidInfo
 
     public ICollection<DkpUploadInfo> DkpInfo { get; init; }
 
+    public bool IsTestUpload { get; set; }
+
     /// <summary>
     /// Used for uploading only select attendances, assumes zone names are already sanitized.
     /// </summary>

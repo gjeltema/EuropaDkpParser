@@ -20,10 +20,12 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Label Grid.Row="0" Content="{Binding StatusMessage}"/>
-            <CheckBox Grid.Row="1" Content="{StaticResource UploadSelectedAttendances}" IsChecked="{Binding UploadSelectedAttendances}" Margin="5,5,0,0"/>
+            <CheckBox Grid.Row="1" Content="{StaticResource PerformTestRun}" IsChecked="{Binding TestRun}" Margin="5,5,0,0"/>
+            <CheckBox Grid.Row="2" Content="{StaticResource UploadSelectedAttendances}" IsChecked="{Binding UploadSelectedAttendances}" Margin="5,5,0,0"/>
         </Grid>
 
         <!-- Errors and Selected Attendances displays overlay each other, with visibility controlled by properites. -->

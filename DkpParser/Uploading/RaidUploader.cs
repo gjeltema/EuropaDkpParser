@@ -12,17 +12,19 @@ public sealed class RaidUploader : IRaidUpload
 {
     private const string LogPrefix = $"[{nameof(RaidUploader)}]";
     private readonly IDkpServer _dkpServer;
+    private readonly IMusterDkpServer _musterDkpServer;
 
     public RaidUploader(IDkpParserSettings settings)
     {
         _dkpServer = new DkpServer(settings);
+        _musterDkpServer = new MusterDkpServer(settings);
     }
 
-    public async Task<RaidUploadResults> UploadRaidAsync(UploadRaidInfo uploadRaidInfo)
+    public async Task<EqDkpRaidUploadResults> UploadEqDkpRaidAsync(UploadRaidInfo uploadRaidInfo)
     {
         Log.Debug($"{LogPrefix} =========== Beginning Upload Process ===========");
 
-        RaidUploadResults results = new();
+        EqDkpRaidUploadResults results = new();
 
         if (uploadRaidInfo.AttendanceInfo.Count == 0)
         {
@@ -56,7 +58,65 @@ public sealed class RaidUploader : IRaidUpload
         return results;
     }
 
-    private async Task UploadAttendancesAsync(IEnumerable<AttendanceUploadInfo> attendanceEntries, RaidUploadResults results)
+    public async Task<MusterDkpRaidUploadResults> UploadMusterRaidAsync(UploadRaidInfo uploadRaidInfo)
+    {
+        Log.Debug($"{LogPrefix} =========== Beginning Upload Process ===========");
+
+        ICollection<MusterPreCheckError> charactersDontExist = await GetCharactersNotExisting(uploadRaidInfo);
+        if (charactersDontExist.Count > 0)
+        {
+            MusterDkpRaidUploadResults preResults = new()
+            {
+                CharactersDontExistPreCheck = charactersDontExist,
+                DryRun = uploadRaidInfo.IsTestUpload,
+            };
+
+            Log.Debug($"{LogPrefix} Pre-check for characters existing found missing chars: {string.Join(',', charactersDontExist)}");
+
+            return preResults;
+        }
+
+        Log.Debug($"{LogPrefix} Starting Upload.");
+        MusterDkpRaidUploadResults results = await _musterDkpServer.UploadRaidAsync(uploadRaidInfo);
+        Log.Debug($"{LogPrefix} =========== Completed Upload Process =========== ");
+
+        return results;
+    }
+
+    private async Task<ICollection<MusterPreCheckError>> GetCharactersNotExisting(UploadRaidInfo uploadRaidInfo)
+    {
+        ICollection<CharacterRaidAttendance> recentChars = await _musterDkpServer.GetAllCharacterAttendancesAsync();
+        List<string> recentCharNames = recentChars.Select(x => x.CharacterName).ToList();
+
+        // Attendance check
+        IEnumerable<string> attendanceChars = (from attendance in uploadRaidInfo.AttendanceInfo
+                                               from character in attendance.Characters
+                                               select character.CharacterName).Distinct();
+
+        List<MusterPreCheckError> errors = [];
+        IEnumerable<string> missingChars = attendanceChars.Except(recentCharNames);
+        foreach (string missingChar in missingChars)
+        {
+            CharacterRaidAttendance singleCharCheck = await _musterDkpServer.GetCharacterAttendanceAsync(missingChar);
+            if (singleCharCheck == null)
+                errors.Add(new MusterPreCheckError { CharacterName = missingChar });
+        }
+
+        // DKP Spent check
+        foreach (DkpUploadInfo dkpEntry in uploadRaidInfo.DkpInfo)
+        {
+            if (!recentCharNames.Contains(dkpEntry.CharacterName))
+            {
+                CharacterRaidAttendance singleCharCheck = await _musterDkpServer.GetCharacterAttendanceAsync(dkpEntry.CharacterName);
+                if (singleCharCheck == null)
+                    errors.Add(new MusterPreCheckError { CharacterName = dkpEntry.CharacterName, ItemBought = dkpEntry });
+            }
+        }
+
+        return errors;
+    }
+
+    private async Task UploadAttendancesAsync(IEnumerable<AttendanceUploadInfo> attendanceEntries, EqDkpRaidUploadResults results)
     {
         foreach (AttendanceUploadInfo attendance in attendanceEntries)
         {
@@ -91,7 +151,7 @@ public sealed class RaidUploader : IRaidUpload
         Log.Debug($"{LogPrefix} ----- Completed uploading raid attendances.");
     }
 
-    private async Task UploadDkpSpendingsAsync(IEnumerable<DkpUploadInfo> dkpEntries, RaidUploadResults results)
+    private async Task UploadDkpSpendingsAsync(IEnumerable<DkpUploadInfo> dkpEntries, EqDkpRaidUploadResults results)
     {
         foreach (DkpUploadInfo dkpEntry in dkpEntries)
         {
@@ -117,7 +177,7 @@ public sealed class RaidUploader : IRaidUpload
     }
 }
 
-public sealed class RaidUploadResults
+public sealed class EqDkpRaidUploadResults
 {
     public AttendanceUploadFailure AttendanceError { get; set; }
 
@@ -183,5 +243,7 @@ public sealed class EventIdNotFoundFailure
 
 public interface IRaidUpload
 {
-    Task<RaidUploadResults> UploadRaidAsync(UploadRaidInfo uploadRaidInfo);
+    Task<EqDkpRaidUploadResults> UploadEqDkpRaidAsync(UploadRaidInfo uploadRaidInfo);
+
+    Task<MusterDkpRaidUploadResults> UploadMusterRaidAsync(UploadRaidInfo uploadRaidInfo);
 }

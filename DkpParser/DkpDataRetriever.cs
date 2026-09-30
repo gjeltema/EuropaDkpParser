@@ -4,6 +4,8 @@
 
 namespace DkpParser;
 
+using DkpParser.Uploading;
+
 public sealed class DkpDataRetriever : IDkpDataRetriever
 {
     private const int EmptyResponsesThreshold = 20;

@@ -371,6 +371,12 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public bool AddBonusDkpRaid { get; set; }
 
+    public string ApiMusterReadToken { get; set; }
+
+    public string ApiMusterUrl { get; set; }
+
+    public string ApiMusterToken { get; set; }
+
     public string ApiReadToken { get; set; }
 
     public string ApiUrl { get; set; }
@@ -464,6 +470,10 @@ internal sealed class SettingsMock : IDkpParserSettings
     public int SpellTrackerXLoc { get; set; }
 
     public int SpellTrackerYLoc { get; set; }
+
+    public bool UploadToEqDkp { get; set; }
+
+    public bool UploadToMusterDkp { get; set; }
 
     public bool UseLightMode { get; set; }
 

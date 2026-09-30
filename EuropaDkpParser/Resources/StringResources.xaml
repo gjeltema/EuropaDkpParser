@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v3.6.4</system:String>
+    <system:String x:Key="Version">v3.7b</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -120,9 +120,13 @@
     <system:String x:Key="SelectEqLogFileFolder">Select EQ Log File Folder</system:String>
     <system:String x:Key="SelectOutputLogFileFolder">Select Output Folder</system:String>
     <system:String x:Key="EnableDebugOptions">Enable Debug Options</system:String>
-    <system:String x:Key="ApiUrlLabel">API URL:</system:String>
-    <system:String x:Key="ApiReadTokenLabel">API Read Token:</system:String>
-    <system:String x:Key="ApiWriteTokenLabel">API Write Token:</system:String>
+    <system:String x:Key="UploadEqDkpLabel">Upload to EQ DKP</system:String>
+    <system:String x:Key="UploadMusterDkpLabel">Upload to Muster DKP</system:String>
+    <system:String x:Key="ApiUrlLabel">EQDKP API URL:</system:String>
+    <system:String x:Key="ApiReadTokenLabel">EQDKP API Read Token:</system:String>
+    <system:String x:Key="ApiWriteTokenLabel">EQDKP API Write Token:</system:String>
+    <system:String x:Key="MusterApiUrlLabel">Muster API URL:</system:String>
+    <system:String x:Key="MusterApiTokenLabel">Muster API Token:</system:String>
     <system:String x:Key="MezBreaksToShowLabel">Mez Breaks to Show</system:String>
     <system:String x:Key="UseLightModeLabel">Use Light Mode</system:String>
     <system:String x:Key="ShowAfkReviewLabel">Show AFK Review Dialog</system:String>
@@ -247,6 +251,7 @@
     <system:String x:Key="BeginUploadButton">Begin Upload</system:String>
     <system:String x:Key="RemovePlayerText">Remove the selected player from all attendance calls</system:String>
     <system:String x:Key="RemovePlayerButton">Remove Player</system:String>
+    <system:String x:Key="PerformTestRun">Perform Upload as Test Run</system:String>
     <system:String x:Key="UploadSelectedAttendances">Upload Only Selected Attendances</system:String>
     <system:String x:Key="DebugFileGenerationErrorMessage">There was an error creating the debug info file: </system:String>
     <system:String x:Key="DebugFileGenerationError">Error Creating File</system:String>
