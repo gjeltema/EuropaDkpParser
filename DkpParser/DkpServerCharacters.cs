@@ -4,7 +4,6 @@
 
 namespace DkpParser;
 
-using System.Diagnostics;
 using System.IO;
 using Gjeltema.Logging;
 
@@ -23,77 +22,8 @@ public sealed class DkpServerCharacters
     public IEnumerable<DkpUserCharacter> AllUserCharacters
         => _userCharacters;
 
-    public bool AddCharacter(DkpUserCharacter userCharacter)
-    {
-        if (_userCharacters.Any(x => x.UserId == userCharacter.UserId && x.CharacterId == userCharacter.CharacterId))
-            return false;
-
-        _userCharacters.Add(userCharacter);
-        return true;
-    }
-
-    public bool CharacterConfirmedExistsOnDkpServer(string characterName)
-        => _userCharacters.Count > 0 && _userCharacters.Any(x => x.Name == characterName);
-
     public bool CharacterConfirmedNotOnDkpServer(string characterName)
         => _userCharacters.Count > 0 && !_userCharacters.Any(x => x.Name == characterName);
-
-    public IEnumerable<DkpUserCharacter> GetAllRelatedCharacters(string characterName)
-    {
-        DkpUserCharacter dkpChar = _userCharacters.FirstOrDefault(x => x.Name == characterName);
-        if (dkpChar == null)
-            return [];
-
-        return GetAllRelatedCharacters(dkpChar);
-    }
-
-    public IEnumerable<DkpUserCharacter> GetAllRelatedCharacters(DkpUserCharacter userCharacter)
-    {
-        if (_userCharacters.Count == 0)
-            return [];
-
-        return _userCharacters.Where(x => x.UserId == userCharacter.UserId);
-    }
-
-    public IEnumerable<MutipleCharactersOnAccount> GetMultipleCharactersOnAccount(IEnumerable<PlayerCharacter> characters)
-    {
-        List<PlayerCharacter> playerCharacters = [.. characters];
-        List<MutipleCharactersOnAccount> multipleChars = [];
-        for (int i = 0; i < playerCharacters.Count; i++)
-        {
-            PlayerCharacter currentChar = playerCharacters[i];
-            DkpUserCharacter dkpCharacter = _userCharacters.FirstOrDefault(x => x.Name.Equals(currentChar.CharacterName, StringComparison.OrdinalIgnoreCase));
-            if (dkpCharacter == null)
-                continue;
-
-            if (multipleChars.Any(x => x.Contains(dkpCharacter)))
-                continue;
-
-            List<DkpUserCharacter> associatedCharacters = _userCharacters
-                .Where(x => x.UserId == dkpCharacter.UserId && x.Name != dkpCharacter.Name)
-                .ToList();
-
-            if (associatedCharacters.Count < 2)
-                continue;
-
-            for (int j = i + 1; j < playerCharacters.Count; j++)
-            {
-                PlayerCharacter comparingChar = playerCharacters[j];
-                DkpUserCharacter matchingDkpChar = associatedCharacters.FirstOrDefault(x => x.Name.Equals(comparingChar.CharacterName, StringComparison.OrdinalIgnoreCase));
-                if (matchingDkpChar != null)
-                {
-                    MutipleCharactersOnAccount multipleDkpCharMatch = new()
-                    {
-                        FirstCharacter = dkpCharacter,
-                        SecondCharacter = matchingDkpChar,
-                    };
-                    multipleChars.Add(multipleDkpCharMatch);
-                }
-            }
-        }
-
-        return multipleChars;
-    }
 
     public DkpUserCharacter GetUserCharacter(string characterName)
         => _userCharacters.FirstOrDefault(x => x.Name.Equals(characterName, StringComparison.OrdinalIgnoreCase));
@@ -172,30 +102,5 @@ public sealed class DkpServerCharacters
         {
             yield return $"{userChar.UserId}{Delimiter}{userChar.CharacterId}{Delimiter}{userChar.Name}{Delimiter}{userChar.Level}{Delimiter}{userChar.ClassName}";
         }
-    }
-}
-
-[DebuggerDisplay("{DebugText,nq}")]
-public sealed class MutipleCharactersOnAccount
-{
-    public DkpUserCharacter FirstCharacter { get; init; }
-
-    public DkpUserCharacter SecondCharacter { get; init; }
-
-    private string DebugText
-        => $"{FirstCharacter.Name} {SecondCharacter.Name}";
-
-    public bool Contains(DkpUserCharacter character)
-    {
-        if (character == null)
-            return false;
-
-        else if (character.CharacterId == FirstCharacter.CharacterId)
-            return true;
-
-        else if (character.CharacterId == SecondCharacter.CharacterId)
-            return true;
-
-        return false;
     }
 }

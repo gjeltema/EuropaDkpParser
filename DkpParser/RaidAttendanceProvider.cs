@@ -16,7 +16,7 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
 
     private RaidAttendanceProvider() { }
 
-    public static async Task<bool> InitializeAsync(IDkpServer dkpServer)
+    public static async Task<bool> InitializeAsync(IMusterDkpServer dkpServer)
     {
         if (Interlocked.Increment(ref _attemptedInitialization) > 0)
         {
@@ -26,8 +26,18 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
 
         try
         {
-            Log.Debug($"{LogPrefix} Initializing attendances.");
-            ICollection<CharacterRaidAttendance> attendancesFromServer = await dkpServer.GetAllCharacterAttendancesAsync();
+            Log.Debug($"{LogPrefix} Initializing character info.");
+            ICollection<CharacterRaidAttendance> baseCharInfoFromServer = await dkpServer.GetAllCharactersBaseInfoAsync();
+            if (baseCharInfoFromServer.Count == 0)
+            {
+                Log.Error($"{LogPrefix} Failed to initialize base character info.");
+                Interlocked.Decrement(ref _attemptedInitialization);
+                return false;
+            }
+
+            _raidAttendances = baseCharInfoFromServer.ToDictionary(x => x.CharacterName);
+
+            ICollection<CharacterRaidAttendance> attendancesFromServer = await dkpServer.GetAllActiveCharacterAttendancesAsync();
             if (attendancesFromServer.Count == 0)
             {
                 Log.Error($"{LogPrefix} Failed to initialize the raid attendances.");
@@ -35,7 +45,10 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
                 return false;
             }
 
-            _raidAttendances = attendancesFromServer.OrderByDescending(x => x.Character30DayRa).ToDictionary(x => x.CharacterName);
+            foreach (CharacterRaidAttendance attendance in attendancesFromServer)
+            {
+                _raidAttendances[attendance.CharacterName] = attendance;
+            }
         }
         catch (Exception ex)
         {
@@ -47,8 +60,20 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
         return true;
     }
 
+    public bool CharacterExistsOnDkpServer(string characterName)
+        => _raidAttendances.Values.Any(x => x.CharacterName.Equals(characterName, StringComparison.OrdinalIgnoreCase));
+
     public IEnumerable<CharacterRaidAttendance> GetAllRaidAttendances()
         => _raidAttendances.Values;
+
+    public IEnumerable<CharacterRaidAttendance> GetAllRelatedCharactersForUser(string characterName)
+    {
+        CharacterRaidAttendance charInfo = GetCharacterRaidAttendance(characterName);
+        if (charInfo == null)
+            return [];
+
+        return _raidAttendances.Values.Where(x => x.UserId == charInfo.UserId).ToList();
+    }
 
     public CharacterRaidAttendance GetCharacterRaidAttendance(string characterName)
     {
@@ -60,7 +85,11 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
 
 public interface IRaidAttendance
 {
+    bool CharacterExistsOnDkpServer(string characterName);
+
     IEnumerable<CharacterRaidAttendance> GetAllRaidAttendances();
+
+    IEnumerable<CharacterRaidAttendance> GetAllRelatedCharactersForUser(string characterName);
 
     CharacterRaidAttendance GetCharacterRaidAttendance(string characterName);
 }

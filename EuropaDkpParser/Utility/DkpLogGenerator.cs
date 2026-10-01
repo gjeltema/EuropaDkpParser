@@ -11,6 +11,7 @@ using System.Text;
 using System.Windows;
 using DkpParser;
 using DkpParser.Parsers;
+using DkpParser.Uploading;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.ViewModels;
 using Gjeltema.Logging;
@@ -110,8 +111,6 @@ internal sealed class DkpLogGenerator
     {
         Log.Debug($"{LogPrefix} Starting {nameof(StartLogParseAsync)}");
 
-        Task<bool> raInitSuccessTask = InitializeRaidAttendanceProvider();
-
         RaidEntries raidEntries = await ParseAndAnalyzeLogFilesAsync(sessionSettings);
 
         if (raidEntries == null)
@@ -164,13 +163,6 @@ internal sealed class DkpLogGenerator
 
         Log.Trace($"{LogPrefix} RaidEntries:{Environment.NewLine}{raidEntries.GetAllEntries()}");
 
-        bool raInitSuccess = await raInitSuccessTask;
-        if (!raInitSuccess)
-        {
-            MessageDialog.ShowDialog("Error initializing RA from DKP server. Ending file processing. Check log file.", "Error Initializing RA");
-            return;
-        }
-
         IFinalSummaryDialogViewModel finalSummaryDialog = _dialogFactory.CreateFinalSummaryDialogViewModel(_dialogFactory, _settings, raidEntries, _settings.IsApiConfigured);
         if (finalSummaryDialog.ShowDialog() == false)
         {
@@ -203,8 +195,6 @@ internal sealed class DkpLogGenerator
     {
         Log.Debug($"{LogPrefix} Starting {nameof(UploadGeneratedLogFileAsync)}");
 
-        Task<bool> raInitSuccessTask = InitializeRaidAttendanceProvider();
-
         RaidEntries raidEntries = await ParseGeneratedLogFileAsync(generatedLogFile);
 
         if (raidEntries == null || (raidEntries.DkpEntries.Count == 0 && raidEntries.AttendanceEntries.Count == 0))
@@ -216,13 +206,6 @@ internal sealed class DkpLogGenerator
                 MessageBoxImage.Information
             );
             Log.Info($"{LogPrefix} RaidEntries is null, or has no attendance entries and no DKP entries.  Ending Upload Generated File.");
-            return;
-        }
-
-        bool raInitSuccess = await raInitSuccessTask;
-        if (!raInitSuccess)
-        {
-            MessageDialog.ShowDialog("Error initializing RA from DKP server. Ending file processing. Check log file.", "Error Initializing RA");
             return;
         }
 
@@ -341,7 +324,7 @@ internal sealed class DkpLogGenerator
 
     private async Task<bool> InitializeRaidAttendanceProvider()
     {
-        DkpServer dkpServer = new(_settings);
+        MusterDkpServer dkpServer = new(_settings);
         bool success = false;
         int attempt = 0;
         while (!success && attempt < 3)
@@ -355,6 +338,8 @@ internal sealed class DkpLogGenerator
 
     private async Task<RaidEntries> ParseAndAnalyzeLogFilesAsync(DkpLogGenerationSessionSettings sessionSettings)
     {
+        Task<bool> raInitSuccessTask = InitializeRaidAttendanceProvider();
+
         try
         {
             IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
@@ -368,6 +353,13 @@ internal sealed class DkpLogGenerator
             Log.Debug($"{LogPrefix} Parse results:{Environment.NewLine}{string.Join(Environment.NewLine, results.GetAllLines())}");
 
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
+
+            bool raInitSuccess = await raInitSuccessTask;
+            if (!raInitSuccess)
+            {
+                MessageDialog.ShowDialog("Error initializing RA from DKP server. Ending file processing. Check log file.", "Error Initializing RA");
+                return null;
+            }
 
             timer.Reset();
             timer.Start();
@@ -395,10 +387,19 @@ internal sealed class DkpLogGenerator
 
     private async Task<RaidEntries> ParseGeneratedLogFileAsync(string generatedLogFile)
     {
+        Task<bool> raInitSuccessTask = InitializeRaidAttendanceProvider();
+
         try
         {
             IDkpLogParseProcessor parseProcessor = new DkpLogParseProcessor(_settings);
             LogParseResults results = await Task.Run(() => parseProcessor.ParseGeneratedLog(generatedLogFile));
+
+            bool raInitSuccess = await raInitSuccessTask;
+            if (!raInitSuccess)
+            {
+                MessageDialog.ShowDialog("Error initializing RA from DKP server. Ending file processing. Check log file.", "Error Initializing RA");
+                return null;
+            }
 
             ILogEntryAnalyzer logEntryAnalyzer = new LogEntryAnalyzer(_settings);
             return await Task.Run(() => logEntryAnalyzer.AnalyzeRaidLogEntries(results));

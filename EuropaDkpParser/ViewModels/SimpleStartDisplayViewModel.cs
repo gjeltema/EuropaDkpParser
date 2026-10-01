@@ -9,6 +9,7 @@ using System.IO;
 using System.Windows;
 using DkpParser;
 using DkpParser.LiveTracking;
+using DkpParser.Uploading;
 using EuropaDkpParser.Utility;
 using Prism.Commands;
 
@@ -73,7 +74,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         if (_raProviderInitialized)
             return;
 
-        DkpServer dkpServer = new(_settings);
+        MusterDkpServer dkpServer = new(_settings);
         bool success = false;
         int attempt = 0;
         while (!success && attempt < 3)

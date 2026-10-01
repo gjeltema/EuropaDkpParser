@@ -39,7 +39,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
         LocalHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
     }
 
-    public async Task<ICollection<CharacterRaidAttendance>> GetAllCharacterAttendancesAsync()
+    public async Task<ICollection<CharacterRaidAttendance>> GetAllActiveCharacterAttendancesAsync()
     {
         try
         {
@@ -50,7 +50,23 @@ public sealed class MusterDkpServer : IMusterDkpServer
         }
         catch (Exception ex)
         {
-            Log.Error($"{LogPrefix} {nameof(GetAllCharacterAttendancesAsync)} Error encountered in getting raid attendances: {ex.ToLogMessage()}");
+            Log.Error($"{LogPrefix} {nameof(GetAllActiveCharacterAttendancesAsync)} Error encountered in getting raid attendances: {ex.ToLogMessage()}");
+            return [];
+        }
+    }
+
+    public async Task<ICollection<CharacterRaidAttendance>> GetAllCharactersBaseInfoAsync()
+    {
+        try
+        {
+            ServerResponse response = await MakeGetCallAsync("v1/parser/allactivecharacters");
+
+            ICollection<CharacterRaidAttendance> baseCharacterInfo = GetBaseCharInfoFromResponse(response);
+            return baseCharacterInfo;
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"{LogPrefix} {nameof(GetAllCharactersBaseInfoAsync)} Error encountered in getting raid attendances: {ex.ToLogMessage()}");
             return [];
         }
     }
@@ -121,6 +137,39 @@ public sealed class MusterDkpServer : IMusterDkpServer
         };
 
         return raid;
+    }
+
+    private ICollection<CharacterRaidAttendance> GetBaseCharInfoFromResponse(ServerResponse response)
+    {
+        if (response.ResponseCode != HttpStatusCode.OK)
+        {
+            Log.Error($"{LogPrefix} Error in response: {response.ResponseCode}: Text:{response.Response}");
+
+            return [];
+        }
+
+        AllMusterCharacters allChars = JsonSerializer.Deserialize<AllMusterCharacters>(response.Response);
+        Log.Trace($"{LogPrefix} Attendance response: {JsonSerializer.Serialize(allChars, PrettyPrintJsonOption)}");
+
+        List<CharacterRaidAttendance> allAttendances = allChars.Characters.Select(x => new CharacterRaidAttendance
+        {
+            CharacterId = x.CharacterId,
+            CharacterName = x.CharacterName.NormalizeName(),
+            ClassName = x.ClassName,
+            Level = x.Level,
+            UserId = x.UserId,
+            UserName = x.UserName.NormalizeName(),
+            IsMainCharacter = x.IsMainCharacter,
+            Rank = x.Rank,
+            Character30DayRa = 0,
+            Character60DayRa = 0,
+            Character90DayRa = 0,
+            Player30DayRa = 0,
+            Player60DayRa = 0,
+            Player90DayRa = 0,
+            PlayerCurrentDkp = 0
+        }).ToList();
+        return allAttendances;
     }
 
     private ICollection<MusterItemBoughtError> GetItemBoughtErrors(List<MusterItemBoughtResponse> items, MusterRaidUpload raidData, UploadRaidInfo uploadRaidInfo)
@@ -458,7 +507,7 @@ internal sealed class MusterCharacter
     public MusterRaSet CharacterRa { get; set; }
 
     [JsonPropertyName("class")]
-    public string ClassName { get; set; }
+    public string ClassName { get; set => field = value ?? string.Empty; }
 
     [JsonPropertyName("current_dkp")]
     public int CurrentDkp { get; set; }
@@ -466,7 +515,7 @@ internal sealed class MusterCharacter
     [JsonPropertyName("is_main")]
     public bool IsMainCharacter { get; set; }
 
-    [JsonPropertyName("level")]
+    [JsonIgnore]
     public int Level { get; set; }
 
     [JsonPropertyName("rank")]
@@ -480,6 +529,9 @@ internal sealed class MusterCharacter
 
     [JsonPropertyName("user_ra")]
     public MusterRaSet UserRa { get; set; }
+
+    [JsonPropertyName("level")]
+    internal int? LevelSerialize { get => Level; set => Level = value == null ? 0 : value.Value; }
 
     private string DebugText
        => $"{CharacterName}[{(IsMainCharacter ? "M" : "A")}] {Level} {ClassName} User:{UserName}";
@@ -642,7 +694,9 @@ internal sealed class MusterItemBoughtResponse
 
 public interface IMusterDkpServer
 {
-    Task<ICollection<CharacterRaidAttendance>> GetAllCharacterAttendancesAsync();
+    Task<ICollection<CharacterRaidAttendance>> GetAllActiveCharacterAttendancesAsync();
+
+    Task<ICollection<CharacterRaidAttendance>> GetAllCharactersBaseInfoAsync();
 
     Task<CharacterRaidAttendance> GetCharacterAttendanceAsync(string characterName);
 

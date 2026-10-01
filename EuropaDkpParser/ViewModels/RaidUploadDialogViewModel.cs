@@ -249,9 +249,9 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         IEnumerable<string> displayLines;
         if (dkpSpentEntriesRemoved.Count > 0)
         {
-            List<DkpUserCharacter> relatedCharacters = _settings.CharactersOnDkpServer.GetAllRelatedCharacters(characterName).ToList();
+            List<CharacterRaidAttendance> relatedCharacters = RaidAttendanceProvider.Instance.GetAllRelatedCharactersForUser(characterName).ToList();
             string relatedCharsLine = relatedCharacters.Count > 0
-                ? $"Related characters: {string.Join(", ", relatedCharacters.Select(x => x.Name))}"
+                ? $"Related characters: {string.Join(", ", relatedCharacters.Select(x => x.CharacterName))}"
                 : string.Empty;
 
             displayLines = [$"{characterName} was removed from all attendances, and had at least one item awarded in a SPENT call."
@@ -347,11 +347,11 @@ public sealed class UploadErrorDisplay
         if (ErrorType == RaidUploadError.OverallError)
             return $"Error uploading: {ErrorMessage}";
         else if (ErrorType == RaidUploadError.PreCheckError)
-            return $"{CharacterName} is missing from DKP server";
+            return $"{PlayerDelimiter}{CharacterName}{PlayerDelimiter} is missing from DKP server";
         else if (ErrorType == RaidUploadError.TimeTickError)
-            return $"Time Tick error for {TimeTickError.TickName}";
+            return $"Time Tick error: {PlayerDelimiter}{CharacterName}{PlayerDelimiter} is missing from DKP server";
         else if (ErrorType == RaidUploadError.ItemBoughtError)
-            return $"Item upload error: {ItemInfo.ToString()}";
+            return $"Item upload error: {PlayerDelimiter}{CharacterName}{PlayerDelimiter} is missing from DKP server";
         else
             return $"Unexpected error: {UnexpectedError.Message}";
     }

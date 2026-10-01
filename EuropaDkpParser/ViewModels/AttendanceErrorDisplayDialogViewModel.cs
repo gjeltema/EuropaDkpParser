@@ -234,14 +234,13 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
                 multipleCharsError.Reviewed = true;
 
                 ErrorMessageText = Strings.GetString("MultipleCharsFromSameAccountError");
-                FirstMultipleCharacter = multipleCharsError.MultipleCharsInAttendance.FirstCharacter.Name;
-                SecondMultipleCharacter = multipleCharsError.MultipleCharsInAttendance.SecondCharacter.Name;
+                FirstMultipleCharacter = multipleCharsError.MultipleCharsInAttendance.FirstCharacter.CharacterName;
+                SecondMultipleCharacter = multipleCharsError.MultipleCharsInAttendance.SecondCharacter.CharacterName;
                 ErrorAttendances = [multipleCharsError.Attendance];
                 SelectedErrorEntry = multipleCharsError.Attendance;
 
-                IEnumerable<DkpUserCharacter> charsInAccount =
-                    _settings.CharactersOnDkpServer.GetAllRelatedCharacters(multipleCharsError.MultipleCharsInAttendance.FirstCharacter);
-                AllCharactersInAccount = charsInAccount.Select(x => x.Name).ToList();
+                AllCharactersInAccount = RaidAttendanceProvider.Instance.GetAllRelatedCharactersForUser(multipleCharsError.MultipleCharsInAttendance.FirstCharacter.CharacterName)
+                    .Select(x => x.CharacterName).ToList();
             }
 
             return;

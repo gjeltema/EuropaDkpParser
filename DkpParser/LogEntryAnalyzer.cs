@@ -87,7 +87,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     private void AnalyzeLootCalls(LogParseResults logParseResults)
     {
         IDkpEntryAnalyzer dkpEntryAnalyzer = new DkpEntryAnalyzer();
-        dkpEntryAnalyzer.AnalyzeLootCalls(logParseResults, _raidEntries, _settings.CharactersOnDkpServer);
+        dkpEntryAnalyzer.AnalyzeLootCalls(logParseResults, _raidEntries);
     }
 
     private void CheckDuplicateAttendanceEntries()

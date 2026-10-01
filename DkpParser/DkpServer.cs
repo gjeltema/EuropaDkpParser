@@ -691,5 +691,5 @@ public sealed class CharacterRaidAttendance
     public string UserName { get; init; } = string.Empty;
 
     private string DebugText
-       => $"{CharacterName} ID:{CharacterId} {Character30DayRa:0.0} ({Player30DayRa:0.0})%RA";
+       => $"{CharacterName}[{(IsMainCharacter ? "M" : "A")}] {Level} {ClassName} User:{UserName}";
 }

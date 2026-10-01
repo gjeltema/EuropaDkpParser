@@ -13,13 +13,11 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
     private readonly Regex _findDigits = FindDigitsRegex();
     private DkpSpentAnalyzer _dkpSpentAnalyzer;
     private RaidEntries _raidEntries;
-    private DkpServerCharacters _serverCharacters;
 
-    public void AnalyzeLootCalls(LogParseResults logParseResults, RaidEntries raidEntries, DkpServerCharacters serverCharacters)
+    public void AnalyzeLootCalls(LogParseResults logParseResults, RaidEntries raidEntries)
     {
         _raidEntries = raidEntries;
         _dkpSpentAnalyzer = new DkpSpentAnalyzer();
-        _serverCharacters = serverCharacters;
 
         foreach (EqLogFile log in logParseResults.EqLogFiles)
         {
@@ -59,8 +57,9 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
                 return;
         }
 
-        bool characterNameFound = _serverCharacters.CharacterConfirmedExistsOnDkpServer(dkpEntry.CharacterName)
+        bool characterNameFound = RaidAttendanceProvider.Instance.CharacterExistsOnDkpServer(dkpEntry.CharacterName)
             || _raidEntries.AllCharactersInRaid.Any(x => x.CharacterName.Equals(dkpEntry.CharacterName, StringComparison.OrdinalIgnoreCase));
+
         if (!characterNameFound)
         {
             dkpEntry.PossibleError = PossibleError.DkpSpentPlayerNameTypo;
@@ -198,5 +197,5 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
 
 public interface IDkpEntryAnalyzer
 {
-    void AnalyzeLootCalls(LogParseResults logParseResults, RaidEntries raidEntries, DkpServerCharacters serverCharacters);
+    void AnalyzeLootCalls(LogParseResults logParseResults, RaidEntries raidEntries);
 }

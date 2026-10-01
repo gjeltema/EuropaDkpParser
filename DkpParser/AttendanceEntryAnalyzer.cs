@@ -586,22 +586,62 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void IdentifyMultipleCharactersOnOneAccount()
     {
-        List<string> tranferFromCharacters = _raidEntries.Transfers.Select(x => x.FromCharacter.CharacterName).ToList();
-        List<PlayerCharacter> transferToCharacters = _raidEntries.Transfers
-            .Select(x => x.ToCharacterName)
-            .Select(x => new PlayerCharacter { CharacterName = x }).ToList();
-
+        List<CharacterRaidAttendance> dkpServerChars = RaidAttendanceProvider.Instance.GetAllRaidAttendances().ToList();
         List<MultipleCharsOnAttendanceError> multipleChars = [];
+
         foreach (AttendanceEntry attendance in _raidEntries.AttendanceEntries)
         {
-            IEnumerable<PlayerCharacter> charactersInAttendanceAndTransferChars = attendance.Characters.Union(transferToCharacters);
-            IEnumerable<MutipleCharactersOnAccount> multipleCharacters = _settings.CharactersOnDkpServer.GetMultipleCharactersOnAccount(charactersInAttendanceAndTransferChars);
-            IEnumerable<MutipleCharactersOnAccount> multipleCharactersNotTransfer = multipleCharacters
-                .Where(x => !tranferFromCharacters.Contains(x.FirstCharacter.Name) && !tranferFromCharacters.Contains(x.SecondCharacter.Name));
+            // Convert all Transfers in this attendance to the character DKP is being transferred to
+            List<string> charactersInAttendance = attendance.Characters.Select(x => x.CharacterName).ToList();
+            foreach (string characterInAttendance in charactersInAttendance)
+            {
+                DkpTransfer relatedTransfer = _raidEntries.Transfers.FirstOrDefault(x => x.FromCharacter.CharacterName == characterInAttendance);
+                if (relatedTransfer != null)
+                {
+                    charactersInAttendance.Remove(characterInAttendance);
+                    charactersInAttendance.Add(relatedTransfer.ToCharacterName);
+                }
+            }
 
-            IEnumerable<MultipleCharsOnAttendanceError> multipleCharsErrorsToAdd = multipleCharactersNotTransfer
-                .Select(x => new MultipleCharsOnAttendanceError { Attendance = attendance, MultipleCharsInAttendance = x });
-            multipleChars.AddRange(multipleCharsErrorsToAdd);
+            // Get a list of all the attendees DKP server profiles.  Primarily wanting the CharacterID and UserID.
+            List<CharacterRaidAttendance> dkpCharsInAttendance = new(charactersInAttendance.Count);
+            foreach (string characterInAttendance in charactersInAttendance)
+            {
+                CharacterRaidAttendance dkpServerChar = dkpServerChars.FirstOrDefault(x => x.CharacterName == characterInAttendance);
+                if (dkpServerChar == null)
+                {
+                    Log.Warning($"{LogPrefix} '{characterInAttendance}' does not exist on DKP server.");
+                    continue;
+                }
+
+                dkpCharsInAttendance.Add(dkpServerChar);
+            }
+
+            // Search through the list of the attendees DKP server profiles for matching User ID, but not matching Character ID.
+            for (int i = 0; i < dkpCharsInAttendance.Count; i++)
+            {
+                CharacterRaidAttendance currentChar = dkpCharsInAttendance[i];
+
+                // If this character is already flagged as a duplicate, then no need to flag it again.
+                if (multipleChars.Any(x => x.MultipleCharsInAttendance.Contains(currentChar)))
+                    continue;
+
+                List<CharacterRaidAttendance> associatedCharacters = dkpCharsInAttendance
+                    .Where(x => x.UserId == currentChar.UserId && x.CharacterId != currentChar.CharacterId).ToList();
+
+                if (associatedCharacters.Count < 2)
+                    continue;
+
+                foreach (CharacterRaidAttendance associatedChar in associatedCharacters)
+                {
+                    MutipleCharactersOnAccount multipleDkpCharMatch = new()
+                    {
+                        FirstCharacter = currentChar,
+                        SecondCharacter = associatedChar,
+                    };
+                    multipleChars.Add(new MultipleCharsOnAttendanceError { Attendance = attendance, MultipleCharsInAttendance = multipleDkpCharMatch });
+                }
+            }
         }
 
         _raidEntries.MultipleCharsInAttendanceErrors = multipleChars;
@@ -834,6 +874,31 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
         private string DebugText
             => $"{ZoneName} {Timestamp:HHmmss}";
+    }
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class MutipleCharactersOnAccount
+{
+    public CharacterRaidAttendance FirstCharacter { get; init; }
+
+    public CharacterRaidAttendance SecondCharacter { get; init; }
+
+    private string DebugText
+        => $"{FirstCharacter.CharacterName} {SecondCharacter.CharacterName}";
+
+    public bool Contains(CharacterRaidAttendance currentChar)
+    {
+        if (currentChar == null)
+            return false;
+
+        else if (currentChar.CharacterId == FirstCharacter.CharacterId)
+            return true;
+
+        else if (currentChar.CharacterId == SecondCharacter.CharacterId)
+            return true;
+
+        return false;
     }
 }
 
