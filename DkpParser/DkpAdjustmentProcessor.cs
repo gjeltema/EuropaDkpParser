@@ -81,7 +81,7 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
 
     private double GetRaidAttendance(string characterName)
     {
-        CharacterRaidAttendance raidAttInfo = _raidAttendances.GetCharacterRaidAttendance(characterName);
+        CharacterServerInfo raidAttInfo = _raidAttendances.GetCharacterRaidAttendance(characterName);
         return raidAttInfo.Character30DayRa;
     }
 }

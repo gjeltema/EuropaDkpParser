@@ -85,7 +85,7 @@ public sealed class RaidUploader : IRaidUpload
 
     private async Task<ICollection<MusterPreCheckError>> GetCharactersNotExisting(UploadRaidInfo uploadRaidInfo)
     {
-        ICollection<CharacterRaidAttendance> recentChars = await _musterDkpServer.GetAllActiveCharacterAttendancesAsync();
+        ICollection<CharacterServerInfo> recentChars = await _musterDkpServer.GetAllActiveCharacterAttendancesAsync();
         List<string> recentCharNames = recentChars.Select(x => x.CharacterName).ToList();
 
         // Attendance check
@@ -97,7 +97,7 @@ public sealed class RaidUploader : IRaidUpload
         IEnumerable<string> missingChars = attendanceChars.Except(recentCharNames);
         foreach (string missingChar in missingChars)
         {
-            CharacterRaidAttendance singleCharCheck = await _musterDkpServer.GetCharacterAttendanceAsync(missingChar);
+            CharacterServerInfo singleCharCheck = await _musterDkpServer.GetCharacterAttendanceAsync(missingChar);
             if (singleCharCheck == null)
                 errors.Add(new MusterPreCheckError { CharacterName = missingChar });
         }
@@ -107,7 +107,7 @@ public sealed class RaidUploader : IRaidUpload
         {
             if (!recentCharNames.Contains(dkpEntry.CharacterName))
             {
-                CharacterRaidAttendance singleCharCheck = await _musterDkpServer.GetCharacterAttendanceAsync(dkpEntry.CharacterName);
+                CharacterServerInfo singleCharCheck = await _musterDkpServer.GetCharacterAttendanceAsync(dkpEntry.CharacterName);
                 if (singleCharCheck == null)
                     errors.Add(new MusterPreCheckError { CharacterName = dkpEntry.CharacterName, ItemBought = dkpEntry });
             }

@@ -329,7 +329,7 @@ internal sealed class DkpLogGenerator
         int attempt = 0;
         while (!success && attempt < 3)
         {
-            success = await RaidAttendanceProvider.InitializeAsync(dkpServer);
+            success = await CharacterInfoProvider.InitializeAsync(dkpServer);
             attempt++;
         }
 

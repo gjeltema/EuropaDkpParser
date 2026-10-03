@@ -459,7 +459,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
         }
 
-        CharacterRaidAttendance bidderRa = _raidAttendance.GetCharacterRaidAttendance(bid.CharacterBeingBidFor);
+        CharacterServerInfo bidderRa = _raidAttendance.GetCharacterRaidAttendance(bid.CharacterBeingBidFor);
         if (bidderRa != null)
         {
             bid.ThirtyDayCharacterRa = bidderRa.Character30DayRa;

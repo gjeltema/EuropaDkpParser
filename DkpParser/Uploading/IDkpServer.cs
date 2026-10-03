@@ -6,7 +6,7 @@ namespace DkpParser.Uploading;
 
 public interface IDkpServer
 {
-    Task<ICollection<CharacterRaidAttendance>> GetAllCharacterAttendancesAsync();
+    Task<ICollection<CharacterServerInfo>> GetAllCharacterAttendancesAsync();
 
     Task<int> GetCharacterIdAsync(string characterName);
 

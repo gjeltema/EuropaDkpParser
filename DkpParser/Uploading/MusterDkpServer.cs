@@ -39,13 +39,13 @@ public sealed class MusterDkpServer : IMusterDkpServer
         LocalHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
     }
 
-    public async Task<ICollection<CharacterRaidAttendance>> GetAllActiveCharacterAttendancesAsync()
+    public async Task<ICollection<CharacterServerInfo>> GetAllActiveCharacterAttendancesAsync()
     {
         try
         {
             ServerResponse response = await MakeGetCallAsync("v1/parser/characters");
 
-            ICollection<CharacterRaidAttendance> raidAttendances = GetRaidAttendancesFromResponse(response);
+            ICollection<CharacterServerInfo> raidAttendances = GetRaidAttendancesFromResponse(response);
             return raidAttendances;
         }
         catch (Exception ex)
@@ -55,13 +55,13 @@ public sealed class MusterDkpServer : IMusterDkpServer
         }
     }
 
-    public async Task<ICollection<CharacterRaidAttendance>> GetAllCharactersBaseInfoAsync()
+    public async Task<ICollection<CharacterServerInfo>> GetAllCharactersBaseInfoAsync()
     {
         try
         {
             ServerResponse response = await MakeGetCallAsync("v1/parser/allactivecharacters");
 
-            ICollection<CharacterRaidAttendance> baseCharacterInfo = GetBaseCharInfoFromResponse(response);
+            ICollection<CharacterServerInfo> baseCharacterInfo = GetBaseCharInfoFromResponse(response);
             return baseCharacterInfo;
         }
         catch (Exception ex)
@@ -71,13 +71,13 @@ public sealed class MusterDkpServer : IMusterDkpServer
         }
     }
 
-    public async Task<CharacterRaidAttendance> GetCharacterAttendanceAsync(string characterName)
+    public async Task<CharacterServerInfo> GetCharacterAttendanceAsync(string characterName)
     {
         try
         {
             ServerResponse response = await MakeGetCallAsync($"v1/parser/characters/{characterName}");
 
-            CharacterRaidAttendance raidAttendance = GetSingleRaidAttendanceFromResponse(response);
+            CharacterServerInfo raidAttendance = GetSingleRaidAttendanceFromResponse(response);
             return raidAttendance;
         }
         catch (Exception ex)
@@ -139,7 +139,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
         return raid;
     }
 
-    private ICollection<CharacterRaidAttendance> GetBaseCharInfoFromResponse(ServerResponse response)
+    private ICollection<CharacterServerInfo> GetBaseCharInfoFromResponse(ServerResponse response)
     {
         if (response.ResponseCode != HttpStatusCode.OK)
         {
@@ -151,7 +151,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
         AllMusterCharacters allChars = JsonSerializer.Deserialize<AllMusterCharacters>(response.Response);
         Log.Trace($"{LogPrefix} Attendance response: {JsonSerializer.Serialize(allChars, PrettyPrintJsonOption)}");
 
-        List<CharacterRaidAttendance> allAttendances = allChars.Characters.Select(x => new CharacterRaidAttendance
+        List<CharacterServerInfo> allAttendances = allChars.Characters.Select(x => new CharacterServerInfo
         {
             CharacterId = x.CharacterId,
             CharacterName = x.CharacterName.NormalizeName(),
@@ -205,7 +205,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
     private HttpContent GetPostContent(string postBody)
        => new StringContent(postBody);
 
-    private ICollection<CharacterRaidAttendance> GetRaidAttendancesFromResponse(ServerResponse response)
+    private ICollection<CharacterServerInfo> GetRaidAttendancesFromResponse(ServerResponse response)
     {
         if (response.ResponseCode != HttpStatusCode.OK)
         {
@@ -217,7 +217,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
         AllMusterCharacters allChars = JsonSerializer.Deserialize<AllMusterCharacters>(response.Response);
         Log.Trace($"{LogPrefix} Attendance response: {JsonSerializer.Serialize(allChars, PrettyPrintJsonOption)}");
 
-        List<CharacterRaidAttendance> allAttendances = allChars.Characters.Select(x => new CharacterRaidAttendance
+        List<CharacterServerInfo> allAttendances = allChars.Characters.Select(x => new CharacterServerInfo
         {
             CharacterId = x.CharacterId,
             CharacterName = x.CharacterName.NormalizeName(),
@@ -245,7 +245,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
         return $"{firstRaid.Timestamp:yyyyMMdd} - {string.Join(" / ", zones)}";
     }
 
-    private CharacterRaidAttendance GetSingleRaidAttendanceFromResponse(ServerResponse response)
+    private CharacterServerInfo GetSingleRaidAttendanceFromResponse(ServerResponse response)
     {
         if (response.ResponseCode != HttpStatusCode.OK)
         {
@@ -257,7 +257,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
         MusterCharacter charAttendance = JsonSerializer.Deserialize<MusterCharacter>(response.Response);
         Log.Trace($"{LogPrefix} Attendance response: {JsonSerializer.Serialize(charAttendance, PrettyPrintJsonOption)}");
 
-        CharacterRaidAttendance attendance = new()
+        CharacterServerInfo attendance = new()
         {
             CharacterId = charAttendance.CharacterId,
             CharacterName = charAttendance.CharacterName.NormalizeName(),
@@ -694,11 +694,11 @@ internal sealed class MusterItemBoughtResponse
 
 public interface IMusterDkpServer
 {
-    Task<ICollection<CharacterRaidAttendance>> GetAllActiveCharacterAttendancesAsync();
+    Task<ICollection<CharacterServerInfo>> GetAllActiveCharacterAttendancesAsync();
 
-    Task<ICollection<CharacterRaidAttendance>> GetAllCharactersBaseInfoAsync();
+    Task<ICollection<CharacterServerInfo>> GetAllCharactersBaseInfoAsync();
 
-    Task<CharacterRaidAttendance> GetCharacterAttendanceAsync(string characterName);
+    Task<CharacterServerInfo> GetCharacterAttendanceAsync(string characterName);
 
     Task<MusterDkpRaidUploadResults> UploadRaidAsync(UploadRaidInfo uploadRaidInfo);
 }

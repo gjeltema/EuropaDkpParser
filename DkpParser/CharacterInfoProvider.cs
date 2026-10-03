@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// RaidAttendanceProvider.cs Copyright 2026 Craig Gjeltema
+// CharacterInfoProvider.cs Copyright 2026 Craig Gjeltema
 // -----------------------------------------------------------------------
 
 namespace DkpParser;
@@ -7,14 +7,14 @@ namespace DkpParser;
 using DkpParser.Uploading;
 using Gjeltema.Logging;
 
-public sealed class RaidAttendanceProvider : IRaidAttendance
+public sealed class CharacterInfoProvider : IRaidAttendance
 {
     private const string LogPrefix = $"[{nameof(DkpServer)}]";
-    public static readonly RaidAttendanceProvider Instance = new();
+    public static readonly CharacterInfoProvider Instance = new();
     private static int _attemptedInitialization = -1;
-    private static Dictionary<string, CharacterRaidAttendance> _raidAttendances = [];
+    private static Dictionary<string, CharacterServerInfo> _raidAttendances = [];
 
-    private RaidAttendanceProvider() { }
+    private CharacterInfoProvider() { }
 
     public static async Task<bool> InitializeAsync(IMusterDkpServer dkpServer)
     {
@@ -27,7 +27,7 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
         try
         {
             Log.Debug($"{LogPrefix} Initializing character info.");
-            ICollection<CharacterRaidAttendance> baseCharInfoFromServer = await dkpServer.GetAllCharactersBaseInfoAsync();
+            ICollection<CharacterServerInfo> baseCharInfoFromServer = await dkpServer.GetAllCharactersBaseInfoAsync();
             if (baseCharInfoFromServer.Count == 0)
             {
                 Log.Error($"{LogPrefix} Failed to initialize base character info.");
@@ -37,7 +37,7 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
 
             _raidAttendances = baseCharInfoFromServer.ToDictionary(x => x.CharacterName);
 
-            ICollection<CharacterRaidAttendance> attendancesFromServer = await dkpServer.GetAllActiveCharacterAttendancesAsync();
+            ICollection<CharacterServerInfo> attendancesFromServer = await dkpServer.GetAllActiveCharacterAttendancesAsync();
             if (attendancesFromServer.Count == 0)
             {
                 Log.Error($"{LogPrefix} Failed to initialize the raid attendances.");
@@ -45,7 +45,7 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
                 return false;
             }
 
-            foreach (CharacterRaidAttendance attendance in attendancesFromServer)
+            foreach (CharacterServerInfo attendance in attendancesFromServer)
             {
                 _raidAttendances[attendance.CharacterName] = attendance;
             }
@@ -63,21 +63,21 @@ public sealed class RaidAttendanceProvider : IRaidAttendance
     public bool CharacterExistsOnDkpServer(string characterName)
         => _raidAttendances.Values.Any(x => x.CharacterName.Equals(characterName, StringComparison.OrdinalIgnoreCase));
 
-    public IEnumerable<CharacterRaidAttendance> GetAllRaidAttendances()
+    public IEnumerable<CharacterServerInfo> GetAllCharactersInfo()
         => _raidAttendances.Values;
 
-    public IEnumerable<CharacterRaidAttendance> GetAllRelatedCharactersForUser(string characterName)
+    public IEnumerable<CharacterServerInfo> GetAllRelatedCharactersForUser(string characterName)
     {
-        CharacterRaidAttendance charInfo = GetCharacterRaidAttendance(characterName);
+        CharacterServerInfo charInfo = GetCharacterRaidAttendance(characterName);
         if (charInfo == null)
             return [];
 
         return _raidAttendances.Values.Where(x => x.UserId == charInfo.UserId).ToList();
     }
 
-    public CharacterRaidAttendance GetCharacterRaidAttendance(string characterName)
+    public CharacterServerInfo GetCharacterRaidAttendance(string characterName)
     {
-        if (_raidAttendances.TryGetValue(characterName.NormalizeName(), out CharacterRaidAttendance ra))
+        if (_raidAttendances.TryGetValue(characterName.NormalizeName(), out CharacterServerInfo ra))
             return ra;
         return null;
     }
@@ -87,9 +87,9 @@ public interface IRaidAttendance
 {
     bool CharacterExistsOnDkpServer(string characterName);
 
-    IEnumerable<CharacterRaidAttendance> GetAllRaidAttendances();
+    IEnumerable<CharacterServerInfo> GetAllCharactersInfo();
 
-    IEnumerable<CharacterRaidAttendance> GetAllRelatedCharactersForUser(string characterName);
+    IEnumerable<CharacterServerInfo> GetAllRelatedCharactersForUser(string characterName);
 
-    CharacterRaidAttendance GetCharacterRaidAttendance(string characterName);
+    CharacterServerInfo GetCharacterRaidAttendance(string characterName);
 }

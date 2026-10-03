@@ -525,7 +525,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
                 return;
             }
 
-            CharacterRaidAttendance ra = _raidAttendance.GetCharacterRaidAttendance(dkpCharacter?.Name ?? characterName);
+            CharacterServerInfo ra = _raidAttendance.GetCharacterRaidAttendance(dkpCharacter?.Name ?? characterName);
 
             MessageDialog.ShowDialog($"{characterName} has {userDkp.CharacterCurrentDkp} DKP, {ra.Character30DayRa:0} ({ra.Player30DayRa:0})%RA", "DKP Amount", fontSize: DkpDisplayFontSize);
         }

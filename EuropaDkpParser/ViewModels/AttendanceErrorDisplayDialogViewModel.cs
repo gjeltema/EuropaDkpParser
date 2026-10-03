@@ -239,7 +239,7 @@ internal sealed class AttendanceErrorDisplayDialogViewModel : DialogViewModelBas
                 ErrorAttendances = [multipleCharsError.Attendance];
                 SelectedErrorEntry = multipleCharsError.Attendance;
 
-                AllCharactersInAccount = RaidAttendanceProvider.Instance.GetAllRelatedCharactersForUser(multipleCharsError.MultipleCharsInAttendance.FirstCharacter.CharacterName)
+                AllCharactersInAccount = CharacterInfoProvider.Instance.GetAllRelatedCharactersForUser(multipleCharsError.MultipleCharsInAttendance.FirstCharacter.CharacterName)
                     .Select(x => x.CharacterName).ToList();
             }
 

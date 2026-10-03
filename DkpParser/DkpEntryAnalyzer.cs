@@ -57,7 +57,7 @@ internal sealed partial class DkpEntryAnalyzer : IDkpEntryAnalyzer
                 return;
         }
 
-        bool characterNameFound = RaidAttendanceProvider.Instance.CharacterExistsOnDkpServer(dkpEntry.CharacterName)
+        bool characterNameFound = CharacterInfoProvider.Instance.CharacterExistsOnDkpServer(dkpEntry.CharacterName)
             || _raidEntries.AllCharactersInRaid.Any(x => x.CharacterName.Equals(dkpEntry.CharacterName, StringComparison.OrdinalIgnoreCase));
 
         if (!characterNameFound)

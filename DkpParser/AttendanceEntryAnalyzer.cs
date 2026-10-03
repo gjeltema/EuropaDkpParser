@@ -586,7 +586,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
     private void IdentifyMultipleCharactersOnOneAccount()
     {
-        List<CharacterRaidAttendance> dkpServerChars = RaidAttendanceProvider.Instance.GetAllRaidAttendances().ToList();
+        List<CharacterServerInfo> dkpServerChars = CharacterInfoProvider.Instance.GetAllCharactersInfo().ToList();
         List<MultipleCharsOnAttendanceError> multipleChars = [];
 
         foreach (AttendanceEntry attendance in _raidEntries.AttendanceEntries)
@@ -604,10 +604,10 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             }
 
             // Get a list of all the attendees DKP server profiles.  Primarily wanting the CharacterID and UserID.
-            List<CharacterRaidAttendance> dkpCharsInAttendance = new(charactersInAttendance.Count);
+            List<CharacterServerInfo> dkpCharsInAttendance = new(charactersInAttendance.Count);
             foreach (string characterInAttendance in charactersInAttendance)
             {
-                CharacterRaidAttendance dkpServerChar = dkpServerChars.FirstOrDefault(x => x.CharacterName == characterInAttendance);
+                CharacterServerInfo dkpServerChar = dkpServerChars.FirstOrDefault(x => x.CharacterName == characterInAttendance);
                 if (dkpServerChar == null)
                 {
                     Log.Warning($"{LogPrefix} '{characterInAttendance}' does not exist on DKP server.");
@@ -620,19 +620,19 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
             // Search through the list of the attendees DKP server profiles for matching User ID, but not matching Character ID.
             for (int i = 0; i < dkpCharsInAttendance.Count; i++)
             {
-                CharacterRaidAttendance currentChar = dkpCharsInAttendance[i];
+                CharacterServerInfo currentChar = dkpCharsInAttendance[i];
 
                 // If this character is already flagged as a duplicate, then no need to flag it again.
                 if (multipleChars.Any(x => x.MultipleCharsInAttendance.Contains(currentChar)))
                     continue;
 
-                List<CharacterRaidAttendance> associatedCharacters = dkpCharsInAttendance
+                List<CharacterServerInfo> associatedCharacters = dkpCharsInAttendance
                     .Where(x => x.UserId == currentChar.UserId && x.CharacterId != currentChar.CharacterId).ToList();
 
                 if (associatedCharacters.Count < 2)
                     continue;
 
-                foreach (CharacterRaidAttendance associatedChar in associatedCharacters)
+                foreach (CharacterServerInfo associatedChar in associatedCharacters)
                 {
                     MutipleCharactersOnAccount multipleDkpCharMatch = new()
                     {
@@ -880,14 +880,14 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class MutipleCharactersOnAccount
 {
-    public CharacterRaidAttendance FirstCharacter { get; init; }
+    public CharacterServerInfo FirstCharacter { get; init; }
 
-    public CharacterRaidAttendance SecondCharacter { get; init; }
+    public CharacterServerInfo SecondCharacter { get; init; }
 
     private string DebugText
         => $"{FirstCharacter.CharacterName} {SecondCharacter.CharacterName}";
 
-    public bool Contains(CharacterRaidAttendance currentChar)
+    public bool Contains(CharacterServerInfo currentChar)
     {
         if (currentChar == null)
             return false;

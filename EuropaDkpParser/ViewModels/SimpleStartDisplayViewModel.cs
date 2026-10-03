@@ -79,7 +79,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
         int attempt = 0;
         while (!success && attempt < 3)
         {
-            success = await RaidAttendanceProvider.InitializeAsync(dkpServer);
+            success = await CharacterInfoProvider.InitializeAsync(dkpServer);
             attempt++;
         }
 
@@ -106,7 +106,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private async Task OpenBiddingTrackerDialogAsync()
     {
-        _adminBiddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, EqLogTailFile.Instance, RaidAttendanceProvider.Instance, _dialogFactory, _overlayFactory, _windowFactory);
+        _adminBiddingDialogVM = _windowFactory.CreateLiveLogTrackingViewModel(_settings, EqLogTailFile.Instance, CharacterInfoProvider.Instance, _dialogFactory, _overlayFactory, _windowFactory);
         _adminBiddingDialogVM.WindowClosing += HandleAdminBiddingWindowClosed;
         _adminBiddingDialogVM.Show();
 
@@ -142,7 +142,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private async Task OpenSimpleBidTrackerDialogAsync()
     {
-        _simpleBidTrackerVM = _windowFactory.CreateSimpleBidTrackerViewModel(_settings, EqLogTailFile.Instance, RaidAttendanceProvider.Instance);
+        _simpleBidTrackerVM = _windowFactory.CreateSimpleBidTrackerViewModel(_settings, EqLogTailFile.Instance, CharacterInfoProvider.Instance);
         _simpleBidTrackerVM.WindowClosing += HandleSimpleBiddingWindowClosed;
         _simpleBidTrackerVM.Show();
 

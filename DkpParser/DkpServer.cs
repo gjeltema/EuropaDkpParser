@@ -40,7 +40,7 @@ public sealed class DkpServer : IDkpServer
         //LocalHttpClient.DefaultRequestHeaders.AcceptLanguage.ParseAdd("en-US,en");
     }
 
-    public async Task<ICollection<CharacterRaidAttendance>> GetAllCharacterAttendancesAsync()
+    public async Task<ICollection<CharacterServerInfo>> GetAllCharacterAttendancesAsync()
     {
         try
         {
@@ -48,7 +48,7 @@ public sealed class DkpServer : IDkpServer
 
             XDocument responseDoc = await MakeGetCallAsync(uri);
 
-            ICollection<CharacterRaidAttendance> raidAttendances = GetRaidAttendancesFromResponse(responseDoc);
+            ICollection<CharacterServerInfo> raidAttendances = GetRaidAttendancesFromResponse(responseDoc);
             return raidAttendances;
         }
         catch (Exception ex)
@@ -377,7 +377,7 @@ public sealed class DkpServer : IDkpServer
         return raids;
     }
 
-    private ICollection<CharacterRaidAttendance> GetRaidAttendancesFromResponse(XDocument responseDoc)
+    private ICollection<CharacterServerInfo> GetRaidAttendancesFromResponse(XDocument responseDoc)
     {
         /*
 <response>
@@ -452,7 +452,7 @@ public sealed class DkpServer : IDkpServer
 		</player>
         */
 
-        List<CharacterRaidAttendance> charactersRa = [];
+        List<CharacterServerInfo> charactersRa = [];
         IEnumerable<XElement> playerNodes = responseDoc.Descendants("player");
         foreach (XElement playerNode in playerNodes)
         {
@@ -467,7 +467,7 @@ public sealed class DkpServer : IDkpServer
             double thirtyDayPlayerRa = (double)multiDkpNode.Element("add_attendance_30_with_twink");
             double thirtyDayCharacterRa = (double)multiDkpNode.Element("add_attendance_30");
 
-            charactersRa.Add(new CharacterRaidAttendance
+            charactersRa.Add(new CharacterServerInfo
             {
                 CharacterName = characterName.NormalizeName(),
                 CharacterId = idValue.ToString(),
@@ -658,7 +658,7 @@ public sealed class CharacterDkpAmounts
 }
 
 [DebuggerDisplay("{DebugText,nq}")]
-public sealed class CharacterRaidAttendance
+public sealed class CharacterServerInfo
 {
     public double Character30DayRa { get; init; } = 0.0;
 

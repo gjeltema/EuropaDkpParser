@@ -30,7 +30,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         _raidEntries = raidEntries;
         _settings = settings;
 
-        _dkpAdjustments = new DkpAdjustmentProcessor(settings, RaidAttendanceProvider.Instance);
+        _dkpAdjustments = new DkpAdjustmentProcessor(settings, CharacterInfoProvider.Instance);
 
         StatusMessage = Strings.GetString("BeginStatus");
 
@@ -249,7 +249,7 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
         IEnumerable<string> displayLines;
         if (dkpSpentEntriesRemoved.Count > 0)
         {
-            List<CharacterRaidAttendance> relatedCharacters = RaidAttendanceProvider.Instance.GetAllRelatedCharactersForUser(characterName).ToList();
+            List<CharacterServerInfo> relatedCharacters = CharacterInfoProvider.Instance.GetAllRelatedCharactersForUser(characterName).ToList();
             string relatedCharsLine = relatedCharacters.Count > 0
                 ? $"Related characters: {string.Join(", ", relatedCharacters.Select(x => x.CharacterName))}"
                 : string.Empty;
