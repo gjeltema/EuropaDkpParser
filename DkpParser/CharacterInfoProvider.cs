@@ -9,7 +9,7 @@ using Gjeltema.Logging;
 
 public sealed class CharacterInfoProvider : IRaidAttendance
 {
-    private const string LogPrefix = $"[{nameof(DkpServer)}]";
+    private const string LogPrefix = $"[{nameof(CharacterInfoProvider)}]";
     public static readonly CharacterInfoProvider Instance = new();
     private static int _attemptedInitialization = -1;
     private static Dictionary<string, CharacterServerInfo> _raidAttendances = [];
@@ -68,16 +68,16 @@ public sealed class CharacterInfoProvider : IRaidAttendance
 
     public IEnumerable<CharacterServerInfo> GetAllRelatedCharactersForUser(string characterName)
     {
-        CharacterServerInfo charInfo = GetCharacterRaidAttendance(characterName);
+        CharacterServerInfo charInfo = GetCharacterInfo(characterName);
         if (charInfo == null)
             return [];
 
         return _raidAttendances.Values.Where(x => x.UserId == charInfo.UserId).ToList();
     }
 
-    public CharacterServerInfo GetCharacterRaidAttendance(string characterName)
+    public CharacterServerInfo GetCharacterInfo(string characterName)
     {
-        if (_raidAttendances.TryGetValue(characterName.NormalizeName(), out CharacterServerInfo ra))
+        if (_raidAttendances.TryGetValue(characterName?.NormalizeName(), out CharacterServerInfo ra))
             return ra;
         return null;
     }
@@ -91,5 +91,5 @@ public interface IRaidAttendance
 
     IEnumerable<CharacterServerInfo> GetAllRelatedCharactersForUser(string characterName);
 
-    CharacterServerInfo GetCharacterRaidAttendance(string characterName);
+    CharacterServerInfo GetCharacterInfo(string characterName);
 }

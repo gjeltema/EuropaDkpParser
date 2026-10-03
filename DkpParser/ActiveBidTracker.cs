@@ -187,9 +187,9 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 DkpSpent = x.BidAmount,
                 Winner = x.CharacterBeingBidFor,
                 IsRoll = auction.IsRoll,
-                ThirtyDayCharacterRa = _raidAttendance.GetCharacterRaidAttendance(x.CharacterBeingBidFor)?.Character30DayRa ?? 0.0,
-                ThirtyDayPlayerRa = _raidAttendance.GetCharacterRaidAttendance(x.CharacterBeingBidFor)?.Player30DayRa ?? 0.0,
-                RaidAttendanceBelowThreshold = (_raidAttendance.GetCharacterRaidAttendance(x.CharacterBeingBidFor)?.Player30DayRa ?? 0.0) < _settings.RaidValue.MinimumRaForSecondMain,
+                ThirtyDayCharacterRa = _raidAttendance.GetCharacterInfo(x.CharacterBeingBidFor)?.Character30DayRa ?? 0.0,
+                ThirtyDayPlayerRa = _raidAttendance.GetCharacterInfo(x.CharacterBeingBidFor)?.Player30DayRa ?? 0.0,
+                RaidAttendanceBelowThreshold = (_raidAttendance.GetCharacterInfo(x.CharacterBeingBidFor)?.Player30DayRa ?? 0.0) < _settings.RaidValue.MinimumRaForSecondMain,
                 SpentCallSent = SpentCallExists(x)
             })
             .ToList();
@@ -459,7 +459,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
         }
 
-        CharacterServerInfo bidderRa = _raidAttendance.GetCharacterRaidAttendance(bid.CharacterBeingBidFor);
+        CharacterServerInfo bidderRa = _raidAttendance.GetCharacterInfo(bid.CharacterBeingBidFor);
         if (bidderRa != null)
         {
             bid.ThirtyDayCharacterRa = bidderRa.Character30DayRa;

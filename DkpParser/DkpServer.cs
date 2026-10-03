@@ -666,11 +666,11 @@ public sealed class CharacterServerInfo
 
     public double Character90DayRa { get; init; } = 0.0;
 
-    public string CharacterId { get; init; }
+    public string CharacterId { get; init; } = string.Empty;
 
     public string CharacterName { get; init; } = string.Empty;
 
-    public string ClassName { get; init; }
+    public string ClassName { get; init; } = string.Empty;
 
     public bool IsMainCharacter { get; init; }
 
@@ -684,9 +684,9 @@ public sealed class CharacterServerInfo
 
     public int PlayerCurrentDkp { get; init; } = int.MinValue;
 
-    public string Rank { get; init; }
+    public string Rank { get; init; } = string.Empty;
 
-    public string UserId { get; init; }
+    public string UserId { get; init; } = string.Empty;
 
     public string UserName { get; init; } = string.Empty;
 

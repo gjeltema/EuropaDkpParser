@@ -258,11 +258,11 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0" Content="{StaticResource GetDkpChars}" Command="{Binding RetrieveAndSaveDkpCharactersCommand}" Height="25" Width="120" Margin="0,0,10,0">
+                <!--<Button Grid.Column="0" Content="{StaticResource GetDkpChars}" Command="{Binding RetrieveAndSaveDkpCharactersCommand}" Height="25" Width="120" Margin="0,0,10,0">
                     <Button.ToolTip>
                         <TextBlock Text="{StaticResource GetDkpCharsTooltip}"/>
                     </Button.ToolTip>
-                </Button>
+                </Button>-->
                 <ProgressBar Grid.Column="1" IsIndeterminate="True" Visibility="{Binding ShowProgress, Converter={StaticResource BoolToVisibilityConverter}}" 
                     Width="130" Height="25" />
                 <Button Grid.Column="3" Content="{StaticResource CancelButtonText}" Command="{Binding CloseCancelCommand}" IsCancel="True"  Margin="0,0,10,0" Height="25" Width="60"/>

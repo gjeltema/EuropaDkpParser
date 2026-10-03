@@ -18,7 +18,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private const string LogPrefix = $"[{nameof(LiveLogTrackingViewModel)}]";
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly AttendanceTimerHandler _attendanceTimerHandler;
-    private readonly IDkpDataRetriever _dkpDataRetriever;
     private readonly IEqLogTailFile _eqLogTailFile;
     private readonly IOverlayFactory _overlayFactory;
     private readonly IRaidAttendance _raidAttendance;
@@ -28,7 +27,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private readonly DispatcherTimer _updateTimer;
     private readonly IZealMessageProvider _zealMessages;
     private IAuctioneerOverlayViewModel _auctioneerOverlay;
-    private bool _gettingCharacterDkp = false;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
     private ISpellTrackerOverlayViewModel _spellTracker;
 
@@ -47,7 +45,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _eqLogTailFile = eqLogTailFile;
         _raidAttendance = raidAttendance;
 
-        _dkpDataRetriever = new DkpDataRetriever(settings);
         _activeBidTracker = new(settings, eqLogTailFile, raidAttendance);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
         _attendanceTimerHandler = new AttendanceTimerHandler(settings, this, overlayFactory, dialogFactory);
@@ -498,9 +495,6 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     private async Task GetUserDkpAsync()
     {
-        if (_gettingCharacterDkp)
-            return;
-
         if (SelectedBid == null)
             return;
 
@@ -511,28 +505,16 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
             return;
         }
 
-        try
+        CharacterServerInfo characterInfo = CharacterInfoProvider.Instance.GetCharacterInfo(characterName);
+
+        if (characterInfo == null || characterInfo.PlayerCurrentDkp < -10000000)
         {
-            _gettingCharacterDkp = true;
-            DkpUserCharacter dkpCharacter = _settings.CharactersOnDkpServer.GetUserCharacter(characterName);
-            CharacterDkpAmounts userDkp = dkpCharacter == null
-                ? await _dkpDataRetriever.GetUserDkpAsync(characterName)
-                : await _dkpDataRetriever.GetUserDkpAsync(dkpCharacter);
-
-            if (userDkp.CharacterCurrentDkp < -100000)
-            {
-                MessageDialog.ShowDialog($"Unable to retrieve DKP for {characterName}, likely does not exist on server.", "Unable To Retrieve DKP");
-                return;
-            }
-
-            CharacterServerInfo ra = _raidAttendance.GetCharacterRaidAttendance(dkpCharacter?.Name ?? characterName);
-
-            MessageDialog.ShowDialog($"{characterName} has {userDkp.CharacterCurrentDkp} DKP, {ra.Character30DayRa:0} ({ra.Player30DayRa:0})%RA", "DKP Amount", fontSize: DkpDisplayFontSize);
+            MessageDialog.ShowDialog($"Unable to retrieve DKP for {characterName}, likely does not exist on server.", "Unable To Retrieve DKP");
+            return;
         }
-        finally
-        {
-            _gettingCharacterDkp = false;
-        }
+
+        string dialogMsg = $"{characterName} has {characterInfo.PlayerCurrentDkp} DKP [{characterInfo.Character30DayRa:0} / {characterInfo.Player30DayRa:0}%RA]";
+        MessageDialog.ShowDialog(dialogMsg, "DKP Amount", fontSize: DkpDisplayFontSize);
     }
 
     private void HandleUpdate(object sender, EventArgs e)

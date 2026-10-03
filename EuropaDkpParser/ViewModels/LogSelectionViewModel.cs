@@ -13,7 +13,6 @@ using Prism.Commands;
 
 internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelectionViewModel
 {
-    private readonly IDkpDataRetriever _dkpDataRetriever;
     private readonly IDkpParserSettings _settings;
     private string _eqDirectory;
     private string _logFileMatchPattern;
@@ -27,16 +26,12 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
         _settings = settings;
 
-        _dkpDataRetriever = new DkpDataRetriever(settings);
-
         SelectEqDirectoryCommand = new DelegateCommand(SelectEqDirectory);
         SelectOutputDirectoryCommand = new DelegateCommand(SelectOutputDirectory);
         AddLogFileToListCommand = new DelegateCommand(AddLogFile, () => !string.IsNullOrWhiteSpace(SelectedLogFileToAdd))
             .ObservesProperty(() => SelectedLogFileToAdd);
         RemoveLogFileFromListCommand = new DelegateCommand(RemoveLogFileFromList, () => !string.IsNullOrWhiteSpace(SelectedLogFileToParse))
             .ObservesProperty(() => SelectedLogFileToParse);
-        RetrieveAndSaveDkpCharactersCommand = new DelegateCommand(RetrieveAndSaveDkpCharacters, () => !ShowProgress)
-            .ObservesProperty(() => ShowProgress);
 
         _eqDirectory = _settings.EqDirectory;
         OutputDirectory = _settings.OutputDirectory;
@@ -75,9 +70,9 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
 
     public ICollection<string> AllCharacterLogFiles { get; private set; }
 
-    public string ApiMusterUrl { get; set => SetProperty(ref field, value); }
-
     public string ApiMusterToken { get; set => SetProperty(ref field, value); }
+
+    public string ApiMusterUrl { get; set => SetProperty(ref field, value); }
 
     public string ApiReadToken { get; set => SetProperty(ref field, value); }
 
@@ -216,26 +211,6 @@ internal sealed class LogSelectionViewModel : DialogViewModelBase, ILogSelection
         RaisePropertyChanged(nameof(SelectedCharacterLogFiles));
     }
 
-    private async void RetrieveAndSaveDkpCharacters()
-        => await RetrieveAndSaveDkpCharactersAsync();
-
-    private async Task RetrieveAndSaveDkpCharactersAsync()
-    {
-        if (ShowProgress)
-            return;
-
-        try
-        {
-            ShowProgress = true;
-            ICollection<DkpUserCharacter> dkpCharacters = await _dkpDataRetriever.GetUserCharactersAsync();
-            _settings.CharactersOnDkpServer.SaveValues(dkpCharacters);
-        }
-        finally
-        {
-            ShowProgress = false;
-        }
-    }
-
     private void SelectEqDirectory()
     {
         using var folderDialog = new FolderBrowserDialog()
@@ -297,9 +272,9 @@ public interface ILogSelectionViewModel : IDialogViewModel
 
     ICollection<string> AllCharacterLogFiles { get; }
 
-    string ApiMusterUrl { get; set; }
-
     string ApiMusterToken { get; set; }
+
+    string ApiMusterUrl { get; set; }
 
     string ApiReadToken { get; set; }
 
@@ -328,8 +303,6 @@ public interface ILogSelectionViewModel : IDialogViewModel
     string OverlayFontSize { get; set; }
 
     DelegateCommand RemoveLogFileFromListCommand { get; }
-
-    DelegateCommand RetrieveAndSaveDkpCharactersCommand { get; }
 
     ICollection<string> SelectedCharacterLogFiles { get; }
 
