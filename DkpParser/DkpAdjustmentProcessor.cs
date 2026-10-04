@@ -9,14 +9,14 @@ using Gjeltema.Logging;
 public sealed class DkpAdjustmentProcessor : IDkpAdjustments
 {
     private const string LogPrefix = $"[{nameof(DkpAdjustmentProcessor)}]";
-    private readonly DkpServerCharacters _charactersOnDkpServer;
+    private readonly ICharacterInfo _characterInfo;
     private readonly List<string> _classesWithDiscounts;
     private readonly List<DkpDiscountConfiguration> _discounts;
-    private readonly IRaidAttendance _raidAttendances;
+    private readonly ICharacterInfo _raidAttendances;
 
-    public DkpAdjustmentProcessor(IDkpParserSettings settings, IRaidAttendance raidAttendances)
+    public DkpAdjustmentProcessor(IDkpParserSettings settings, ICharacterInfo raidAttendances)
     {
-        _charactersOnDkpServer = settings.CharactersOnDkpServer;
+        _characterInfo = CharacterInfoProvider.Instance;
         _raidAttendances = raidAttendances;
         _discounts = settings.RaidValue.DkpDiscounts.ToList();
         _classesWithDiscounts = _discounts.Select(x => x.ClassName).Distinct().ToList();
@@ -28,8 +28,8 @@ public sealed class DkpAdjustmentProcessor : IDkpAdjustments
 
         if (string.IsNullOrEmpty(className))
         {
-            DkpUserCharacter character = _charactersOnDkpServer.AllUserCharacters.FirstOrDefault(x => x.Name == dkpEntry.CharacterName);
-            className = character.ClassName;
+            CharacterServerInfo charInfo = _characterInfo.GetCharacterInfo(dkpEntry.CharacterName);
+            className = charInfo.ClassName;
             Log.Trace($"{LogPrefix} Updated class name to: {className}");
         }
 

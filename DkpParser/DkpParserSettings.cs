@@ -104,8 +104,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public int AuctionOverlayYLoc { get; set; }
 
-    public DkpServerCharacters CharactersOnDkpServer { get; private set; }
-
     public bool DkpspentGuEnabled { get; set; } = true;
 
     public bool EnableZealDetailLogging { get; set; }
@@ -287,9 +285,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         ItemLinkIds = new(_itemLinkValuesFileName);
         ItemLinkIds.LoadValues();
-
-        CharactersOnDkpServer = new(_dkpCharactersFileName);
-        CharactersOnDkpServer.LoadValues();
 
         InitializeZoneIdMapping();
     }
@@ -646,8 +641,6 @@ public interface IDkpParserSettings
     int AuctionOverlayXLoc { get; set; }
 
     int AuctionOverlayYLoc { get; set; }
-
-    DkpServerCharacters CharactersOnDkpServer { get; }
 
     bool DkpspentGuEnabled { get; set; }
 

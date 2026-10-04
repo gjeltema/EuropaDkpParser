@@ -216,8 +216,8 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
             return $"{Timestamp:HH:mm:ss} {ItemName} {CharacterPlacingBid} rolled {BidAmount}";
         else
             return CharacterNotOnDkpServer
-            ? $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} MAYBE NOT ON SERVER"
-            : $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} {ThirtyDayCharacterRa:0} ({ThirtyDayPlayerRa:0})%RA";
+            ? $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} NOT ON SERVER"
+            : $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} [{ThirtyDayCharacterRa:0}/{ThirtyDayPlayerRa:0} %RA]";
     }
 }
 

@@ -21,12 +21,12 @@ internal sealed class SimpleBidTrackerViewModel : WindowViewModelBase, ISimpleBi
     private readonly DispatcherTimer _updateTimer;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
 
-    public SimpleBidTrackerViewModel(IWindowViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendance raidAttendance)
+    public SimpleBidTrackerViewModel(IWindowViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, ICharacterInfo characterInfo)
         : base(viewFactory)
     {
         _settings = settings;
 
-        _activeBidTracker = new(settings, eqLogTailFile, raidAttendance);
+        _activeBidTracker = new(settings, eqLogTailFile, characterInfo);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
         SetActiveAuctionsToCompletedCommand = new DelegateCommand(SetActiveAuctionsToCompleted);

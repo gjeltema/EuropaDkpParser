@@ -18,9 +18,9 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
     private const string LogPrefix = $"[{nameof(LiveLogTrackingViewModel)}]";
     private readonly ActiveBidTracker _activeBidTracker;
     private readonly AttendanceTimerHandler _attendanceTimerHandler;
+    private readonly ICharacterInfo _characterInfo;
     private readonly IEqLogTailFile _eqLogTailFile;
     private readonly IOverlayFactory _overlayFactory;
-    private readonly IRaidAttendance _raidAttendance;
     private readonly IReadyCheckOverlayViewModel _readyCheckOverlayViewModel;
     private readonly IDkpParserSettings _settings;
     private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(2);
@@ -34,7 +34,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         IWindowViewFactory windowViewFactory,
         IDkpParserSettings settings,
         IEqLogTailFile eqLogTailFile,
-        IRaidAttendance raidAttendance,
+        ICharacterInfo raidAttendance,
         IDialogFactory dialogFactory,
         IOverlayFactory overlayFactory,
         IWindowFactory windowFactory)
@@ -43,7 +43,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _settings = settings;
         _overlayFactory = overlayFactory;
         _eqLogTailFile = eqLogTailFile;
-        _raidAttendance = raidAttendance;
+        _characterInfo = raidAttendance;
 
         _activeBidTracker = new(settings, eqLogTailFile, raidAttendance);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
@@ -401,7 +401,8 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         SelectedBid = null;
 
         selectedBid.CharacterBeingBidFor = selectedBidCharacterName.NormalizeName();
-        selectedBid.CharacterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(selectedBid.CharacterBeingBidFor);
+        bool existsOnServer = _characterInfo.CharacterExistsOnDkpServer(selectedBid.CharacterBeingBidFor);
+        selectedBid.CharacterNotOnDkpServer = existsOnServer;
 
         UpdateBidsListing(selectedBid);
     }
@@ -472,7 +473,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         _auctioneerOverlay?.Close();
         if (showOverlay)
         {
-            _auctioneerOverlay = _overlayFactory.CreateAuctioneerOverlayViewModel(_settings, _eqLogTailFile, _raidAttendance);
+            _auctioneerOverlay = _overlayFactory.CreateAuctioneerOverlayViewModel(_settings, _eqLogTailFile, _characterInfo);
             _auctioneerOverlay.CreateShowAndHideOverlay();
         }
         else

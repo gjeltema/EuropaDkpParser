@@ -149,7 +149,7 @@ internal sealed partial class ActiveBiddingAnalyzer
             }
         }
 
-        bool characterNotOnDkpServer = _settings.CharactersOnDkpServer.CharacterConfirmedNotOnDkpServer(characterBeingBidFor);
+        bool characterNotOnDkpServer = CharacterInfoProvider.Instance.CharacterExistsOnDkpServer(characterBeingBidFor);
 
         RawBidInfo newBid = new()
         {

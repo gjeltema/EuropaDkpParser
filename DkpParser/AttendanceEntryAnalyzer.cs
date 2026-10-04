@@ -556,7 +556,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
                     foreach (AttendanceEntry missingAttendance in missingFromAttendanceEnties)
                     {
-                        if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(crashedCharacter, missingAttendance.Characters))
+                        if (!CharacterInfoProvider.Instance.IsRelatedCharacterInCollection(crashedCharacter, missingAttendance.Characters))
                             missingAttendance.AddOrMergeInPlayerCharacter(crashedCharacter);
                     }
                 }

@@ -165,7 +165,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
                                     .FirstOrDefault(x => x.Player.CharacterName == playerCharacter.CharacterName && x.AttendanceMissingFrom == missingAttendance);
                                 if (existingLinkdeadEntry == null)
                                 {
-                                    if (!_settings.CharactersOnDkpServer.IsRelatedCharacterInCollection(playerCharacter, missingAttendance.Characters))
+                                    if (!CharacterInfoProvider.Instance.IsRelatedCharacterInCollection(playerCharacter, missingAttendance.Characters))
                                         _raidEntries.PossibleLinkdeads.Add(new() { Player = playerCharacter, AttendanceMissingFrom = missingAttendance });
                                 }
                             }

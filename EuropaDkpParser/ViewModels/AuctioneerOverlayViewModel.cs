@@ -20,7 +20,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
     private readonly DispatcherTimer _updateTimer;
     private DateTime _nextForcedUpdate = DateTime.MinValue;
 
-    public AuctioneerOverlayViewModel(IOverlayViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, IRaidAttendance raidAttendance)
+    public AuctioneerOverlayViewModel(IOverlayViewFactory viewFactory, IDkpParserSettings settings, IEqLogTailFile eqLogTailFile, ICharacterInfo characterInfo)
         : base(viewFactory)
     {
         _settings = settings;
@@ -33,7 +33,7 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
         Width = _settings.AuctionOverlayWidth;
         Height = _settings.AuctionOverlayHeight;
 
-        _activeBidTracker = new(settings, eqLogTailFile, raidAttendance);
+        _activeBidTracker = new(settings, eqLogTailFile, characterInfo);
         _updateTimer = new(_updateInterval, DispatcherPriority.Normal, HandleUpdate, Dispatcher.CurrentDispatcher);
 
         CopySelectedSpentCallToClipboardCommand = new DelegateCommand(CopySelectedSpentCallToClipboard, () => SelectedSpentMessageToPaste != null)

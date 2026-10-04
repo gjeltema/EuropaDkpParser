@@ -47,7 +47,7 @@ internal sealed class DkpErrorDisplayDialogViewModel : DialogViewModelBase, IDkp
 
         AllPlayers = _raidEntries.AllCharactersInRaid
             .Select(x => x.CharacterName)
-            .Union(_settings.CharactersOnDkpServer.AllUserCharacters.Select(x => x.Name))
+            .Union(CharacterInfoProvider.Instance.GetAllCharactersInfo().Select(x => x.CharacterName))
             .Order()
             .ToList();
         PlayerLootedEntries = _raidEntries.PlayerLootedEntries.OrderBy(x => x.Timestamp).ToList();

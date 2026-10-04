@@ -393,8 +393,6 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public int AuctionOverlayYLoc { get; set; }
 
-    public DkpServerCharacters CharactersOnDkpServer { get; } = new DkpServerCharacters("");
-
     public bool DkpspentGuEnabled { get; set; }
 
     public bool EnableZealDetailLogging { get; set; }
