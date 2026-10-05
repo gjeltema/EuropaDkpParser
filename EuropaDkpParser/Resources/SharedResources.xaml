@@ -10,6 +10,7 @@
     <SolidColorBrush x:Key="BidTrackingForegroundOkBrush">LightGreen</SolidColorBrush>
     <SolidColorBrush x:Key="BidTrackingForegroundAlertBrush">Red</SolidColorBrush>
     <SolidColorBrush x:Key="BidTrackingForegroundWarningBrush">Orange</SolidColorBrush>
+    <SolidColorBrush x:Key="BidTrackingForegroundMinorWarningBrush">Yellow</SolidColorBrush>
 
     <Viewbox x:Key="SuccessCheckIcon" x:Shared="False" Width="16" Height="16">
         <Grid>

@@ -453,11 +453,11 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
 
     private void CopySelectedStatusMessageToClipboard()
     {
-        string selectedStatsuMessage = AuctionStatusMessageToPaste;
-        if (string.IsNullOrWhiteSpace(selectedStatsuMessage))
+        string selectedStatusMessage = AuctionStatusMessageToPaste;
+        if (string.IsNullOrWhiteSpace(selectedStatusMessage))
             return;
 
-        Clip.Copy(selectedStatsuMessage);
+        Clip.Copy(selectedStatusMessage);
 
         SelectedActiveAuction?.HasNewBidsAdded = false;
     }

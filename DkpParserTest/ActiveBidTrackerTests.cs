@@ -373,9 +373,9 @@ internal sealed class SettingsMock : IDkpParserSettings
 
     public string ApiMusterReadToken { get; set; }
 
-    public string ApiMusterUrl { get; set; }
-
     public string ApiMusterToken { get; set; }
+
+    public string ApiMusterUrl { get; set; }
 
     public string ApiReadToken { get; set; }
 
@@ -505,6 +505,8 @@ internal sealed class RaidValueMock : IRaidValues
     public IEnumerable<string> BossesWithNoDruzzilMessage { get; }
 
     public IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; }
+
+    public int MaximumAltBidAgainstMain { get; }
 
     public double MinimumRaForSecondMain { get; }
 

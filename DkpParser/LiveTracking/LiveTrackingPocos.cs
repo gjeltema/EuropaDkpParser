@@ -141,6 +141,8 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
     /// </summary>
     public int BidAmount { get; init; }
 
+    public bool BidderIsMainCharacter { get; set; }
+
     public EqChannel Channel { get; init; }
 
     public string CharacterBeingBidFor { get; set; }
@@ -148,6 +150,8 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
     public bool CharacterNotOnDkpServer { get; set; }
 
     public string CharacterPlacingBid { get; init; }
+
+    public bool IsAltBiddingOverMain { get; set; }
 
     public bool IsRoll { get; init; }
 
@@ -214,10 +218,12 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
     {
         if (IsRoll)
             return $"{Timestamp:HH:mm:ss} {ItemName} {CharacterPlacingBid} rolled {BidAmount}";
+        else if (IsAltBiddingOverMain)
+            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} BID OVER MAIN";
+        else if (CharacterNotOnDkpServer)
+            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} NOT ON SERVER";
         else
-            return CharacterNotOnDkpServer
-            ? $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} NOT ON SERVER"
-            : $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} [{ThirtyDayCharacterRa:0}/{ThirtyDayPlayerRa:0} %RA]";
+            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} [{ThirtyDayCharacterRa:0}/{ThirtyDayPlayerRa:0} %RA]";
     }
 }
 

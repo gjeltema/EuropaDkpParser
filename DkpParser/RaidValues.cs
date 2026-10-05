@@ -18,6 +18,7 @@ public sealed class RaidValues : IRaidValues
     private const char Delimiter = '\t';
     private const string DkpDiscountsSection = "DKP_DISCOUNTS_SECTION";
     private const string LogPrefix = $"[{nameof(RaidValues)}]";
+    private const string MaxAltBidAgainstMainSection = "MAX_ALT_BID_AGAINST_MAIN";
     private const string MinimumRaForSecondMainSection = "MINIMUM_RA_FOR_SECOND_MAIN";
     private const string OnlyTimeCallsKillSection = "ONLY_TIME_CALLS_KILL_SECTION";
     private const string SectionEnding = "_END";
@@ -47,6 +48,8 @@ public sealed class RaidValues : IRaidValues
         => _bossesNoDruzzil;
 
     public IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; private set; }
+
+    public int MaximumAltBidAgainstMain { get; private set; } = 300;
 
     public double MinimumRaForSecondMain { get; private set; }
 
@@ -94,6 +97,7 @@ public sealed class RaidValues : IRaidValues
         UseTimeOnlyWithConfiguredKillCalls = GetBoolValue(fileContents, UseTimeOnlyWithConfiguredKillCallsSection);
         AllValidRaidZoneNames = _zoneValues.Select(x => x.ZoneName).Union(_zoneRaidAliases.Keys).Order().ToList();
         MinimumRaForSecondMain = GetDoubleValue(fileContents, MinimumRaForSecondMainSection);
+        MaximumAltBidAgainstMain = GetIntValue(fileContents, MaxAltBidAgainstMainSection, 300);
     }
 
     private static int GetStartingIndex(IList<string> fileContents, string configurationSectionName)
@@ -166,8 +170,25 @@ public sealed class RaidValues : IRaidValues
         string[] split = setting.Split(Delimiter);
         if (split.Length > 1)
         {
-            if (double.TryParse(split[1], out double ra))
-                return ra;
+            if (double.TryParse(split[1], out double parsedValue))
+                return parsedValue;
+        }
+
+        return defaultValue;
+    }
+
+    private int GetIntValue(string[] fileContents, string key, int defaultValue = 0)
+    {
+        int index = Array.FindIndex(fileContents, x => x.StartsWith(key));
+        if (!IsValidIndex(index, fileContents))
+            return defaultValue;
+
+        string setting = fileContents[index];
+        string[] split = setting.Split(Delimiter);
+        if (split.Length > 1)
+        {
+            if (int.TryParse(split[1], out int parsedValue))
+                return parsedValue;
         }
 
         return defaultValue;
@@ -368,6 +389,8 @@ public interface IRaidValues
     IEnumerable<string> BossesWithNoDruzzilMessage { get; }
 
     IEnumerable<DkpDiscountConfiguration> DkpDiscounts { get; }
+
+    int MaximumAltBidAgainstMain { get; }
 
     double MinimumRaForSecondMain { get; }
 

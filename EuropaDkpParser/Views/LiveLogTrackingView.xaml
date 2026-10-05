@@ -142,11 +142,14 @@
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=CharacterNotOnDkpServer}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
-                                    </DataTrigger>
                                     <DataTrigger Binding="{Binding Path=RaidAttendanceBelowThreshold}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundMinorWarningBrush}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=CharacterNotOnDkpServer}" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundWarningBrush}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=IsAltBiddingOverMain}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -184,7 +187,23 @@
 
                         <Label Grid.Row="0" Content="{StaticResource CurrentHighBids}" />
 
-                        <ListView Grid.Row="1" ItemsSource="{Binding HighBids}"/>
+                        <ListView Grid.Row="1" ItemsSource="{Binding HighBids}">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=RaidAttendanceBelowThreshold}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundMinorWarningBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=CharacterNotOnDkpServer}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundWarningBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsAltBiddingOverMain}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource BidTrackingForegroundAlertBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
                     </Grid>
 
                     <Grid Grid.Column="1" MinWidth="120">

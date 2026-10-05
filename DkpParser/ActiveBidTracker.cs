@@ -141,6 +141,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         else
             return _bids
                 .Where(x => x.ParentAuctionId == auction.Id)
+                .Where(x => !x.IsAltBiddingOverMain)
                 .OrderByDescending(x => x.BidAmount)
                 .ThenBy(x => x.Timestamp)
                 .DistinctBy(x => x.CharacterBeingBidFor)
@@ -231,7 +232,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (auction.IsRoll)
         {
             string channel = GetChannelShortcut(auction.Channel);
-            string highRollersString = string.Join(", ", highBids.Select(x => $"{x.CharacterPlacingBid} {x.BidAmount}"));
+            string highRollersString = string.Join(", ", highBids.Select(x => $"{x.CharacterPlacingBid}{(x.BidderIsMainCharacter ? "" : "[ALT]")} {x.BidAmount}"));
             string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
             string highOrLow = lowRollWins ? "Low" : "High";
             string rollsText = highBids.Count > 1 ? "rolls" : "roll";
@@ -240,7 +241,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         else
         {
             string channel = GetChannelShortcut(auction.Channel);
-            string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterBeingBidFor} {x.BidAmount} DKP"));
+            string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterBeingBidFor}{(x.BidderIsMainCharacter ? "" : "[ALT]")} {x.BidAmount} DKP"));
             string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
             return $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {highBiddersString} {statusString}";
         }
@@ -262,6 +263,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (bidToRemove == null)
             return;
 
+        Log.Info($"{LogPrefix} Removed bid: {bidToRemove}.");
         _bids = _bids.Remove(bidToRemove);
 
         LiveAuctionInfo auction = _activeAuctions.FirstOrDefault(x => x.Id == bidToRemove.ParentAuctionId);
@@ -270,6 +272,8 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             if (!_bids.Any(x => x.ParentAuctionId == auction.Id))
                 auction.HasBids = false;
         }
+
+        AnalyzeForAltsBiddingOverMains(auction);
 
         Updated = true;
     }
@@ -368,6 +372,27 @@ public sealed class ActiveBidTracker : IActiveBidTracker
     public bool TryGetReadyCheckStatus(out CharacterReadyCheckStatus readyStatus)
         => _readyCheckStatus.TryDequeue(out readyStatus);
 
+    private static string GetAltBidOverMainDebugMessage(LiveBidInfo bid, List<LiveBidInfo> maxMainBidders)
+    {
+        string mainsString = $"Mains: {string.Join(", ", maxMainBidders.Select(x => $"{x.CharacterBeingBidFor}: {x.BidAmount}"))}";
+        return $"Alt bid for:{bid.CharacterBeingBidFor}, Bidder: {bid.CharacterPlacingBid}, Amt: {bid.BidAmount} | {mainsString}";
+    }
+
+    private void AnalyzeForAltsBiddingOverMains(LiveAuctionInfo auction)
+    {
+        if (auction == null || !auction.HasBids)
+            return;
+
+        IEnumerable<LiveBidInfo> altBidsOverMains = _bids
+            .Where(x => x.ParentAuctionId == auction.Id)
+            .Where(a => a.IsAltBiddingOverMain);
+
+        foreach (LiveBidInfo bid in altBidsOverMains)
+        {
+            bid.IsAltBiddingOverMain = IsAltBidOverMain(bid);
+        }
+    }
+
     private List<LiveBidInfo> GetAllMaxRolls(LiveAuctionInfo auction, bool lowRollWins)
     {
         IEnumerable<LiveBidInfo> filteredBids = _bids
@@ -459,14 +484,17 @@ public sealed class ActiveBidTracker : IActiveBidTracker
             Log.Debug($"{LogPrefix} Duplicate bid made.  Replacing old bid: {possibleDuplicateBid}, with new bid: {bid}");
         }
 
-        CharacterServerInfo bidderRa = _characterInfo.GetCharacterInfo(bid.CharacterBeingBidFor);
-        if (bidderRa != null)
+        CharacterServerInfo bidderInfo = _characterInfo.GetCharacterInfo(bid.CharacterBeingBidFor);
+        if (bidderInfo != null)
         {
-            bid.ThirtyDayCharacterRa = bidderRa.Character30DayRa;
-            bid.ThirtyDayPlayerRa = bidderRa.Player30DayRa;
+            bid.ThirtyDayCharacterRa = bidderInfo.Character30DayRa;
+            bid.ThirtyDayPlayerRa = bidderInfo.Player30DayRa;
+            bid.BidderIsMainCharacter = bidderInfo.IsMainCharacter;
             bid.CharacterNotOnDkpServer = false;
-            bid.RaidAttendanceBelowThreshold = bidderRa.Player30DayRa < _settings.RaidValue.MinimumRaForSecondMain;
+            bid.RaidAttendanceBelowThreshold = bidderInfo.Player30DayRa < _settings.RaidValue.MinimumRaForSecondMain;
         }
+
+        bid.IsAltBiddingOverMain = IsAltBidOverMain(bid);
 
         _bids = _bids.Add(bid);
 
@@ -584,6 +612,35 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         Log.Debug($"{LogPrefix} SPENT call made, but not enough SPENT calls to complete the auction. SPENT call: {spentCall}; Associated Auction: {existingAuction}");
         Updated = true;
         return;
+    }
+
+    private bool IsAltBidOverMain(LiveBidInfo bid)
+    {
+        int maxAltBidAgainstMain = _settings.RaidValue.MaximumAltBidAgainstMain;
+        if (bid.BidderIsMainCharacter || bid.BidAmount <= maxAltBidAgainstMain)
+            return false;
+
+        LiveAuctionInfo relatedAuction = _activeAuctions.FirstOrDefault(x => x.Id == bid.ParentAuctionId);
+        if (relatedAuction == null)
+            return false;
+
+        int numberOfItems = relatedAuction.TotalNumberOfItems;
+        List<LiveBidInfo> maxMainBidders = _bids
+            .Where(x => x.ParentAuctionId == bid.ParentAuctionId && x.BidderIsMainCharacter)
+            .Where(b => b.BidAmount > maxAltBidAgainstMain)
+            .OrderByDescending(x => x.BidAmount)
+            .DistinctBy(x => x.CharacterBeingBidFor)
+            .Take(numberOfItems)
+            .ToList();
+
+        bool altBidOverMain = false;
+        if (maxMainBidders.Count == numberOfItems)
+            altBidOverMain = maxMainBidders.Any(x => x.BidAmount < bid.BidAmount);
+
+        if (altBidOverMain)
+            Log.Info($"{LogPrefix} Alt bidding over main: {GetAltBidOverMainDebugMessage(bid, maxMainBidders)}");
+
+        return altBidOverMain;
     }
 
     private void ListenForUpdates()
