@@ -349,7 +349,11 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         }
 
         int zoneId = ZealAttendanceMessageProvider.Instance.CharacterInfo.ZoneId;
-        if (!_settings.ZoneIdMapping.TryGetValue(zoneId, out string zoneName))
+        if (_settings.ZoneIdMapping.TryGetValue(zoneId, out string zoneName))
+        {
+            Log.Info($"{LogPrefix} Zone mapping for Zone ID '{zoneId}': {zoneName}.");
+        }
+        else
         {
             Log.Warning($"{LogPrefix} Zone mapping not found for Zone ID {zoneId} in attendance call, ending processing of AttendanceCall: {raidName} {callType}.");
             zoneName = "Plane of Tranquility";
