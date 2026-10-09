@@ -47,6 +47,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Rectangle Grid.Row="0" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,4,0,4"/>
@@ -85,13 +86,17 @@
                                   IsEditable="False" Height="30" VerticalContentAlignment="Center" Padding="10,0,0,0"/>
                     </Grid>
 
-                    <Button Grid.Row="5" Content="{StaticResource AddText}" Command="{Binding AddAttendanceCallCommand}" Width="85" Height="30" 
+                    <CheckBox Grid.Row="5" Content="{StaticResource UseLeaveJoinForAddRaid}" IsChecked="{Binding UseLeaveJoinToAdjustAddAttendance}"
                             HorizontalAlignment="Right" Margin="0,15,0,0"/>
+
+                    <Button Grid.Row="6" Content="{StaticResource AddText}" Command="{Binding AddAttendanceCallCommand}" Width="85" Height="30" 
+                            HorizontalAlignment="Right" Margin="0,5,0,0"/>
                 </Grid>
 
                 <!-- Move Attendance Call -->
                 <Grid Grid.Row="1" Margin="0,15,0,0">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -113,8 +118,11 @@
                                               HorizontalAlignment="Left" Width="180" TextAlignment="Left" Margin="5,0,0,0"/>
                     </Grid>
 
-                    <Button Grid.Row="3" Content="{StaticResource Move}" Command="{Binding MoveAttendanceCallCommand}" Width="85" Height="30" 
+                    <CheckBox Grid.Row="3" Content="{StaticResource UseLeaveJoinForMoveRaid}" IsChecked="{Binding UseLeaveJoinToAdjustMoveAttendance}"
                             HorizontalAlignment="Right"/>
+
+                    <Button Grid.Row="4" Content="{StaticResource Move}" Command="{Binding MoveAttendanceCallCommand}" Width="85" Height="30" 
+                            HorizontalAlignment="Right" Margin="0,5,0,0"/>
 
                 </Grid>
                 

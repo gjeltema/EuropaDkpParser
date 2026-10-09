@@ -354,7 +354,7 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
         string mobName = mezBreakInfo[0];
         string characterAndReason = mezBreakInfo[1];
         int indexOfDash = characterAndReason.IndexOf('-');
-        if (indexOfDash < Constants.MezBreakIdentifier.Length)
+        if (indexOfDash < 4)
             return null;
 
         string characterName = characterAndReason[0..(indexOfDash - 1)];

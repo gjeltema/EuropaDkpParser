@@ -21,7 +21,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
         _raidEntries = raidEntries;
     }
 
-    public AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newAttendanceTimestamp, string newRaidName, AttendanceCallType newCallType)
+    public AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newAttendanceTimestamp, string newRaidName, AttendanceCallType newCallType, bool adjustAttendanceWithLeaveJoin)
     {
         AttendanceEntry newEntry = new()
         {
@@ -33,29 +33,35 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
             ZoneName = baseline.ZoneName
         };
 
-        if (baseline.Timestamp <= newAttendanceTimestamp)
+        if (adjustAttendanceWithLeaveJoin)
         {
-            ModifyPlayersMovingForwards(baseline.Timestamp, newEntry, newAttendanceTimestamp);
-        }
-        else
-        {
-            ModifyPlayersMovingBackwards(baseline.Timestamp, newEntry, newAttendanceTimestamp);
+            if (baseline.Timestamp <= newAttendanceTimestamp)
+            {
+                ModifyPlayersMovingForwards(baseline.Timestamp, newEntry, newAttendanceTimestamp);
+            }
+            else
+            {
+                ModifyPlayersMovingBackwards(baseline.Timestamp, newEntry, newAttendanceTimestamp);
+            }
         }
 
         return newEntry;
     }
 
-    public void MoveAttendanceEntry(AttendanceEntry toBeMoved, DateTime newTimestamp)
+    public void MoveAttendanceEntry(AttendanceEntry toBeMoved, DateTime newTimestamp, bool adjustAttendanceWithLeaveJoin)
     {
         DateTime baselineTimestamp = toBeMoved.Timestamp;
         toBeMoved.Timestamp = newTimestamp;
-        if (baselineTimestamp <= newTimestamp)
+        if (adjustAttendanceWithLeaveJoin)
         {
-            ModifyPlayersMovingForwards(baselineTimestamp, toBeMoved, newTimestamp);
-        }
-        else
-        {
-            ModifyPlayersMovingBackwards(baselineTimestamp, toBeMoved, newTimestamp);
+            if (baselineTimestamp <= newTimestamp)
+            {
+                ModifyPlayersMovingForwards(baselineTimestamp, toBeMoved, newTimestamp);
+            }
+            else
+            {
+                ModifyPlayersMovingBackwards(baselineTimestamp, toBeMoved, newTimestamp);
+            }
         }
     }
 
@@ -135,7 +141,7 @@ public sealed class AttendanceEntryModifier : IAttendanceEntryModifier
 /// </summary>
 public interface IAttendanceEntryModifier
 {
-    AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newEntryTimestamp, string newRaidName, AttendanceCallType newCallType);
+    AttendanceEntry CreateAttendanceEntry(AttendanceEntry baseline, DateTime newEntryTimestamp, string newRaidName, AttendanceCallType newCallType, bool adjustAttendanceWithLeaveJoin);
 
-    void MoveAttendanceEntry(AttendanceEntry toBeMoved, DateTime newTimestamp);
+    void MoveAttendanceEntry(AttendanceEntry toBeMoved, DateTime newTimestamp, bool adjustAttendanceWithLeaveJoin);
 }

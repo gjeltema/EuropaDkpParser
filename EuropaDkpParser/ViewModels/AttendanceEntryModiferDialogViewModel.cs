@@ -14,14 +14,7 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
 {
     private readonly RaidEntries _raidEntries;
     private readonly IDkpParserSettings _settings;
-    private ObservableCollection<AttendanceEntry> _allAttendances;
-    private string _moveTimeText;
-    private AttendanceCallType _newAttendanceCallType;
-    private string _newRaidName;
-    private string _newTimeText;
-    private string _raidNameText;
     private AttendanceEntry _selectedAttendanceEntry;
-    private string _selectedZoneName;
 
     public AttendanceEntryModiferDialogViewModel(IDialogViewFactory viewFactory, IDkpParserSettings settings, RaidEntries raidEntries)
         : base(viewFactory)
@@ -53,45 +46,21 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
 
     public DelegateCommand AddAttendanceCallCommand { get; }
 
-    public ObservableCollection<AttendanceEntry> AllAttendances
-    {
-        get => _allAttendances;
-        private set => SetProperty(ref _allAttendances, value);
-    }
+    public ObservableCollection<AttendanceEntry> AllAttendances { get; set => SetProperty(ref field, value); }
 
     public ICollection<AttendanceCallType> AttendanceCallTypes { get; }
 
     public DelegateCommand MoveAttendanceCallCommand { get; }
 
-    public string MoveTimeText
-    {
-        get => _moveTimeText;
-        set => SetProperty(ref _moveTimeText, value);
-    }
+    public string MoveTimeText { get; set => SetProperty(ref field, value); }
 
-    public AttendanceCallType NewAttendanceCallType
-    {
-        get => _newAttendanceCallType;
-        set => SetProperty(ref _newAttendanceCallType, value);
-    }
+    public AttendanceCallType NewAttendanceCallType { get; set => SetProperty(ref field, value); }
 
-    public string NewRaidName
-    {
-        get => _newRaidName;
-        set => SetProperty(ref _newRaidName, value);
-    }
+    public string NewRaidName { get; set => SetProperty(ref field, value); }
 
-    public string NewTimeText
-    {
-        get => _newTimeText;
-        set => SetProperty(ref _newTimeText, value);
-    }
+    public string NewTimeText { get; set => SetProperty(ref field, value); }
 
-    public string RaidNameText
-    {
-        get => _raidNameText;
-        set => SetProperty(ref _raidNameText, value);
-    }
+    public string RaidNameText { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand RemoveAttendanceEntryCommand { get; }
 
@@ -117,15 +86,15 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         }
     }
 
-    public string SelectedZoneName
-    {
-        get => _selectedZoneName;
-        set => SetProperty(ref _selectedZoneName, value);
-    }
+    public string SelectedZoneName { get; set => SetProperty(ref field, value); }
 
     public DelegateCommand UpdateRaidNameCommand { get; }
 
     public DelegateCommand UpdateZoneNameCommand { get; }
+
+    public bool UseLeaveJoinToAdjustAddAttendance { get; set => SetProperty(ref field, value); } = true;
+
+    public bool UseLeaveJoinToAdjustMoveAttendance { get; set => SetProperty(ref field, value); } = true;
 
     public ICollection<string> ZoneNames { get; }
 
@@ -137,7 +106,7 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         }
 
         IAttendanceEntryModifier modifier = new AttendanceEntryModifier(_raidEntries);
-        AttendanceEntry newEntry = modifier.CreateAttendanceEntry(SelectedAttendanceEntry, newTimestamp, NewRaidName, NewAttendanceCallType);
+        AttendanceEntry newEntry = modifier.CreateAttendanceEntry(SelectedAttendanceEntry, newTimestamp, NewRaidName, NewAttendanceCallType, UseLeaveJoinToAdjustAddAttendance);
         if (newEntry == null)
         {
             return;
@@ -162,7 +131,7 @@ internal sealed class AttendanceEntryModiferDialogViewModel : DialogViewModelBas
         AttendanceEntry selectedEntry = SelectedAttendanceEntry;
         SelectedAttendanceEntry = null;
         IAttendanceEntryModifier modifier = new AttendanceEntryModifier(_raidEntries);
-        modifier.MoveAttendanceEntry(selectedEntry, newTimestamp);
+        modifier.MoveAttendanceEntry(selectedEntry, newTimestamp, UseLeaveJoinToAdjustMoveAttendance);
 
         AllAttendances.Remove(selectedEntry);
         AttendanceEntry nextEntry = AllAttendances.Where(x => x.Timestamp > selectedEntry.Timestamp).MinBy(x => x.Timestamp);
@@ -269,6 +238,10 @@ public interface IAttendanceEntryModiferDialogViewModel : IDialogViewModel
     DelegateCommand UpdateRaidNameCommand { get; }
 
     DelegateCommand UpdateZoneNameCommand { get; }
+
+    bool UseLeaveJoinToAdjustAddAttendance { get; set; }
+
+    bool UseLeaveJoinToAdjustMoveAttendance { get; set; }
 
     ICollection<string> ZoneNames { get; }
 }

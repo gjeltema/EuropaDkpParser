@@ -240,7 +240,9 @@
     <system:String x:Key="NewAttendanceName">New Attendance Name</system:String>
     <system:String x:Key="NewAttendanceTime">New Attendance Timestamp</system:String>
     <system:String x:Key="NewAttendanceType">New Attendance Type</system:String>
+    <system:String x:Key="UseLeaveJoinForAddRaid">Use Leave/Join to Adjust Raid Attendees</system:String>
     <system:String x:Key="MoveAttendanceTime">Change Attendance Time</system:String>
+    <system:String x:Key="UseLeaveJoinForMoveRaid">Use Leave/Join to Adjust Raid Attendees</system:String>
     <system:String x:Key="UpdatedAttendanceTime">Updated Timestamp</system:String>
     <system:String x:Key="UpdateAttendanceValues">Update Attendance Values</system:String>
 

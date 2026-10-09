@@ -31,7 +31,7 @@
 
             <TextBox Grid.Row="1" Text="{Binding SummaryDisplay}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" IsReadOnly="True"/>
 
-            <Button Grid.Column="2" Content="{StaticResource CopyMezBreaks}" Command="{Binding CopyMezBreaksToClipboardCommand}" 
+            <Button Grid.Row="2" Content="{StaticResource CopyMezBreaks}" Command="{Binding CopyMezBreaksToClipboardCommand}" 
                     Visibility="{Binding ShowMezBreaksButton, Converter={StaticResource BoolToVisibilityConverter}}"
                     HorizontalAlignment="Left" Width="100" Height="30" Margin="0,5,0,0"/>
         </Grid>
