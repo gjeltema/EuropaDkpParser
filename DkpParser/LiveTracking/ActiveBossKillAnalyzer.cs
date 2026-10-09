@@ -50,12 +50,18 @@ internal sealed class ActiveBossKillAnalyzer
                 return bossName;
             }
         }
-        else if (logLine.Contains(Constants.DruzzilGuild))
+        else if (logLine.Contains(Constants.DruzzilGuild) && logLine.Contains(HasKilled))
         {
             // [Wed Jan 14 23:41:07 2026] Druzzil Ro tells the guild, 'Brydda of <Europa> has killed Va Xi Aten Ha Ra in Vex Thal!'
+            // [Thu Oct 01 22:45:40 2026] Druzzil Ro tells the guild, 'A ripple passes through your guild's thread of time. Kassandra has asked the Timekeeper of Druzzil Ro to meddle with its weave.
+            //     Beware! Time now moves slowly within your Planar Thread, and those walking it have been drawn back to Tranquility.'
+            // [Fri Oct 02 00:29:01 2026] Druzzil Ro tells the guild, 'A ripple passes through your guild's thread of time. Tarscales has asked the Timekeeper of Druzzil Ro to set its weave right.
+            //     Beware! Time has returned to its natural pace, and those walking it have been drawn back to Tranquility.'
             Log.Debug($"{LogPrefix} Druzzil message: {logLine}");
             int inIndex = logLine.IndexOf(In);
             int killedIndex = logLine.IndexOf(HasKilled) + HasKilled.Length;
+            if (inIndex <= killedIndex)
+                return null;
 
             string bossName = logLine[killedIndex..inIndex].Trim();
             Log.Debug($"{LogPrefix} Returning boss name: {bossName}");

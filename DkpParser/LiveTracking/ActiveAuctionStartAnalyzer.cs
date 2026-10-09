@@ -30,10 +30,10 @@ internal sealed partial class ActiveAuctionStartAnalyzer
         return [];
     }
 
-    [GeneratedRegex("\\(\\d\\)", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
+    [GeneratedRegex("\\(\\d+\\)", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
     private static partial Regex MultipleItemsAuctionedParensRegex();
 
-    [GeneratedRegex("x\\d", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
+    [GeneratedRegex("x\\d+", RegexOptions.Compiled | RegexOptions.IgnoreCase)]
     private static partial Regex MultipleItemsAuctionedRegex();
 
     [GeneratedRegex("\\d+", RegexOptions.Compiled)]
