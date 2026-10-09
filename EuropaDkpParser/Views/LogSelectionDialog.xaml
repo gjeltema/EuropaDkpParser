@@ -92,55 +92,9 @@
             <Grid Grid.Row="4" Margin="5,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Rectangle Grid.Row="0" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Margin="0,0,0,4"/>
-                
-                <CheckBox Grid.Row="1" IsChecked="{Binding UploadToEqDkp}" Content="{StaticResource UploadEqDkpLabel}" Margin="0,5,0,5"/>
-
-                <Grid Grid.Row="2" Visibility="{Binding UploadToEqDkp, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0" Margin="0,0,0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Label Grid.Column="0" Content="{StaticResource ApiUrlLabel}"/>
-                        <TextBox Grid.Column="1" Text="{Binding ApiUrl}" Margin="0,0,10,0"/>
-                    </Grid>
-
-                    <Grid Grid.Row="1" Margin="0,0,0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Label Grid.Column="0" Content="{StaticResource ApiReadTokenLabel}"/>
-                        <TextBox Grid.Column="1" Text="{Binding ApiReadToken}" Margin="0,0,10,0"/>
-                    </Grid>
-
-                    <Grid Grid.Row="2" Margin="0,0,0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Label Grid.Column="0" Content="{StaticResource ApiWriteTokenLabel}"/>
-                        <TextBox Grid.Column="1" Text="{Binding ApiWriteToken}" Margin="0,0,10,0"/>
-                    </Grid>
-                </Grid>
-
-                <Rectangle Grid.Row="3" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1"/>
-                
             </Grid>
 
             <!-- Muster DKP API -->

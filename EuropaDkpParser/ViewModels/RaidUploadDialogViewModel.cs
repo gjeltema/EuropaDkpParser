@@ -142,11 +142,6 @@ internal sealed class RaidUploadDialogViewModel : DialogViewModelBase, IRaidUplo
 
             RaidUploader raidUploader = new(_settings);
 
-            if (_settings.UploadToEqDkp)
-            {
-                EqDkpRaidUploadResults uploadResults = await raidUploader.UploadEqDkpRaidAsync(raidsToUpload);
-            }
-
             MusterDkpRaidUploadResults musterResults = await raidUploader.UploadMusterRaidAsync(raidsToUpload);
             Log.Trace($"{LogPrefix} Muster upload results: {musterResults}");
 

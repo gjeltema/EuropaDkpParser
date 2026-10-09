@@ -12,9 +12,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
 {
     private const string ApiMusterTokenSection = "API_MUSTER_TOKEN";
     private const string ApiMusterUrlSection = "API_MUSTER_URL";
-    private const string ApiReadTokenSection = "API_READ_TOKEN";
-    private const string ApiUrlSection = "API_URL";
-    private const string ApiWriteTokenSection = "API_WRITE_TOKEN";
     private const string ArchiveAllOrSelectedEqLogFileSection = "ARCHIVE_ALL_EQ_LOG_FILES";
     private const string ArchiveEqLogFileAgeSection = "ARCHIVE_EQ_LOG_FILE_AGE";
     private const string ArchiveEqLogFileDirectorySection = "ARCHIVE_EQ_LOG_FILE_DIRECTORY";
@@ -29,8 +26,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string DefaultMatchPattern = "*eqlog*.txt";
     private const string DefaultOverlayBackgroundColor = "#CC3366";
     private const string DefaultOverlayFontColor = "#000000";
-    private const string DefaultReadToken = "ro65dcb6bc6c58800b58f9e22e8ee03c58efbc009a220a71";
-    private const string DefaultURL = "https://dkp.europaguild.eu/api.php?";
+    private const string DefaultReadToken = "mst_hZGuV1-RVIiA7neJfQ7vQyuMr4iV_uNV_a5VmMx69MA";
+    private const string DefaultServerUrl = "https://dkp.europaguild.app/api/";
     private const int DefaultWindowLocation = 200;
     private const char Delimiter = '=';
     private const string DkpspentGuildEnableSection = "DKPSPENT_GU_ENABLE";
@@ -64,35 +61,26 @@ public sealed class DkpParserSettings : IDkpParserSettings
     private const string SpellTrackerWidthSection = "SPELL_TRACKER_WIDTH";
     private const string SpellTrackerXLocSection = "SPELL_TRACKER_X";
     private const string SpellTrackerYLocSection = "SPELL_TRACKER_Y";
-    private const string UploadToEqDkpSection = "UPLOAD_TO_EQ_DKP";
     private const string UseLightModeSection = "USE_LIGHT_MODE";
     private const string WindowLocationSection = "WINDOW_LOCATION";
-    private readonly string _dkpCharactersFileName;
     private readonly string _itemLinkValuesFileName;
     private readonly string _raidValuesFileName;
     private readonly string _settingsFilePath;
     private readonly string _zoneIdMapFileName;
 
-    public DkpParserSettings(string settingsFilePath, string raidValuesFileName, string itemLinkValuesFileName, string dkpCharactersFileName, string zoneIdMapFileName)
+    public DkpParserSettings(string settingsFilePath, string raidValuesFileName, string itemLinkValuesFileName, string zoneIdMapFileName)
     {
         _settingsFilePath = settingsFilePath;
         _raidValuesFileName = raidValuesFileName;
         _itemLinkValuesFileName = itemLinkValuesFileName;
-        _dkpCharactersFileName = dkpCharactersFileName;
         _zoneIdMapFileName = zoneIdMapFileName;
     }
 
     public bool AddBonusDkpRaid { get; set; }
 
-    public string ApiMusterToken { get; set; }
+    public string ApiMusterToken { get; set; } = DefaultReadToken;
 
-    public string ApiMusterUrl { get; set; }
-
-    public string ApiReadToken { get; set; } = DefaultReadToken;
-
-    public string ApiUrl { get; set; } = DefaultURL;
-
-    public string ApiWriteToken { get; set; }
+    public string ApiMusterUrl { get; set; } = DefaultServerUrl;
 
     public bool ArchiveAllEqLogFiles { get; set; }
 
@@ -127,7 +115,7 @@ public sealed class DkpParserSettings : IDkpParserSettings
     public ICollection<string> InventoryDirectories { get; private set; } = [];
 
     public bool IsApiConfigured
-        => !string.IsNullOrEmpty(ApiUrl) && !string.IsNullOrEmpty(ApiReadToken) && !string.IsNullOrEmpty(ApiWriteToken);
+        => !string.IsNullOrEmpty(ApiMusterUrl) && !string.IsNullOrEmpty(ApiMusterToken);
 
     public ItemLinkValues ItemLinkIds { get; private set; }
 
@@ -181,8 +169,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
     public int SpellTrackerYLoc { get; set; }
 
-    public bool UploadToEqDkp { get; set; } = true;
-
     public bool UseLightMode { get; set; }
 
     public IDictionary<int, string> ZoneIdMapping { get; private set; }
@@ -229,15 +215,8 @@ public sealed class DkpParserSettings : IDkpParserSettings
         InventoryDirectories = GetAllEntriesInSection(fileContents, InventoryDirectoriesSection);
         SelectedLogFiles = GetAllEntriesInSection(fileContents, SelectedLogFilesSection);
 
-        ApiReadToken = GetStringValue(fileContents, ApiReadTokenSection, DefaultReadToken);
-        ApiWriteToken = GetStringValue(fileContents, ApiWriteTokenSection);
-
-        SetApiUrl(fileContents);
-        if (string.IsNullOrWhiteSpace(ApiUrl))
-            ApiUrl = "";
-
-        ApiMusterUrl = GetStringValue(fileContents, ApiMusterUrlSection);
-        ApiMusterToken = GetStringValue(fileContents, ApiMusterTokenSection);
+        ApiMusterUrl = GetStringValue(fileContents, ApiMusterUrlSection, DefaultServerUrl);
+        ApiMusterToken = GetStringValue(fileContents, ApiMusterTokenSection, DefaultReadToken);
 
         AddBonusDkpRaid = GetBoolValue(fileContents, EnableDkpBonusAttendance);
         ShowAfkReview = GetBoolValue(fileContents, ShowAfkReviewSection);
@@ -273,8 +252,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
 
         MezBreaksToShow = GetIntValue(fileContents, MezBreaksToShowSection, 4);
 
-        UploadToEqDkp = GetBoolValue(fileContents, UploadToEqDkpSection, true);
-
         return fileExists;
     }
 
@@ -305,9 +282,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(ArchiveEqLogFilesSizeSection, EqLogFileSizeToArchiveInMBs),
             CreateFileEntry(ArchiveGeneratedLogFileDirectorySection, GeneratedLogFilesArchiveDirectory),
             CreateFileEntry(ArchiveGeneratedLogFileAgeSection, GeneratedLogFilesAgeToArchiveInDays),
-            CreateFileEntry(ApiReadTokenSection, ApiReadToken),
-            CreateFileEntry(ApiWriteTokenSection, ApiWriteToken),
-            CreateFileEntry(ApiUrlSection, ApiUrl),
             CreateFileEntry(ApiMusterTokenSection, ApiMusterToken),
             CreateFileEntry(ApiMusterUrlSection, ApiMusterUrl),
             CreateFileEntry(EnableDkpBonusAttendance, AddBonusDkpRaid),
@@ -338,7 +312,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
             CreateFileEntry(SpellTrackerWidthSection, SpellTrackerWidth),
             CreateFileEntry(EnableZealDetailLoggingSection, EnableZealDetailLogging),
             CreateFileEntry(LogLevelSection, (int)LoggingLevel),
-            CreateFileEntry(UploadToEqDkpSection, UploadToEqDkp),
         };
 
         AddCollection(settingsFileContent, SelectedLogFiles, SelectedLogFilesSection);
@@ -534,22 +507,6 @@ public sealed class DkpParserSettings : IDkpParserSettings
         return characterName.Equals(logFileCharName, StringComparison.OrdinalIgnoreCase);
     }
 
-    private void SetApiUrl(string[] fileContents)
-    {
-        string rawApiUrl = GetStringValue(fileContents, ApiUrlSection);
-        if (string.IsNullOrEmpty(rawApiUrl))
-        {
-            ApiUrl = DefaultURL;
-            return;
-        }
-
-        // People keep forgetting to add the ? at the end of the URL, so just adding it
-        if (rawApiUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && !rawApiUrl.EndsWith('?'))
-            rawApiUrl += '?';
-
-        ApiUrl = rawApiUrl;
-    }
-
     private void SetDirectories(string[] fileContents)
     {
         EqDirectory = GetStringValue(fileContents, EqDirectorySection);
@@ -625,12 +582,6 @@ public interface IDkpParserSettings
     string ApiMusterToken { get; set; }
 
     string ApiMusterUrl { get; set; }
-
-    string ApiReadToken { get; set; }
-
-    string ApiUrl { get; set; }
-
-    string ApiWriteToken { get; set; }
 
     bool ArchiveAllEqLogFiles { get; set; }
 
@@ -717,8 +668,6 @@ public interface IDkpParserSettings
     int SpellTrackerXLoc { get; set; }
 
     int SpellTrackerYLoc { get; set; }
-
-    bool UploadToEqDkp { get; set; }
 
     bool UseLightMode { get; set; }
 

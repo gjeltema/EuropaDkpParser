@@ -128,7 +128,7 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
     private void OpenSettingsDialog()
     {
         ILogSelectionViewModel settingsDialog = _dialogFactory.CreateSettingsViewDialogViewModel(_settings);
-        settingsDialog.Height = 720;
+        settingsDialog.Height = 620;
         if (settingsDialog.ShowDialog() != true)
             return;
 

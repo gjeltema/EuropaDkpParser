@@ -11,51 +11,50 @@ using Gjeltema.Logging;
 public sealed class RaidUploader : IRaidUpload
 {
     private const string LogPrefix = $"[{nameof(RaidUploader)}]";
-    private readonly IDkpServer _dkpServer;
     private readonly IMusterDkpServer _musterDkpServer;
 
     public RaidUploader(IDkpParserSettings settings)
     {
-        _dkpServer = new DkpServer(settings);
         _musterDkpServer = new MusterDkpServer(settings);
     }
 
     public async Task<EqDkpRaidUploadResults> UploadEqDkpRaidAsync(UploadRaidInfo uploadRaidInfo)
     {
-        Log.Debug($"{LogPrefix} =========== Beginning Upload Process ===========");
+        //Log.Debug($"{LogPrefix} =========== Beginning Upload Process ===========");
 
-        EqDkpRaidUploadResults results = new();
+        //EqDkpRaidUploadResults results = new();
 
-        if (uploadRaidInfo.AttendanceInfo.Count == 0)
-        {
-            results.NoRaidAttendancesFoundError = true;
-            return results;
-        }
+        //if (uploadRaidInfo.AttendanceInfo.Count == 0)
+        //{
+        //    results.NoRaidAttendancesFoundError = true;
+        //    return results;
+        //}
 
-        IEnumerable<string> zoneNames = uploadRaidInfo.AttendanceInfo.Select(x => x.ZoneName).Distinct();
+        //IEnumerable<string> zoneNames = uploadRaidInfo.AttendanceInfo.Select(x => x.ZoneName).Distinct();
 
-        await _dkpServer.InitializeIdentifiersAsync(uploadRaidInfo.CharacterNames, zoneNames, results);
+        //await _dkpServer.InitializeIdentifiersAsync(uploadRaidInfo.CharacterNames, zoneNames, results);
 
-        if (results.HasInitializationError)
-        {
-            Log.Debug($"{LogPrefix} =========== Errors encountered retriving IDs, ending upload process ===========");
-            return results;
-        }
+        //if (results.HasInitializationError)
+        //{
+        //    Log.Debug($"{LogPrefix} =========== Errors encountered retriving IDs, ending upload process ===========");
+        //    return results;
+        //}
 
-        Log.Debug($"{LogPrefix} ===== Beginning Attendances Uploads =====");
+        //Log.Debug($"{LogPrefix} ===== Beginning Attendances Uploads =====");
 
-        await UploadAttendancesAsync(uploadRaidInfo.AttendanceInfo, results);
-        if (results.AttendanceError != null)
-        {
-            Log.Debug($"{LogPrefix} =========== Errors encountered uploading attendances, ending upload process ===========");
-            return results;
-        }
+        //await UploadAttendancesAsync(uploadRaidInfo.AttendanceInfo, results);
+        //if (results.AttendanceError != null)
+        //{
+        //    Log.Debug($"{LogPrefix} =========== Errors encountered uploading attendances, ending upload process ===========");
+        //    return results;
+        //}
 
-        await UploadDkpSpendingsAsync(uploadRaidInfo.DkpInfo, results);
+        //await UploadDkpSpendingsAsync(uploadRaidInfo.DkpInfo, results);
 
-        Log.Debug($"{LogPrefix} =========== Completed Upload Process =========== ");
+        //Log.Debug($"{LogPrefix} =========== Completed Upload Process =========== ");
 
-        return results;
+        //return results;
+        return null;
     }
 
     public async Task<MusterDkpRaidUploadResults> UploadMusterRaidAsync(UploadRaidInfo uploadRaidInfo)
@@ -118,62 +117,62 @@ public sealed class RaidUploader : IRaidUpload
 
     private async Task UploadAttendancesAsync(IEnumerable<AttendanceUploadInfo> attendanceEntries, EqDkpRaidUploadResults results)
     {
-        foreach (AttendanceUploadInfo attendance in attendanceEntries)
-        {
-            if (attendance.Characters.Count > 1)
-            {
-                Log.Debug($"{LogPrefix} ----- Beginning upload process of {attendance}.");
+        //foreach (AttendanceUploadInfo attendance in attendanceEntries)
+        //{
+        //    if (attendance.Characters.Count > 1)
+        //    {
+        //        Log.Debug($"{LogPrefix} ----- Beginning upload process of {attendance}.");
 
-                try
-                {
-                    await _dkpServer.UploadAttendanceAsync(attendance);
-                }
-                catch (Exception ex)
-                {
-                    AttendanceUploadFailure error = new()
-                    {
-                        Attendance = attendance,
-                        Error = ex
-                    };
-                    results.AttendanceError = error;
+        //        try
+        //        {
+        //            await _dkpServer.UploadAttendanceAsync(attendance);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            AttendanceUploadFailure error = new()
+        //            {
+        //                Attendance = attendance,
+        //                Error = ex
+        //            };
+        //            results.AttendanceError = error;
 
-                    Log.Error($"{LogPrefix} Error encountered when uploading {attendance}: {ex.ToLogMessage()}");
+        //            Log.Error($"{LogPrefix} Error encountered when uploading {attendance}: {ex.ToLogMessage()}");
 
-                    return;
-                }
-            }
-            else
-            {
-                Log.Debug($"{LogPrefix} Attendance {attendance} has no players in attendance.  Not uploading.");
-            }
-        }
+        //            return;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Log.Debug($"{LogPrefix} Attendance {attendance} has no players in attendance.  Not uploading.");
+        //    }
+        //}
 
-        Log.Debug($"{LogPrefix} ----- Completed uploading raid attendances.");
+        //Log.Debug($"{LogPrefix} ----- Completed uploading raid attendances.");
     }
 
     private async Task UploadDkpSpendingsAsync(IEnumerable<DkpUploadInfo> dkpEntries, EqDkpRaidUploadResults results)
     {
-        foreach (DkpUploadInfo dkpEntry in dkpEntries)
-        {
-            try
-            {
-                Log.Debug($"{LogPrefix} ----- Beginning upload process of: {dkpEntry}.");
-                await _dkpServer.UploadDkpSpentAsync(dkpEntry);
-            }
-            catch (Exception ex)
-            {
-                DkpUploadFailure error = new()
-                {
-                    Dkp = dkpEntry,
-                    Error = ex
-                };
-                results.DkpFailures.Add(error);
+        //    foreach (DkpUploadInfo dkpEntry in dkpEntries)
+        //    {
+        //        try
+        //        {
+        //            Log.Debug($"{LogPrefix} ----- Beginning upload process of: {dkpEntry}.");
+        //            await _dkpServer.UploadDkpSpentAsync(dkpEntry);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            DkpUploadFailure error = new()
+        //            {
+        //                Dkp = dkpEntry,
+        //                Error = ex
+        //            };
+        //            results.DkpFailures.Add(error);
 
-                Log.Error($"{LogPrefix} Error encountered when uploading {dkpEntry}: {ex.ToLogMessage()}");
-            }
-        }
+        //            Log.Error($"{LogPrefix} Error encountered when uploading {dkpEntry}: {ex.ToLogMessage()}");
+        //        }
+        //    }
 
-        Log.Debug($"{LogPrefix} ----- Completed uploading DKSPENT calls.");
+        //    Log.Debug($"{LogPrefix} ----- Completed uploading DKSPENT calls.");
     }
 }
 

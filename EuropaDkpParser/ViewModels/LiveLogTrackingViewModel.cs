@@ -69,8 +69,7 @@ internal sealed class LiveLogTrackingViewModel : WindowViewModelBase, ILiveLogTr
         CycleToNextStatusMarkerCommand = new DelegateCommand(CycleToNextStatusMarker);
         AddItemLinkIdCommand = new DelegateCommand(AddItemLinkId, () => SelectedActiveAuction != null && !string.IsNullOrWhiteSpace(ItemLinkIdToAdd))
             .ObservesProperty(() => SelectedActiveAuction).ObservesProperty(() => ItemLinkIdToAdd);
-        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null && !string.IsNullOrWhiteSpace(_settings.ApiReadToken))
-            .ObservesProperty(() => SelectedBid);
+        GetUserDkpCommand = new DelegateCommand(GetUserDkp, () => SelectedBid != null).ObservesProperty(() => SelectedBid);
         ChangeBidCharacterNameCommand = new DelegateCommand(ChangeBidCharacterName, () => SelectedBid != null && !string.IsNullOrWhiteSpace(SelectedBidCharacterName))
             .ObservesProperty(() => SelectedBid).ObservesProperty(() => SelectedBidCharacterName);
         SpawnAttendanceCall = new DelegateCommand(SpawnAttendanceCallNow, () => RemindAttendances).ObservesProperty(() => RemindAttendances);

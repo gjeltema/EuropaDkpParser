@@ -6,23 +6,23 @@ namespace DkpParser.Uploading;
 
 public interface IDkpServer
 {
-    Task<ICollection<CharacterServerInfo>> GetAllCharacterAttendancesAsync();
+    //Task<ICollection<CharacterServerInfo>> GetAllCharacterAttendancesAsync();
 
-    Task<int> GetCharacterIdAsync(string characterName);
+    //Task<int> GetCharacterIdAsync(string characterName);
 
-    Task<ICollection<PreviousRaid>> GetPriorRaidsAsync(int numbeOfRaids);
+    //Task<ICollection<PreviousRaid>> GetPriorRaidsAsync(int numbeOfRaids);
 
-    Task<ICollection<DkpUserCharacter>> GetUserCharactersAsync(int userId);
+    //Task<ICollection<DkpUserCharacter>> GetUserCharactersAsync(int userId);
 
-    Task<CharacterDkpAmounts> GetUserDkpAsync(int userId);
+    //Task<CharacterDkpAmounts> GetUserDkpAsync(int userId);
 
-    Task<CharacterDkpAmounts> GetUserDkpAsync(string characterName);
+    //Task<CharacterDkpAmounts> GetUserDkpAsync(string characterName);
 
-    Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, EqDkpRaidUploadResults results);
+    //Task InitializeIdentifiersAsync(IEnumerable<string> playerNames, IEnumerable<string> zoneNames, EqDkpRaidUploadResults results);
 
-    Task UploadAdjustmentAsync(AdjustmentUploadInfo adjustment);
+    //Task UploadAdjustmentAsync(AdjustmentUploadInfo adjustment);
 
-    Task UploadAttendanceAsync(AttendanceUploadInfo attendanceEntry);
+    //Task UploadAttendanceAsync(AttendanceUploadInfo attendanceEntry);
 
-    Task UploadDkpSpentAsync(DkpUploadInfo dkpEntry);
+    //Task UploadDkpSpentAsync(DkpUploadInfo dkpEntry);
 }
