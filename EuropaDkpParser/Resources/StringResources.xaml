@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <system:String x:Key="Version">v3.7b1</system:String>
+    <system:String x:Key="Version">v3.7b2</system:String>
 
     <system:String x:Key="MainWindowTitleText">Europa DKP Parser</system:String>
     <system:String x:Key="SettingsDialogTitleText">DKP Log Parser Settings</system:String>
@@ -200,6 +200,7 @@
     <!-- CompletedDialog -->
     <system:String x:Key="OpenDir">Open Dir</system:String>
     <system:String x:Key="ClipboardText">Copy to Clipboard</system:String>
+    <system:String x:Key="CopyMezBreaks">Copy Mez Breaks</system:String>
     
     <!-- FileArchiveDialog -->
     <system:String x:Key="GeneratedLogAgeError">Days is not valid</system:String>

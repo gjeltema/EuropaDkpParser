@@ -24,11 +24,16 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Label Grid.Row="0" Content="{StaticResource DkpSpentCalls}" />
 
             <TextBox Grid.Row="1" Text="{Binding SummaryDisplay}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" IsReadOnly="True"/>
+
+            <Button Grid.Column="2" Content="{StaticResource CopyMezBreaks}" Command="{Binding CopyMezBreaksToClipboardCommand}" 
+                    Visibility="{Binding ShowMezBreaksButton, Converter={StaticResource BoolToVisibilityConverter}}"
+                    HorizontalAlignment="Left" Width="100" Height="30" Margin="0,5,0,0"/>
         </Grid>
         
         <Grid Grid.Row="3" HorizontalAlignment="Right">

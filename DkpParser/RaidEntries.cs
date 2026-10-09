@@ -30,6 +30,8 @@ public sealed class RaidEntries
 
     public bool IsHitSquad { get; set; } = false;
 
+    public ICollection<MezBreak> MezBreaks { get; set; } = new List<MezBreak>();
+
     public ICollection<MultipleCharsOnAttendanceError> MultipleCharsInAttendanceErrors { get; set; } = new List<MultipleCharsOnAttendanceError>();
 
     public ICollection<PlayerLooted> PlayerLootedEntries { get; set; } = [];
@@ -131,6 +133,9 @@ public sealed class RaidEntries
             yield return
                 $"{multipleChars.MultipleCharsInAttendance.FirstCharacter} and {multipleChars.MultipleCharsInAttendance.FirstCharacter} in {multipleChars.Attendance.ToDisplayString()}";
 
+        yield return "-------------------- Mez Breaks -------------------";
+        yield return string.Join(Environment.NewLine, GetMezBreaks());
+
         yield return "";
     }
 
@@ -187,6 +192,12 @@ public sealed class RaidEntries
 
     public DkpAwardOverride GetDkpOverride(DateTime timestamp)
         => DkpAwardOverrides.FirstOrDefault(x => x.IsOverridden(timestamp));
+
+    public IEnumerable<string> GetMezBreaks()
+    {
+        foreach (MezBreak mezBreak in MezBreaks)
+            yield return mezBreak.ToString();
+    }
 
     public bool IsPlayerAfkFlagged(PlayerCharacter character, DateTime timestamp)
         => AfkEntries

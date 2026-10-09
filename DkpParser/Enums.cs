@@ -44,7 +44,8 @@ public enum LogEntryType : byte
     Transfer,
     HitSquad,
     SetAwardedDkp,
-    SetAwardedDkpEnd
+    SetAwardedDkpEnd,
+    MezBreak
 }
 
 public enum PossibleError : byte

@@ -60,6 +60,7 @@ public static class Constants
     public const string LeftRaid = " has left the raid.";
     public const string Lockout = "You have incurred a lockout for ";
     public const string LootedA = " looted a ";
+    public const string MezBreakIdentifier = " is no longer mezzed. (";
     public const int MinimumRaidNameLength = 5;
     public const string NotReady = "NOTREADY";
     public const string NotReadyAlternateDelimiter = $"{AlternateDelimiter}{NotReady}{AlternateDelimiter}";

@@ -188,6 +188,7 @@ internal sealed class DkpLogGenerator
 
         ICompletedDialogViewModel completedDialog = _dialogFactory.CreateCompletedDialogViewModel(sessionSettings.GeneratedFile);
         completedDialog.SummaryDisplay = GetSummaryDisplay(raidEntries);
+        completedDialog.MezBreaksSummary = string.Join(Environment.NewLine, raidEntries.GetMezBreaks());
         completedDialog.ShowDialog();
     }
 

@@ -44,6 +44,8 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
 
         ErrorPostAnalysis();
 
+        AnalyzeMezBreaks(logParseResults);
+
         return _raidEntries;
     }
 
@@ -88,6 +90,16 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
     {
         IDkpEntryAnalyzer dkpEntryAnalyzer = new DkpEntryAnalyzer();
         dkpEntryAnalyzer.AnalyzeLootCalls(logParseResults, _raidEntries);
+    }
+
+    private void AnalyzeMezBreaks(LogParseResults logParseResults)
+    {
+        IEnumerable<MezBreak> mezBreakEntries = from logFile in logParseResults.EqLogFiles
+                                                from logEntry in logFile.LogEntries
+                                                where logEntry.EntryType == LogEntryType.MezBreak
+                                                select GetMezBreak(logEntry);
+
+        _raidEntries.MezBreaks = mezBreakEntries.Where(x => x != null).ToList();
     }
 
     private void CheckDuplicateAttendanceEntries()
@@ -330,6 +342,33 @@ public sealed class LogEntryAnalyzer : ILogEntryAnalyzer
             select logEntry)
             .FirstOrDefault(x => x.EntryType == LogEntryType.HitSquad);
 
+    private MezBreak GetMezBreak(EqLogEntry logEntry)
+    {
+        // [Fri Dec 05 20:02:17 2025] a fetid fiend is no longer mezzed. (Haight - melee)
+        // [Fri Dec 12 20:20:13 2025] Amygdalan knight is no longer mezzed. (Naddin - Upheaval)
+
+        string[] mezBreakInfo = logEntry.LogLine.Split(Constants.MezBreakIdentifier);
+        if (mezBreakInfo.Length != 2)
+            return null;
+
+        string mobName = mezBreakInfo[0];
+        string characterAndReason = mezBreakInfo[1];
+        int indexOfDash = characterAndReason.IndexOf('-');
+        if (indexOfDash < Constants.MezBreakIdentifier.Length)
+            return null;
+
+        string characterName = characterAndReason[0..(indexOfDash - 1)];
+        string reason = characterAndReason[(indexOfDash + 2)..(characterAndReason.Length - 1)];
+
+        return new MezBreak
+        {
+            CharacterName = characterName.Trim(),
+            MobName = mobName.Trim(),
+            Reason = reason.Trim(),
+            TimeOfBreak = logEntry.Timestamp
+        };
+    }
+
     private IEnumerable<string> GetUnvisitedEntries(LogParseResults logParseResults)
         => from logFile in logParseResults.EqLogFiles
            from entry in logFile.LogEntries
@@ -410,6 +449,24 @@ public sealed class PlayerPossibleLinkdead
 
     public override string ToString()
         => DebugDisplay;
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class MezBreak
+{
+    public string CharacterName { get; init; }
+
+    public string MobName { get; init; }
+
+    public string Reason { get; init; }
+
+    public DateTime TimeOfBreak { get; set; }
+
+    private string DebugText
+        => ToString();
+
+    public override string ToString()
+         => $"[{TimeOfBreak:HH:mm:ss}] ({CharacterName} - {Reason}) broke {MobName}";
 }
 
 public interface ILogEntryAnalyzer

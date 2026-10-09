@@ -354,23 +354,6 @@ public sealed class CharacterReadyCheckStatus
          => CharacterName;
 }
 
-[DebuggerDisplay("{DebugText,nq}")]
-public sealed class MezBreak
-{
-    public string CharacterName { get; init; }
-
-    public string MobName { get; init; }
-
-    public string Reason { get; init; }
-
-    public DateTime TimeOfBreak { get; set; }
-
-    private string DebugText
-        => ToString();
-
-    public override string ToString()
-         => $"[{TimeOfBreak:HH:mm:ss}] ({CharacterName} - {Reason}) broke {MobName}";
-}
 
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class RawRollInfo

@@ -64,6 +64,10 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             AddSpentCall(logLine, entryTimeStamp, LogEntryType.PossibleDkpSpent);
         }
+        else if (logLine.EndsWith(")") && logLine.Contains(Constants.MezBreakIdentifier))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.MezBreak);
+        }
     }
 
     private void AddDelimiterEntry(ReadOnlySpan<char> logLine, DateTime entryTimeStamp)
