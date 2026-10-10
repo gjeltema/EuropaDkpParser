@@ -187,6 +187,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
                 ItemName = x.ItemName,
                 DkpSpent = x.BidAmount,
                 Winner = x.CharacterBeingBidFor,
+                Bidder = x.CharacterPlacingBid,
                 IsRoll = auction.IsRoll,
                 ThirtyDayCharacterRa = _characterInfo.GetCharacterInfo(x.CharacterBeingBidFor)?.Character30DayRa ?? 0.0,
                 ThirtyDayPlayerRa = _characterInfo.GetCharacterInfo(x.CharacterBeingBidFor)?.Player30DayRa ?? 0.0,

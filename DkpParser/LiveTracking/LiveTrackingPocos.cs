@@ -219,11 +219,22 @@ public sealed class LiveBidInfo : IEquatable<LiveBidInfo>
         if (IsRoll)
             return $"{Timestamp:HH:mm:ss} {ItemName} {CharacterPlacingBid} rolled {BidAmount}";
         else if (IsAltBiddingOverMain)
-            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} BID OVER MAIN";
+            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} BID OVER MAIN{GetBidderIfNotSameCharBeingBidFor()}";
         else if (CharacterNotOnDkpServer)
-            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} NOT ON SERVER";
+            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} NOT ON SERVER{GetBidderIfNotSameCharBeingBidFor()}";
         else
-            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount} [{ThirtyDayCharacterRa:0}/{ThirtyDayPlayerRa:0} %RA]";
+            return $"{Timestamp:HH:mm:ss} {CharacterBeingBidFor} {BidAmount}{GetBidderIfNotSameCharBeingBidFor()} [{ThirtyDayCharacterRa:0}/{ThirtyDayPlayerRa:0} %RA]";
+    }
+
+    private string GetBidderIfNotSameCharBeingBidFor()
+    {
+        if (string.IsNullOrWhiteSpace(CharacterBeingBidFor) || string.IsNullOrWhiteSpace(CharacterPlacingBid))
+            return "";
+
+        if (CharacterPlacingBid.Equals(CharacterBeingBidFor, StringComparison.OrdinalIgnoreCase))
+            return "";
+
+        return $" ({CharacterPlacingBid})";
     }
 }
 
@@ -308,6 +319,8 @@ public sealed class CompletedAuction
 [DebuggerDisplay("{DebugText,nq}")]
 public sealed class SuggestedSpentCall
 {
+    public string Bidder { get; init; }
+
     public EqChannel Channel { get; init; }
 
     public int DkpSpent { get; init; }
@@ -334,7 +347,18 @@ public sealed class SuggestedSpentCall
     public override string ToString()
         => IsRoll
         ? $"{ItemName} {Winner} rolled {DkpSpent}"
-        : $"{ItemName} {Winner} {DkpSpent} {ThirtyDayCharacterRa:0} ({ThirtyDayPlayerRa:0})%RA";
+        : $"{ItemName} {Winner} {DkpSpent}{GetBidderIfNotSameCharBeingBidFor()} [{ThirtyDayCharacterRa:0}/{ThirtyDayPlayerRa:0} %RA]";
+
+    private string GetBidderIfNotSameCharBeingBidFor()
+    {
+        if (string.IsNullOrWhiteSpace(Winner) || string.IsNullOrWhiteSpace(Bidder))
+            return "";
+
+        if (Bidder.Equals(Winner, StringComparison.OrdinalIgnoreCase))
+            return "";
+
+        return $" ({Bidder})";
+    }
 }
 
 [DebuggerDisplay("{DebugText,nq}")]
