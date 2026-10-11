@@ -34,6 +34,7 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
         AnalyzeLogFilesAttendanceCalls(logParseResults);
         ProcessSetDkpEntries(logParseResults);
+        ProcessSetAltDkpEntries(logParseResults);
         HandleCrashedEntries(logParseResults);
         HandleAfkTags(logParseResults);
         HandleTransfers(logParseResults);
@@ -169,6 +170,40 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
 
         PlayerCharacter character = _raidEntries.AllCharactersInRaid.FirstOrDefault(x => x.CharacterName == characterName);
         return character;
+    }
+
+    private AltDkpAwardSetting ExtractAltAwardSetting(EqLogEntry logEntry)
+    {
+        logEntry.Visited = true;
+
+        // [Fri Nov 01 23:13:39 2024] You tell your raid, '+SETALTDKP+0.5+'
+        string[] parts = logEntry.LogLine.Split(Constants.AlternateDelimiter);
+        if (parts.Length < 3)
+        {
+            Log.Warning($"{LogPrefix} SETALTDKP message when split has too few parts: {logEntry.FullLogLine}");
+            return null;
+        }
+
+        string multiplierValueString = parts[2];
+
+        if (double.TryParse(multiplierValueString, out double multiplierValue))
+        {
+            Log.Warning($"{LogPrefix} Unable to parse extracted SETALTDKP value: '{multiplierValueString}' extracted from line: {logEntry.FullLogLine}");
+            return null;
+        }
+
+        if (multiplierValue < 0 || 1.0 < multiplierValue)
+        {
+            Log.Warning($"{LogPrefix} Parsed SETALTDKP multiplier value '{multiplierValue}' is not a value between 0 and 1: {logEntry.FullLogLine}");
+            return null;
+        }
+
+        return new AltDkpAwardSetting
+        {
+            DkpMultiplier = multiplierValue,
+            Timestamp = logEntry.Timestamp,
+            LogLine = logEntry.FullLogLine,
+        };
     }
 
     private CharacterAttend ExtractAttendingCharacter(EqLogEntry entry)
@@ -688,6 +723,18 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         }
     }
 
+    private void ProcessSetAltDkpEntries(LogParseResults logParseResults)
+    {
+        AltDkpAwardSetting minimumAltDkpSetting = (from logFile in logParseResults.EqLogFiles
+                                                   from logEntry in logFile.LogEntries
+                                                   where logEntry.EntryType == LogEntryType.SetAltDkpAwarded
+                                                   select ExtractAltAwardSetting(logEntry))
+                                                   .Where(x => x != null)
+                                                   .MinBy(x => x.DkpMultiplier);
+
+        _raidEntries.AltDkpAwardMultiplier = minimumAltDkpSetting;
+    }
+
     private void ProcessSetDkpEntries(LogParseResults logParseResults)
     {
         IEnumerable<EqLogEntry> setDkpEntries = from logFile in logParseResults.EqLogFiles
@@ -913,6 +960,19 @@ public sealed class MultipleCharsOnAttendanceError
 
     private string DebugText
         => $"{Attendance.CallName} {MultipleCharsInAttendance.FirstCharacter} {MultipleCharsInAttendance.SecondCharacter}";
+}
+
+[DebuggerDisplay("{DebugText,nq}")]
+public sealed class AltDkpAwardSetting
+{
+    public double DkpMultiplier { get; init; }
+
+    public string LogLine { get; init; }
+
+    public DateTime Timestamp { get; init; }
+
+    private string DebugText
+        => $"";
 }
 
 public interface IAttendanceEntryAnalyzer

@@ -104,6 +104,9 @@ public static class Constants
     public const string SayOther = " says, ";
     public const string SayYou = "You say, ";
     public const string SearchTermFileNamePrefix = "SearchTermOutput-";
+    public const string SetAltDkpAwarded = $"SETALTDKP";
+    public const string SetAltDkpAwardedWithDelimiter = $"{AttendanceDelimiter}{SetAltDkpAwarded}{AttendanceDelimiter}";
+    public const string SetAltDkpAwardedWithDelimiter2 = $"{AlternateDelimiter}{SetAltDkpAwarded}{AlternateDelimiter}";
     public const string SetAwardedDKP = "SETDKP";
     public const string SetAwardedDKPAlternateDelimiter = $"{AlternateDelimiter}{SetAwardedDKP}{AlternateDelimiter}";
     public const string SetAwardedDKPEnd = "ENDSETDKP";

@@ -151,18 +151,18 @@ internal sealed class PrimaryEntryParser : IParseEntry
         ReadOnlySpan<char> noWhitespaceLogline = _tempString.AsSpan(0, numberOfChars);
         string noWhitespaceSanitized = _sanitizer.SanitizeDelimiterString(noWhitespaceLogline.ToString());
 
-        if (noWhitespaceSanitized.Contains(Constants.CrashedWithDelimiter, StringComparison.OrdinalIgnoreCase)
-            || noWhitespaceSanitized.Contains(Constants.CrashedAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        if (noWhitespaceSanitized.ContainsIgnoreCase(Constants.CrashedWithDelimiter)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.CrashedAlternateDelimiter))
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Crashed);
         }
-        else if (noWhitespaceSanitized.Contains(Constants.AfkWithDelimiter, StringComparison.OrdinalIgnoreCase)
-            || noWhitespaceSanitized.Contains(Constants.AfkAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        else if (noWhitespaceSanitized.ContainsIgnoreCase(Constants.AfkWithDelimiter)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.AfkAlternateDelimiter))
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkStart);
         }
-        else if (noWhitespaceSanitized.Contains(Constants.AfkEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
-            || noWhitespaceSanitized.Contains(Constants.AfkEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        else if (noWhitespaceSanitized.ContainsIgnoreCase(Constants.AfkEndWithDelimiter)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.AfkEndAlternateDelimiter))
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.AfkEnd);
         }
@@ -170,22 +170,27 @@ internal sealed class PrimaryEntryParser : IParseEntry
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.Transfer);
         }
-        else if (noWhitespaceSanitized.Contains(Constants.HitSquadWithDelimiter, StringComparison.OrdinalIgnoreCase)
-            || noWhitespaceSanitized.Contains(Constants.HitSquadWithAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        else if (noWhitespaceSanitized.ContainsIgnoreCase(Constants.HitSquadWithDelimiter)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.HitSquadWithAlternateDelimiter))
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.HitSquad);
         }
-        else if (noWhitespaceSanitized.Contains(Constants.SetAwardedDKPWithDelimiter, StringComparison.OrdinalIgnoreCase)
-            || noWhitespaceSanitized.Contains(Constants.SetAwardedDKPAlternateDelimiter, StringComparison.OrdinalIgnoreCase))
+        else if (noWhitespaceSanitized.ContainsIgnoreCase(Constants.SetAwardedDKPWithDelimiter)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.SetAwardedDKPAlternateDelimiter))
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.SetAwardedDkp);
         }
-        else if (noWhitespaceSanitized.Contains(Constants.SetAwardedDKPEndWithDelimiter, StringComparison.OrdinalIgnoreCase)
-            || noWhitespaceSanitized.Contains(Constants.SetAwardedDKPEndAlternateDelimiter, StringComparison.OrdinalIgnoreCase)
-            || noWhitespaceSanitized.Contains(Constants.SetAwardedDKPEndWithDelimiter2, StringComparison.OrdinalIgnoreCase)
-            || noWhitespaceSanitized.Contains(Constants.SetAwardedDKPEndAlternateDelimiter2, StringComparison.OrdinalIgnoreCase))
+        else if (noWhitespaceSanitized.ContainsIgnoreCase(Constants.SetAwardedDKPEndWithDelimiter)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.SetAwardedDKPEndAlternateDelimiter)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.SetAwardedDKPEndWithDelimiter2)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.SetAwardedDKPEndAlternateDelimiter2))
         {
             CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.SetAwardedDkpEnd);
+        }
+        else if (noWhitespaceSanitized.ContainsIgnoreCase(Constants.SetAltDkpAwardedWithDelimiter)
+            || noWhitespaceSanitized.ContainsIgnoreCase(Constants.SetAltDkpAwardedWithDelimiter2))
+        {
+            CreateAndAddLogEntry(logLine, entryTimeStamp, LogEntryType.SetAltDkpAwarded);
         }
     }
 }

@@ -16,6 +16,8 @@ public sealed class RaidEntries
 
     public ICollection<PlayerCharacter> AllCharactersInRaid { get; set; } = new HashSet<PlayerCharacter>();
 
+    public AltDkpAwardSetting AltDkpAwardMultiplier { get; set; }
+
     public ICollection<AttendanceEntry> AttendanceEntries { get; set; } = new List<AttendanceEntry>();
 
     public ICollection<CharacterJoinRaidEntry> CharacterJoinCalls { get; set; } = new List<CharacterJoinRaidEntry>();
