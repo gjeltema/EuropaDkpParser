@@ -10,61 +10,19 @@ using Gjeltema.Logging;
 public sealed class CharacterInfoProvider : ICharacterInfo
 {
     private const string LogPrefix = $"[{nameof(CharacterInfoProvider)}]";
-    public static readonly CharacterInfoProvider Instance = new();
-    private static int _attemptedInitialization = -1;
-    private static Dictionary<string, CharacterServerInfo> _raidAttendances = [];
+    public static readonly ICharacterInfo Instance = new CharacterInfoProvider();
+    private Dictionary<string, CharacterServerInfo> _characterInfo = [];
+    private IMusterDkpServer _dkpServer;
 
     private CharacterInfoProvider() { }
 
-    public static async Task<bool> InitializeAsync(IMusterDkpServer dkpServer)
-    {
-        if (Interlocked.Increment(ref _attemptedInitialization) > 0)
-        {
-            Interlocked.Decrement(ref _attemptedInitialization);
-            return true;
-        }
-
-        try
-        {
-            Log.Debug($"{LogPrefix} Initializing character info.");
-            ICollection<CharacterServerInfo> baseCharInfoFromServer = await dkpServer.GetAllCharactersBaseInfoAsync();
-            if (baseCharInfoFromServer.Count == 0)
-            {
-                Log.Error($"{LogPrefix} Failed to initialize base character info.");
-                Interlocked.Decrement(ref _attemptedInitialization);
-                return false;
-            }
-
-            _raidAttendances = baseCharInfoFromServer.ToDictionary(x => x.CharacterName);
-
-            ICollection<CharacterServerInfo> attendancesFromServer = await dkpServer.GetAllActiveCharacterAttendancesAsync();
-            if (attendancesFromServer.Count == 0)
-            {
-                Log.Error($"{LogPrefix} Failed to initialize the raid attendances.");
-                Interlocked.Decrement(ref _attemptedInitialization);
-                return false;
-            }
-
-            foreach (CharacterServerInfo attendance in attendancesFromServer)
-            {
-                _raidAttendances[attendance.CharacterName] = attendance;
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"{LogPrefix} Failed to initialize the raid attendances: {ex.ToLogMessage()}");
-            Interlocked.Decrement(ref _attemptedInitialization);
-            return false;
-        }
-
-        return true;
-    }
+    public Task<bool> InitializeCharacterInfoAsync { get; private set; }
 
     public bool CharacterExistsOnDkpServer(string characterName)
-        => _raidAttendances.Values.Any(x => x.CharacterName.Equals(characterName, StringComparison.OrdinalIgnoreCase));
+        => _characterInfo.Values.Any(x => x.CharacterName.Equals(characterName, StringComparison.OrdinalIgnoreCase));
 
     public IEnumerable<CharacterServerInfo> GetAllCharactersInfo()
-        => _raidAttendances.Values;
+        => _characterInfo.Values;
 
     public ICollection<CharacterServerInfo> GetAllRelatedCharactersForUser(string characterName)
     {
@@ -72,17 +30,23 @@ public sealed class CharacterInfoProvider : ICharacterInfo
         if (charInfo == null)
             return [];
 
-        return _raidAttendances.Values.Where(x => x.UserId == charInfo.UserId).ToList();
+        return _characterInfo.Values.Where(x => x.UserId == charInfo.UserId).ToList();
     }
 
     public ICollection<CharacterServerInfo> GetAllRelatedCharactersForUser(CharacterServerInfo characterInfo)
-        => _raidAttendances.Values.Where(x => x.UserId == characterInfo.UserId).ToList();
+        => _characterInfo.Values.Where(x => x.UserId == characterInfo.UserId).ToList();
 
     public CharacterServerInfo GetCharacterInfo(string characterName)
     {
-        if (_raidAttendances.TryGetValue(characterName?.NormalizeName(), out CharacterServerInfo ra))
+        if (_characterInfo.TryGetValue(characterName?.NormalizeName(), out CharacterServerInfo ra))
             return ra;
         return null;
+    }
+
+    public void InitializeServer(IMusterDkpServer dkpServer)
+    {
+        _dkpServer = dkpServer;
+        InitializeCharacterInfoAsync = RefreshCharacterInfoAsync();
     }
 
     public bool IsRelatedCharacterInCollection(PlayerCharacter character, IEnumerable<PlayerCharacter> characters)
@@ -103,10 +67,63 @@ public sealed class CharacterInfoProvider : ICharacterInfo
 
         return false;
     }
+
+    public async Task<bool> RefreshCharacterInfoAsync()
+    {
+        Dictionary<string, CharacterServerInfo> characterInfo = [];
+        bool success = false;
+        int attempt = 0;
+        while (!success && attempt < 3)
+        {
+            attempt++;
+
+            try
+            {
+                Log.Debug($"{LogPrefix} Initializing character info.");
+                ICollection<CharacterServerInfo> baseCharInfoFromServer = await _dkpServer.GetAllCharactersBaseInfoAsync();
+                if (baseCharInfoFromServer.Count == 0)
+                {
+                    Log.Error($"{LogPrefix} Failed to get the base character info.  Attempt #{attempt}.");
+                    continue;
+                }
+
+                characterInfo = baseCharInfoFromServer.ToDictionary(x => x.CharacterName);
+
+                ICollection<CharacterServerInfo> attendancesFromServer = await _dkpServer.GetAllActiveCharacterAttendancesAsync();
+                if (attendancesFromServer.Count == 0)
+                {
+                    Log.Error($"{LogPrefix} Failed to get the character info with RA.  Attempt #{attempt}.");
+                    continue;
+                }
+
+                foreach (CharacterServerInfo attendance in attendancesFromServer)
+                {
+                    characterInfo[attendance.CharacterName] = attendance;
+                }
+
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"{LogPrefix}  Attempt #{attempt}. Failed to initialize the character info: {ex.ToLogMessage()}");
+            }
+        }
+
+        _characterInfo = characterInfo;
+        Log.Debug($"{LogPrefix} Character info initialized.");
+        return success;
+    }
 }
 
 public interface ICharacterInfo
 {
+    /// <summary>
+    /// Triggers an initialization of the locally stored character info, if it has not already done so.<br/>
+    /// Blocks until the initialization is complete (returns true), or fails (returns false).<br/>
+    /// Only initializes once, no matter how many times this is called.
+    /// </summary>
+    Task<bool> InitializeCharacterInfoAsync { get; }
+
     bool CharacterExistsOnDkpServer(string characterName);
 
     IEnumerable<CharacterServerInfo> GetAllCharactersInfo();
@@ -116,4 +133,11 @@ public interface ICharacterInfo
     ICollection<CharacterServerInfo> GetAllRelatedCharactersForUser(CharacterServerInfo characterInfo);
 
     CharacterServerInfo GetCharacterInfo(string characterName);
+
+    bool IsRelatedCharacterInCollection(PlayerCharacter character, IEnumerable<PlayerCharacter> characters);
+
+    /// <summary>
+    /// Refreshes the locally stored character info from the DKP server.
+    /// </summary>
+    Task<bool> RefreshCharacterInfoAsync();
 }

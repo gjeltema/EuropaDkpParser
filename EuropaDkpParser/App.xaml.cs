@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Threading;
 using DkpParser;
 using DkpParser.LiveTracking;
+using DkpParser.Uploading;
 using EuropaDkpParser.Resources;
 using EuropaDkpParser.Utility;
 using EuropaDkpParser.ViewModels;
@@ -61,6 +62,13 @@ public partial class App : Application
         }
 
         EqLogTailFile.Instance.Initialize(_settings, new MessageProviderFactory());
+
+        MusterDkpServer dkpServer = new(_settings);
+        CharacterInfoProvider charInfo = CharacterInfoProvider.Instance as CharacterInfoProvider;
+        if (charInfo == null)
+            Log.Error($"{nameof(CharacterInfoProvider)} Instance not initialized correctly.");
+        else
+            charInfo.InitializeServer(dkpServer);
 
         OverlayFactory overlayFactory = new(new OverlayViewFactory());
         WindowFactory windowFactory = new(new WindowViewFactory());

@@ -9,7 +9,6 @@ using System.IO;
 using System.Windows;
 using DkpParser;
 using DkpParser.LiveTracking;
-using DkpParser.Uploading;
 using EuropaDkpParser.Utility;
 using Prism.Commands;
 
@@ -71,25 +70,12 @@ internal sealed class SimpleStartDisplayViewModel : EuropaViewModelBase, ISimple
 
     private async Task InitializeRaidAttendanceProvider()
     {
-        if (_raProviderInitialized)
-            return;
-
-        MusterDkpServer dkpServer = new(_settings);
-        bool success = false;
-        int attempt = 0;
-        while (!success && attempt < 3)
-        {
-            success = await CharacterInfoProvider.InitializeAsync(dkpServer);
-            attempt++;
-        }
-
+        bool success = await CharacterInfoProvider.Instance.InitializeCharacterInfoAsync;
         if (!success)
         {
             MessageDialog.ShowDialog("Error initializing RA from DKP server. Check log file.", "Error Initializing RA");
             return;
         }
-
-        _raProviderInitialized = true;
     }
 
     private void OpenArchiveFilesDialog()
