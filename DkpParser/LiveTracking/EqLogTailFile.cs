@@ -27,6 +27,7 @@ public sealed class EqLogTailFile : IEqLogTailFile
     private const string LogPrefix = $"[{nameof(EqLogTailFile)}]";
     private const string MezBreakIdentifier = " is no longer mezzed. (";
     public static readonly EqLogTailFile Instance = new();
+    private static readonly TimeSpan LogMessageRepeat = TimeSpan.FromMinutes(2);
     private readonly DelimiterStringSanitizer _sanitizer = new();
     private ActiveBiddingAnalyzer _activeBiddingAnalyzer;
     private ActiveBossKillAnalyzer _activeBossKillAnalyzer;
@@ -34,6 +35,7 @@ public sealed class EqLogTailFile : IEqLogTailFile
     private ImmutableList<string> _auctionItems;
     private ActiveAuctionStartAnalyzer _auctionStartAnalyzer;
     private ChannelAnalyzer _channelAnalyzer;
+    private DateTime _lastZealNotConnectedMessage = DateTime.MinValue;
     private string _logFilePath;
     private IMessageProviderFactory _messageProviderFactory;
     private IDkpParserSettings _settings;
@@ -115,7 +117,7 @@ public sealed class EqLogTailFile : IEqLogTailFile
         bool isZealConnected = ZealAttendanceMessageProvider.Instance.IsConnected && !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
         if (!isZealConnected)
         {
-            Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file and zeal is not connected.");
+            LogZealNotConnected();
             InformListenersOfFileChange(string.Empty, currentCharacterName, false);
             return;
         }
@@ -325,6 +327,16 @@ public sealed class EqLogTailFile : IEqLogTailFile
         catch (Exception ex)
         {
             Log.Warning($"{LogPrefix} Listener encountered an error when being informed of updated file {filePath} with character {characterName}: {ex.ToLogMessage()}");
+        }
+    }
+
+    private void LogZealNotConnected()
+    {
+        DateTime now = DateTime.Now;
+        if (_lastZealNotConnectedMessage.Add(LogMessageRepeat) < now)
+        {
+            Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file and zeal is not connected.");
+            _lastZealNotConnectedMessage = now;
         }
     }
 

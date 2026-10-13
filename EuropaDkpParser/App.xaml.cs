@@ -126,6 +126,8 @@ public partial class App : Application
 
         simpleAsyncLogTarget.LoggingLevel = _settings.LoggingLevel;
 
+        Log.Logger[Constants.ZealDetailLog] = new EmptyLogTarget();
+
         if (_settings.EnableZealDetailLogging)
         {
             string zealLogFileName = $"{DateTime.Now:MMdd}_ZealDetailLog.txt";
@@ -134,10 +136,6 @@ public partial class App : Application
             zealAsyncLogTarget.LoggingLevel = LogLevel.Trace;
 
             Log.Logger[Constants.ZealDetailLog] = zealAsyncLogTarget;
-        }
-        else
-        {
-            Log.Logger = new SingleLogger();
         }
 
         Log.Logger.Default = simpleAsyncLogTarget;

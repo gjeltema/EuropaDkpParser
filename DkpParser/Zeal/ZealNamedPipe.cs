@@ -14,7 +14,10 @@ internal sealed class ZealNamedPipe
 {
     private const string LogPrefix = $"[{nameof(ZealNamedPipe)}]";
     public static readonly ZealNamedPipe Instance = new();
+    private static readonly TimeSpan LogMessageRepeat = TimeSpan.FromMinutes(2);
     private CancellationTokenSource _cancelTokenSource;
+    private DateTime _lastStartListeningLog = DateTime.MinValue;
+    private DateTime _lastStopListeningLog = DateTime.MinValue;
     private Thread _messageListenerThread;
 
     private ZealNamedPipe() { }
@@ -27,7 +30,7 @@ internal sealed class ZealNamedPipe
 
     public void StartListening(IZealMessageUpdater messageUpdater)
     {
-        Log.Debug($"{LogPrefix}{ThreadIdText} In {nameof(StartListening)}.");
+        LogStartListening();
 
         if (_cancelTokenSource != null)
         {
@@ -37,7 +40,8 @@ internal sealed class ZealNamedPipe
         _cancelTokenSource = new();
 
         Process[] eqProcesses = Process.GetProcessesByName(Constants.EqProcessName);
-        Log.Debug($"{LogPrefix} EQ Processes found: {string.Join(',', eqProcesses.Select(x => $"{x.ProcessName}-{x.Id}"))}");
+        if (eqProcesses.Length > 0)
+            Log.Debug($"{LogPrefix} EQ Processes found: {string.Join(',', eqProcesses.Select(x => $"{x.ProcessName}-{x.Id}"))}");
 
         Process eqProcess = eqProcesses.FirstOrDefault();
         if (eqProcess != null)
@@ -54,11 +58,31 @@ internal sealed class ZealNamedPipe
 
     public void StopListening()
     {
-        Log.Info($"{LogPrefix}{ThreadIdText} {nameof(StopListening)} called.");
+        LogStopListening();
 
         _cancelTokenSource?.Cancel();
         _cancelTokenSource?.Dispose();
         _cancelTokenSource = null;
+    }
+
+    private void LogStartListening()
+    {
+        DateTime now = DateTime.Now;
+        if (_lastStartListeningLog.Add(LogMessageRepeat) < now)
+        {
+            Log.Debug($"{LogPrefix}{ThreadIdText} In {nameof(StartListening)}.");
+            _lastStartListeningLog = now;
+        }
+    }
+
+    private void LogStopListening()
+    {
+        DateTime now = DateTime.Now;
+        if (_lastStopListeningLog.Add(LogMessageRepeat) < now)
+        {
+            Log.Info($"{LogPrefix}{ThreadIdText} {nameof(StopListening)} called.");
+            _lastStopListeningLog = now;
+        }
     }
 
     private void ProcessZealPipeMessages(string pipeName, IZealMessageUpdater messageUpdater, CancellationToken cancelToken)

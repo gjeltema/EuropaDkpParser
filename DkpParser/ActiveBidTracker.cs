@@ -356,7 +356,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         }
         else
         {
-            Log.Warning($"{LogPrefix} Zone mapping not found for Zone ID {zoneId} in attendance call, ending processing of AttendanceCall: {raidName} {callType}.");
+            Log.Warning($"{LogPrefix} Zone mapping not found for Zone ID {zoneId} in attendance call: {raidName} {callType}.");
             zoneName = "Plane of Tranquility";
         }
 

@@ -15,28 +15,19 @@ using Gjeltema.Logging;
 public sealed class MusterDkpServer : IMusterDkpServer
 {
     private const string LogPrefix = $"[{nameof(MusterDkpServer)}]";
-    private static readonly HttpClient LocalHttpClient = new();
+    private static readonly MediaTypeHeaderValue DefaultMediaHeader = new("application/json");
     private static readonly JsonSerializerOptions PrettyPrintJsonOption = new() { WriteIndented = true };
-    private readonly MediaTypeHeaderValue _mediaHeader = new("application/json");
+    private readonly HttpClient _localHttpClient = new();
     private readonly IDkpParserSettings _settings;
-    private static bool _authorizationSet = false;
 
     public MusterDkpServer(IDkpParserSettings settings)
     {
         _settings = settings;
 
-        if (!_authorizationSet)
-        {
-            LocalHttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiMusterToken}");
-            _authorizationSet = true;
-        }
+        _localHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        _localHttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiMusterToken}");
 
-        Log.Debug($"{LogPrefix} HttpClient initialized with default User Agent: {LocalHttpClient.DefaultRequestHeaders.UserAgent}");
-    }
-
-    static MusterDkpServer()
-    {
-        LocalHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        Log.Debug($"{LogPrefix} HttpClient initialized with default User Agent: {_localHttpClient.DefaultRequestHeaders.UserAgent}");
     }
 
     public async Task<ICollection<CharacterServerInfo>> GetAllActiveCharacterAttendancesAsync()
@@ -313,9 +304,9 @@ public sealed class MusterDkpServer : IMusterDkpServer
 
         Log.Debug($"{LogPrefix} ---- Making GET call with URL: {uri}");
 
-        using HttpResponseMessage response = await LocalHttpClient.GetAsync(uri);
+        using HttpResponseMessage response = await _localHttpClient.GetAsync(uri);
 
-        Log.Debug($"{LogPrefix} GET response received.  Response object: {response}");
+        Log.Debug($"{LogPrefix} GET response received, status code: {(int)response.StatusCode}: {response.StatusCode}.");
 
         string responseText = await response.Content.ReadAsStringAsync();
 
@@ -366,13 +357,13 @@ public sealed class MusterDkpServer : IMusterDkpServer
     private async Task<ServerResponse> UploadMessageAsync(string function, string postBody)
     {
         using HttpContent postContent = GetPostContent(postBody);
-        postContent.Headers.ContentType = _mediaHeader;
+        postContent.Headers.ContentType = DefaultMediaHeader;
 
         string uri = $"{_settings.ApiMusterUrl}{function}";
 
         Log.Debug($"{LogPrefix} Uploading with URL: {uri}");
 
-        using HttpResponseMessage response = await LocalHttpClient.PostAsync(uri, postContent);
+        using HttpResponseMessage response = await _localHttpClient.PostAsync(uri, postContent);
 
         Log.Debug($"{LogPrefix} Received response.  Response object:{Environment.NewLine}{response}");
 

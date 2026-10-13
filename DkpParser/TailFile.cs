@@ -18,6 +18,7 @@ internal sealed class TailFile : IMessageProvider
     private CancellationTokenSource _cancellationTokenSource;
     private Thread _fileReaderThread;
     private DateTime _lastUpdate = DateTime.MinValue;
+    private DateTime _previousLastUpdateValue = DateTime.MinValue;
 
     public TailFile(string filePath, Action<string> lineHandler)
     {
@@ -30,8 +31,12 @@ internal sealed class TailFile : IMessageProvider
         get
         {
             bool sending = (_fileReaderThread?.IsAlive ?? false) && (DateTime.Now.AddSeconds(-60) < LastUpdate);
-            if (!sending)
+            if (!sending && LastUpdate != _previousLastUpdateValue)
+            {
                 Log.Debug($"{LogPrefix}{ThreadIdText}[{nameof(IsSendingMessages)}] Last Update: {LastUpdate:T}, LastUpdate result: {DateTime.Now.AddSeconds(-60) < LastUpdate:T}, Thread is alive: '{_fileReaderThread?.IsAlive}'");
+                _previousLastUpdateValue = LastUpdate;
+            }
+
             return sending;
         }
     }

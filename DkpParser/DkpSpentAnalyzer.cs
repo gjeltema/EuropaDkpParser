@@ -115,7 +115,14 @@ internal sealed partial class DkpSpentAnalyzer
         string trimmedName = rawName.Trim();
         if (trimmedName == Constants.Rot)
             return trimmedName;
-        else
-            return trimmedName.NormalizeName();
+
+        int indexOfAlt = trimmedName.IndexOf("[ALT]");
+        if (indexOfAlt > 0)
+        {
+            trimmedName = trimmedName[..indexOfAlt];
+            Log.Debug($"{LogPrefix} Removed [ALT] from winner setting.  Was: {rawName}, now: {trimmedName}.");
+        }
+
+        return trimmedName.NormalizeName();
     }
 }
