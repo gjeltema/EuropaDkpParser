@@ -58,6 +58,7 @@ public static class Constants
     public const string JoinedRaid = " joined the raid.";
     public const string KillCall = "KILL";
     public const string LeftRaid = " has left the raid.";
+    public const string LoadingPleaseWait = "LOADING, PLEASE WAIT...";
     public const string Lockout = "You have incurred a lockout for ";
     public const string LootedA = " looted a ";
     public const string MezBreakIdentifier = " is no longer mezzed. (";
@@ -129,8 +130,10 @@ public static class Constants
     public const string Twitches = " twitches.";
     public const string Undo = "UNDO";
     public const string UploadDebugInfoFileNamePrefix = "DEBUGUploadInfo-";
+    public const string WelcomeToEverquest = "Welcome to EverQuest!";
     public const string WhoZonePrefixPlural = "There are ";
     public const string WhoZonePrefixSingle = "There is ";
+    public const string YouHaveEntered = "You have entered ";
     public const string YouHealed = "You have been healed for ";
     public const string YouTold = "You told ";
     public const string ZealAttendanceBasedFileName = "ZealRaidAttendance_";

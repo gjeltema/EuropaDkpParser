@@ -269,6 +269,17 @@ public sealed class EqLogTailFile : IEqLogTailFile
         return false;
     }
 
+    private bool CheckForZoning(string logLineNoTimestamp, string message)
+    {
+        if (!logLineNoTimestamp.StartsWith(Constants.YouHaveEntered)
+            && !logLineNoTimestamp.StartsWith(Constants.WelcomeToEverquest)
+            && !logLineNoTimestamp.StartsWith(Constants.LoadingPleaseWait))
+            return false;
+
+        Log.Info($"{LogPrefix} Zoning: {message}");
+        return true;
+    }
+
     private AfkCommandEventArgs GetAfkCommand(string logLineNoTimestamp, string messageSenderName)
     {
         string noWhitespaceLogline = logLineNoTimestamp.RemoveAllWhitespace();
@@ -298,9 +309,6 @@ public sealed class EqLogTailFile : IEqLogTailFile
     {
         // [Fri Dec 05 20:02:17 2025] a fetid fiend is no longer mezzed. (Haight - melee)
         // [Fri Dec 12 20:20:13 2025] Amygdalan knight is no longer mezzed. (Naddin - Upheaval)
-
-        if (MezBreakMessage == null)
-            return null;
 
         if (!logLineNoTimestamp.Contains(MezBreakIdentifier))
             return null;
@@ -388,7 +396,6 @@ public sealed class EqLogTailFile : IEqLogTailFile
 
     private void ProcessMessage(string message)
     {
-        Log.Trace($"{LogPrefix} {nameof(message)}: {message}");
         if (!message.TryExtractEqLogTimeStamp(out DateTime timestamp))
         {
             Log.Debug($"{LogPrefix} Message has no parsable timestamp: {message}");
@@ -399,6 +406,9 @@ public sealed class EqLogTailFile : IEqLogTailFile
         {
             // +1 to remove the following space.
             string logLineNoTimestamp = message[(Constants.EqLogDateTimeLength + 1)..];
+
+            if (CheckForZoning(logLineNoTimestamp, message))
+                return;
 
             if (CheckForMezBreak(logLineNoTimestamp, timestamp))
                 return;

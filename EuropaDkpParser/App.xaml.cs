@@ -139,7 +139,7 @@ public partial class App : Application
         }
 
         Log.Logger.Default = simpleAsyncLogTarget;
-        Log.Info($"Logging started. LogLevel set to: {Log.Logger.Default.LoggingLevel}");
+        Log.Info($"========== Logging started. LogLevel set to: {Log.Logger.Default.LoggingLevel} ==========");
     }
 
     private void LoadSettings()
