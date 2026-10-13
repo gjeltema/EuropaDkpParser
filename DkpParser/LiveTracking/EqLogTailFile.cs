@@ -35,6 +35,7 @@ public sealed class EqLogTailFile : IEqLogTailFile
     private ImmutableList<string> _auctionItems;
     private ActiveAuctionStartAnalyzer _auctionStartAnalyzer;
     private ChannelAnalyzer _channelAnalyzer;
+    private string _lastCharacterAttemptedToRead = string.Empty;
     private DateTime _lastZealNotConnectedMessage = DateTime.MinValue;
     private string _logFilePath;
     private IMessageProviderFactory _messageProviderFactory;
@@ -111,7 +112,10 @@ public sealed class EqLogTailFile : IEqLogTailFile
         }
 
         if (IsSendingMessages)
+        {
+            _lastCharacterAttemptedToRead = string.Empty;
             return;
+        }
 
         string currentCharacterName = ZealAttendanceMessageProvider.Instance.CharacterInfo.CharacterName;
         bool isZealConnected = ZealAttendanceMessageProvider.Instance.IsConnected && !ZealAttendanceMessageProvider.Instance.CharacterInfo.IsDataStale;
@@ -125,14 +129,19 @@ public sealed class EqLogTailFile : IEqLogTailFile
         string logFilePath = _settings.GetLogFileForCharacter(currentCharacterName);
         if (logFilePath != null)
         {
-            Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file, starting to read {logFilePath}.");
+            Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not yet reading log file, starting to read {logFilePath}.");
             SetTailFile(logFilePath);
             InformListenersOfFileChange(logFilePath, currentCharacterName, true);
+            _lastCharacterAttemptedToRead = string.Empty;
             return;
         }
 
         InformListenersOfFileChange(logFilePath, currentCharacterName, false);
-        Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file, Zeal is connected, but character name does not have a matching log file configured.");
+        if (_lastCharacterAttemptedToRead != currentCharacterName)
+        {
+            Log.Debug($"{LogPrefix} {nameof(CheckAndSetTailFile)}: Not reading log file, Zeal is connected, but character name '{currentCharacterName}' does not have a matching log file configured.");
+            _lastCharacterAttemptedToRead = currentCharacterName;
+        }
     }
 
     private bool CheckForAfk(string message, string messageSenderName)
