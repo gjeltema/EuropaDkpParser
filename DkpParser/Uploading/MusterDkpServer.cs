@@ -310,8 +310,6 @@ public sealed class MusterDkpServer : IMusterDkpServer
 
         string responseText = await response.Content.ReadAsStringAsync();
 
-        Log.Trace($"{LogPrefix} GET response text:{Environment.NewLine}{responseText}");
-
         ServerResponse responseInfo = new()
         {
             Response = responseText,
@@ -337,7 +335,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
 
         MusterRaidUploadResponse parsedResponse = JsonSerializer.Deserialize<MusterRaidUploadResponse>(response.Response);
 
-        Log.Trace($"{LogPrefix} Parsed response: {parsedResponse}");
+        Log.Trace($"{LogPrefix} Parsed response: {JsonSerializer.Serialize(parsedResponse, PrettyPrintJsonOption)}");
 
         MusterDkpRaidUploadResults results = new()
         {
@@ -349,7 +347,7 @@ public sealed class MusterDkpServer : IMusterDkpServer
             ItemBoughtErrors = GetItemBoughtErrors(parsedResponse.Items, raidData, uploadRaidInfo)
         };
 
-        Log.Trace($"{LogPrefix} Upload Results: {results}");
+        Log.Debug($"{LogPrefix} Upload Results: {results}");
 
         return results;
     }
@@ -365,11 +363,9 @@ public sealed class MusterDkpServer : IMusterDkpServer
 
         using HttpResponseMessage response = await _localHttpClient.PostAsync(uri, postContent);
 
-        Log.Debug($"{LogPrefix} Received response.  Response object:{Environment.NewLine}{response}");
+        Log.Debug($"{LogPrefix} Received response.  Response code:{response.StatusCode}");
 
         string responseText = await response.Content.ReadAsStringAsync();
-
-        Log.Trace($"{LogPrefix} GET response code:{response.StatusCode}, text:{Environment.NewLine}{responseText}");
 
         ServerResponse responseInfo = new()
         {

@@ -84,7 +84,7 @@ public sealed class RaidUploader : IRaidUpload
 
     private async Task<ICollection<MusterPreCheckError>> GetCharactersNotExisting(UploadRaidInfo uploadRaidInfo)
     {
-        ICollection<CharacterServerInfo> recentChars = await _musterDkpServer.GetAllActiveCharacterAttendancesAsync();
+        IEnumerable<CharacterServerInfo> recentChars = CharacterInfoProvider.Instance.GetAllCharactersInfo();
         List<string> recentCharNames = recentChars.Select(x => x.CharacterName).ToList();
 
         // Attendance check
