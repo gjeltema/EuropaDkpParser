@@ -116,13 +116,12 @@ internal sealed partial class DkpSpentAnalyzer
         if (trimmedName == Constants.Rot)
             return trimmedName;
 
-        int indexOfAlt = trimmedName.IndexOf("[ALT]");
-        if (indexOfAlt > 0)
-        {
-            trimmedName = trimmedName[..indexOfAlt];
-            Log.Debug($"{LogPrefix} Removed [ALT] from winner setting.  Was: {rawName}, now: {trimmedName}.");
-        }
+        int indexOfAlt = trimmedName.IndexOf(Constants.AltBracket);
 
-        return trimmedName.NormalizeName();
+        trimmedName = trimmedName.Replace(Constants.AltBracket, "").Trim().NormalizeName();
+        if (indexOfAlt > 0)
+            Log.Debug($"{LogPrefix} Removed {Constants.AltBracket} from winner setting.  Was: {rawName}, now: {trimmedName}.");
+
+        return trimmedName;
     }
 }

@@ -14,6 +14,7 @@ public static class Constants
     public const string AfkEndAlternateDelimiter = $"{AlternateDelimiter}{AfkEnd}{AlternateDelimiter}";
     public const string AfkEndWithDelimiter = $"{AttendanceDelimiter}{AfkEnd}{AttendanceDelimiter}";
     public const string AfkWithDelimiter = $"{AttendanceDelimiter}{Afk}{AttendanceDelimiter}";
+    public const string AltBracket = "[ALT]";
     public const string AlternateDelimiter = "+";
     public const string AnonWithBrackets = "[ANONYMOUS]";
     /// <summary>

@@ -233,7 +233,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         if (auction.IsRoll)
         {
             string channel = GetChannelShortcut(auction.Channel);
-            string highRollersString = string.Join(", ", highBids.Select(x => $"{x.CharacterPlacingBid}{(x.BidderIsMainCharacter ? "" : "[ALT]")} {x.BidAmount}"));
+            string highRollersString = string.Join(", ", highBids.Select(x => $"{x.CharacterPlacingBid}{(x.BidderIsMainCharacter ? "" : Constants.AltBracket)} {x.BidAmount}"));
             string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
             string highOrLow = lowRollWins ? "Low" : "High";
             string rollsText = highBids.Count > 1 ? "rolls" : "roll";
@@ -242,7 +242,7 @@ public sealed class ActiveBidTracker : IActiveBidTracker
         else
         {
             string channel = GetChannelShortcut(auction.Channel);
-            string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterBeingBidFor}{(x.BidderIsMainCharacter ? "" : "[ALT]")} {x.BidAmount} DKP"));
+            string highBiddersString = string.Join(", ", highBids.Select(x => $"{x.CharacterBeingBidFor}{(x.BidderIsMainCharacter ? "" : Constants.AltBracket)} {x.BidAmount} DKP"));
             string itemLink = _itemLinkValues.GetItemLink(auction.ItemName);
             return $"{channel} {Constants.AttendanceDelimiter}{itemLink}{Constants.AttendanceDelimiter} {highBiddersString} {statusString}";
         }
