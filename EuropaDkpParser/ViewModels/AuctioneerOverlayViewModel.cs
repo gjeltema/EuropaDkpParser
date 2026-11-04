@@ -261,6 +261,11 @@ internal sealed class AuctioneerOverlayViewModel : OverlayViewModelBase, IAuctio
                 SpentMessagesToPaste = [];
             }
         }
+        else if (ActiveAuctions.Count > 0)
+        {
+            LiveAuctionDisplay firstAuction = ActiveAuctions.First();
+            SelectedActiveAuction = firstAuction;
+        }
         else
         {
             SpentMessagesToPaste = [];

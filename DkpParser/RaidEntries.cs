@@ -9,6 +9,10 @@ using System.Diagnostics;
 [DebuggerDisplay("Att: {AttendanceEntries.Count}, DKP: {DkpEntries.Count}, Players: {AllCharactersInRaid.Count}")]
 public sealed class RaidEntries
 {
+    // LogInformation
+    // AnalysisResults
+    // UploadResults
+
     private static readonly TimeSpan KillCallTooClose = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan MaxTimeThresholdForKillCall = TimeSpan.FromMinutes(15);
 
