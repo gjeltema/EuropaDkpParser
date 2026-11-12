@@ -26,6 +26,11 @@ public abstract class EqLogParserBase : IEqLogParser
         int remainderLength = 0;
 
         EqLogFile logFile = new() { LogFile = fullFilePath };
+        if (!File.Exists(fullFilePath))
+        {
+            Log.Warning($"{LogPrefix} File does not exist, exiting parse for this file: {fullFilePath}");
+            return logFile;
+        }
 
         InitializeEntryParsers(logFile, startTime, endTime);
 
