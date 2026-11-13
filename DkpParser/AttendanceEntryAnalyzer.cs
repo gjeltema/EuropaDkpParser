@@ -627,20 +627,24 @@ internal sealed class AttendanceEntryAnalyzer : IAttendanceEntryAnalyzer
         foreach (AttendanceEntry attendance in _raidEntries.AttendanceEntries)
         {
             // Convert all Transfers in this attendance to the character DKP is being transferred to
-            List<string> charactersInAttendance = attendance.Characters.Select(x => x.CharacterName).ToList();
-            foreach (string characterInAttendance in charactersInAttendance)
+            IEnumerable<string> charactersInAttendance = attendance.Characters.Select(x => x.CharacterName);
+            List<string> charactersAfterTransfers = charactersInAttendance.ToList();
+            if (_raidEntries.Transfers.Count > 0)
             {
-                DkpTransfer relatedTransfer = _raidEntries.Transfers.FirstOrDefault(x => x.FromCharacter.CharacterName == characterInAttendance);
-                if (relatedTransfer != null)
+                foreach (string characterInAttendance in charactersInAttendance)
                 {
-                    charactersInAttendance.Remove(characterInAttendance);
-                    charactersInAttendance.Add(relatedTransfer.ToCharacterName);
+                    DkpTransfer relatedTransfer = _raidEntries.Transfers.FirstOrDefault(x => x.FromCharacter.CharacterName == characterInAttendance);
+                    if (relatedTransfer != null)
+                    {
+                        charactersAfterTransfers.Remove(characterInAttendance);
+                        charactersAfterTransfers.Add(relatedTransfer.ToCharacterName);
+                    }
                 }
             }
 
             // Get a list of all the attendees DKP server profiles.  Primarily wanting the CharacterID and UserID.
-            List<CharacterServerInfo> dkpCharsInAttendance = new(charactersInAttendance.Count);
-            foreach (string characterInAttendance in charactersInAttendance)
+            List<CharacterServerInfo> dkpCharsInAttendance = new(charactersAfterTransfers.Count);
+            foreach (string characterInAttendance in charactersAfterTransfers)
             {
                 CharacterServerInfo dkpServerChar = dkpServerChars.FirstOrDefault(x => x.CharacterName == characterInAttendance);
                 if (dkpServerChar == null)

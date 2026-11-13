@@ -13,7 +13,8 @@ internal sealed class ReminderDialogViewModel : DialogViewModelBase, IReminderDi
 {
     private readonly IAttendanceSnapshot _attendanceSnapshot;
     private readonly List<string> _timeCalls = ["First Call", "Second Call", "Third Call", "Fourth Call", "Fifth Call", "Sixth Call"
-            , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call", "Thirteenth Call", "Fourteenth Call"];
+            , "Seventh Call", "Eighth Call", "Ninth Call", "Tenth Call", "Eleventh Call", "Twelfth Call", "Thirteenth Call", "Fourteenth Call"
+        , "Fifteenth Call", "Sixteenth Call", "Seventeenth Call", "Eighteenth Call", "Nineteenth Call", "Twentieth Call", "Twenty-first Call", "Twenty-second Call"];
     private string _attendanceName;
     private int _reminderInterval;
     private string _reminderText;
